@@ -367,7 +367,7 @@ struct ConfigurationDetailView: View {
                 }
             }
             ToolbarItem(placement: .confirmationAction) {
-                StyledButton("Save", isDisabled: !isValidConfiguration) {
+                Button("Save") {
                     if isValidConfiguration {
                         saveConfiguration()
                     } else {
@@ -375,6 +375,8 @@ struct ConfigurationDetailView: View {
                         showingValidationAlert = true
                     }
                 }
+                .buttonStyle(SaveButtonStyle(isDisabled: !isValidConfiguration))
+                .disabled(!isValidConfiguration)
             }
         }
         .alert("Validation Error", isPresented: $showingValidationAlert) {
@@ -581,6 +583,38 @@ struct DayTimeSlotEditor: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+// MARK: - Save Button Style
+
+struct SaveButtonStyle: ButtonStyle {
+    let isDisabled: Bool
+    @State private var isHovered = false
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(isDisabled ? Color.gray.opacity(0.1) : Color.green.opacity(0.13))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(isDisabled ? Color.gray.opacity(0.2) : Color.green.opacity(0.35), lineWidth: 1)
+                    )
+            )
+            .foregroundColor(isDisabled ? Color.gray.opacity(0.6) : Color.green)
+            .shadow(color: isHovered && !configuration.isPressed && !isDisabled ? .black.opacity(0.15) : .clear, radius: isHovered ? 3 : 0, x: 0, y: isHovered ? 1 : 0)
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .opacity(isDisabled ? 0.5 : 1.0)
+            .onHover { hovering in
+                if !isDisabled {
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        isHovered = hovering
+                    }
+                }
+            }
     }
 }
 
