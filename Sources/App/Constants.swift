@@ -6,7 +6,7 @@ enum Constants {
     // MARK: - App Information
     
     static let appName = "ODYSSEY"
-    static let appVersion = "1.3.2"
+    static let appVersion = "1.4.0"
     static let bundleIdentifier = "com.odyssey.app"
     
     // MARK: - URLs
