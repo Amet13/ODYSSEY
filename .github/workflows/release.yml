@@ -29,20 +29,20 @@ jobs:
 
       - name: Generate Xcode project
         run: |
-          xcodegen
+          xcodegen --spec Config/project.yml
 
       - name: Build Release
         run: |
           xcodebuild build \
-            -project ORRMAT.xcodeproj \
-            -scheme ORRMAT \
+            -project Config/ODYSSEY.xcodeproj \
+            -scheme ODYSSEY \
             -configuration Release \
             -destination 'platform=macOS' \
             -quiet
 
       - name: Code Sign App
         run: |
-          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ORRMAT.app" -type d 2>/dev/null | head -1)
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
           echo "Code signing app at: $APP_PATH"
 
           # Remove any existing code signing
@@ -58,7 +58,7 @@ jobs:
       - name: Get app path
         id: app-path
         run: |
-          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ORRMAT.app" -type d 2>/dev/null | head -1)
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
           echo "APP_PATH=$APP_PATH" >> $GITHUB_OUTPUT
           echo "Found app at: $APP_PATH"
 
@@ -69,40 +69,40 @@ jobs:
           cp -R "${{ steps.app-path.outputs.APP_PATH }}" dmg_temp/
 
           # Check if app icon exists, if not create a simple one
-          ICON_PATH="dmg_temp/ORRMAT.app/Contents/Resources/AppIcon.icns"
+          ICON_PATH="dmg_temp/ODYSSEY.app/Contents/Resources/AppIcon.icns"
           if [ ! -f "$ICON_PATH" ]; then
             echo "App icon not found, creating DMG without custom icon"
             # Create DMG without custom icon
             create-dmg \
-              --volname "ORRMAT Installer" \
+              --volname "ODYSSEY Installer" \
               --window-pos 200 120 \
               --window-size 600 400 \
               --icon-size 100 \
-              --icon "ORRMAT.app" 175 120 \
-              --hide-extension "ORRMAT.app" \
+              --icon "ODYSSEY.app" 175 120 \
+              --hide-extension "ODYSSEY.app" \
               --app-drop-link 425 120 \
-              "ORRMAT-${{ github.ref_name }}.dmg" \
+              "ODYSSEY-${{ github.ref_name }}.dmg" \
               "dmg_temp/"
           else
             echo "Using app icon: $ICON_PATH"
             # Create DMG with custom icon
             create-dmg \
-              --volname "ORRMAT Installer" \
+              --volname "ODYSSEY Installer" \
               --volicon "$ICON_PATH" \
               --window-pos 200 120 \
               --window-size 600 400 \
               --icon-size 100 \
-              --icon "ORRMAT.app" 175 120 \
-              --hide-extension "ORRMAT.app" \
+              --icon "ODYSSEY.app" 175 120 \
+              --hide-extension "ODYSSEY.app" \
               --app-drop-link 425 120 \
-              "ORRMAT-${{ github.ref_name }}.dmg" \
+              "ODYSSEY-${{ github.ref_name }}.dmg" \
               "dmg_temp/"
           fi
 
       - name: Get app size
         run: |
           APP_SIZE=$(du -sh "${{ steps.app-path.outputs.APP_PATH }}" | cut -f1)
-          DMG_SIZE=$(du -sh "ORRMAT-${{ github.ref_name }}.dmg" | cut -f1)
+          DMG_SIZE=$(du -sh "ODYSSEY-${{ github.ref_name }}.dmg" | cut -f1)
           echo "App size: $APP_SIZE"
           echo "DMG size: $DMG_SIZE"
           echo "APP_SIZE=$APP_SIZE" >> $GITHUB_ENV
@@ -111,17 +111,17 @@ jobs:
       - name: Upload DMG
         uses: actions/upload-artifact@v4
         with:
-          name: orrmat-installer
-          path: ORRMAT-${{ github.ref_name }}.dmg
+          name: odyssey-installer
+          path: ODYSSEY-${{ github.ref_name }}.dmg
           retention-days: 30
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: ORRMAT-${{ github.ref_name }}.dmg
-          name: ORRMAT ${{ github.ref_name }}
+          files: ODYSSEY-${{ github.ref_name }}.dmg
+          name: ODYSSEY ${{ github.ref_name }}
           body: |
-            ## ORRMAT ${{ github.ref_name }}
+            ## ODYSSEY ${{ github.ref_name }}
 
             ### 🚀 What's New
             - Automated macOS menu bar application for Ottawa Recreation reservations
@@ -132,8 +132,8 @@ jobs:
             ### 📦 Installation
             1. Download the DMG file above
             2. Double-click to mount the disk image
-            3. Drag ORRMAT to your Applications folder
-            4. **First Launch**: Right-click ORRMAT in Applications and select "Open"
+            3. Drag ODYSSEY to your Applications folder
+            4. **First Launch**: Right-click ODYSSEY in Applications and select "Open"
             5. Click "Open" in the security dialog that appears
             6. The app will appear in your menu bar
             7. **Note**: This is normal for apps not from the App Store
@@ -157,8 +157,8 @@ jobs:
             - **Build Date**: $(date -u +"%Y-%m-%d %H:%M UTC")
 
             ### 🐛 Issues & Support
-            - [Report Issues](https://github.com/Amet13/orrmat/issues)
-            - [Community Discussion](https://github.com/Amet13/orrmat/discussions)
+            - [Report Issues](https://github.com/Amet13/odyssey/issues)
+            - [Community Discussion](https://github.com/Amet13/odyssey/discussions)
 
             ### 🔧 Troubleshooting
             **"App is damaged" error?**

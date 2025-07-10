@@ -26,7 +26,7 @@ jobs:
 
       - name: Generate Xcode project
         run: |
-          xcodegen
+          xcodegen --spec Config/project.yml
 
       - name: Run SwiftLint
         run: |
@@ -35,8 +35,8 @@ jobs:
       - name: Build Debug
         run: |
           xcodebuild build \
-            -project ORRMAT.xcodeproj \
-            -scheme ORRMAT \
+            -project Config/ODYSSEY.xcodeproj \
+            -scheme ODYSSEY \
             -configuration Debug \
             -destination 'platform=macOS' \
             -quiet
@@ -44,16 +44,16 @@ jobs:
       - name: Build Release
         run: |
           xcodebuild build \
-            -project ORRMAT.xcodeproj \
-            -scheme ORRMAT \
+            -project Config/ODYSSEY.xcodeproj \
+            -scheme ODYSSEY \
             -configuration Release \
             -destination 'platform=macOS' \
             -quiet
 
       - name: Check app sizes
         run: |
-          DEBUG_APP=$(find ~/Library/Developer/Xcode/DerivedData -name "ORRMAT.app" -type d 2>/dev/null | grep Debug | head -1)
-          RELEASE_APP=$(find ~/Library/Developer/Xcode/DerivedData -name "ORRMAT.app" -type d 2>/dev/null | grep Release | head -1)
+          DEBUG_APP=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | grep Debug | head -1)
+          RELEASE_APP=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | grep Release | head -1)
 
           if [ -n "$DEBUG_APP" ]; then
             DEBUG_SIZE=$(du -sh "$DEBUG_APP" | cut -f1)
@@ -72,6 +72,6 @@ jobs:
         with:
           name: nightly-build-${{ github.run_number }}
           path: |
-            ~/Library/Developer/Xcode/DerivedData/ORRMAT-*/Build/Products/Debug/ORRMAT.app
-            ~/Library/Developer/Xcode/DerivedData/ORRMAT-*/Build/Products/Release/ORRMAT.app
+            ~/Library/Developer/Xcode/DerivedData/ODYSSEY-*/Build/Products/Debug/ODYSSEY.app
+            ~/Library/Developer/Xcode/DerivedData/ODYSSEY-*/Build/Products/Release/ODYSSEY.app
           retention-days: 7
