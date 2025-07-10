@@ -36,6 +36,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI layout issues and button styling consistency
 - Toggle switch hover effects and visual feedback
 
+## [1.0.2] - $(date +%Y-%m-%d)
+
+### Changed
+
+- Full UI/UX pass for native macOS look and feel
+- Improved margins and spacing for all screens
+- Removed all custom button and card styles
+- Code cleanup and review for release
+
 ## [1.0.0] - 2024-07-09
 
 ### Added
