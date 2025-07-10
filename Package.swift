@@ -1,7 +1,7 @@
 // swift-tools-version: 5.7
-// Package.swift for ORRMAT - Ottawa Recreation Reservation macOS Automation Tool
-// Repository: https://github.com/Amet13/orrmat
+// Package.swift for ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself
+// Repository: https://github.com/Amet13/odyssey
 // 
 // This file is not needed for Xcode projects
-// ORRMAT uses XcodeGen for project generation
+// ODYSSEY uses XcodeGen for project generation
 // See project.yml for project configuration

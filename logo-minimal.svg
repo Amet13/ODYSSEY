@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="#007AFF"/>
+  
+  <!-- Calendar base -->
+  <rect x="160" y="180" width="192" height="140" rx="8" fill="white" stroke="#0056CC" stroke-width="3"/>
+  
+  <!-- Calendar header -->
+  <rect x="160" y="180" width="192" height="32" rx="8" fill="#0056CC"/>
+  
+  <!-- Calendar dots -->
+  <circle cx="200" cy="196" r="3" fill="white"/>
+  <circle cx="220" cy="196" r="3" fill="white"/>
+  <circle cx="240" cy="196" r="3" fill="white"/>
+  <circle cx="260" cy="196" r="3" fill="white"/>
+  
+  <!-- Calendar grid lines -->
+  <line x1="180" y1="232" x2="180" y2="300" stroke="#0056CC" stroke-width="2"/>
+  <line x1="220" y1="232" x2="220" y2="300" stroke="#0056CC" stroke-width="2"/>
+  <line x1="260" y1="232" x2="260" y2="300" stroke="#0056CC" stroke-width="2"/>
+  <line x1="300" y1="232" x2="300" y2="300" stroke="#0056CC" stroke-width="2"/>
+  
+  <line x1="160" y1="232" x2="352" y2="232" stroke="#0056CC" stroke-width="2"/>
+  <line x1="160" y1="256" x2="352" y2="256" stroke="#0056CC" stroke-width="2"/>
+  <line x1="160" y1="280" x2="352" y2="280" stroke="#0056CC" stroke-width="2"/>
+  
+  <!-- Sports ball (simplified) -->
+  <circle cx="256" cy="340" r="25" fill="#FF6B35"/>
+  <path d="M 256 315 Q 281 315 281 340 Q 281 365 256 365 Q 231 365 231 340 Q 231 315 256 315" fill="none" stroke="white" stroke-width="2"/>
+  <path d="M 231 340 Q 256 340 281 340" fill="none" stroke="white" stroke-width="2"/>
+  
+  <!-- Checkmark for automation -->
+  <path d="M 200 260 L 240 280 L 320 240" stroke="#00CC44" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg> 

@@ -1,6 +1,8 @@
-# ORRMAT - Ottawa Recreation Reservation macOS Automation Tool
+# ODYSSEY
 
-A sophisticated macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities. ORRMAT runs quietly in the background and automatically books your preferred sports slots at the optimal time.
+> **Ottawa Drop-in Your Sports & Schedule Easily Yourself (macOS Automation)**
+
+A sophisticated macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities. ODYSSEY runs quietly in the background and automatically books your preferred sports slots at the optimal time.
 
 ## 🚀 Features
 
@@ -28,11 +30,11 @@ A sophisticated macOS menu bar application that automates sports reservation boo
 
 #### Option 1: Download Latest Release (Recommended)
 
-1. **Go to [Releases](https://github.com/Amet13/orrmat/releases)**
-2. **Download the latest DMG file** (e.g., `ORRMAT-v1.0.0.dmg`)
+1. **Go to [Releases](https://github.com/Amet13/odyssey/releases)**
+2. **Download the latest DMG file** (e.g., `ODYSSEY-v1.0.0.dmg`)
 3. **Double-click the DMG** to mount the disk image
-4. **Drag ORRMAT to Applications** folder
-5. **Launch ORRMAT** from Applications
+4. **Drag ODYSSEY to Applications** folder
+5. **Launch ODYSSEY** from Applications
 6. **The app will appear in your menu bar**
 
 #### Option 2: Build from Source
@@ -56,8 +58,8 @@ brew install swiftlint
 #### 2. Clone and Setup
 
 ```bash
-git clone https://github.com/Amet13/orrmat.git
-cd orrmat
+git clone https://github.com/Amet13/odyssey.git
+cd odyssey
 ```
 
 #### 3. Generate Xcode Project
@@ -73,16 +75,16 @@ xcodegen
 ./build.sh
 
 # Or open in Xcode
-open ORRMAT.xcodeproj
+open ODYSSEY.xcodeproj
 ```
 
 ## 🏗️ Project Structure
 
 ```
-orrmat/
-├── ORRMAT.xcodeproj/              # Xcode project (auto-generated)
-├── ORRMAT/
-│   ├── ORRMATApp.swift            # Main app entry point
+odyssey/
+├── ODYSSEY.xcodeproj/              # Xcode project (auto-generated)
+├── Sources/
+│   ├── App/ODYSSEYApp.swift        # Main app entry point
 │   ├── ContentView.swift          # Main configuration interface
 │   ├── ConfigurationDetailView.swift # Configuration editor
 │   ├── StatusBarController.swift  # Menu bar integration
@@ -106,7 +108,7 @@ orrmat/
 
 ### Basic Setup
 
-1. **Launch ORRMAT** - Click the menu bar icon
+1. **Launch ODYSSEY** - Click the menu bar icon
 2. **Add Configuration** - Click the "+" button
 3. **Enter Facility URL** - Paste your Ottawa Recreation facility URL
 4. **Select Sport** - Choose from available sports at the facility
@@ -127,7 +129,7 @@ orrmat/
 
 ### Automation Process
 
-1. **Scheduling** - ORRMAT calculates the optimal booking time (2 days before at 6:00 PM)
+1. **Scheduling** - ODYSSEY calculates the optimal booking time (2 days before at 6:00 PM)
 2. **Web Navigation** - Uses WebKit to navigate to the facility website
 3. **Form Automation** - Automatically fills forms with your preferences
 4. **Slot Selection** - Finds and selects available time slots
@@ -166,13 +168,13 @@ orrmat/
 
 ### Debug Mode
 
-Enable detailed logging by checking the Console app for messages from subsystem "com.orrmat.app"
+Enable detailed logging by checking the Console app for messages from subsystem "com.odyssey.app"
 
 ## 🧪 Development
 
 ### CI/CD Pipeline
 
-ORRMAT uses GitHub Actions for continuous integration and deployment:
+ODYSSEY uses GitHub Actions for continuous integration and deployment:
 
 - **CI Workflow** - Runs on every push and pull request
   - Builds the app in Debug configuration
@@ -230,10 +232,10 @@ The app uses `os.log` for comprehensive logging:
 
 ```bash
 # Build and test
-xcodebuild test -project ORRMAT.xcodeproj -scheme ORRMAT
+xcodebuild test -project ODYSSEY.xcodeproj -scheme ODYSSEY
 
 # Run specific tests
-xcodebuild test -project ORRMAT.xcodeproj -scheme ORRMAT -only-testing:ORRMATTests/ConfigurationManagerTests
+xcodebuild test -project ODYSSEY.xcodeproj -scheme ODYSSEY -only-testing:ODYSSEYTests/ConfigurationManagerTests
 ```
 
 ## 🤝 Contributing
@@ -266,9 +268,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/Amet13/orrmat/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Amet13/orrmat/discussions)
-- **Email**: support@orrmat.app
+- **Issues**: [GitHub Issues](https://github.com/Amet13/odyssey/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Amet13/odyssey/discussions)
+- **Email**: support@odyssey.app
 
 ---
 

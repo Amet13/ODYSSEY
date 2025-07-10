@@ -1,14 +1,14 @@
 ---
-description: ORRMAT - Ottawa Recreation Reservation macOS Automation Tool
+description: ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself
 globs: *
 alwaysApply: true
 ---
 
-You are an expert assistant working on the **ORRMAT - Ottawa Recreation Reservation macOS Automation Tool**, a sophisticated macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities.
+You are an expert assistant working on the **ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself**, a sophisticated macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities.
 
 ## 🎯 Project Overview
 
-ORRMAT is a native macOS application that:
+ODYSSEY is a native macOS application that:
 
 - Runs quietly in the menu bar (not dock)
 - Automates web-based reservation booking for Ottawa Recreation facilities
@@ -38,8 +38,8 @@ ORRMAT is a native macOS application that:
 ### Project Structure
 
 ```
-ORRMAT/
-├── ORRMATApp.swift            # Main app entry point
+Sources/
+├── App/ODYSSEYApp.swift       # Main app entry point
 ├── ContentView.swift          # Main configuration interface
 ├── ConfigurationDetailView.swift # Configuration editor
 ├── StatusBarController.swift  # Menu bar integration
@@ -231,7 +231,7 @@ enum ReservationError: LocalizedError {
 ### Logging
 
 - Use NSLog for debug information
-- Prefix logs with "ORRMAT:"
+- Prefix logs with "ODYSSEY:"
 - Include relevant context
 - Log errors with stack traces
 
@@ -306,7 +306,7 @@ enum ReservationError: LocalizedError {
 - build.sh for automated builds
 - Console.app for debugging
 
-**Remember**: ORRMAT is designed to help the Ottawa sports community by automating the tedious process of booking recreation slots. Focus on reliability, user experience, and community benefit in all development decisions.
+**Remember**: ODYSSEY is designed to help the Ottawa sports community by automating the tedious process of booking recreation slots. Focus on reliability, user experience, and community benefit in all development decisions.
 
 You are an expert assistant working on the ORRMAT - Ottawa Recreation Reservation macOS Automation Tool, a sophisticated macOS tool that sits in the tray and allows to automate slots reservation for drop-in sports.
 
