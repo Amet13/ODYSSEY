@@ -1,124 +1,5 @@
 import SwiftUI
 
-// MARK: - Custom Hover Styles
-
-struct HoverTextFieldStyle: TextFieldStyle {
-    @State private var isHovered = false
-    
-    func _body(configuration: TextField<Self._Label>) -> some View {
-        configuration
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color(NSColor.controlBackgroundColor))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(isHovered ? Color.blue.opacity(0.5) : Color.gray.opacity(0.3), lineWidth: isHovered ? 2 : 1)
-                    )
-            )
-            .shadow(color: isHovered ? .black.opacity(0.1) : .clear, radius: isHovered ? 2 : 0, x: 0, y: isHovered ? 1 : 0)
-            .onHover { hovering in
-                withAnimation(.easeInOut(duration: 0.15)) {
-                    isHovered = hovering
-                }
-            }
-    }
-}
-
-struct HoverMenuStyle: ViewModifier {
-    @State private var isHovered = false
-    
-    func body(content: Content) -> some View {
-        content
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color(NSColor.controlBackgroundColor))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(isHovered ? Color.blue.opacity(0.5) : Color.gray.opacity(0.3), lineWidth: isHovered ? 2 : 1)
-                    )
-            )
-            .shadow(color: isHovered ? .black.opacity(0.1) : .clear, radius: isHovered ? 2 : 0, x: 0, y: isHovered ? 1 : 0)
-            .onHover { hovering in
-                withAnimation(.easeInOut(duration: 0.15)) {
-                    isHovered = hovering
-                }
-            }
-    }
-}
-
-struct HoverRadioButtonStyle: ButtonStyle {
-    @State private var isHovered = false
-    
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(isHovered ? Color.blue.opacity(0.1) : Color.clear)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(isHovered ? Color.blue.opacity(0.3) : Color.clear, lineWidth: 1)
-                    )
-            )
-            .shadow(color: isHovered ? .black.opacity(0.05) : .clear, radius: isHovered ? 2 : 0, x: 0, y: isHovered ? 1 : 0)
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
-            .onHover { hovering in
-                withAnimation(.easeInOut(duration: 0.15)) {
-                    isHovered = hovering
-                }
-            }
-    }
-}
-
-struct HoverIconButtonStyle: ButtonStyle {
-    @State private var isHovered = false
-    
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .padding(6)
-            .background(
-                Circle()
-                    .fill(isHovered ? Color.blue.opacity(0.1) : Color.clear)
-            )
-            .shadow(color: isHovered ? .black.opacity(0.1) : .clear, radius: isHovered ? 3 : 0, x: 0, y: isHovered ? 1 : 0)
-            .scaleEffect(configuration.isPressed ? 0.9 : 1.0)
-            .onHover { hovering in
-                withAnimation(.easeInOut(duration: 0.15)) {
-                    isHovered = hovering
-                }
-            }
-    }
-}
-
-struct HoverDatePickerStyle: ViewModifier {
-    @State private var isHovered = false
-    
-    func body(content: Content) -> some View {
-        content
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color(NSColor.controlBackgroundColor))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(isHovered ? Color.blue.opacity(0.5) : Color.gray.opacity(0.2), lineWidth: isHovered ? 1.5 : 1)
-                    )
-            )
-            .shadow(color: isHovered ? .black.opacity(0.05) : .clear, radius: isHovered ? 1 : 0, x: 0, y: isHovered ? 1 : 0)
-            .onHover { hovering in
-                withAnimation(.easeInOut(duration: 0.15)) {
-                    isHovered = hovering
-                }
-            }
-    }
-}
-
 /// Detailed view for adding and editing reservation configurations
 struct ConfigurationDetailView: View {
     let config: ReservationConfig?
@@ -141,24 +22,16 @@ struct ConfigurationDetailView: View {
     @State private var validationMessage = ""
     
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Basic Settings Section
-                Group {
-                    Text("Basic Settings")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                        .padding(.top)
-                    
-                    VStack(alignment: .leading, spacing: 8) {
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Basic Settings Section
+                    VStack(alignment: .leading, spacing: 16) {
                         Text("Facility URL")
                             .font(.subheadline)
                             .foregroundColor(.primary)
                         TextField("Enter facility URL", text: $facilityURL)
-                            .textFieldStyle(HoverTextFieldStyle())
-                            .onChange(of: facilityURL) { _ in
-                                updateConfigurationName()
-                            }
+                            .onChange(of: facilityURL) { _ in updateConfigurationName() }
                         if !facilityURL.isEmpty && !isValidFacilityURL(facilityURL) {
                             Text("Invalid facility URL. Please enter a valid Ottawa Recreation URL.")
                                 .font(.caption)
@@ -167,16 +40,16 @@ struct ConfigurationDetailView: View {
                                 .font(.caption)
                         }
                     }
-                    
-                    VStack(alignment: .leading, spacing: 8) {
+                    .padding(.bottom, 20)
+
+                    VStack(alignment: .leading, spacing: 16) {
                         Text("Sport Name")
                             .font(.subheadline)
                             .foregroundColor(.primary)
                         HStack {
                             Menu {
                                 if availableSports.isEmpty {
-                                    Text("No sports available")
-                                        .foregroundColor(.secondary)
+                                    Text("No sports available").foregroundColor(.secondary)
                                 } else {
                                     ForEach(availableSports, id: \.self) { sport in
                                         Button(action: {
@@ -187,8 +60,7 @@ struct ConfigurationDetailView: View {
                                                 Text(sport)
                                                 if sportName == sport {
                                                     Spacer()
-                                                    Image(systemName: "checkmark")
-                                                        .foregroundColor(.blue)
+                                                    Image(systemName: "checkmark").foregroundColor(.accentColor)
                                                 }
                                             }
                                         }
@@ -199,105 +71,72 @@ struct ConfigurationDetailView: View {
                                     Text(sportName.isEmpty ? "Select Sport" : sportName)
                                         .foregroundColor(sportName.isEmpty ? .secondary : .primary)
                                     Spacer()
-                                    Image(systemName: "chevron.down")
-                                        .foregroundColor(.secondary)
-                                        .font(.caption)
+                                    Image(systemName: "chevron.down").foregroundColor(.secondary).font(.caption)
                                 }
                             }
-                            .modifier(HoverMenuStyle())
                             .disabled(availableSports.isEmpty)
-                            
                             if !facilityURL.isEmpty && isValidFacilityURL(facilityURL) {
-                                Button(action: {
-                                    fetchAvailableSports()
-                                }) {
+                                Button(action: { fetchAvailableSports() }) {
                                     Image(systemName: isFetchingSports ? "arrow.clockwise" : "magnifyingglass")
-                                        .foregroundColor(.blue)
                                 }
-                                .buttonStyle(HoverIconButtonStyle())
+                                .buttonStyle(.bordered)
                                 .disabled(isFetchingSports)
                             }
                         }
-                        
                         if isFetchingSports {
                             HStack {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                                Text("Fetching available sports...")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                ProgressView().scaleEffect(0.8)
+                                Text("Fetching available sports...").font(.caption).foregroundColor(.secondary)
                             }
                         }
-                        
                         if !availableSports.isEmpty {
-                            Text("\(availableSports.count) sports found")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            Text("\(availableSports.count) sports found").font(.caption).foregroundColor(.secondary)
                         }
                     }
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Number of People")
-                            .font(.subheadline)
-                            .foregroundColor(.primary)
+                    .padding(.bottom, 20)
+
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Number of People").font(.subheadline).foregroundColor(.primary)
                         HStack(spacing: 20) {
                             Button(action: {
                                 numberOfPeople = 1
                                 updateConfigurationName()
                             }) {
                                 HStack {
-                                    Image(systemName: numberOfPeople == 1 ? "largecircle.fill.circle" : "circle")
-                                        .foregroundColor(numberOfPeople == 1 ? .blue : .gray)
-                                    Text("1 Person")
-                                        .foregroundColor(.primary)
+                                    Image(systemName: numberOfPeople == 1 ? "largecircle.fill.circle" : "circle").foregroundColor(numberOfPeople == 1 ? .accentColor : .secondary)
+                                    Text("1 Person").foregroundColor(.primary)
                                 }
-                            }
-                            .buttonStyle(HoverRadioButtonStyle())
-                            
+                            }.buttonStyle(.bordered)
                             Button(action: {
                                 numberOfPeople = 2
                                 updateConfigurationName()
                             }) {
                                 HStack {
-                                    Image(systemName: numberOfPeople == 2 ? "largecircle.fill.circle" : "circle")
-                                        .foregroundColor(numberOfPeople == 2 ? .blue : .gray)
-                                    Text("2 People")
-                                        .foregroundColor(.primary)
+                                    Image(systemName: numberOfPeople == 2 ? "largecircle.fill.circle" : "circle").foregroundColor(numberOfPeople == 2 ? .accentColor : .secondary)
+                                    Text("2 People").foregroundColor(.primary)
                                 }
-                            }
-                            .buttonStyle(HoverRadioButtonStyle())
-                            
-                            Spacer()
+                            }.buttonStyle(.bordered)
                         }
                     }
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Configuration Name")
-                            .font(.subheadline)
-                            .foregroundColor(.primary)
+                    .padding(.bottom, 20)
+
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Configuration Name").font(.subheadline).foregroundColor(.primary)
                         TextField("Configuration Name", text: $name)
-                            .textFieldStyle(HoverTextFieldStyle())
                     }
-                }
-                Divider()
-                // Scheduling Section
-                Group {
-                    Text("Scheduling")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    VStack(alignment: .leading, spacing: 12) {
+                    .padding(.bottom, 20)
+
+                    Divider().padding(.vertical, 8)
+
+                    // Scheduling Section
+                    VStack(alignment: .leading, spacing: 16) {
                         HStack {
-                            Text("Time Slots")
-                                .font(.subheadline)
-                                .foregroundColor(.primary)
+                            Text("Time Slots").font(.subheadline).foregroundColor(.primary)
                             Spacer()
-                            StyledButton("Add Day") {
-                                showDayPicker = true
-                            }
-                            .controlSize(.small)
-                            .buttonStyle(IconHoverButtonStyle())
+                            Button("Add Day") { showDayPicker = true }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
                         }
-                        
                         if dayTimeSlots.isEmpty {
                             Text("No days selected. Click 'Add Day' to start scheduling.")
                                 .font(.caption)
@@ -323,14 +162,13 @@ struct ConfigurationDetailView: View {
                             }
                         }
                     }
-                }
-                Divider()
-                // Preview Section
-                Group {
-                    Text("Preview")
-                        .font(.headline)
-                        .foregroundColor(.primary)
+                    .padding(.bottom, 20)
+
+                    Divider().padding(.vertical, 8)
+
+                    // Preview Section
                     VStack(alignment: .leading, spacing: 8) {
+                        Text("Preview").font(.headline).padding(.bottom, 4)
                         Text("Name: \(name.isEmpty ? "Not set" : name)")
                         Text("Sport: \(sportName.isEmpty ? "Not set" : sportName)")
                         Text("People: \(numberOfPeople)")
@@ -350,23 +188,17 @@ struct ConfigurationDetailView: View {
                             }
                         }
                     }
+                    .padding(.top, 8)
+                    .padding(.bottom, 8)
                 }
-                Spacer(minLength: 0)
+                .padding(.horizontal, 32)
+                .padding(.vertical, 24)
             }
-            .padding(24)
-            .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(12)
-        }
-        .frame(minWidth: 420, maxWidth: 480, minHeight: 540, maxHeight: 600)
-        .background(Color(NSColor.windowBackgroundColor))
-        .navigationTitle(config == nil ? "Add Reservation Configuration" : "Edit Reservation Configuration")
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                StyledButton("Cancel", role: .cancel) {
-                    dismiss()
-                }
-            }
-            ToolbarItem(placement: .confirmationAction) {
+            Divider()
+            HStack {
+                Spacer()
+                Button("Cancel") { dismiss() }
+                    .buttonStyle(.bordered)
                 Button("Save") {
                     if isValidConfiguration {
                         saveConfiguration()
@@ -375,18 +207,20 @@ struct ConfigurationDetailView: View {
                         showingValidationAlert = true
                     }
                 }
-                .buttonStyle(SaveButtonStyle(isDisabled: !isValidConfiguration))
+                .buttonStyle(.borderedProminent)
                 .disabled(!isValidConfiguration)
             }
+            .padding(.horizontal, 32)
+            .padding(.vertical, 16)
         }
+        .frame(width: 440, height: 560)
+        .navigationTitle(config == nil ? "Add Reservation Configuration" : "Edit Reservation Configuration")
         .alert("Validation Error", isPresented: $showingValidationAlert) {
             Button("OK") { }
         } message: {
             Text(validationMessage)
         }
-        .onAppear {
-            loadConfiguration()
-        }
+        .onAppear { loadConfiguration() }
         .sheet(isPresented: $showDayPicker) {
             DayPickerView(selectedDays: Set(dayTimeSlots.keys), onAdd: { day in
                 if dayTimeSlots[day] == nil {
@@ -517,17 +351,18 @@ struct DayPickerView: View {
                             .foregroundColor(.primary)
                         Spacer()
                         Image(systemName: "plus.circle")
-                            .foregroundColor(.blue)
+                            .foregroundColor(.accentColor)
                     }
                 }
-                .buttonStyle(HoverRadioButtonStyle())
+                .buttonStyle(.bordered)
             }
             
             HStack {
                 Spacer()
-                StyledButton("Cancel", role: .cancel) {
+                Button("Cancel") {
                     dismiss()
                 }
+                .buttonStyle(.bordered)
                 .padding()
             }
         }
@@ -553,15 +388,13 @@ struct DayTimeSlotEditor: View {
                 Spacer()
                 Button(action: onAdd) {
                     Image(systemName: "plus.circle.fill")
-                        .font(.title3)
-                        .foregroundColor(.blue)
                 }
-                .buttonStyle(IconHoverButtonStyle())
+                .buttonStyle(.bordered)
                 Button(action: onRemoveDay) {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.red)
                 }
-                .buttonStyle(HoverIconButtonStyle())
+                .buttonStyle(.bordered)
+                .tint(.red)
             }
             ForEach(Array(slots.enumerated().sorted { $0.element.time < $1.element.time }), id: \.element.id) { index, timeSlot in
                 HStack {
@@ -572,49 +405,16 @@ struct DayTimeSlotEditor: View {
                         }
                     ), displayedComponents: .hourAndMinute)
                     .labelsHidden()
-                    .modifier(HoverDatePickerStyle())
                     Button(action: { onRemove(index) }) {
                         Image(systemName: "minus.circle.fill")
-                            .foregroundColor(.red)
                     }
-                    .buttonStyle(HoverIconButtonStyle())
+                    .buttonStyle(.bordered)
+                    .tint(.red)
                     .disabled(slots.count <= 1)
                 }
             }
         }
         .padding(.vertical, 4)
-    }
-}
-
-// MARK: - Save Button Style
-
-struct SaveButtonStyle: ButtonStyle {
-    let isDisabled: Bool
-    @State private var isHovered = false
-    
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(isDisabled ? Color.gray.opacity(0.1) : Color.green.opacity(0.13))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(isDisabled ? Color.gray.opacity(0.2) : Color.green.opacity(0.35), lineWidth: 1)
-                    )
-            )
-            .foregroundColor(isDisabled ? Color.gray.opacity(0.6) : Color.green)
-            .shadow(color: isHovered && !configuration.isPressed && !isDisabled ? .black.opacity(0.15) : .clear, radius: isHovered ? 3 : 0, x: 0, y: isHovered ? 1 : 0)
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
-            .opacity(isDisabled ? 0.5 : 1.0)
-            .onHover { hovering in
-                if !isDisabled {
-                    withAnimation(.easeInOut(duration: 0.15)) {
-                        isHovered = hovering
-                    }
-                }
-            }
     }
 }
 
