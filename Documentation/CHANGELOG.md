@@ -36,6 +36,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI layout issues and button styling consistency
 - Toggle switch hover effects and visual feedback
 
+## [1.2.0] - 2024-07-09
+
+### Changed
+
+- Removed build date injection feature for cleaner release artifacts
+- Final polish and cleanup for minor release
+
 ## [1.1.0] - 2024-07-09
 
 ### Changed
