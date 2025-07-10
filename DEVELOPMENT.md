@@ -14,7 +14,7 @@
 1. **Clone and setup the project:**
 
    ```bash
-   git clone https://github.com/yourusername/orrmat.git
+   git clone https://github.com/Amet13/orrmat.git
    cd orrmat
    brew install xcodegen
    xcodegen

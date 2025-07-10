@@ -46,7 +46,7 @@ brew install swiftlint
 #### 2. Clone and Setup
 
 ```bash
-git clone https://github.com/yourusername/orrmat.git
+git clone https://github.com/Amet13/orrmat.git
 cd orrmat
 ```
 
@@ -221,8 +221,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/orrmat/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/orrmat/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Amet13/orrmat/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Amet13/orrmat/discussions)
 - **Email**: support@orrmat.app
 
 ---

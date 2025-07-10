@@ -126,8 +126,8 @@ No deprecated features in the current version.
 
 For support and questions:
 
-- **GitHub Issues**: [Report Issues](https://github.com/yourusername/orrmat/issues)
-- **GitHub Discussions**: [Community Discussion](https://github.com/yourusername/orrmat/discussions)
+- **GitHub Issues**: [Report Issues](https://github.com/Amet13/orrmat/issues)
+- **GitHub Discussions**: [Community Discussion](https://github.com/Amet13/orrmat/discussions)
 - **Email**: support@orrmat.app
 
 ---

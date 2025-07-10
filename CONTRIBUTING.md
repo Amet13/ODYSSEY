@@ -38,11 +38,11 @@ When suggesting new features:
 
 ```bash
 # Clone your fork
-git clone https://github.com/yourusername/orrmat.git
+git clone https://github.com/Amet13/orrmat.git
 cd orrmat
 
 # Add upstream remote
-git remote add upstream https://github.com/original-owner/orrmat.git
+git remote add upstream https://github.com/Amet13/orrmat.git
 
 # Install dependencies
 brew install xcodegen

@@ -1,5 +1,7 @@
 # ORRMAT Project Summary
 
+# Repository: https://github.com/Amet13/orrmat
+
 ## 🎯 Project Overview
 
 ORRMAT (Ottawa Recreation Reservation macOS Automation Tool) is a sophisticated macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities. The project has been comprehensively cleaned up, optimized, and documented.

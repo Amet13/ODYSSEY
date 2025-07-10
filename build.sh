@@ -2,6 +2,7 @@
 
 # ORRMAT Build Script
 # This script helps build and run the ORRMAT macOS application
+# Repository: https://github.com/Amet13/orrmat
 # 
 # Usage: ./build.sh [options]
 # Options:
