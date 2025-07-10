@@ -49,18 +49,36 @@ jobs:
           mkdir -p dmg_temp
           cp -R "${{ steps.app-path.outputs.APP_PATH }}" dmg_temp/
 
-          # Create DMG
-          create-dmg \
-            --volname "ORRMAT Installer" \
-            --volicon "dmg_temp/ORRMAT.app/Contents/Resources/AppIcon.icns" \
-            --window-pos 200 120 \
-            --window-size 600 400 \
-            --icon-size 100 \
-            --icon "ORRMAT.app" 175 120 \
-            --hide-extension "ORRMAT.app" \
-            --app-drop-link 425 120 \
-            "ORRMAT-${{ github.ref_name }}.dmg" \
-            "dmg_temp/"
+          # Check if app icon exists, if not create a simple one
+          ICON_PATH="dmg_temp/ORRMAT.app/Contents/Resources/AppIcon.icns"
+          if [ ! -f "$ICON_PATH" ]; then
+            echo "App icon not found, creating DMG without custom icon"
+            # Create DMG without custom icon
+            create-dmg \
+              --volname "ORRMAT Installer" \
+              --window-pos 200 120 \
+              --window-size 600 400 \
+              --icon-size 100 \
+              --icon "ORRMAT.app" 175 120 \
+              --hide-extension "ORRMAT.app" \
+              --app-drop-link 425 120 \
+              "ORRMAT-${{ github.ref_name }}.dmg" \
+              "dmg_temp/"
+          else
+            echo "Using app icon: $ICON_PATH"
+            # Create DMG with custom icon
+            create-dmg \
+              --volname "ORRMAT Installer" \
+              --volicon "$ICON_PATH" \
+              --window-pos 200 120 \
+              --window-size 600 400 \
+              --icon-size 100 \
+              --icon "ORRMAT.app" 175 120 \
+              --hide-extension "ORRMAT.app" \
+              --app-drop-link 425 120 \
+              "ORRMAT-${{ github.ref_name }}.dmg" \
+              "dmg_temp/"
+          fi
 
       - name: Get app size
         run: |
