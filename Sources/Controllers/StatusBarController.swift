@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import SwiftUI
+import os.log
 
 /// Manages the status bar (tray) menu for the macOS app
 class StatusBarController: NSObject {
@@ -12,41 +13,37 @@ class StatusBarController: NSObject {
     private let configurationManager = ConfigurationManager.shared
     private let reservationManager = ReservationManager.shared
     private var cancellables = Set<AnyCancellable>()
+    private let logger = Logger(subsystem: "com.odyssey.app", category: "StatusBarController")
     
     override init() {
-        print("ODYSSEY: StatusBarController init started")
+        logger.info("Initializing StatusBarController")
         statusBar = NSStatusBar.system
         statusItem = statusBar.statusItem(withLength: NSStatusItem.variableLength)
         popover = NSPopover()
         
         super.init()
         
-        print("ODYSSEY: StatusBarController calling setupStatusBar")
         setupStatusBar()
-        print("ODYSSEY: StatusBarController calling setupPopover")
         setupPopover()
-        print("ODYSSEY: StatusBarController calling setupEventMonitor")
         setupEventMonitor()
-        print("ODYSSEY: StatusBarController calling setupObservers")
         setupObservers()
-        print("ODYSSEY: StatusBarController init completed")
+        logger.info("StatusBarController initialization completed")
     }
     
     // MARK: - Setup Methods
     
     private func setupStatusBar() {
-        print("ODYSSEY: setupStatusBar started")
+        logger.debug("Setting up status bar")
         if let button = statusItem.button {
-            print("ODYSSEY: statusItem.button found")
             let config = NSImage.SymbolConfiguration(pointSize: 18, weight: .medium)
             let image = NSImage(systemSymbolName: "sportscourt", accessibilityDescription: "ODYSSEY")?.withSymbolConfiguration(config)
             image?.isTemplate = true
             button.image = image
             button.action = #selector(togglePopover)
             button.target = self
-            print("ODYSSEY: status bar button configured with sportscourt icon")
+            logger.debug("Status bar button configured with sportscourt icon")
         } else {
-            print("ODYSSEY: ERROR - statusItem.button is nil!")
+            logger.error("Status bar button is nil")
         }
     }
     

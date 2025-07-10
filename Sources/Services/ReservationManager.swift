@@ -4,6 +4,7 @@ import os.log
 import WebKit
 
 /// Manages the automation of reservation bookings
+/// Handles web automation for Ottawa recreation facility reservations
 class ReservationManager: NSObject, ObservableObject {
     static let shared = ReservationManager()
     
@@ -40,6 +41,8 @@ class ReservationManager: NSObject, ObservableObject {
     
     // MARK: - Public Methods
     
+    /// Runs reservation automation for a specific configuration
+    /// - Parameter config: The reservation configuration to execute
     func runReservation(for config: ReservationConfig) {
         guard !isRunning else { 
             logger.warning("Reservation already running, skipping")
@@ -71,6 +74,7 @@ class ReservationManager: NSObject, ObservableObject {
         }
     }
     
+    /// Runs all enabled reservation configurations
     func runAllEnabledReservations() {
         let enabledConfigs = configurationManager.getEnabledConfigurations()
         logger.info("Running all enabled reservations: \(enabledConfigs.count) configurations")
@@ -82,6 +86,7 @@ class ReservationManager: NSObject, ObservableObject {
         }
     }
     
+    /// Stops all running reservation processes
     func stopAllReservations() {
         logger.info("Stopping all reservations")
         isRunning = false
@@ -153,14 +158,16 @@ class ReservationManager: NSObject, ObservableObject {
         }
         
         // Notify Swift about page load
-                    window.webkit.messageHandlers.odysseyHandler.postMessage({
+        window.webkit.messageHandlers.odysseyHandler.postMessage({
             type: 'pageLoaded',
             url: window.location.href,
             title: document.title
         });
         """
         
-        webView?.evaluateJavaScript(script) { result, error in
+        webView?.evaluateJavaScript(script) { [weak self] result, error in
+            guard let self = self else { return }
+            
             if let error = error {
                 self.logger.error("Script injection error: \(error.localizedDescription)")
             } else {

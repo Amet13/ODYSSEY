@@ -4,6 +4,7 @@ import os.log
 import WebKit
 
 /// Service for fetching available sports/activities from facility pages
+/// Handles web scraping and sports detection from Ottawa recreation facilities
 class FacilityService: NSObject, ObservableObject {
     static let shared = FacilityService()
     
@@ -21,6 +22,10 @@ class FacilityService: NSObject, ObservableObject {
     
     // MARK: - Public Methods
     
+    /// Fetches available sports from a facility URL
+    /// - Parameters:
+    ///   - url: The facility URL to scrape
+    ///   - completion: Callback with detected sports array
     func fetchAvailableSports(from url: String, completion: @escaping ([String]) -> Void) {
         guard let facilityURL = URL(string: url) else {
             logger.error("Invalid facility URL: \(url)")
@@ -118,7 +123,9 @@ class FacilityService: NSObject, ObservableObject {
         extractAvailableSports();
         """
         
-        webView?.evaluateJavaScript(script) { result, error in
+        webView?.evaluateJavaScript(script) { [weak self] result, error in
+            guard let self = self else { return }
+            
             if let error = error {
                 self.logger.error("Sports detection script error: \(error.localizedDescription)")
                 DispatchQueue.main.async {

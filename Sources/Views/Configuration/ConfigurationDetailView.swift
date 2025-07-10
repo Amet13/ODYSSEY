@@ -28,7 +28,8 @@ struct ConfigurationDetailView: View {
                     // Basic Settings Section
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Facility URL")
-                            .font(.subheadline)
+                            .font(.headline)
+                            .fontWeight(.semibold)
                             .foregroundColor(.primary)
                         TextField("Enter facility URL", text: $facilityURL)
                             .onChange(of: facilityURL) { _ in updateConfigurationName() }
@@ -44,7 +45,8 @@ struct ConfigurationDetailView: View {
 
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Sport Name")
-                            .font(.subheadline)
+                            .font(.headline)
+                            .fontWeight(.semibold)
                             .foregroundColor(.primary)
                         HStack {
                             Menu {
@@ -65,6 +67,7 @@ struct ConfigurationDetailView: View {
                                             }
                                         }
                                     }
+
                                 }
                             } label: {
                                 HStack {
@@ -96,7 +99,10 @@ struct ConfigurationDetailView: View {
                     .padding(.bottom, 20)
 
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Number of People").font(.subheadline).foregroundColor(.primary)
+                        Text("Number of People")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
                         HStack(spacing: 20) {
                             Button(action: {
                                 numberOfPeople = 1
@@ -121,7 +127,10 @@ struct ConfigurationDetailView: View {
                     .padding(.bottom, 20)
 
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Configuration Name").font(.subheadline).foregroundColor(.primary)
+                        Text("Configuration Name")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
                         TextField("Configuration Name", text: $name)
                     }
                     .padding(.bottom, 20)
@@ -131,7 +140,10 @@ struct ConfigurationDetailView: View {
                     // Scheduling Section
                     VStack(alignment: .leading, spacing: 16) {
                         HStack {
-                            Text("Time Slots").font(.subheadline).foregroundColor(.primary)
+                            Text("Time Slots")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
                             Spacer()
                             Button("Add Day") { showDayPicker = true }
                                 .buttonStyle(.bordered)
@@ -168,7 +180,10 @@ struct ConfigurationDetailView: View {
 
                     // Preview Section
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Preview").font(.headline).padding(.bottom, 4)
+                        Text("Preview")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .padding(.bottom, 4)
                         Text("Name: \(name.isEmpty ? "Not set" : name)")
                         Text("Sport: \(sportName.isEmpty ? "Not set" : sportName)")
                         Text("People: \(numberOfPeople)")

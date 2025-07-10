@@ -1,6 +1,7 @@
 import Foundation
 
 /// Configuration for a single reservation automation
+/// Represents all settings needed to automate a reservation at an Ottawa recreation facility
 struct ReservationConfig: Codable, Identifiable {
     var id: UUID
     
@@ -18,6 +19,15 @@ struct ReservationConfig: Codable, Identifiable {
     
     // MARK: - Initializers
     
+    /// Creates a new reservation configuration
+    /// - Parameters:
+    ///   - id: Unique identifier (auto-generated if not provided)
+    ///   - name: Display name for the configuration
+    ///   - facilityURL: URL of the Ottawa recreation facility
+    ///   - sportName: Name of the sport/activity
+    ///   - numberOfPeople: Number of people for the reservation
+    ///   - isEnabled: Whether this configuration is active
+    ///   - dayTimeSlots: Scheduled time slots for each day
     init(
         id: UUID = UUID(),
         name: String,
@@ -36,6 +46,9 @@ struct ReservationConfig: Codable, Identifiable {
         self.dayTimeSlots = dayTimeSlots
     }
     
+    // MARK: - Weekday Enum
+    
+    /// Represents days of the week for scheduling
     enum Weekday: String, CaseIterable, Codable {
         case sunday = "Sunday"
         case monday = "Monday"
@@ -45,10 +58,12 @@ struct ReservationConfig: Codable, Identifiable {
         case friday = "Friday"
         case saturday = "Saturday"
         
+        /// Three-letter abbreviation (e.g., "Mon", "Tue")
         var shortName: String {
             String(rawValue.prefix(3))
         }
         
+        /// Calendar weekday number (1 = Sunday, 2 = Monday, etc.)
         var calendarWeekday: Int {
             switch self {
             case .sunday: return 1
@@ -62,6 +77,11 @@ struct ReservationConfig: Codable, Identifiable {
         }
     }
 
+    // MARK: - Utility Methods
+    
+    /// Extracts facility name from a reservation URL
+    /// - Parameter url: The facility URL
+    /// - Returns: Capitalized facility name or empty string if not found
     static func extractFacilityName(from url: String) -> String {
         let pattern = #"https://reservation\.frontdesksuite\.ca/rcfs/([^/]+)"#
         if let regex = try? NSRegularExpression(pattern: pattern),
@@ -79,6 +99,8 @@ struct TimeSlot: Codable, Identifiable, Hashable {
     var id: UUID
     var time: Date
     
+    /// Creates a new time slot
+    /// - Parameter time: The time for this slot
     init(time: Date) {
         self.id = UUID()
         self.time = time
@@ -101,6 +123,7 @@ struct AppSettings: Codable {
     var autoStart: Bool = false
     var logLevel: LogLevel = .info
     
+    /// Logging levels for the application
     enum LogLevel: String, CaseIterable, Codable {
         case debug = "Debug"
         case info = "Info"

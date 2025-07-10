@@ -149,3 +149,11 @@ For support and questions:
 ---
 
 **Made with ❤️ for the Ottawa sports community**
+
+## [1.3.0] - 2024-07-10
+
+### Changed
+
+- Updated app branding: custom logo now appears in confirmation dialogs and throughout the app
+- Updated all version references to 1.3.0
+- Polish and prep for new release

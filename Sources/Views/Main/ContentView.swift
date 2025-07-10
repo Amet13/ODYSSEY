@@ -289,7 +289,14 @@ struct ConfigurationRowView: View {
                 onDelete()
             }
         } message: {
-            Text("Are you sure you want to delete '\(config.name)'? This action cannot be undone.")
+            VStack(spacing: 12) {
+                Image("logo")
+                    .resizable()
+                    .frame(width: 64, height: 64)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .padding(.bottom, 4)
+                Text("Are you sure you want to delete '\(config.name)'? This action cannot be undone.")
+            }
         }
     }
     private func formatScheduleInfo() -> String {

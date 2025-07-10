@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		183F0E2E156DB04F2DEB8013 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F37E32A2DEAB7D80A5148F2 /* Configuration.swift */; };
+		239CAD5FE2D573E91B2CA9F2 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013C352CF276DF7BEF35BACC /* Constants.swift */; };
 		41CB267A86BBFDE6B8D76B14 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6D876275C546C2EDF4733D3E /* Assets.xcassets */; };
 		57B3EC8C77555EE0A1877A88 /* ReservationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC0F2FC1EC5039DF5FCC39B /* ReservationManager.swift */; };
 		682EF0598BC17A8022F81E5B /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504F310E3FF9BD25280A3106 /* StatusBarController.swift */; };
@@ -20,6 +21,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		013C352CF276DF7BEF35BACC /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		1CA820C244D658473331FE59 /* ODYSSEY.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ODYSSEY.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DC0F2FC1EC5039DF5FCC39B /* ReservationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationManager.swift; sourceTree = "<group>"; };
 		4032FBD046C7A84D2AB708F7 /* ConfigurationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationDetailView.swift; sourceTree = "<group>"; };
@@ -111,6 +113,7 @@
 		7AAC5916706D4CDA7E10396B /* App */ = {
 			isa = PBXGroup;
 			children = (
+				013C352CF276DF7BEF35BACC /* Constants.swift */,
 				A7A301E1B3374676F73BCE2C /* Info.plist */,
 				D401C9E0BDAD61E6DECC196A /* ODYSSEYApp.swift */,
 			);
@@ -215,6 +218,7 @@
 			files = (
 				183F0E2E156DB04F2DEB8013 /* Configuration.swift in Sources */,
 				C31CF17307DDA59BA42606BC /* ConfigurationDetailView.swift in Sources */,
+				239CAD5FE2D573E91B2CA9F2 /* Constants.swift in Sources */,
 				6CE722921ABA9CF63AF4D2AE /* ContentView.swift in Sources */,
 				AF9C5201A1EA357818523371 /* FacilityService.swift in Sources */,
 				CB04374E216585BE1DBC7BF4 /* ODYSSEYApp.swift in Sources */,
