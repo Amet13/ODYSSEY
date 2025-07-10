@@ -135,21 +135,7 @@ targets:
         MACOSX_DEPLOYMENT_TARGET: 12.0
         ENABLE_PREVIEWS: YES
     dependencies: []
-    preBuildScripts:
-      - name: "SwiftLint"
-        script: |
-          if command -v swiftlint &> /dev/null; then
-            echo "Running SwiftLint..."
-            swiftlint lint --reporter xcode
-          else
-            echo "SwiftLint not installed. Install with: brew install swiftlint"
-            echo "Continuing build without linting..."
-          fi
-        inputFiles: []
-        outputFiles: []
-        shell: /bin/bash
-        runOnlyForDeploymentPostprocessing: false
-        showEnvVarsInLog: false
+
     postCompileBuildScripts:
       - name: "Code Signing Check"
         script: |

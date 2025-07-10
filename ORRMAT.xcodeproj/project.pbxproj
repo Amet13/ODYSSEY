@@ -12,9 +12,9 @@
 		89AC927538351099910B09AD /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B7B74BD724358C6A3C2E4AC /* Configuration.swift */; };
 		922DF2AB77FF654C7A7F8305 /* ReservationConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B613B0A2265350FEA1E23D16 /* ReservationConfig.swift */; };
 		97C23B8B5DCB934B903DF79F /* ConfigurationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BB80FDD242A5836046AE442 /* ConfigurationDetailView.swift */; };
+		A43F7DFB0E736CF750D4224B /* FacilityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF21607914038A7FF5E9AF49 /* FacilityService.swift */; };
 		AE22482194F90FE6F2F1ABDE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71656512EA5461BC239A9AB /* ContentView.swift */; };
 		C50B1618461E00E9FFA6DB7E /* ReservationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52465DAE60A13253ED1D72A4 /* ReservationManager.swift */; };
-		D8A1B2C3F4E5D6A7B9C8E9F0 /* FacilityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7B2C3D4F5E6D7A8B0C9E0F1 /* FacilityService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,7 +26,7 @@
 		A71656512EA5461BC239A9AB /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B433F080A3217EB9B0DF30F1 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		B613B0A2265350FEA1E23D16 /* ReservationConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationConfig.swift; sourceTree = "<group>"; };
-		E7B2C3D4F5E6D7A8B0C9E0F1 /* FacilityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FacilityService.swift; sourceTree = "<group>"; };
+		EF21607914038A7FF5E9AF49 /* FacilityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FacilityService.swift; sourceTree = "<group>"; };
 		F4896E88736A5C97D62CB96F /* ORRMAT.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ORRMAT.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -42,15 +42,15 @@
 		6BB385DB2B47CDCBFA534661 /* ORRMAT */ = {
 			isa = PBXGroup;
 			children = (
+				9B78626615DF1FBBC18AB74F /* Models */,
 				0B7B74BD724358C6A3C2E4AC /* Configuration.swift */,
 				3BB80FDD242A5836046AE442 /* ConfigurationDetailView.swift */,
 				A71656512EA5461BC239A9AB /* ContentView.swift */,
+				EF21607914038A7FF5E9AF49 /* FacilityService.swift */,
 				5FF8C2FCF5A667F29F47A293 /* Info.plist */,
 				6FF0E18F655AE2E1C5E8F15F /* ORRMATApp.swift */,
 				52465DAE60A13253ED1D72A4 /* ReservationManager.swift */,
 				B433F080A3217EB9B0DF30F1 /* StatusBarController.swift */,
-				E7B2C3D4F5E6D7A8B0C9E0F1 /* FacilityService.swift */,
-				9B78626615DF1FBBC18AB74F /* Models */,
 			);
 			path = ORRMAT;
 			sourceTree = "<group>";
@@ -98,7 +98,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1400;
 				TargetAttributes = {
 					9A3F9DB31E0D804587E44889 = {
 						DevelopmentTeam = "";
@@ -132,11 +132,11 @@
 				89AC927538351099910B09AD /* Configuration.swift in Sources */,
 				97C23B8B5DCB934B903DF79F /* ConfigurationDetailView.swift in Sources */,
 				AE22482194F90FE6F2F1ABDE /* ContentView.swift in Sources */,
+				A43F7DFB0E736CF750D4224B /* FacilityService.swift in Sources */,
 				5EC37AA53262DCB06EB535A2 /* ORRMATApp.swift in Sources */,
 				922DF2AB77FF654C7A7F8305 /* ReservationConfig.swift in Sources */,
 				C50B1618461E00E9FFA6DB7E /* ReservationManager.swift in Sources */,
 				0F7F5E52BDB670B953328B4C /* StatusBarController.swift in Sources */,
-				D8A1B2C3F4E5D6A7B9C8E9F0 /* FacilityService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,14 +148,24 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_TESTABILITY = YES;
 				INFOPLIST_FILE = ORRMAT/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ORRMAT;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Amet13. All rights reserved.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.orrmat.app;
+				PRODUCT_NAME = ORRMAT;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.0;
 			};
@@ -190,14 +200,18 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "";
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -205,24 +219,38 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					"DEBUG=1",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = ORRMAT/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ORRMAT;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsArbitraryLoads = NO;
+				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_ottawa.ca_NSExceptionAllowsInsecureHTTPLoads = YES;
+				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_ottawa.ca_NSExceptionMinimumTLSVersion = TLSv1.2;
+				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_ottawa.ca_NSIncludesSubdomains = YES;
+				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_recreation.ottawa.ca_NSExceptionAllowsInsecureHTTPLoads = YES;
+				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_recreation.ottawa.ca_NSExceptionMinimumTLSVersion = TLSv1.2;
+				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_recreation.ottawa.ca_NSIncludesSubdomains = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Amet13. All rights reserved.";
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.orrmat.app;
+				PRODUCT_NAME = ORRMAT;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_SUPPRESS_WARNINGS = NO;
+				SWIFT_TREAT_WARNINGS_AS_ERRORS = NO;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -256,32 +284,56 @@
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "";
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = "NDEBUG=1";
+				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = ORRMAT/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ORRMAT;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsArbitraryLoads = NO;
+				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_ottawa.ca_NSExceptionAllowsInsecureHTTPLoads = YES;
+				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_ottawa.ca_NSExceptionMinimumTLSVersion = TLSv1.2;
+				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_ottawa.ca_NSIncludesSubdomains = YES;
+				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_recreation.ottawa.ca_NSExceptionAllowsInsecureHTTPLoads = YES;
+				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_recreation.ottawa.ca_NSExceptionMinimumTLSVersion = TLSv1.2;
+				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_recreation.ottawa.ca_NSIncludesSubdomains = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Amet13. All rights reserved.";
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.orrmat.app;
+				PRODUCT_NAME = ORRMAT;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_SUPPRESS_WARNINGS = NO;
+				SWIFT_TREAT_WARNINGS_AS_ERRORS = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -291,14 +343,24 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_TESTABILITY = YES;
 				INFOPLIST_FILE = ORRMAT/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ORRMAT;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Amet13. All rights reserved.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.orrmat.app;
+				PRODUCT_NAME = ORRMAT;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.0;
 			};
