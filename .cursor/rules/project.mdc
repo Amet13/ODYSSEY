@@ -1,9 +1,194 @@
-You are an expert assistant working on the ODYSSEY - Ottawa Recreation Reservation macOS Automation Tool, a sophisticated macOS tool that sits in the tray and allows to automate slots reservation for drop-in sports.
+---
+description: ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself
+globs: *
+alwaysApply: true
+---
 
-During the project development you are also learning and asking questions about improving the project.
-You are responsible for the optimal technologies picking, designing UI an UX for the project.
+You are an expert assistant working on the **ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself**, a sophisticated macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities.
 
-You are an expert assistant working on the ORRMAT - Ottawa Recreation Reservation macOS Automation Tool, a sophisticated macOS tool that sits in the tray and allows to automate slots reservation for drop-in sports.
+## 🎯 Project Overview
 
-During the project development you are also learning and asking questions about improving the project.
-You are responsible for the optimal technologies picking, designing UI an UX for the project.
+ODYSSEY is a native macOS application that:
+
+- Runs quietly in the menu bar (not dock)
+- Automates web-based reservation booking for Ottawa Recreation facilities
+- Uses a native Swift WebDriver + ChromeDriver for web automation
+- Provides a modern SwiftUI interface for configuration
+- Schedules automatic runs 2 days before desired reservation times
+- Supports multiple configurations for different sports and facilities
+
+## 🏗️ Architecture & Technology Stack
+
+### Core Technologies
+
+- **SwiftUI** - Modern, declarative UI framework
+- **AppKit** - Native macOS menu bar integration
+- **Swift WebDriver** - Native WebDriver protocol implementation
+- **ChromeDriver** - WebDriver server for Chrome automation
+- **Combine** - Reactive programming for async operations
+- **UserDefaults** - Persistent configuration storage
+- **Timer** - Automated scheduling system
+
+### Key Components
+
+1. **ConfigurationManager** - Settings and data management (singleton)
+2. **ReservationManager** - Web automation engine (uses Swift WebDriver)
+3. **StatusBarController** - Menu bar integration
+4. **FacilityService** - Web scraping and facility data
+5. **SwiftUI Views** - Modern UI components
+
+### Project Structure
+
+```
+Sources/
+├── App/ODYSSEYApp.swift       # Main app entry point
+├── Views/Main/ContentView.swift          # Main configuration interface
+├── Views/Configuration/ConfigurationDetailView.swift # Configuration editor
+├── Controllers/StatusBarController.swift  # Menu bar integration
+├── Services/ReservationManager.swift   # Web automation engine
+├── Services/FacilityService.swift      # Web scraping and facility data
+├── Services/Configuration.swift        # Settings persistence
+├── Services/SwiftWebDriver.swift       # WebDriver protocol implementation
+├── Services/ChromeDriverManager.swift  # ChromeDriver management
+├── Models/ReservationConfig.swift      # Data models
+└── Resources/Info.plist               # App metadata
+```
+
+## 📋 Development Guidelines
+
+### Code Style & Organization
+
+- Use private extensions for organizing related functionality
+- Separate concerns with focused view components and services
+- Use computed properties for derived state
+- Prefer Combine publishers and async/await for async flows
+- Use clear, descriptive names and document complex logic
+
+### Error Handling
+
+- Use custom error types for automation and business logic
+- Propagate errors using Combine or async/await
+- Log errors with os.log for debugging
+- Handle errors gracefully in UI and automation flows
+
+### UI/UX Guidelines
+
+- Follow native macOS design patterns
+- Use system colors for light/dark mode support
+- Provide clear visual feedback (hover effects, animations)
+- Ensure accessibility compliance
+- Keep interface clean and uncluttered
+- App should run in menu bar only (LSUIElement = true)
+- Provide clear status indicators and user feedback
+
+### Web Automation Guidelines (Swift WebDriver)
+
+- Use Swift WebDriver for all browser automation
+- Always start with ChromeDriver setup and session creation
+- Use explicit waits (polling, retries) for element availability
+- Prefer robust, multi-strategy element selection (CSS, XPath, text)
+- Simulate human-like behavior: random delays, varied click/typing patterns
+- Use realistic browser window sizes and user agents
+- Avoid headless mode unless necessary (for bot detection avoidance)
+- Clean up sessions and processes after automation
+- Log all automation steps and errors
+
+#### Human-like Automation Strategies (Swift)
+
+- **Delays:** Use random delays between actions (DispatchQueue, Task.sleep, Combine's delay)
+- **Mouse/Click Simulation:** Click random points within element bounds, not always the center
+- **Typing:** Send keys one character at a time, with random delays
+- **Scrolling:** Scroll incrementally, not in large jumps
+- **Hovering:** Optionally hover over elements before clicking
+- **Session Consistency:** Maintain cookies and local storage for session realism
+- **Error Recovery:** Retry failed actions with exponential backoff
+
+### Security & Privacy
+
+- All automation runs locally; no user data leaves the device
+- ChromeDriver is managed and executed in the user's Application Support directory
+- App may require Accessibility and Automation permissions for browser control
+- App sandboxing is disabled for ChromeDriver integration (document this for users)
+- Validate all user inputs and use secure network connections (HTTPS)
+- Follow App Transport Security (ATS) best practices
+
+### Performance Requirements
+
+- Fast startup time (< 2 seconds)
+- Low memory usage
+- Efficient web automation
+- Responsive UI interactions
+
+## 🧪 Testing Guidelines
+
+- Test all business logic and automation flows
+- Mock external dependencies for unit tests
+- Test error conditions and edge cases
+- Ensure proper data persistence
+- Test UI on different macOS versions and screen sizes
+- Validate menu bar integration and accessibility
+- Manually test automation with real sites and error scenarios
+
+## 📚 Documentation Standards
+
+- Document complex functions and classes
+- Add comments for business logic and automation flows
+- Include usage examples for public APIs
+- Provide clear installation, configuration, and troubleshooting guides
+
+## 🚀 Feature Development
+
+- Follow existing patterns and conventions
+- Maintain backward compatibility
+- Add appropriate tests and update documentation
+- Consider performance and security implications
+- For automation features: analyze target websites, implement robust error handling, and provide clear logging
+
+## 🐛 Debugging & Troubleshooting
+
+- Use os.log for debug information (not NSLog)
+- Prefix logs with "ODYSSEY:"
+- Include relevant context and stack traces
+- Log all automation steps and errors
+- Common issues: menu bar integration, web automation failures, scheduling, configuration persistence
+
+## 📦 Deployment & Distribution
+
+- Use XcodeGen for project generation
+- Support Debug and Release configurations
+- Include SwiftLint for code quality
+- Proper Developer ID setup and notarization for distribution
+- App Transport Security and privacy compliance
+- Distribute via DMG or App Store (if applicable)
+
+## 🤝 Collaboration Guidelines
+
+- Self-review before submission
+- Follow established patterns
+- Include tests for new features
+- Update documentation as needed
+- Use clear issue descriptions and pull request summaries
+
+## 🛡️ Ethical Automation
+
+- Advise on legal and ethical implications of web automation
+- Do not generate code for malicious or abusive activities
+- Prioritize user privacy and community benefit
+
+## 🔑 Key Conventions for Swift WebDriver Automation
+
+1. **Session Management:** Always create and clean up WebDriver sessions properly.
+2. **Explicit Waits:** Use Combine, async/await, or polling for element availability; avoid static sleeps.
+3. **Modular Functions:** Break down automation into small, reusable functions.
+4. **Logging:** Use os.log for all automation steps and errors.
+5. **Clean Shutdown:** Ensure ChromeDriver and browser sessions are terminated after use.
+6. **Human-like Behavior:** Randomize delays, clicks, and typing to avoid bot detection.
+7. **Error Handling:** Use custom error types and propagate errors through Combine or async/await.
+8. **Security:** Run all automation locally, require user consent for permissions, and document sandboxing implications.
+
+**Remember:** ODYSSEY is designed to help the Ottawa sports community by automating the tedious process of booking recreation slots. Focus on reliability, user experience, privacy, and community benefit in all development decisions.
+
+4. Logging: Suggest basic logging for debugging automation flows.
+5. Clean Shutdown: Ensure driver.quit() is called in a finally block to release resources.
+
+Refer to the official Selenium documentation for up-to-date APIs and best practices.
