@@ -154,7 +154,6 @@ jobs:
             ### 📊 Build Info
             - **App Size**: ${{ env.APP_SIZE }}
             - **Installer Size**: ${{ env.DMG_SIZE }}
-            - **Build Date**: $(date -u +"%Y-%m-%d %H:%M UTC")
 
             ### 🐛 Issues & Support
             - [Report Issues](https://github.com/Amet13/odyssey/issues)
