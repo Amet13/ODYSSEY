@@ -1,0 +1,314 @@
+---
+description: ORRMAT - Ottawa Recreation Reservation macOS Automation Tool
+globs: *
+alwaysApply: true
+---
+
+You are an expert assistant working on the **ORRMAT - Ottawa Recreation Reservation macOS Automation Tool**, a sophisticated macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities.
+
+## 🎯 Project Overview
+
+ORRMAT is a native macOS application that:
+
+- Runs quietly in the menu bar (not dock)
+- Automates web-based reservation booking for Ottawa Recreation facilities
+- Uses WebKit for web automation and scraping
+- Provides a modern SwiftUI interface for configuration
+- Schedules automatic runs 2 days before desired reservation times
+- Supports multiple configurations for different sports and facilities
+
+## 🏗️ Architecture & Technology Stack
+
+### Core Technologies
+
+- **SwiftUI** - Modern, declarative UI framework
+- **AppKit** - Native macOS menu bar integration
+- **WebKit** - Web automation and scraping capabilities
+- **UserDefaults** - Persistent configuration storage
+- **Timer** - Automated scheduling system
+
+### Key Components
+
+1. **ConfigurationManager** - Settings and data management (singleton)
+2. **ReservationManager** - Web automation engine
+3. **StatusBarController** - Menu bar integration
+4. **FacilityService** - Web scraping and facility data
+5. **SwiftUI Views** - Modern UI components
+
+### Project Structure
+
+```
+ORRMAT/
+├── ORRMATApp.swift            # Main app entry point
+├── ContentView.swift          # Main configuration interface
+├── ConfigurationDetailView.swift # Configuration editor
+├── StatusBarController.swift  # Menu bar integration
+├── ReservationManager.swift   # Web automation engine
+├── FacilityService.swift      # Web scraping and facility data
+├── Configuration.swift        # Settings persistence
+├── Models/
+│   └── ReservationConfig.swift # Data models
+└── Info.plist                 # App metadata
+```
+
+## 📋 Development Guidelines
+
+### Code Style & Organization
+
+#### SwiftUI Best Practices
+
+- Use private extensions for organizing related functionality
+- Separate concerns with focused view components
+- Use computed properties for derived state
+- Follow SwiftUI lifecycle patterns
+
+```swift
+// ✅ Good: Organized with extensions
+private extension ContentView {
+    var headerView: some View {
+        // Header implementation
+    }
+
+    var mainContentView: some View {
+        // Main content implementation
+    }
+}
+
+// ✅ Good: Computed properties for derived state
+private var canRunAll: Bool {
+    configManager.isAnyConfigurationEnabled() && !reservationManager.isRunning
+}
+```
+
+#### Error Handling
+
+- Use Result types for async operations
+- Provide meaningful error messages
+- Log errors with NSLog for debugging
+- Handle errors gracefully in UI
+
+```swift
+// ✅ Good: Comprehensive error handling
+enum ReservationError: LocalizedError {
+    case networkError(String)
+    case noSlotsAvailable
+    case invalidConfiguration
+
+    var errorDescription: String? {
+        switch self {
+        case .networkError(let message):
+            return "Network error: \(message)"
+        case .noSlotsAvailable:
+            return "No available slots found"
+        case .invalidConfiguration:
+            return "Invalid configuration"
+        }
+    }
+}
+```
+
+### UI/UX Guidelines
+
+#### Design Principles
+
+- Follow native macOS design patterns
+- Use system colors for light/dark mode support
+- Provide clear visual feedback (hover effects, animations)
+- Ensure accessibility compliance
+- Keep interface clean and uncluttered
+
+#### Menu Bar Integration
+
+- App should run in menu bar only (LSUIElement = true)
+- Provide clear status indicators
+- Use appropriate icons and colors
+- Handle popover positioning correctly
+
+### Web Automation Guidelines
+
+#### WebKit Best Practices
+
+- Use WKWebView for web interaction
+- Inject JavaScript for form automation
+- Handle different page states gracefully
+- Implement proper error recovery
+- Monitor network requests and responses
+
+#### Security Considerations
+
+- Validate all user inputs
+- Use secure network connections (HTTPS)
+- Implement proper App Transport Security settings
+- Handle sensitive data appropriately
+
+## 🔧 Technical Requirements
+
+### Build System
+
+- Use XcodeGen for project generation
+- Support both Debug and Release configurations
+- Include SwiftLint for code quality
+- Proper code signing setup
+
+### Dependencies
+
+- No external dependencies (pure Swift/macOS)
+- Use system frameworks only
+- Avoid third-party libraries unless absolutely necessary
+
+### Performance Requirements
+
+- Fast startup time (< 2 seconds)
+- Low memory usage
+- Efficient web automation
+- Responsive UI interactions
+
+## 🧪 Testing Guidelines
+
+### Unit Testing
+
+- Test all business logic
+- Mock external dependencies
+- Test error conditions
+- Ensure proper data persistence
+
+### UI Testing
+
+- Test all user interactions
+- Verify accessibility features
+- Test on different macOS versions
+- Validate menu bar integration
+
+### Manual Testing
+
+- Test web automation with real sites
+- Verify scheduling functionality
+- Test error recovery scenarios
+- Validate configuration persistence
+
+## 📚 Documentation Standards
+
+### Code Documentation
+
+- Document complex functions and classes
+- Use clear, descriptive names
+- Add comments for business logic
+- Include usage examples
+
+### User Documentation
+
+- Clear installation instructions
+- Configuration guides
+- Troubleshooting information
+- Feature explanations
+
+## 🚀 Feature Development
+
+### New Feature Guidelines
+
+- Follow existing patterns and conventions
+- Maintain backward compatibility
+- Add appropriate tests
+- Update documentation
+- Consider performance implications
+
+### Web Automation Features
+
+- Analyze target websites thoroughly
+- Implement robust error handling
+- Test with different site states
+- Provide clear logging for debugging
+
+### UI Features
+
+- Follow macOS design guidelines
+- Ensure accessibility compliance
+- Test with different screen sizes
+- Provide clear user feedback
+
+## 🐛 Debugging & Troubleshooting
+
+### Logging
+
+- Use NSLog for debug information
+- Prefix logs with "ORRMAT:"
+- Include relevant context
+- Log errors with stack traces
+
+### Common Issues
+
+- Menu bar integration problems
+- Web automation failures
+- Scheduling issues
+- Configuration persistence problems
+
+## 📦 Deployment & Distribution
+
+### Code Signing
+
+- Proper Developer ID setup
+- Notarization for distribution
+- App Transport Security configuration
+- Privacy and security compliance
+
+### Distribution
+
+- Direct distribution (.app bundle)
+- DMG creation for easy installation
+- App Store submission (if applicable)
+- Update mechanism
+
+## 🎯 Project Goals
+
+### Primary Objectives
+
+- Reliable automation of Ottawa Recreation bookings
+- Excellent user experience
+- Robust error handling
+- Easy configuration and setup
+
+### Quality Standards
+
+- High code quality and maintainability
+- Comprehensive testing coverage
+- Clear documentation
+- Performance optimization
+
+## 🤝 Collaboration Guidelines
+
+### Code Review
+
+- Self-review before submission
+- Follow established patterns
+- Include tests for new features
+- Update documentation as needed
+
+### Communication
+
+- Clear issue descriptions
+- Detailed feature requests
+- Comprehensive bug reports
+- Helpful pull request descriptions
+
+## 📞 Support & Resources
+
+### Documentation
+
+- README.md - Project overview and setup
+- DEVELOPMENT.md - Development guidelines
+- CONTRIBUTING.md - Contribution guidelines
+- CHANGELOG.md - Version history
+
+### Tools
+
+- XcodeGen for project generation
+- SwiftLint for code quality
+- build.sh for automated builds
+- Console.app for debugging
+
+**Remember**: ORRMAT is designed to help the Ottawa sports community by automating the tedious process of booking recreation slots. Focus on reliability, user experience, and community benefit in all development decisions.
+
+You are an expert assistant working on the ORRMAT - Ottawa Recreation Reservation macOS Automation Tool, a sophisticated macOS tool that sits in the tray and allows to automate slots reservation for drop-in sports.
+
+During the project development you are also learning and asking questions about improving the project.
+You are responsible for the optimal technologies picking, designing UI an UX for the project.
