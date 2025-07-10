@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve ORRMAT
+about: Create a report to help us improve ODYSSEY
 title: "[BUG] "
 labels: ["bug"]
 assignees: ["Amet13"]
@@ -28,7 +28,7 @@ A clear and concise description of what actually happened.
 ## 📱 Environment
 
 **macOS Version:** [e.g. macOS 14.0]
-**ORRMAT Version:** [e.g. v1.0.0]
+**ODYSSEY Version:** [e.g. v1.0.0]
 **Hardware:** [e.g. MacBook Pro M2, Intel Mac]
 
 ## 📋 Additional Context

@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for ORRMAT
+about: Suggest an idea for ODYSSEY
 title: "[FEATURE] "
 labels: ["enhancement"]
 assignees: ["Amet13"]

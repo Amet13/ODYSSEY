@@ -117,7 +117,7 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-# ORRMAT specific
+# ODYSSEY specific
 *.log
 logs/
 temp/

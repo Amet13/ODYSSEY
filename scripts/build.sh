@@ -38,15 +38,16 @@ cd "$(dirname "$0")/.." && xcodebuild build \
 
 echo "✅ Build successful! (took $(($SECONDS))s)"
 
-# Find the built app
+# Find the built app (most recent)
 echo "🔨 Locating built application..."
-APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
+LATEST_APP_PATH=$(ls -td ~/Library/Developer/Xcode/DerivedData/ODYSSEY-*/Build/Products/Debug/ODYSSEY.app 2>/dev/null | head -1)
 
-if [ -z "$APP_PATH" ]; then
+if [ -z "$LATEST_APP_PATH" ]; then
     echo "❌ Could not find built application"
     exit 1
 fi
 
+APP_PATH="$LATEST_APP_PATH"
 echo "✅ App built at: $APP_PATH"
 
 # Get app size

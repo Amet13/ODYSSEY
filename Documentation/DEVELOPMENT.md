@@ -14,8 +14,8 @@
 1. **Clone and setup the project:**
 
    ```bash
-   git clone https://github.com/Amet13/odyssey.git
-   cd odyssey
+   git clone https://github.com/Amet13/ODYSSEY.git
+   cd ODYSSEY
    brew install xcodegen
    xcodegen
    ```
@@ -543,10 +543,10 @@ Enable detailed logging:
 settings.logLevel = .debug
 
 // In ReservationManager
-NSLog("ORRMAT: Debug message here")
+NSLog("ODYSSEY: Debug message here")
 
 // Check Console app for logs
-// Filter by "ORRMAT" to see only app logs
+// Filter by "ODYSSEY" to see only app logs
 ```
 
 ### Performance Monitoring
@@ -555,7 +555,7 @@ NSLog("ORRMAT: Debug message here")
 // Add performance monitoring
 import os.log
 
-private let performanceLog = OSLog(subsystem: "com.orrmat.app", category: "performance")
+private let performanceLog = OSLog(subsystem: "com.odyssey.app", category: "performance")
 
 func measurePerformance<T>(_ operation: String, block: () throws -> T) rethrows -> T {
     let start = CFAbsoluteTimeGetCurrent()

@@ -126,8 +126,8 @@ No deprecated features in the current version.
 
 For support and questions:
 
-- **GitHub Issues**: [Report Issues](https://github.com/Amet13/odyssey/issues)
-- **GitHub Discussions**: [Community Discussion](https://github.com/Amet13/odyssey/discussions)
+- **GitHub Issues**: [Report Issues](https://github.com/Amet13/ODYSSEY/issues)
+- **GitHub Discussions**: [Community Discussion](https://github.com/Amet13/ODYSSEY/discussions)
 - **Email**: support@odyssey.app
 
 ---

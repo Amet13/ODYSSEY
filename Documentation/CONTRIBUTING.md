@@ -38,11 +38,11 @@ When suggesting new features:
 
 ```bash
 # Clone your fork
-git clone https://github.com/Amet13/odyssey.git
-cd odyssey
+git clone https://github.com/Amet13/ODYSSEY.git
+cd ODYSSEY
 
 # Add upstream remote
-git remote add upstream https://github.com/Amet13/odyssey.git
+git remote add upstream https://github.com/Amet13/ODYSSEY.git
 
 # Install dependencies
 brew install xcodegen
@@ -328,7 +328,7 @@ What actually happened
 ## Environment
 
 - macOS Version: [e.g., 12.0]
-- ORRMAT Version: [e.g., 1.0.0]
+- ODYSSEY Version: [e.g., 1.0.0]
 - Xcode Version: [e.g., 14.0]
 
 ## Additional Context

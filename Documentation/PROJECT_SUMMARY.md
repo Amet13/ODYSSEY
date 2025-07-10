@@ -1,6 +1,6 @@
 # ODYSSEY Project Summary
 
-# Repository: https://github.com/Amet13/odyssey
+# Repository: https://github.com/Amet13/ODYSSEY
 
 ## 🎯 Project Overview
 
@@ -228,6 +228,6 @@ ODYSSEY (Ottawa Drop-in Your Sports & Schedule Easily Yourself) is a sophisticat
 
 ---
 
-**ORRMAT is now a professional-grade macOS application with comprehensive documentation, robust build system, and high-quality codebase ready for production use and community contributions.**
+**ODYSSEY is now a professional-grade macOS application with comprehensive documentation, robust build system, and high-quality codebase ready for production use and community contributions.**
 
 **Made with ❤️ for the Ottawa sports community**

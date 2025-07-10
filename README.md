@@ -30,7 +30,7 @@ A sophisticated macOS menu bar application that automates sports reservation boo
 
 #### Option 1: Download Latest Release (Recommended)
 
-1. **Go to [Releases](https://github.com/Amet13/odyssey/releases)**
+1. **Go to [Releases](https://github.com/Amet13/ODYSSEY/releases)**
 2. **Download the latest DMG file** (e.g., `ODYSSEY-v1.0.0.dmg`)
 3. **Double-click the DMG** to mount the disk image
 4. **Drag ODYSSEY to Applications** folder
@@ -58,8 +58,8 @@ brew install swiftlint
 #### 2. Clone and Setup
 
 ```bash
-git clone https://github.com/Amet13/odyssey.git
-cd odyssey
+git clone https://github.com/Amet13/ODYSSEY.git
+cd ODYSSEY
 ```
 
 #### 3. Generate Xcode Project
@@ -268,8 +268,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/Amet13/odyssey/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Amet13/odyssey/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Amet13/ODYSSEY/discussions)
 - **Email**: support@odyssey.app
 
 ---

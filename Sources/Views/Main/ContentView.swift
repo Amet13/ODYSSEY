@@ -54,8 +54,7 @@ private extension ContentView {
                 }
                 .buttonStyle(IconHoverButtonStyle())
             }
-            
-            statusIndicatorView
+            // Removed statusIndicatorView
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
@@ -66,10 +65,6 @@ private extension ContentView {
             Circle()
                 .fill(statusColor)
                 .frame(width: 8, height: 8)
-            
-            Text(statusText)
-                .font(.caption)
-                .foregroundColor(.secondary)
             
             Spacer()
             
@@ -122,10 +117,15 @@ private extension ContentView {
     }
     
     var configurationListView: some View {
-        ScrollView {
+        return ScrollView {
             LazyVStack(spacing: 12) {
                 ForEach(configManager.settings.configurations) { config in
-                    ConfigurationRowView(config: config) {
+                    let nextRun = getNextCronRunTime(for: config)
+                    ConfigurationRowView(
+                        config: config,
+                        nextAutorunInfo: nextRun,
+                        formatCountdown: formatCountdown
+                    ) {
                         selectedConfig = config
                     } onDelete: {
                         configManager.removeConfiguration(config)
@@ -138,6 +138,37 @@ private extension ContentView {
             }
             .padding()
         }
+    }
+    
+    func nextAutorunView(nextRun: (date: Date, config: ReservationConfig, weekday: ReservationConfig.Weekday, timeSlot: TimeSlot)) -> some View {
+        let timeFormatter = DateFormatter()
+        timeFormatter.timeStyle = .short
+        let timeString = timeFormatter.string(from: nextRun.timeSlot.time)
+        
+        return HStack {
+            Image(systemName: "clock.fill")
+                .font(.title3)
+                .foregroundColor(.blue)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Next Autorun")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                Text("\(formatCountdown(to: nextRun.date)) for \(nextRun.config.sportName) (\(nextRun.weekday.shortName) \(timeString))")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+        }
+        .padding()
+        .background(Color(NSColor.controlBackgroundColor))
+        .cornerRadius(8)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+        )
     }
 }
 
@@ -185,33 +216,6 @@ private extension ContentView {
         case .running: return .blue
         case .success: return .green
         case .failed: return .red
-        }
-    }
-    
-    var statusText: String {
-        if reservationManager.isRunning {
-            return "Running: \(reservationManager.currentTask)"
-        }
-        
-        let enabledConfigs = configManager.getEnabledConfigurations()
-        let totalConfigs = configManager.settings.configurations.count
-        
-        if enabledConfigs.isEmpty {
-            return "No enabled configs (\(totalConfigs) total)"
-        }
-        
-        let configsWithSlots = enabledConfigs.filter { !$0.dayTimeSlots.isEmpty }
-        if configsWithSlots.isEmpty {
-            return "No time slots configured (\(enabledConfigs.count) enabled)"
-        }
-        
-        if let nextRun = getNextCronRunTime() {
-            let timeFormatter = DateFormatter()
-            timeFormatter.timeStyle = .short
-            let timeString = timeFormatter.string(from: nextRun.timeSlot.time)
-            return "Next autorun: \(formatCountdown(to: nextRun.date)) for \(nextRun.config.sportName) (\(nextRun.weekday.shortName) \(timeString))"
-        } else {
-            return "No future autorun times (\(configsWithSlots.count) configs with slots)"
         }
     }
 }
@@ -281,6 +285,39 @@ private extension ContentView {
         }
     }
     
+    // Helper to get next autorun for a specific config
+    func getNextCronRunTime(for config: ReservationConfig) -> (date: Date, config: ReservationConfig, weekday: ReservationConfig.Weekday, timeSlot: TimeSlot)? {
+        guard config.isEnabled else { return nil }
+        let calendar = Calendar.current
+        let now = Date()
+        var nextCronTime: Date?
+        var nextWeekday: ReservationConfig.Weekday?
+        var nextTimeSlot: TimeSlot?
+        for (weekday, timeSlots) in config.dayTimeSlots {
+            for timeSlot in timeSlots {
+                for weekOffset in 0...4 {
+                    let baseDate = calendar.date(byAdding: .weekOfYear, value: weekOffset, to: now) ?? now
+                    let reservationDay = getNextWeekday(weekday, from: baseDate)
+                    let cronTime = calendar.date(byAdding: .day, value: -2, to: reservationDay) ?? reservationDay
+                    let finalCronTime = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: cronTime) ?? cronTime
+                    if finalCronTime > now {
+                        if nextCronTime == nil || finalCronTime < nextCronTime! {
+                            nextCronTime = finalCronTime
+                            nextWeekday = weekday
+                            nextTimeSlot = timeSlot
+                        }
+                        break
+                    }
+                }
+            }
+        }
+        if let date = nextCronTime, let weekday = nextWeekday, let timeSlot = nextTimeSlot {
+            return (date: date, config: config, weekday: weekday, timeSlot: timeSlot)
+        } else {
+            return nil
+        }
+    }
+    
     func getNextWeekday(_ weekday: ReservationConfig.Weekday, from date: Date) -> Date {
         let calendar = Calendar.current
         let currentWeekday = calendar.component(.weekday, from: date)
@@ -320,6 +357,8 @@ private extension ContentView {
 
 struct ConfigurationRowView: View {
     let config: ReservationConfig
+    let nextAutorunInfo: (date: Date, config: ReservationConfig, weekday: ReservationConfig.Weekday, timeSlot: TimeSlot)?
+    let formatCountdown: (Date) -> String
     let onEdit: () -> Void
     let onDelete: () -> Void
     let onToggle: () -> Void
@@ -329,17 +368,32 @@ struct ConfigurationRowView: View {
     @State private var isToggleHovered = false
     
     var body: some View {
-        HStack {
-            configurationInfoView
-            Spacer()
-            actionButtonsView
+        // Debug print to confirm rendering and autorun logic
+        print("Rendering config card: \(config.name), hasNextAutorun: \(nextAutorunInfo != nil)")
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                configurationInfoView
+                Spacer()
+                actionButtonsView
+            }
+            if let next = nextAutorunInfo {
+                HStack(spacing: 8) {
+                    Image(systemName: "clock.fill")
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
+                    Text(nextAutorunText(for: next))
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                }
+                .padding(.top, 2)
+            }
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
         .cornerRadius(8)
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                .stroke(nextAutorunInfo != nil ? Color.blue.opacity(0.5) : Color.gray.opacity(0.2), lineWidth: 1)
         )
         .shadow(color: isHovered ? .black.opacity(0.1) : .clear, radius: isHovered ? 4 : 0, x: 0, y: isHovered ? 2 : 0)
         .onHover { hovering in
@@ -347,6 +401,13 @@ struct ConfigurationRowView: View {
                 isHovered = hovering
             }
         }
+    }
+    
+    private func nextAutorunText(for next: (date: Date, config: ReservationConfig, weekday: ReservationConfig.Weekday, timeSlot: TimeSlot)) -> String {
+        let timeFormatter = DateFormatter()
+        timeFormatter.timeStyle = .short
+        let timeString = timeFormatter.string(from: next.timeSlot.time)
+        return "Next autorun: \(formatCountdown(next.date)) (\(next.weekday.shortName) \(timeString))"
     }
     
     private var configurationInfoView: some View {
