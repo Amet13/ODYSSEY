@@ -8,6 +8,8 @@
 	<string>ODYSSEY</string>
 	<key>CFBundleExecutable</key>
 	<string>ODYSSEY</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.odyssey.app</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -17,13 +19,11 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.2.0</string>
+	<string>1.0.1</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<integer>1</integer>
-	<key>CFBundleIconName</key>
-	<string>AppIcon</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSUIElement</key>
