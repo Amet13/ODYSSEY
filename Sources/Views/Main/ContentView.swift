@@ -289,14 +289,7 @@ struct ConfigurationRowView: View {
                 onDelete()
             }
         } message: {
-            VStack(spacing: 12) {
-                Image("logo")
-                    .resizable()
-                    .frame(width: 64, height: 64)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .padding(.bottom, 4)
-                Text("Are you sure you want to delete '\(config.name)'? This action cannot be undone.")
-            }
+            Text("Are you sure you want to delete '\(config.name)'? This action cannot be undone.")
         }
     }
     private func formatScheduleInfo() -> String {
@@ -323,6 +316,48 @@ struct ConfigurationRowView: View {
         timeFormatter.timeStyle = .short
         let timeString = timeFormatter.string(from: next.timeSlot.time)
         return "Next autorun: \(formatCountdown(next.date)) (\(next.weekday.shortName) \(timeString))"
+    }
+}
+
+struct DeleteConfirmationModal: View {
+    let configName: String
+    let onDelete: () -> Void
+    let onCancel: () -> Void
+    var body: some View {
+        VStack(spacing: 20) {
+            Image("logo")
+                .resizable()
+                .frame(width: 64, height: 64)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(.top, 24)
+            Text("Delete Configuration")
+                .font(.title3)
+                .fontWeight(.semibold)
+            Text("Are you sure you want to delete '\(configName)'? This action cannot be undone.")
+                .multilineTextAlignment(.center)
+                .font(.body)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
+            HStack(spacing: 20) {
+                Button("Cancel") {
+                    onCancel()
+                }
+                .buttonStyle(.bordered)
+                Button("Delete") {
+                    onDelete()
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
+            }
+            .padding(.bottom, 24)
+        }
+        .frame(width: 340)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(NSColor.windowBackgroundColor))
+                .shadow(radius: 20)
+        )
+        .padding()
     }
 }
 
