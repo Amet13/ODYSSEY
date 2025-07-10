@@ -1,0 +1,129 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-release:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "latest-stable"
+
+      - name: Install dependencies
+        run: |
+          brew install xcodegen
+          brew install create-dmg
+
+      - name: Generate Xcode project
+        run: |
+          xcodegen
+
+      - name: Build Release
+        run: |
+          xcodebuild build \
+            -project ORRMAT.xcodeproj \
+            -scheme ORRMAT \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -quiet
+
+      - name: Get app path
+        id: app-path
+        run: |
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ORRMAT.app" -type d 2>/dev/null | head -1)
+          echo "APP_PATH=$APP_PATH" >> $GITHUB_OUTPUT
+          echo "Found app at: $APP_PATH"
+
+      - name: Create DMG
+        run: |
+          # Create DMG directory structure
+          mkdir -p dmg_temp
+          cp -R "${{ steps.app-path.outputs.APP_PATH }}" dmg_temp/
+
+          # Create DMG
+          create-dmg \
+            --volname "ORRMAT Installer" \
+            --volicon "dmg_temp/ORRMAT.app/Contents/Resources/AppIcon.icns" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "ORRMAT.app" 175 120 \
+            --hide-extension "ORRMAT.app" \
+            --app-drop-link 425 120 \
+            "ORRMAT-${{ github.ref_name }}.dmg" \
+            "dmg_temp/"
+
+      - name: Get app size
+        run: |
+          APP_SIZE=$(du -sh "${{ steps.app-path.outputs.APP_PATH }}" | cut -f1)
+          DMG_SIZE=$(du -sh "ORRMAT-${{ github.ref_name }}.dmg" | cut -f1)
+          echo "App size: $APP_SIZE"
+          echo "DMG size: $DMG_SIZE"
+          echo "APP_SIZE=$APP_SIZE" >> $GITHUB_ENV
+          echo "DMG_SIZE=$DMG_SIZE" >> $GITHUB_ENV
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: orrmat-installer
+          path: ORRMAT-${{ github.ref_name }}.dmg
+          retention-days: 30
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ORRMAT-${{ github.ref_name }}.dmg
+          name: ORRMAT ${{ github.ref_name }}
+          body: |
+            ## ORRMAT ${{ github.ref_name }}
+
+            ### 🚀 What's New
+            - Automated macOS menu bar application for Ottawa Recreation reservations
+            - Smart scheduling with 2-day advance booking
+            - Modern SwiftUI interface
+            - WebKit automation for seamless booking
+
+            ### 📦 Installation
+            1. Download the DMG file above
+            2. Double-click to mount the disk image
+            3. Drag ORRMAT to your Applications folder
+            4. Launch ORRMAT from Applications
+            5. The app will appear in your menu bar
+
+            ### 📋 Requirements
+            - macOS 12.0 or later
+
+            ### 🔧 Features
+            - 🖥️ Native macOS menu bar integration
+            - ⏰ Smart scheduling system
+            - ⚙️ Easy configuration interface
+            - 🤖 Web automation
+            - 📱 Modern UI with hover effects
+            - 🔄 Multiple configurations
+            - 📊 Real-time status
+            - 📝 Built-in logs
+
+            ### 📊 Build Info
+            - **App Size**: ${{ env.APP_SIZE }}
+            - **Installer Size**: ${{ env.DMG_SIZE }}
+            - **Build Date**: $(date -u +"%Y-%m-%d %H:%M UTC")
+
+            ### 🐛 Issues & Support
+            - [Report Issues](https://github.com/Amet13/orrmat/issues)
+            - [Community Discussion](https://github.com/Amet13/orrmat/discussions)
+
+            ---
+            **Made with ❤️ for the Ottawa sports community**
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

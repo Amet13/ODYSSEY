@@ -26,10 +26,20 @@ A sophisticated macOS menu bar application that automates sports reservation boo
 
 ### For Users
 
-1. **Download the latest release** from the releases page
-2. **Drag ORRMAT.app to Applications**
-3. **Launch the app** - it will appear in your menu bar
-4. **Configure your reservations** by clicking the menu bar icon
+#### Option 1: Download Latest Release (Recommended)
+
+1. **Go to [Releases](https://github.com/Amet13/orrmat/releases)**
+2. **Download the latest DMG file** (e.g., `ORRMAT-v1.0.0.dmg`)
+3. **Double-click the DMG** to mount the disk image
+4. **Drag ORRMAT to Applications** folder
+5. **Launch ORRMAT** from Applications
+6. **The app will appear in your menu bar**
+
+#### Option 2: Build from Source
+
+1. **Clone the repository** (see Developer Setup below)
+2. **Run the build script**: `./build.sh`
+3. **The app will be built and launched automatically**
 
 ### For Developers
 
@@ -159,6 +169,41 @@ orrmat/
 Enable detailed logging by checking the Console app for messages from subsystem "com.orrmat.app"
 
 ## 🧪 Development
+
+### CI/CD Pipeline
+
+ORRMAT uses GitHub Actions for continuous integration and deployment:
+
+- **CI Workflow** - Runs on every push and pull request
+  - Builds the app in Debug configuration
+  - Runs SwiftLint for code quality
+  - Uploads build artifacts
+- **Release Workflow** - Runs when a new version tag is pushed
+  - Builds the app in Release configuration
+  - Creates a DMG installer
+  - Publishes a GitHub release with download links
+- **Nightly Build** - Runs daily at 2 AM UTC
+  - Ensures the app builds successfully
+  - Provides early feedback on issues
+
+### Creating Releases
+
+To create a new release:
+
+```bash
+# Create release v1.0.0
+./scripts/create-release.sh 1.0.0
+
+# Preview what would be done
+./scripts/create-release.sh --dry-run 1.1.0
+```
+
+This will:
+
+1. Update version numbers in project files
+2. Create a git tag
+3. Push to GitHub
+4. Trigger automatic build and release
 
 ### Code Quality
 
