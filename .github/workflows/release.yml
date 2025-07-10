@@ -40,6 +40,21 @@ jobs:
             -destination 'platform=macOS' \
             -quiet
 
+      - name: Code Sign App
+        run: |
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ORRMAT.app" -type d 2>/dev/null | head -1)
+          echo "Code signing app at: $APP_PATH"
+
+          # Remove any existing code signing
+          codesign --remove-signature "$APP_PATH" 2>/dev/null || true
+
+          # Sign with ad-hoc signature (no certificate required)
+          codesign --force --deep --sign - "$APP_PATH"
+
+          # Verify the signature
+          codesign -dv "$APP_PATH"
+          echo "Code signing completed"
+
       - name: Get app path
         id: app-path
         run: |
@@ -118,8 +133,10 @@ jobs:
             1. Download the DMG file above
             2. Double-click to mount the disk image
             3. Drag ORRMAT to your Applications folder
-            4. Launch ORRMAT from Applications
-            5. The app will appear in your menu bar
+            4. **First Launch**: Right-click ORRMAT in Applications and select "Open"
+            5. Click "Open" in the security dialog that appears
+            6. The app will appear in your menu bar
+            7. **Note**: This is normal for apps not from the App Store
 
             ### 📋 Requirements
             - macOS 12.0 or later
@@ -142,6 +159,12 @@ jobs:
             ### 🐛 Issues & Support
             - [Report Issues](https://github.com/Amet13/orrmat/issues)
             - [Community Discussion](https://github.com/Amet13/orrmat/discussions)
+
+            ### 🔧 Troubleshooting
+            **"App is damaged" error?**
+            - Right-click the app and select "Open" instead of double-clicking
+            - This is normal for apps not from the App Store
+            - macOS Gatekeeper protects you from unsigned apps
 
             ---
             **Made with ❤️ for the Ottawa sports community**
