@@ -1,7 +1,7 @@
-import Foundation
-import WebKit
 import Combine
+import Foundation
 import os.log
+import WebKit
 
 /// Service for fetching available sports/activities from facility pages
 class FacilityService: NSObject, ObservableObject {
@@ -136,14 +136,14 @@ class FacilityService: NSObject, ObservableObject {
 // MARK: - WKNavigationDelegate
 
 extension FacilityService: WKNavigationDelegate {
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation?) {
         logger.debug("Facility page loaded successfully")
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             self.injectSportsDetectionScript()
         }
     }
     
-    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation?, withError error: Error) {
         logger.error("Failed to load facility page: \(error.localizedDescription)")
         DispatchQueue.main.async {
             self.isLoading = false

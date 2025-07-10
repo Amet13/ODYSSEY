@@ -1,7 +1,7 @@
-import Foundation
-import WebKit
 import Combine
+import Foundation
 import os.log
+import WebKit
 
 /// Manages the automation of reservation bookings
 class ReservationManager: NSObject, ObservableObject {
@@ -173,13 +173,13 @@ class ReservationManager: NSObject, ObservableObject {
 // MARK: - WKNavigationDelegate
 
 extension ReservationManager: WKNavigationDelegate {
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation?) {
         currentTask = "Page loaded, injecting automation script"
         logger.debug("Page loaded successfully")
         injectAutomationScript()
     }
     
-    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation?, withError error: Error) {
         logger.error("Navigation failed: \(error.localizedDescription)")
         handleError("Navigation failed: \(error.localizedDescription)")
     }

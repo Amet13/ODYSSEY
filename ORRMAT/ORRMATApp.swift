@@ -98,7 +98,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func shouldRunReservation(config: ReservationConfig, at date: Date) -> Bool {
         let calendar = Calendar.current
         let currentTime = calendar.dateComponents([.hour, .minute], from: date)
-        let currentMinutes = currentTime.hour! * 60 + currentTime.minute!
+        
+        guard let currentHour = currentTime.hour,
+              let currentMinute = currentTime.minute else {
+            logger.warning("Could not extract time components from date")
+            return false
+        }
+        
+        let currentMinutes = currentHour * 60 + currentMinute
         
         // Check if current time matches any of the enabled time slots exactly
         for (day, timeSlots) in config.dayTimeSlots {
@@ -118,10 +125,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if calendarWeekday == expectedWeekday {
                 for timeSlot in timeSlots {
                     let slotTime = calendar.dateComponents([.hour, .minute], from: timeSlot.time)
-                    let slotMinutes = slotTime.hour! * 60 + slotTime.minute!
+                    
+                    guard let slotHour = slotTime.hour,
+                          let slotMinute = slotTime.minute else {
+                        logger.warning("Could not extract time components from slot")
+                        continue
+                    }
+                    
+                    let slotMinutes = slotHour * 60 + slotMinute
                     
                     if currentMinutes == slotMinutes {
-                        logger.debug("Time match found for \(config.name) at \(slotTime.hour!):\(slotTime.minute!)")
+                        logger.debug("Time match found for \(config.name) at \(slotHour):\(slotMinute)")
                         return true
                     }
                 }

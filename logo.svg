@@ -1,0 +1,43 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="#007AFF" stroke="#0056CC" stroke-width="8"/>
+  
+  <!-- Inner circle for depth -->
+  <circle cx="256" cy="256" r="200" fill="#4DA6FF" opacity="0.3"/>
+  
+  <!-- Calendar/Reservation icon -->
+  <rect x="180" y="160" width="152" height="120" rx="12" fill="white" stroke="#0056CC" stroke-width="4"/>
+  <rect x="180" y="160" width="152" height="30" rx="12" fill="#0056CC"/>
+  
+  <!-- Calendar lines -->
+  <line x1="200" y1="200" x2="220" y2="200" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <line x1="240" y1="200" x2="260" y2="200" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <line x1="280" y1="200" x2="300" y2="200" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  <line x1="320" y1="200" x2="340" y2="200" stroke="white" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Calendar grid -->
+  <line x1="200" y1="220" x2="200" y2="260" stroke="#0056CC" stroke-width="2"/>
+  <line x1="240" y1="220" x2="240" y2="260" stroke="#0056CC" stroke-width="2"/>
+  <line x1="280" y1="220" x2="280" y2="260" stroke="#0056CC" stroke-width="2"/>
+  <line x1="320" y1="220" x2="320" y2="260" stroke="#0056CC" stroke-width="2"/>
+  
+  <line x1="180" y1="220" x2="332" y2="220" stroke="#0056CC" stroke-width="2"/>
+  <line x1="180" y1="240" x2="332" y2="240" stroke="#0056CC" stroke-width="2"/>
+  <line x1="180" y1="260" x2="332" y2="260" stroke="#0056CC" stroke-width="2"/>
+  
+  <!-- Checkmark for automation -->
+  <path d="M 220 240 L 240 260 L 300 200" stroke="#00CC44" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Sports ball icon -->
+  <circle cx="256" cy="320" r="25" fill="#FF6B35" stroke="#CC4A1A" stroke-width="3"/>
+  <path d="M 256 295 Q 281 295 281 320 Q 281 345 256 345 Q 231 345 231 320 Q 231 295 256 295" fill="none" stroke="white" stroke-width="2"/>
+  <path d="M 231 320 Q 256 320 281 320" fill="none" stroke="white" stroke-width="2"/>
+  
+  <!-- Automation arrows -->
+  <path d="M 120 200 L 140 200 L 135 195 M 140 200 L 135 205" stroke="#FF6B35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M 392 200 L 372 200 L 377 195 M 372 200 L 377 205" stroke="#FF6B35" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- ORRMAT text -->
+  <text x="256" y="400" font-family="Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="middle" fill="white">ORRMAT</text>
+  <text x="256" y="425" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="white" opacity="0.8">Ottawa Recreation</text>
+</svg> 

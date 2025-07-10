@@ -1,6 +1,6 @@
 import AppKit
-import SwiftUI
 import Combine
+import SwiftUI
 
 /// Manages the status bar (tray) menu for the macOS app
 class StatusBarController: NSObject {
