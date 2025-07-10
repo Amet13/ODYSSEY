@@ -49,11 +49,11 @@ private extension ContentView {
                 Image(systemName: "plus")
             }
             .buttonStyle(.bordered)
-            .help("Add Configuration")
+            .help("Add new configuration")
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
-        .padding(.bottom, 8)
+        .padding(.bottom, 16)
     }
     
     var mainContentView: some View {
@@ -120,6 +120,7 @@ private extension ContentView {
             .buttonStyle(.borderedProminent)
             .tint(.accentColor)
             .disabled(!canRunAll)
+            .help("Run all enabled configurations")
             
             Spacer()
             
@@ -129,16 +130,18 @@ private extension ContentView {
             .buttonStyle(.bordered)
             .tint(.gray)
             .disabled(!reservationManager.isRunning)
+            .help("Stop all running reservations")
             
             Button("Quit") {
                 NSApp.terminate(nil)
             }
             .buttonStyle(.bordered)
             .tint(.red)
+            .help("Quit ODYSSEY")
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 16)
-        .padding(.top, 8)
+        .padding(.top, 16)
     }
     
     private var canRunAll: Bool {
@@ -220,62 +223,74 @@ struct ConfigurationRowView: View {
     let onRun: () -> Void
     @State private var isHovered = false
     @State private var isToggleHovered = false
+    @State private var showingDeleteConfirmation = false
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(config.name)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    Text(config.sportName)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    if !config.dayTimeSlots.isEmpty {
-                        Text(formatScheduleInfo())
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
-                    if let next = nextAutorunInfo {
-                        HStack(spacing: 6) {
-                            Image(systemName: "clock")
-                                .font(.caption)
-                                .foregroundColor(.accentColor)
-                            Text(nextAutorunText(for: next))
-                                .font(.caption)
-                                .foregroundColor(.accentColor)
-                        }
-                    }
-                }
+            HStack(alignment: .top, spacing: 8) {
+                Text(config.name)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
                 Spacer()
-                HStack(spacing: 8) {
-                    Button(action: onRun) {
-                        Image(systemName: "play.fill")
+                Button(action: onRun) {
+                    Image(systemName: "play.fill")
+                }
+                .buttonStyle(.bordered)
+                .help("Run configuration now")
+                .disabled(ReservationManager.shared.isRunning)
+                Toggle("", isOn: Binding(
+                    get: { config.isEnabled },
+                    set: { _ in onToggle() }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .help("Enable or disable configuration")
+                Button(action: onEdit) {
+                    Image(systemName: "pencil")
+                }
+                .buttonStyle(.bordered)
+                .help("Edit configuration")
+                Button(action: { showingDeleteConfirmation = true }) {
+                    Image(systemName: "trash")
+                }
+                .buttonStyle(.bordered)
+                .tint(.red)
+                .help("Delete configuration")
+            }
+            Text("\(ReservationConfig.extractFacilityName(from: config.facilityURL)) • \(config.sportName) • \(config.numberOfPeople)pp")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 2) {
+                if !config.dayTimeSlots.isEmpty {
+                    Text(formatScheduleInfo())
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if let next = nextAutorunInfo {
+                    HStack(spacing: 6) {
+                        Image(systemName: "clock")
+                            .font(.caption)
+                            .foregroundColor(.accentColor)
+                        Text(nextAutorunText(for: next))
+                            .font(.caption)
+                            .foregroundColor(.accentColor)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                    .buttonStyle(.bordered)
-                    .help("Run Now")
-                    .disabled(ReservationManager.shared.isRunning)
-                    Toggle("", isOn: Binding(
-                        get: { config.isEnabled },
-                        set: { _ in onToggle() }
-                    ))
-                    .labelsHidden()
-                    .toggleStyle(.switch)
-                    Button(action: onEdit) {
-                        Image(systemName: "pencil")
-                    }
-                    .buttonStyle(.bordered)
-                    .help("Edit")
-                    Button(action: onDelete) {
-                        Image(systemName: "trash")
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(.red)
-                    .help("Delete")
                 }
             }
         }
         .padding(.vertical, 6)
+        .alert("Delete Configuration", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                onDelete()
+            }
+        } message: {
+            Text("Are you sure you want to delete '\(config.name)'? This action cannot be undone.")
+        }
     }
     private func formatScheduleInfo() -> String {
         let sortedDays = config.dayTimeSlots.keys.sorted { day1, day2 in

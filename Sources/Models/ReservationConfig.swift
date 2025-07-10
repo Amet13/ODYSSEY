@@ -61,6 +61,17 @@ struct ReservationConfig: Codable, Identifiable {
             }
         }
     }
+
+    static func extractFacilityName(from url: String) -> String {
+        let pattern = #"https://reservation\.frontdesksuite\.ca/rcfs/([^/]+)"#
+        if let regex = try? NSRegularExpression(pattern: pattern),
+           let match = regex.firstMatch(in: url, range: NSRange(url.startIndex..., in: url)) {
+            let facilityRange = Range(match.range(at: 1), in: url)!
+            let facilityName = String(url[facilityRange])
+            return facilityName.capitalized
+        }
+        return ""
+    }
 }
 
 /// Represents a time slot for reservations
