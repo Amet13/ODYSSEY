@@ -121,6 +121,7 @@ targets:
               NSExceptionAllowsInsecureHTTPLoads: true
               NSExceptionMinimumTLSVersion: TLSv1.2
               NSIncludesSubdomains: true
+        CFBundleIconName: AppIcon
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.odyssey.app
