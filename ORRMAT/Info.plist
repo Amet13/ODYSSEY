@@ -3,27 +3,27 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
+	<string>1.0.1</string>
 	<key>CFBundleDisplayName</key>
-	<string>ORRMAT</string>
+	<string>1.0.1</string>
 	<key>CFBundleExecutable</key>
-	<string>ORRMAT</string>
+	<string>1.0.1</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.orrmat.app</string>
+	<string>1.0.1</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<real>6</real>
 	<key>CFBundleName</key>
-	<string>ORRMAT</string>
+	<string>1.0.1</string>
 	<key>CFBundlePackageType</key>
-	<string>APPL</string>
+	<string>1.0.1</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>1.0.1</string>
 	<key>CFBundleSignature</key>
-	<string>????</string>
+	<string>1.0.1</string>
 	<key>CFBundleVersion</key>
 	<integer>1</integer>
 	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.utilities</string>
+	<string>1.0.1</string>
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -37,7 +37,7 @@
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
 				<key>NSExceptionMinimumTLSVersion</key>
-				<string>TLSv1.2</string>
+				<string>1.0.1</string>
 				<key>NSIncludesSubdomains</key>
 				<true/>
 			</dict>
@@ -46,13 +46,13 @@
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<true/>
 				<key>NSExceptionMinimumTLSVersion</key>
-				<string>TLSv1.2</string>
+				<string>1.0.1</string>
 				<key>NSIncludesSubdomains</key>
 				<true/>
 			</dict>
 		</dict>
 	</dict>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2025 Amet13. All rights reserved.</string>
+	<string>1.0.1</string>
 </dict>
 </plist>
