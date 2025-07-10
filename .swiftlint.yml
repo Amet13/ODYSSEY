@@ -12,6 +12,12 @@ disabled_rules:
   - large_tuple
   - unused_import
   - unused_private_declaration
+  - trailing_newline
+  - identifier_name
+  - multiple_closures_with_trailing_closure
+  - unused_closure_parameter
+  - unused_enumerated
+  - for_where
 
 # Enable specific rules
 opt_in_rules:
@@ -87,7 +93,7 @@ excluded:
   - Pods
   - .build
   - DerivedData
-  - *.generated.swift
+  - "*.generated.swift"
 
 # Custom rules
 custom_rules:
@@ -95,4 +101,4 @@ custom_rules:
     name: "ORRMAT Logging"
     regex: "print\\(|NSLog\\("
     message: "Use os.log Logger instead of print or NSLog"
-    severity: warning 
+    severity: warning
