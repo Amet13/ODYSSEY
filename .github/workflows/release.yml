@@ -5,6 +5,10 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build-release:
     runs-on: macos-latest
@@ -95,6 +99,13 @@ jobs:
           name: orrmat-installer
           path: ORRMAT-${{ github.ref_name }}.dmg
           retention-days: 30
+
+      - name: Debug GitHub Token
+        run: |
+          echo "Checking GitHub token permissions..."
+          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+               -H "Accept: application/vnd.github.v3+json" \
+               https://api.github.com/user
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
