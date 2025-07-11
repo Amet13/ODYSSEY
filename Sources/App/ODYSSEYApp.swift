@@ -110,16 +110,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Check if current time matches any of the enabled time slots exactly
         for (day, timeSlots) in config.dayTimeSlots {
             let calendarWeekday = calendar.component(.weekday, from: date)
-            let expectedWeekday: Int
-
-            switch day {
-            case .sunday: expectedWeekday = 1
-            case .monday: expectedWeekday = 2
-            case .tuesday: expectedWeekday = 3
-            case .wednesday: expectedWeekday = 4
-            case .thursday: expectedWeekday = 5
-            case .friday: expectedWeekday = 6
-            case .saturday: expectedWeekday = 7
+            let expectedWeekday = switch day {
+            case .sunday: 1
+            case .monday: 2
+            case .tuesday: 3
+            case .wednesday: 4
+            case .thursday: 5
+            case .friday: 6
+            case .saturday: 7
             }
 
             if calendarWeekday == expectedWeekday {
@@ -147,7 +145,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func requestNotificationPermissions() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, error in
-            if let error = error {
+            if let error {
                 self.logger.error("Notification permission error: \(error.localizedDescription)")
             } else {
                 // self.logger.info("Notification permissions granted: \(granted)") // Removed as per edit hint

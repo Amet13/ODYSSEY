@@ -133,7 +133,7 @@ class EventMonitor {
     }
 
     func stop() {
-        if let monitor = monitor {
+        if let monitor {
             NSEvent.removeMonitor(monitor)
             self.monitor = nil
         }

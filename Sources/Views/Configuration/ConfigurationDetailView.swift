@@ -43,7 +43,7 @@ struct ConfigurationDetailView: View {
                             .foregroundColor(.primary)
                         TextField("Enter facility URL", text: $facilityURL)
                             .onChange(of: facilityURL) { _ in updateConfigurationName() }
-                        if !facilityURL.isEmpty && !isValidFacilityURL(facilityURL) {
+                        if !facilityURL.isEmpty, !isValidFacilityURL(facilityURL) {
                             Text("Invalid facility URL. Please enter a valid Ottawa Recreation URL.")
                                 .font(.caption)
                                 .foregroundColor(.red)
@@ -87,7 +87,7 @@ struct ConfigurationDetailView: View {
                                 }
                             }
                             .disabled(availableSports.isEmpty)
-                            if !facilityURL.isEmpty && isValidFacilityURL(facilityURL) {
+                            if !facilityURL.isEmpty, isValidFacilityURL(facilityURL) {
                                 Button(action: { fetchAvailableSports() }) {
                                     Image(systemName: isFetchingSports ? "arrow.clockwise" : "magnifyingglass")
                                 }
@@ -177,11 +177,11 @@ struct ConfigurationDetailView: View {
                                     day: day,
                                     slots: Binding(
                                         get: { dayTimeSlots[day] ?? [TimeSlot(time: Calendar.current.date(from: DateComponents(hour: 18, minute: 0)) ?? Date())] },
-                                        set: { dayTimeSlots[day] = $0 }
+                                        set: { dayTimeSlots[day] = $0 },
                                     ),
                                     onAdd: { addTimeSlot(for: day) },
                                     onRemove: { idx in removeTimeSlot(for: day, at: idx) },
-                                    onRemoveDay: { removeDay(day) }
+                                    onRemoveDay: { removeDay(day) },
                                 )
                             }
                         }
@@ -262,7 +262,7 @@ struct ConfigurationDetailView: View {
     // MARK: - Private Methods
 
     private func loadConfiguration() {
-        guard let config = config else { return }
+        guard let config else { return }
 
         name = config.name
         facilityURL = config.facilityURL
@@ -283,7 +283,7 @@ struct ConfigurationDetailView: View {
             sportName: sportName,
             numberOfPeople: numberOfPeople,
             isEnabled: isEnabled,
-            dayTimeSlots: dayTimeSlots
+            dayTimeSlots: dayTimeSlots,
         )
 
         onSave(newConfig)
@@ -322,15 +322,15 @@ struct ConfigurationDetailView: View {
     }
 
     private func fetchAvailableSports() {
-        guard !facilityURL.isEmpty && isValidFacilityURL(facilityURL) else { return }
+        guard !facilityURL.isEmpty, isValidFacilityURL(facilityURL) else { return }
 
         isFetchingSports = true
         availableSports = []
 
         FacilityService.shared.fetchAvailableSports(from: facilityURL) { sports in
             DispatchQueue.main.async {
-                self.isFetchingSports = false
-                self.availableSports = sports
+                isFetchingSports = false
+                availableSports = sports
             }
         }
     }
@@ -502,15 +502,16 @@ struct DayTimeSlotEditor: View {
                 Spacer()
                 Button(action: onAdd) {
                     Image(systemName: "plus.circle.fill")
+                        .foregroundColor(slots.count >= 2 ? .gray : .green)
                 }
                 .buttonStyle(.bordered)
                 .disabled(slots.count >= 2)
                 .help(slots.count >= 2 ? "Maximum 2 time slots per day" : "Add time slot (no duplicates)")
                 Button(action: onRemoveDay) {
                     Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.red)
                 }
                 .buttonStyle(.bordered)
-                .tint(.red)
             }
             ForEach(Array(slots.enumerated().sorted { $0.element.time < $1.element.time }), id: \.element.id) { index, _ in
                 HStack {
@@ -531,14 +532,14 @@ struct DayTimeSlotEditor: View {
                             if !isDuplicate {
                                 slots[index] = TimeSlot(time: newTime)
                             }
-                        }
+                        },
                     ), displayedComponents: .hourAndMinute)
                         .labelsHidden()
                     Button(action: { onRemove(index) }) {
                         Image(systemName: "minus.circle.fill")
+                            .foregroundColor(.red)
                     }
                     .buttonStyle(.bordered)
-                    .tint(.red)
                     .disabled(slots.count <= 1)
                 }
             }

@@ -52,9 +52,9 @@ private extension ContentView {
             Spacer()
             Button(action: { showingAddConfig = true }) {
                 Image(systemName: "plus")
+                    .foregroundColor(.white)
             }
             .buttonStyle(.borderedProminent)
-            .tint(.blue)
             .help(userSettingsManager.userSettings.localized("Add new configuration"))
         }
         .padding(.horizontal, 20)
@@ -63,24 +63,24 @@ private extension ContentView {
     }
 
     var mainContentView: some View {
-        Group {
-            if configManager.settings.configurations.isEmpty {
-                emptyStateView
-            } else {
+        if configManager.settings.configurations.isEmpty {
+            AnyView(emptyStateView)
+        } else {
+            AnyView(
                 List {
-                    ForEach(configManager.settings.configurations) { config in
+                    ForEach(Array(configManager.settings.configurations.enumerated()), id: \.element.id) { index, config in
                         ConfigurationRowView(
                             config: config,
                             nextAutorunInfo: getNextCronRunTime(for: config),
-                            formatCountdown: formatCountdown
+                            formatCountdown: formatCountdown,
                         ) {
                             selectedConfig = config
                         } onDelete: {
                             configManager.removeConfiguration(config)
                         } onToggle: {
-                            configManager.toggleConfigurationEnabled(config)
+                            configManager.toggleConfiguration(at: index)
                         } onRun: {
-                            reservationManager.runReservation(for: config)
+                            reservationManager.runReservation(for: config, runType: .manual)
                         }
                     }
                     .onDelete { indices in
@@ -90,8 +90,8 @@ private extension ContentView {
                         }
                     }
                 }
-                .listStyle(.inset)
-            }
+                .listStyle(.inset),
+            )
         }
     }
 
@@ -124,7 +124,7 @@ private extension ContentView {
                 Button(userSettingsManager.userSettings.localized("Settings")) {
                     showingSettings = true
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.borderedProminent)
                 .tint(.blue)
                 .help(userSettingsManager.userSettings.localized("Configure user settings and integrations"))
 
@@ -140,7 +140,7 @@ private extension ContentView {
                 Button(userSettingsManager.userSettings.localized("Quit")) {
                     NSApp.terminate(nil)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.borderedProminent)
                 .tint(.red)
                 .help(userSettingsManager.userSettings.localized("Quit ODYSSEY"))
             }
@@ -238,12 +238,13 @@ struct ConfigurationRowView: View {
                 Spacer()
                 Button(action: onRun) {
                     Image(systemName: "play.fill")
+                        .foregroundColor(.blue)
                 }
                 .buttonStyle(.bordered)
-                .help(userSettingsManager.userSettings.localized("Run automated reservation booking for this configuration"))
+                .help(userSettingsManager.userSettings.localized("Run now"))
                 Toggle("", isOn: Binding(
                     get: { config.isEnabled },
-                    set: { _ in onToggle() }
+                    set: { _ in onToggle() },
                 ))
                 .labelsHidden()
                 .toggleStyle(.switch)
@@ -255,9 +256,9 @@ struct ConfigurationRowView: View {
                 .help(userSettingsManager.userSettings.localized("Edit configuration"))
                 Button(action: { showingDeleteConfirmation = true }) {
                     Image(systemName: "trash")
+                        .foregroundColor(.red)
                 }
                 .buttonStyle(.bordered)
-                .tint(.red)
                 .help(userSettingsManager.userSettings.localized("Delete configuration"))
             }
             Text("\(ReservationConfig.extractFacilityName(from: config.facilityURL)) • \(config.sportName) • \(config.numberOfPeople)pp")
@@ -282,6 +283,7 @@ struct ConfigurationRowView: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
+                lastRunStatusView(for: config)
             }
         }
         .padding(.vertical, 6)
@@ -319,7 +321,42 @@ struct ConfigurationRowView: View {
         let timeFormatter = DateFormatter()
         timeFormatter.timeStyle = .short
         let timeString = timeFormatter.string(from: next.timeSlot.time)
-        return userSettingsManager.userSettings.localized("Next autorun:") + " " + formatCountdown(to: next.date) + " (" + next.weekday.shortName + " " + timeString + ")"
+        return userSettingsManager.userSettings.localized("Next autorun:") + " " + formatCountdown(next.date) + " (" + next.weekday.shortName + " " + timeString + ")"
+    }
+
+    private func lastRunStatusView(for config: ReservationConfig) -> some View {
+        if let lastRun = ReservationManager.shared.getLastRunInfo(for: config.id) {
+            let (statusText, statusColor, iconName): (String, Color, String) = switch lastRun.status {
+            case .success:
+                ("Last success \(lastRun.runType.description)", .green, "checkmark.circle.fill")
+            case let .failed(error):
+                ("Last failed: \(error) \(lastRun.runType.description)", .red, "xmark.octagon.fill")
+            case .running:
+                ("Running...", .orange, "hourglass")
+            case .idle:
+                ("Never run", .gray, "questionmark.circle")
+            }
+            return AnyView(
+                HStack(spacing: 6) {
+                    Image(systemName: iconName)
+                        .foregroundColor(statusColor)
+                        .font(.caption)
+                    Text(statusText)
+                        .font(.caption)
+                        .foregroundColor(statusColor)
+                    if let date = lastRun.date {
+                        Text(date, style: .date)
+                            .font(.caption2)
+                            .foregroundColor(statusColor)
+                        Text(date, style: .time)
+                            .font(.caption2)
+                            .foregroundColor(statusColor)
+                    }
+                },
+            )
+        } else {
+            return AnyView(EmptyView())
+        }
     }
 }
 
@@ -360,7 +397,7 @@ struct DeleteConfirmationModal: View {
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(NSColor.windowBackgroundColor))
-                .shadow(radius: 20)
+                .shadow(radius: 20),
         )
         .padding()
     }

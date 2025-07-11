@@ -45,13 +45,13 @@ class UserSettingsManager: ObservableObject {
     /// Checks if user settings are valid for automation
     /// - Returns: True if all required fields are filled
     func isSettingsValid() -> Bool {
-        return userSettings.isValid
+        userSettings.isValid
     }
 
     /// Gets formatted user information for display
     /// - Returns: Dictionary with user information
     func getUserInfo() -> [String: String] {
-        return [
+        [
             "name": userSettings.name,
             "phone": userSettings.getFormattedPhoneNumber(),
             "email": userSettings.imapEmail,

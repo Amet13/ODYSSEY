@@ -10,6 +10,7 @@ This directory contains all the source code for the ODYSSEY macOS application.
 Sources/
 ├── App/                    # Application entry point
 │   ├── ODYSSEYApp.swift    # Main app delegate
+│   ├── Constants.swift     # Application constants
 │   └── Info.plist         # App configuration
 ├── Views/                  # SwiftUI views
 │   ├── Main/              # Main application views
@@ -22,7 +23,10 @@ Sources/
 ├── Services/              # Business logic and services
 │   ├── Configuration.swift
 │   ├── ReservationManager.swift
-│   └── FacilityService.swift
+│   ├── FacilityService.swift
+│   ├── WebDriverService.swift
+│   ├── EmailService.swift
+│   └── TelegramService.swift
 ├── Controllers/           # AppKit controllers
 │   └── StatusBarController.swift
 └── Resources/             # App resources
@@ -35,6 +39,7 @@ Sources/
 ### App Layer
 
 - **ODYSSEYApp.swift** - Main application entry point and app delegate
+- **Constants.swift** - Application-wide constants and configuration
 - **Info.plist** - Application configuration and permissions
 
 ### Views Layer
@@ -52,6 +57,9 @@ Sources/
 - **Configuration.swift** - Settings management and persistence
 - **ReservationManager.swift** - Web automation and reservation booking
 - **FacilityService.swift** - Facility data fetching and sports detection
+- **WebDriverService.swift** - Chrome automation via WebDriver protocol
+- **EmailService.swift** - IMAP integration and email testing
+- **TelegramService.swift** - Telegram bot integration and notifications
 
 ### Controllers Layer
 
@@ -62,24 +70,88 @@ Sources/
 - **Assets.xcassets** - Image assets and app icons
 - **AppIcon.icns** - Application icon file
 
+## Key Features
+
+### Core Functionality
+
+- **Menu Bar Integration** - Native macOS menu bar app using AppKit
+- **Web Automation** - Chrome automation via WebDriver for reservation booking
+- **Configuration Management** - Persistent settings and reservation configurations
+- **Scheduling System** - Automated reservation triggering based on time slots
+- **Real-time Status** - Live updates and countdown timers
+
+### Modern Architecture
+
+- **SwiftUI** - Modern, declarative UI framework
+- **Combine** - Reactive programming for state management
+- **WebDriver** - Native WebDriver protocol implementation
+- **UserDefaults** - Persistent configuration storage
+- **os.log** - Structured logging system
+
+### Integration Features
+
+- **Telegram Integration** - Bot-based notifications and test messaging
+- **IMAP Integration** - Email service testing and validation
+- **Multi-language Support** - English and French localization
+
 ## Development Guidelines
-
-### Adding New Files
-
-1. Place files in the appropriate directory based on their purpose
-2. Follow the existing naming conventions
-3. Update this README if adding new directories
 
 ### Code Organization
 
-- Keep related functionality together
-- Use clear, descriptive file names
-- Follow Swift and SwiftUI best practices
-- Maintain separation of concerns
+- Follow the established directory structure
+- Use clear, descriptive file and class names
+- Implement proper separation of concerns
+- Add comprehensive documentation for public APIs
 
-### Dependencies
+### Error Handling
 
-- Models should have no dependencies on other layers
-- Services can depend on Models
-- Views can depend on Models and Services
-- Controllers can depend on all layers
+- Use structured logging with os.log
+- Implement graceful error recovery
+- Provide user-friendly error messages
+- Log all automation steps and failures
+
+### Performance
+
+- Optimize memory usage and avoid retain cycles
+- Use async/await for concurrent operations
+- Implement proper cleanup in deinit methods
+- Monitor app size and build performance
+
+### Testing
+
+- Test all business logic and automation flows
+- Validate UI on different macOS versions
+- Test error conditions and edge cases
+- Ensure proper data persistence
+
+## Build Process
+
+The project uses XcodeGen for project generation:
+
+```bash
+# Generate Xcode project
+xcodegen --spec Config/project.yml
+
+# Build and run
+./Scripts/build.sh
+```
+
+## Dependencies
+
+- **macOS 12.0+** - Minimum deployment target
+- **Swift 5.7+** - Language version
+- **Xcode 14.0+** - Development environment
+- **ChromeDriver** - Web automation dependency
+- **Google Chrome** - Browser for automation
+
+## Security Considerations
+
+- All automation runs locally on user's machine
+- No data is transmitted to external servers (except Telegram/IMAP when configured)
+- User consent required for all permissions
+- Secure network connections with App Transport Security
+- Input validation and sanitization throughout
+
+---
+
+**For more information, see the main [README.md](../README.md) and [Documentation/](../Documentation/) directory.**

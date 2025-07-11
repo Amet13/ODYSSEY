@@ -45,17 +45,20 @@ class ConfigurationManager: ObservableObject {
         settings.configurations.removeAll { $0.id == config.id }
     }
 
-    func toggleConfigurationEnabled(_ config: ReservationConfig) {
-        if let index = settings.configurations.firstIndex(where: { $0.id == config.id }) {
-            settings.configurations[index].isEnabled.toggle()
-            let status = settings.configurations[index].isEnabled ? "enabled" : "disabled"
-        } else {
-            logger.warning("Configuration not found for toggle: \(config.id)")
-        }
+    func toggleConfiguration(at index: Int) {
+        guard index < settings.configurations.count else { return }
+
+        settings.configurations[index].isEnabled.toggle()
+        saveSettings()
+
+        let configName = settings.configurations[index].name
+        let isEnabled = settings.configurations[index].isEnabled
+        let status = isEnabled ? "enabled" : "disabled"
+        logger.info("Configuration '\(configName)' \(status)")
     }
 
     func getConfiguration(by id: UUID) -> ReservationConfig? {
-        return settings.configurations.first { $0.id == id }
+        settings.configurations.first { $0.id == id }
     }
 
     // MARK: - Persistence
@@ -76,14 +79,14 @@ class ConfigurationManager: ObservableObject {
     // MARK: - Convenience Methods
 
     func getEnabledConfigurations() -> [ReservationConfig] {
-        return settings.configurations.filter { $0.isEnabled }
+        settings.configurations.filter(\.isEnabled)
     }
 
     func getConfigurationsForDay(_ weekday: ReservationConfig.Weekday) -> [ReservationConfig] {
-        return getEnabledConfigurations().filter { $0.dayTimeSlots[weekday]?.isEmpty == false }
+        getEnabledConfigurations().filter { $0.dayTimeSlots[weekday]?.isEmpty == false }
     }
 
     func isAnyConfigurationEnabled() -> Bool {
-        return settings.globalEnabled && !getEnabledConfigurations().isEmpty
+        settings.globalEnabled && !getEnabledConfigurations().isEmpty
     }
 }

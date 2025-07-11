@@ -1,9 +1,3 @@
----
-description: ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself
-globs: *
-alwaysApply: true
----
-
 You are an expert assistant working on the **ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself**, a sophisticated macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities.
 
 ## 🎯 Project Overview
@@ -39,190 +33,67 @@ ODYSSEY is a native macOS application that:
 4. **ReservationManager** - Web automation orchestration
 5. **WebDriverService** - Chrome automation engine (singleton)
 6. **FacilityService** - Web scraping and facility data management
-7. **TelegramService** - Telegram bot integration for notifications (singleton)
-8. **BrowserService** - Browser management utilities
-9. **SwiftUI Views** - Modern UI components (`ContentView`, `ConfigurationDetailView`, `SettingsView`)
+7. **EmailService** - IMAP integration and email testing
+8. **TelegramService** - Telegram bot integration and notifications
 
-### Current Project Structure
+## 📁 Project Structure
 
 ```
 Sources/
 ├── App/
-│   ├── ODYSSEYApp.swift          # Main app entry point with AppDelegate
-│   ├── Constants.swift           # App-wide constants and configuration
-│   └── Info.plist               # App metadata and security settings
-├── Views/
-│   ├── Main/
-│   │   └── ContentView.swift    # Main configuration interface
-│   ├── Configuration/
-│   │   └── ConfigurationDetailView.swift # Configuration editor
-│   └── Settings/
-│       └── SettingsView.swift   # Settings and user preferences
+│   ├── ODYSSEYApp.swift          # Main app entry point
+│   ├── Constants.swift           # Application constants
+│   └── Info.plist               # App configuration
 ├── Controllers/
 │   └── StatusBarController.swift # Menu bar integration
-├── Services/
-│   ├── WebDriverService.swift   # Chrome automation engine (758 lines)
-│   ├── ReservationManager.swift # Automation orchestration (202 lines)
-│   ├── FacilityService.swift    # Web scraping and facility data (203 lines)
-│   ├── TelegramService.swift    # Telegram bot integration (152 lines)
-│   ├── BrowserService.swift     # Browser management utilities (119 lines)
-│   └── Configuration.swift      # Settings persistence (96 lines)
 ├── Models/
-│   ├── ReservationConfig.swift  # Data models and configuration (133 lines)
-│   └── UserSettings.swift       # User preferences and settings (89 lines)
-└── Resources/
-    └── Assets.xcassets/         # App icons and images
+│   └── ReservationConfig.swift   # Data models
+├── Services/
+│   ├── Configuration.swift       # Settings management
+│   ├── ReservationManager.swift  # Web automation orchestration
+│   ├── FacilityService.swift     # Web scraping and sports detection
+│   ├── WebDriverService.swift    # Chrome automation engine
+│   ├── EmailService.swift        # IMAP integration
+│   └── TelegramService.swift     # Telegram bot integration
+├── Views/
+│   ├── Main/                     # Main application views
+│   ├── Configuration/            # Configuration-related views
+│   └── Components/               # Reusable UI components
+└── Resources/                    # App resources and assets
 ```
 
-## 📋 Development Guidelines
+## 🎯 Development Guidelines
 
-### Code Style & Organization
+### Code Style & Standards
 
-- Use private extensions for organizing related functionality
-- Separate concerns with focused view components and services
-- Use computed properties for derived state
-- Prefer Combine publishers and async/await for async flows
-- Use clear, descriptive names and document complex logic
-- Follow SwiftUI best practices for state management
+- **Swift Style**: Follow official Swift style guide and SwiftLint rules
+- **Documentation**: Use JSDoc-style comments for all public methods and classes
+- **Error Handling**: Use structured logging with `os.log` and proper error propagation
+- **Memory Management**: Use `[weak self]` capture lists and proper cleanup
+- **Naming**: Use clear, descriptive names following Swift conventions
 
-### Error Handling
+### Architecture Principles
 
-- Use custom error types for automation and business logic
-- Propagate errors using Combine or async/await
-- Log errors with `os.log` for debugging (subsystem: "com.odyssey.app")
-- Handle errors gracefully in UI and automation flows
-- Include comprehensive error context in logs
-
-### UI/UX Guidelines
-
-- Follow native macOS design patterns
-- Use system colors for light/dark mode support
-- Provide clear visual feedback (hover effects, animations)
-- Ensure accessibility compliance
-- Keep interface clean and uncluttered
-- App should run in menu bar only (`LSUIElement = true`)
-- Provide clear status indicators and user feedback
-
-### Web Automation Guidelines (Swift WebDriver)
-
-- Use `WebDriverService` for all browser automation
-- Always start with ChromeDriver setup and session creation
-- Use explicit waits (polling, retries) for element availability
-- Prefer robust, multi-strategy element selection (XPath, text content)
-- Simulate human-like behavior: random delays, varied click patterns
-- Use realistic browser window sizes and user agents
-- Avoid headless mode unless necessary (for bot detection avoidance)
-- Clean up sessions and processes after automation
-- Log all automation steps and errors with detailed context
-
-#### Human-like Automation Strategies
-
-- **Delays:** Use random delays between actions (`Task.sleep`, `DispatchQueue`)
-- **Mouse/Click Simulation:** Click random points within element bounds
-- **Typing:** Send keys one character at a time with random delays
-- **Scrolling:** Scroll incrementally, not in large jumps
-- **Session Consistency:** Maintain cookies and local storage for session realism
-- **Error Recovery:** Retry failed actions with exponential backoff
+- **Separation of Concerns**: Each service has a single responsibility
+- **Dependency Injection**: Use singletons for shared services
+- **Reactive Programming**: Use Combine for state management and async operations
+- **Error Recovery**: Implement graceful error handling throughout
+- **Performance**: Optimize for memory usage and responsiveness
 
 ### Security & Privacy
 
-- All automation runs locally; no user data leaves the device
-- **ChromeDriver Requirements:**
-  - Must be installed via Homebrew: `brew install chromedriver`
-  - Located at `/opt/homebrew/bin/chromedriver`
-  - Requires Full Disk Access permission in System Settings
-- **App Permissions Required:**
-  - **Automation:** ODYSSEY needs access to control Google Chrome
-  - **System Events:** For browser automation capabilities
-  - **Accessibility:** Optional, provides additional automation features
-- App sandboxing is disabled for ChromeDriver integration (document this for users)
-- Validate all user inputs and use secure network connections (HTTPS)
-- Follow App Transport Security (ATS) best practices
+- **Local Processing**: All automation runs locally on user's machine
+- **User Consent**: Require explicit permission for all external integrations
+- **Data Privacy**: No user data transmitted without consent
+- **Secure Connections**: Use HTTPS and App Transport Security
+- **Input Validation**: Validate and sanitize all user inputs
 
-### Performance Requirements
+### ChromeDriver Integration
 
-- Fast startup time (< 2 seconds)
-- Low memory usage
-- Efficient web automation with proper session management
-- Responsive UI interactions
-- Minimal CPU usage when idle
-
-## 🧪 Testing Guidelines
-
-- Test all business logic and automation flows
-- Mock external dependencies for unit tests
-- Test error conditions and edge cases
-- Ensure proper data persistence
-- Test UI on different macOS versions and screen sizes
-- Validate menu bar integration and accessibility
-- Manually test automation with real sites and error scenarios
-
-## 📚 Documentation Standards
-
-- Document complex functions and classes
-- Add comments for business logic and automation flows
-- Include usage examples for public APIs
-- Provide clear installation, configuration, and troubleshooting guides
-- Use `os.log` for structured logging with appropriate categories
-
-## 🚀 Feature Development
-
-- Follow existing patterns and conventions
-- Maintain backward compatibility
-- Add appropriate tests and update documentation
-- Consider performance and security implications
-- For automation features: analyze target websites, implement robust error handling, and provide clear logging
-
-## 🐛 Debugging & Troubleshooting
-
-- Use `os.log` for debug information (not `NSLog`)
-- Prefix logs with "ODYSSEY:" and use appropriate categories
-- Include relevant context and stack traces
-- Log all automation steps and errors
-- Common issues: menu bar integration, web automation failures, scheduling, configuration persistence
-
-## 📦 Deployment & Distribution
-
-- Use XcodeGen for project generation (`project.yml`)
-- Support Debug and Release configurations
-- Include SwiftLint for code quality
-- Proper Developer ID setup and notarization for distribution
-- App Transport Security and privacy compliance
-- Distribute via DMG or App Store (if applicable)
-
-## 🤝 Collaboration Guidelines
-
-- Self-review before submission
-- Follow established patterns
-- Include tests for new features
-- Update documentation as needed
-- Use clear issue descriptions and pull request summaries
-
-## 🛡️ Ethical Automation
-
-- Advise on legal and ethical implications of web automation
-- Do not generate code for malicious or abusive activities
-- Prioritize user privacy and community benefit
-- Respect website terms of service and rate limits
-
-## 🔑 Key Conventions for Swift WebDriver Automation
-
-1. **Session Management:** Always create and clean up WebDriver sessions properly via `WebDriverService`
-2. **Explicit Waits:** Use async/await and polling for element availability; avoid static sleeps
-3. **Modular Functions:** Break down automation into small, reusable functions
-4. **Logging:** Use `os.log` for all automation steps and errors with detailed context
-5. **Clean Shutdown:** Ensure ChromeDriver and browser sessions are terminated after use
-6. **Human-like Behavior:** Randomize delays, clicks, and typing to avoid bot detection
-7. **Error Handling:** Use custom error types and propagate errors through async/await
-8. **Security:** Run all automation locally, require user consent for permissions, and document sandboxing implications
-
-## 🔧 ChromeDriver Management
-
-### Installation Requirements
-
-- **Homebrew Installation:** `brew install chromedriver`
-- **Expected Path:** `/opt/homebrew/bin/chromedriver`
-- **Version Compatibility:** Must match Chrome browser version
+- **Installation Requirements:**
+  - **Homebrew Installation:** `brew install chromedriver`
+  - **Expected Path:** `/opt/homebrew/bin/chromedriver`
+  - **Version Compatibility:** Must match Chrome browser version
 
 ### Permission Requirements
 
@@ -250,6 +121,7 @@ Sources/
 - **Logging System:** Comprehensive logging with `os.log`
 - **Error Handling:** Robust error management throughout the app
 - **📱 Telegram Integration:** Bot-based notifications and test messaging via `TelegramService`
+- **📧 IMAP Integration:** Email service testing and validation via `EmailService`
 
 ### 🔄 Recent Improvements
 
@@ -261,16 +133,102 @@ Sources/
 - **📱 Telegram Integration:** Added bot-based notifications and test messaging system
 - **Settings Panel:** New settings interface for user preferences and integrations
 - **User Settings Model:** Comprehensive user preferences management
+- **Multi-language Support:** English and French localization
+- **Code Quality:** Removed debug logs and improved performance
 
-### 📋 Known Architecture
+### 🚧 Future Enhancements
 
-- **Singleton Pattern:** Used for `WebDriverService`, `ConfigurationManager`, `ReservationManager`
-- **Async/Await:** Modern concurrency for all automation operations
-- **Combine:** Reactive programming for UI state management
-- **MVVM:** Model-View-ViewModel pattern with SwiftUI
-- **Service Layer:** Clean separation of concerns with dedicated service classes
+- **Advanced Scheduling:** More complex scheduling algorithms
+- **Calendar Integration:** Sync with calendar applications
+- **Notification System:** Enhanced notification capabilities
+- **Accessibility:** VoiceOver support and keyboard navigation
+- **Testing:** Comprehensive unit and UI tests
+- **Performance Monitoring:** Real-time performance metrics
 
-**Remember:** ODYSSEY is designed to help the Ottawa sports community by automating the tedious process of booking recreation slots. Focus on reliability, user experience, privacy, and community benefit in all development decisions.
+## 🔧 Development Workflow
+
+### Setup
+
+```bash
+# Clone repository
+git clone https://github.com/Amet13/ODYSSEY.git
+cd ODYSSEY
+
+# Install dependencies
+brew install xcodegen
+brew install swiftlint
+
+# Generate Xcode project
+xcodegen
+
+# Build and run
+./Scripts/build.sh
+```
+
+### Testing
+
+- **Unit Tests:** Test all business logic and services
+- **UI Tests:** Validate user interface functionality
+- **Integration Tests:** Test automation workflows
+- **Performance Tests:** Monitor memory usage and responsiveness
+
+### Debugging
+
+- **Logging:** Use `os.log` with appropriate categories
+- **Console:** Check Console app for detailed logs
+- **ChromeDriver:** Test automation manually with ChromeDriver
+- **Network:** Monitor network requests and responses
+
+## 📚 Documentation Standards
+
+- **Code Comments:** Use JSDoc-style comments for all public APIs
+- **README Files:** Maintain comprehensive documentation in each directory
+- **Changelog:** Document all changes in `CHANGELOG.md`
+- **User Guides:** Provide clear installation and usage instructions
+- **API Documentation:** Document all public interfaces and methods
+
+## 🚀 Release Process
+
+### Version Management
+
+- **Semantic Versioning:** Follow MAJOR.MINOR.PATCH format
+- **Changelog:** Update `CHANGELOG.md` with all changes
+- **Version Numbers:** Update all version references consistently
+- **Build Numbers:** Increment build number for each release
+
+### Quality Assurance
+
+- **Code Review:** Self-review all changes before submission
+- **Testing:** Test on multiple macOS versions
+- **Performance:** Monitor app size and memory usage
+- **Security:** Validate all security settings and permissions
+
+### Distribution
+
+- **DMG Creation:** Use `create-dmg` for installer creation
+- **Code Signing:** Sign with Developer ID for distribution
+- **Notarization:** Notarize app for macOS security
+- **GitHub Releases:** Create releases with proper documentation
+
+## 🤝 Collaboration Guidelines
+
+- **Pull Requests:** Use descriptive titles and detailed descriptions
+- **Code Review:** Review for functionality, style, and security
+- **Testing:** Ensure all changes are properly tested
+- **Documentation:** Update documentation for all changes
+- **Communication:** Use GitHub Issues and Discussions for collaboration
+
+## 🛡️ Ethical Automation
+
+- **Respect Terms of Service:** Follow website terms and conditions
+- **Rate Limiting:** Implement appropriate delays and rate limits
+- **User Consent:** Require explicit permission for automation
+- **Community Benefit:** Focus on positive community impact
+- **Transparency:** Be clear about automation capabilities and limitations
+
+---
+
+**Remember:** ODYSSEY is designed to help the Ottawa sports community by automating routine reservation tasks. Always prioritize user privacy, security, and ethical automation practices.
 
 4. Logging: Suggest basic logging for debugging automation flows.
 5. Clean Shutdown: Ensure driver.quit() is called in a finally block to release resources.

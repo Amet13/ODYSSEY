@@ -12,6 +12,7 @@ class TelegramService: ObservableObject {
     @Published var lastTestResult: TestResult?
 
     private let logger = Logger(subsystem: "com.odyssey.app", category: "TelegramService")
+    private let userSettingsManager = UserSettingsManager.shared
 
     // Custom URLSession with User-Agent to prevent CFNetwork crashes
     private lazy var customSession: URLSession = {
@@ -27,16 +28,16 @@ class TelegramService: ObservableObject {
         var description: String {
             switch self {
             case .success:
-                return "Test message sent successfully!"
+                UserSettingsManager.shared.userSettings.localized("Test message sent successfully!")
             case let .failure(error):
-                return "Test failed: \(error)"
+                UserSettingsManager.shared.userSettings.localized("Test failed:") + " \(error)"
             }
         }
 
         var isSuccess: Bool {
             switch self {
-            case .success: return true
-            case .failure: return false
+            case .success: true
+            case .failure: false
             }
         }
     }
@@ -52,11 +53,11 @@ class TelegramService: ObservableObject {
     /// - Returns: Test result indicating success or failure
     func testIntegration(botToken: String, chatId: String) async -> TestResult {
         let testMessage = """
-        🥅 ODYSSEY Test Message
+        🥅 \(userSettingsManager.userSettings.localized("ODYSSEY Test Message"))
 
-        Hello! This is a test message from ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself.
+        \(userSettingsManager.userSettings.localized("Hello! This is a test message from ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself."))
 
-        ✅ Telegram integration is working correctly!
+        ✅ \(userSettingsManager.userSettings.localized("Telegram integration is working correctly!"))
         """
         return await sendMessage(botToken: botToken, chatId: chatId, message: testMessage)
     }
@@ -71,7 +72,7 @@ class TelegramService: ObservableObject {
         let urlString = "https://api.telegram.org/bot\(botToken)/sendMessage"
 
         guard let url = URL(string: urlString) else {
-            return .failure("Invalid URL")
+            return .failure(userSettingsManager.userSettings.localized("Invalid URL"))
         }
 
         var request = URLRequest(url: url)
@@ -87,14 +88,14 @@ class TelegramService: ObservableObject {
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
         } catch {
-            return .failure("Failed to serialize request: \(error.localizedDescription)")
+            return .failure(userSettingsManager.userSettings.localized("Failed to serialize request:") + " \(error.localizedDescription)")
         }
 
         do {
             let (data, response) = try await customSession.data(for: request)
 
             guard let httpResponse = response as? HTTPURLResponse else {
-                return .failure("Invalid response")
+                return .failure(userSettingsManager.userSettings.localized("Invalid response"))
             }
 
             if httpResponse.statusCode == 200 {
@@ -117,7 +118,79 @@ class TelegramService: ObservableObject {
             }
         } catch {
             logger.error("Failed to send Telegram message: \(error.localizedDescription)")
-            return .failure("Network error: \(error.localizedDescription)")
+            return .failure(userSettingsManager.userSettings.localized("Network error:") + " \(error.localizedDescription)")
         }
+    }
+
+    // MARK: - Notification Methods
+
+    /// Sends a success notification to Telegram when a reservation is completed
+    /// - Parameter config: The reservation configuration that was successfully executed
+    func sendSuccessNotification(for config: ReservationConfig) async {
+        guard userSettingsManager.userSettings.hasTelegramConfigured else {
+            logger.info("Telegram notifications are disabled")
+            return
+        }
+
+        logger.info("Sending success notification to Telegram for \(config.name)")
+
+        // Extract facility name from URL
+        let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
+
+        // Format time slots information
+        let timeSlotsInfo = formatTimeSlotsInfo(for: config)
+
+        let successMessage = """
+        🎉 \(userSettingsManager.userSettings.localized("Reservation Success!"))
+
+        ✅ \(userSettingsManager.userSettings.localized("Successfully booked:")) \(config.sportName)
+
+        🏢 \(userSettingsManager.userSettings.localized("Facility:")) \(facilityName)
+
+        👥 \(userSettingsManager.userSettings.localized("People:")) \(config.numberOfPeople)
+
+        📅 \(userSettingsManager.userSettings.localized("Schedule:")) \(timeSlotsInfo)
+
+        🕐 \(userSettingsManager.userSettings.localized("Booked at:")) \(Date().formatted(date: .abbreviated, time: .shortened))
+
+        🥅 \(userSettingsManager.userSettings.localized("ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself"))
+        """
+
+        let result = await sendMessage(
+            botToken: userSettingsManager.userSettings.telegramBotToken,
+            chatId: userSettingsManager.userSettings.telegramChatId,
+            message: successMessage,
+        )
+
+        switch result {
+        case .success:
+            logger.info("Success notification sent to Telegram for \(config.name)")
+        case let .failure(error):
+            logger.error("Failed to send Telegram success notification: \(error)")
+        }
+    }
+
+    /// Formats time slots information for display
+    /// - Parameter config: The reservation configuration
+    /// - Returns: Formatted string of time slots
+    private func formatTimeSlotsInfo(for config: ReservationConfig) -> String {
+        let sortedDays = config.dayTimeSlots.keys.sorted { day1, day2 in
+            ReservationConfig.Weekday.allCases.firstIndex(of: day1)! < ReservationConfig.Weekday.allCases.firstIndex(of: day2)!
+        }
+
+        var scheduleInfo: [String] = []
+        for day in sortedDays {
+            if let timeSlots = config.dayTimeSlots[day], !timeSlots.isEmpty {
+                let timeStrings = timeSlots.map { timeSlot in
+                    let formatter = DateFormatter()
+                    formatter.timeStyle = .short
+                    return formatter.string(from: timeSlot.time)
+                }.sorted()
+                let dayShort = day.shortName
+                let timesString = timeStrings.joined(separator: ", ")
+                scheduleInfo.append("\(dayShort): \(timesString)")
+            }
+        }
+        return scheduleInfo.joined(separator: " • ")
     }
 }

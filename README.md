@@ -8,7 +8,7 @@
       <img src="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml/badge.svg" alt="CI Status">
     </a>
     <a href="https://github.com/Amet13/ODYSSEY/releases/latest">
-      <img src="https://img.shields.io/badge/Version-2.0.0-blue" alt="Version 2.0.0">
+      <img src="https://img.shields.io/badge/Version-3.0.0-blue" alt="Version 3.0.0">
     </a>
     <a href="https://github.com/Amet13/ODYSSEY/blob/main/LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License">
@@ -20,7 +20,7 @@
   
   <p>
     <a href="https://github.com/Amet13/ODYSSEY/releases/latest">
-      <img src="https://img.shields.io/badge/Download-v2.0.0-blue?style=for-the-badge&logo=apple" alt="Download v2.0.0">
+      <img src="https://img.shields.io/badge/Download-v3.0.0-blue?style=for-the-badge&logo=apple" alt="Download v3.0.0">
     </a>
   </p>
 </div>
@@ -104,7 +104,7 @@ brew install chromedriver
 
 <div align="center">
   <a href="https://github.com/Amet13/ODYSSEY/releases/latest">
-    <img src="https://img.shields.io/badge/Download-v2.0.0-blue?style=for-the-badge&logo=apple" alt="Download v2.0.0">
+    <img src="https://img.shields.io/badge/Download-v3.0.0-blue?style=for-the-badge&logo=apple" alt="Download v3.0.0">
   </a>
 </div>
 
@@ -123,7 +123,7 @@ brew install chromedriver
 #### Option 1: Download Latest Release (Recommended)
 
 1. **Go to [Releases](https://github.com/Amet13/ODYSSEY/releases)**
-2. **Download the latest DMG file** (e.g., `ODYSSEY-v2.0.0.dmg`)
+2. **Download the latest DMG file** (e.g., `ODYSSEY-v2.2.0.dmg`)
 3. **Double-click the DMG** to mount the disk image
 4. **Drag ODYSSEY to Applications** folder
 5. **Launch ODYSSEY** from Applications (right-click → Open if needed)
@@ -311,19 +311,19 @@ ODYSSEY supports Telegram integration for notifications and test messages. This 
 - **You can revoke the token** anytime by messaging `/revoke` to @BotFather
 - **Chat ID is not sensitive** - it's just a number that identifies your chat
 
-### 🆕 What's New in v2.0.0
+### 🆕 What's New in v2.2.0
 
 <div align="center">
   <table>
     <tr>
-      <td align="center"><strong>🎯 2-Slot Limit</strong><br/>Maximum 2 timeslots per day</td>
-      <td align="center"><strong>🚫 Duplicate Prevention</strong><br/>No overlapping times</td>
-      <td align="center"><strong>🧠 Smart Selection</strong><br/>Intelligent defaults</td>
+      <td align="center"><strong>🎯 Enhanced UI</strong><br/>Improved settings and consistency</td>
+      <td align="center"><strong>🔧 Code Quality</strong><br/>Better error handling and logging</td>
+      <td align="center"><strong>📱 Integration</strong><br/>IMAP and Telegram improvements</td>
     </tr>
     <tr>
-      <td align="center"><strong>📊 Sorted Preview</strong><br/>Chronological display</td>
-      <td align="center"><strong>🎨 Enhanced UI</strong><br/>Better feedback</td>
-      <td align="center"><strong>📚 Improved Docs</strong><br/>Better guidance</td>
+      <td align="center"><strong>🧹 Cleanup</strong><br/>Removed debug logs and improved performance</td>
+      <td align="center"><strong>🎨 Visual Polish</strong><br/>Consistent styling and feedback</td>
+      <td align="center"><strong>📚 Documentation</strong><br/>Updated guides and examples</td>
     </tr>
   </table>
 </div>
@@ -435,11 +435,11 @@ ODYSSEY uses GitHub Actions for continuous integration and deployment:
 To create a new release:
 
 ```bash
-# Create release v2.0.0
-./scripts/create-release.sh 2.0.0
+# Create release v2.2.0
+./scripts/create-release.sh 2.2.0
 
 # Preview what would be done
-./scripts/create-release.sh --dry-run 2.1.0
+./scripts/create-release.sh --dry-run 2.3.0
 ```
 
 ## 📄 License
@@ -467,3 +467,62 @@ We welcome contributions! Please see our [Contributing Guide](Documentation/CONT
     </a>
   </p>
 </div>
+
+# ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself
+
+A macOS automation app for booking sports reservations using ChromeDriver and WebDriver.
+
+## Features
+
+- Automated sports reservation booking
+- Anti-detection measures to avoid CAPTCHA
+- Human-like behavior simulation
+- Status bar integration
+- Email and Telegram notifications
+
+## Button Detection Approach
+
+**Important Discovery**: The app uses a specific approach to detect and click sport buttons that was discovered through extensive testing.
+
+### HTML Structure
+
+```html
+<a href="..." class="button no-img" target="_self">
+  <div class="content">Bootcamp</div>
+</a>
+```
+
+### Working Method
+
+1. **Target the `<div class="content">` elements directly** (not the parent `<a>` tags)
+2. **Use XPath**: `//div[contains(@class, 'content')]`
+3. **Click the div directly** using human-like behavior:
+   - Scroll the element into view
+   - Dispatch real mouse events (mouseover, mousedown, mouseup, click)
+   - Fallback to WebDriver `.click()` if needed
+
+### Why This Works
+
+- The `<div>` elements are the actual clickable targets in the DOM
+- Clicking the `<div>` triggers the parent `<a>`'s click handler
+- Human-like mouse events bypass potential anti-bot detection
+
+**Note**: This approach was discovered after trying multiple XPath strategies and parent element lookups. The direct div targeting with human-like clicks is the only reliable method.
+
+## Installation
+
+1. Clone the repository
+2. Run `./Scripts/build.sh` to build and launch the app
+3. Configure your reservation settings in the app
+
+## Usage
+
+1. Open the app from the menu bar
+2. Configure your reservation settings
+3. Click "Run" to start the automation
+
+## Development
+
+- Built with SwiftUI and Swift 6.1
+- Uses ChromeDriver for web automation
+- Implements anti-detection measures in `WebDriverStealth.swift`

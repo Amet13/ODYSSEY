@@ -21,6 +21,9 @@ class ReservationManager: NSObject, ObservableObject {
     @Published var lastRunStatus: RunStatus = .idle
     @Published var currentTask: String = ""
 
+    // Per-configuration last run status, date, and run type
+    @Published private(set) var lastRunInfo: [UUID: (status: RunStatus, date: Date?, runType: RunType)] = [:]
+
     private var cancellables = Set<AnyCancellable>()
     private let configurationManager = ConfigurationManager.shared
     private let webDriverService = WebDriverService.shared
@@ -35,10 +38,42 @@ class ReservationManager: NSObject, ObservableObject {
 
         var description: String {
             switch self {
-            case .idle: return "Idle"
-            case .running: return "Running"
-            case .success: return "Success"
-            case let .failed(error): return "Failed: \(error)"
+            case .idle: "Idle"
+            case .running: "Running"
+            case .success: "Success"
+            case let .failed(error): "Failed: \(error)"
+            }
+        }
+    }
+
+    enum RunType {
+        case manual
+        case automatic
+
+        var description: String {
+            switch self {
+            case .manual: "(manual)"
+            case .automatic: "(auto)"
+            }
+        }
+    }
+
+    enum ReservationError: Error, LocalizedError {
+        case webDriverNotInitialized
+        case navigationFailed
+        case sportButtonNotFound
+        case pageLoadTimeout
+
+        var errorDescription: String? {
+            switch self {
+            case .webDriverNotInitialized:
+                "WebDriver not initialized"
+            case .navigationFailed:
+                "Failed to navigate to reservation page"
+            case .sportButtonNotFound:
+                "Sport button not found on page"
+            case .pageLoadTimeout:
+                "Page failed to load completely within timeout"
             }
         }
     }
@@ -51,8 +86,10 @@ class ReservationManager: NSObject, ObservableObject {
     // MARK: - Public Methods
 
     /// Runs reservation automation for a specific configuration
-    /// - Parameter config: The reservation configuration to execute
-    func runReservation(for config: ReservationConfig) {
+    /// - Parameters:
+    ///   - config: The reservation configuration to execute
+    ///   - runType: Whether this is a manual or automatic run
+    func runReservation(for config: ReservationConfig, runType: RunType = .manual) {
         guard !isRunning else {
             logger.warning("Reservation already running, skipping")
             return
@@ -65,7 +102,7 @@ class ReservationManager: NSObject, ObservableObject {
 
         // Start automation in background task
         Task {
-            await performReservation(for: config)
+            await performReservation(for: config, runType: runType)
         }
     }
 
@@ -83,12 +120,12 @@ class ReservationManager: NSObject, ObservableObject {
 
     // MARK: - Private Methods
 
-    private func performReservation(for config: ReservationConfig) async {
+    private func performReservation(for config: ReservationConfig, runType: RunType) async {
         do {
             // Step 1: Start WebDriver session and navigate directly to the URL
             await updateTask("Starting WebDriver session")
             guard await webDriverService.startSession() else {
-                await handleError("Failed to start WebDriver session")
+                await handleError("Failed to start WebDriver session", configId: config.id, runType: runType)
                 return
             }
 
@@ -96,36 +133,79 @@ class ReservationManager: NSObject, ObservableObject {
             await updateTask("Navigating to facility")
             let navigationResult = await webDriverService.navigate(to: config.facilityURL)
             guard navigationResult else {
-                await handleError("Failed to navigate to facility")
+                await handleError("Failed to navigate to facility", configId: config.id, runType: runType)
                 return
             }
+
+            // Step 2.5: Inject anti-detection script immediately after navigation
+            await webDriverService.injectAntiDetectionScript(userAgent: webDriverService.currentUserAgent, language: webDriverService.currentLanguage)
+
+            // Step 2.6: Simulate random scrolling and mouse movement
+            if Bool.random() { await webDriverService.simulateScrolling() }
+            if Bool.random() { await webDriverService.moveMouseRandomly() }
 
             // Step 3: Wait for page to load
             await updateTask("Waiting for page to load")
-            try await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
+
+            // Wait for DOM to be fully ready with sport buttons
+            let domReady = await webDriverService.waitForDOMReady()
+            if !domReady {
+                logger.error("DOM failed to load properly within timeout")
+                throw ReservationError.pageLoadTimeout
+            }
+
+            logger.info("Page loaded successfully")
 
             // Step 4: Find and click sport button
             await updateTask("Looking for sport: \(config.sportName)")
-            guard await webDriverService.findAndClickElement(withText: config.sportName) else {
-                await handleError("Sport '\(config.sportName)' not found or failed to click")
+            logger.info("Searching for sport button with text: '\(config.sportName)'")
+            // Simulate human-like mouse movement and delay before interaction
+            await webDriverService.simulateMouseMovement(to: config.sportName)
+            await webDriverService.addRandomDelay()
+            if Bool.random() { await webDriverService.simulateScrolling() }
+            if Bool.random() { await webDriverService.moveMouseRandomly() }
+
+            let buttonClicked = await webDriverService.findAndClickElement(withText: config.sportName)
+            if buttonClicked {
+                logger.info("Successfully clicked sport button: \(config.sportName)")
+
+                // Step 5: Success - wait a moment and close browser tab
+                await updateTask("Success! Closing browser tab...")
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+
+                // Close only the current browser tab, not the entire session
+                await webDriverService.stopSession()
+
+                // Update status to success
+                await MainActor.run {
+                    self.isRunning = false
+                    self.lastRunStatus = .success
+                    self.lastRunInfo[config.id] = (.success, Date(), runType)
+                    self.lastRunDate = Date()
+                    self.currentTask = "Reservation completed successfully"
+                }
+                logger.info("Reservation completed successfully for \(config.sportName)")
+
+                // Send notifications if configured
+                if UserSettingsManager.shared.userSettings.hasEmailConfigured {
+                    await EmailService.shared.sendSuccessNotification(for: config)
+                }
+
+                if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
+                    await TelegramService.shared.sendSuccessNotification(for: config)
+                }
+
                 return
+            } else {
+                logger.error("Failed to click sport button: \(config.sportName)")
+                await MainActor.run {
+                    self.lastRunInfo[config.id] = (.failed("Sport button not found on the page"), Date(), runType)
+                }
+                throw ReservationError.sportButtonNotFound
             }
 
-            // Step 6: Wait for page transition
-            await updateTask("Waiting for page transition")
-            try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
-
-            // For now, consider this a success
-            await updateTask("Reservation automation completed")
-
-            // Keep the browser open for a bit longer so user can see the result
-            await updateTask("Keeping browser open for 5 seconds...")
-            try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
-
-            await handleSuccess()
-
         } catch {
-            await handleError("Automation error: \(error.localizedDescription)")
+            await handleError("Automation error: \(error.localizedDescription)", configId: config.id, runType: runType)
         }
     }
 
@@ -135,25 +215,21 @@ class ReservationManager: NSObject, ObservableObject {
         }
     }
 
-    private func handleError(_ error: String) async {
+    private func handleError(_ error: String, configId: UUID?, runType: RunType = .manual) async {
         await MainActor.run {
             self.isRunning = false
             self.lastRunStatus = .failed(error)
             self.currentTask = "Error: \(error)"
             self.lastRunDate = Date()
+            if let configId {
+                self.lastRunInfo[configId] = (.failed(error), Date(), runType)
+            }
         }
         logger.error("Reservation error: \(error)")
-
-        // Don't stop WebDriver session on error - let it keep running
-        // await webDriverService.stopSession()
     }
 
-    private func handleSuccess() async {
-        await MainActor.run {
-            self.isRunning = false
-            self.lastRunStatus = .success
-            self.currentTask = "Reservation completed successfully"
-            self.lastRunDate = Date()
-        }
+    // Helper to get last run info for a config
+    func getLastRunInfo(for configId: UUID) -> (status: RunStatus, date: Date?, runType: RunType)? {
+        lastRunInfo[configId]
     }
 }

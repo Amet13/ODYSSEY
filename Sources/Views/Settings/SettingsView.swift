@@ -22,16 +22,6 @@ struct SettingsView: View {
                     .font(.title2)
                     .fontWeight(.semibold)
                 Spacer()
-                Button(userSettingsManager.userSettings.localized("Cancel")) {
-                    dismiss()
-                }
-                .buttonStyle(.bordered)
-                Button(userSettingsManager.userSettings.localized("Save")) {
-                    saveSettings()
-                    dismiss()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(!userSettingsManager.userSettings.isValid)
             }
             .padding()
             .background(Color(NSColor.controlBackgroundColor))
@@ -40,7 +30,18 @@ struct SettingsView: View {
 
             // Content
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: 12) {
+                    // Language Section
+                    settingsSection(title: userSettingsManager.userSettings.localized("Language"), icon: "globe") {
+                        Picker(userSettingsManager.userSettings.localized("App Language"), selection: $userSettingsManager.userSettings.language) {
+                            ForEach(UserSettings.Language.allCases) { lang in
+                                Text(lang.rawValue).tag(lang)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .help(userSettingsManager.userSettings.localized("Choose the language for the app interface"))
+                    }
+                    Divider().padding(.horizontal, 4)
                     // Contact Information Section
                     settingsSection(title: userSettingsManager.userSettings.localized("Contact Information"), icon: "person.circle") {
                         VStack(spacing: 16) {
@@ -49,7 +50,7 @@ struct SettingsView: View {
                                 value: $userSettingsManager.userSettings.name,
                                 placeholder: "John Doe",
                                 icon: "person",
-                                maxLength: 30
+                                maxLength: 30,
                             )
 
                             settingsField(
@@ -57,10 +58,10 @@ struct SettingsView: View {
                                 value: $userSettingsManager.userSettings.phoneNumber,
                                 placeholder: "234567890",
                                 icon: "phone",
-                                maxLength: 10
+                                maxLength: 10,
                             )
 
-                            if !userSettingsManager.userSettings.phoneNumber.isEmpty && !userSettingsManager.userSettings.isPhoneNumberValid {
+                            if !userSettingsManager.userSettings.phoneNumber.isEmpty, !userSettingsManager.userSettings.isPhoneNumberValid {
                                 HStack {
                                     Image(systemName: "exclamationmark.triangle.fill")
                                         .foregroundColor(.orange)
@@ -72,7 +73,7 @@ struct SettingsView: View {
                             }
                         }
                     }
-                    Divider().padding(.horizontal)
+                    Divider().padding(.horizontal, 4)
                     // Email Settings Section
                     settingsSection(title: userSettingsManager.userSettings.localized("Email Settings"), icon: "envelope.circle") {
                         VStack(spacing: 16) {
@@ -80,10 +81,10 @@ struct SettingsView: View {
                                 title: userSettingsManager.userSettings.localized("Email Address"),
                                 value: $userSettingsManager.userSettings.imapEmail,
                                 placeholder: "my-email@my-domain.com",
-                                icon: "envelope"
+                                icon: "envelope",
                             )
 
-                            if !userSettingsManager.userSettings.imapEmail.isEmpty && !userSettingsManager.userSettings.isEmailValid {
+                            if !userSettingsManager.userSettings.imapEmail.isEmpty, !userSettingsManager.userSettings.isEmailValid {
                                 HStack {
                                     Image(systemName: "exclamationmark.triangle.fill")
                                         .foregroundColor(.orange)
@@ -98,7 +99,7 @@ struct SettingsView: View {
                                 title: userSettingsManager.userSettings.localized("IMAP Server"),
                                 value: $userSettingsManager.userSettings.imapServer,
                                 placeholder: "mail.myserver.com",
-                                icon: "server.rack"
+                                icon: "server.rack",
                             )
 
                             settingsField(
@@ -106,7 +107,7 @@ struct SettingsView: View {
                                 value: $userSettingsManager.userSettings.imapPassword,
                                 placeholder: "my-password",
                                 icon: "lock",
-                                isSecure: true
+                                isSecure: true,
                             )
 
                             if userSettingsManager.userSettings.hasEmailConfigured {
@@ -126,7 +127,7 @@ struct SettingsView: View {
                                             let result = await emailService.testIMAPConnection(
                                                 email: userSettingsManager.userSettings.imapEmail,
                                                 password: userSettingsManager.userSettings.imapPassword,
-                                                server: userSettingsManager.userSettings.imapServer
+                                                server: userSettingsManager.userSettings.imapServer,
                                             )
                                             await MainActor.run {
                                                 emailService.lastTestResult = result
@@ -134,7 +135,6 @@ struct SettingsView: View {
                                         }
                                     }
                                     .buttonStyle(.bordered)
-                                    .tint(.blue)
                                     .disabled(emailService.isTesting)
                                     .help(userSettingsManager.userSettings.localized("Test IMAP connection and fetch latest email"))
 
@@ -163,18 +163,7 @@ struct SettingsView: View {
                             }
                         }
                     }
-                    Divider().padding(.horizontal)
-                    // Language Section
-                    settingsSection(title: userSettingsManager.userSettings.localized("Language"), icon: "globe") {
-                        Picker(userSettingsManager.userSettings.localized("App Language"), selection: $userSettingsManager.userSettings.language) {
-                            ForEach(UserSettings.Language.allCases) { lang in
-                                Text(lang.rawValue).tag(lang)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .help(userSettingsManager.userSettings.localized("Choose the language for the app interface"))
-                    }
-                    Divider().padding(.horizontal)
+                    Divider().padding(.horizontal, 4)
                     // Telegram Integration Section
                     settingsSection(title: userSettingsManager.userSettings.localized("Telegram Integration (Optional)"), icon: "message.circle") {
                         VStack(spacing: 16) {
@@ -187,10 +176,10 @@ struct SettingsView: View {
                                     value: $userSettingsManager.userSettings.telegramBotToken,
                                     placeholder: "12345:AABBCCDDEEFFGG",
                                     icon: "key",
-                                    isSecure: true
+                                    isSecure: true,
                                 )
 
-                                if !userSettingsManager.userSettings.telegramBotToken.isEmpty && !userSettingsManager.userSettings.isTelegramBotTokenValid {
+                                if !userSettingsManager.userSettings.telegramBotToken.isEmpty, !userSettingsManager.userSettings.isTelegramBotTokenValid {
                                     HStack {
                                         Image(systemName: "exclamationmark.triangle.fill")
                                             .foregroundColor(.orange)
@@ -205,10 +194,10 @@ struct SettingsView: View {
                                     title: userSettingsManager.userSettings.localized("Chat ID"),
                                     value: $userSettingsManager.userSettings.telegramChatId,
                                     placeholder: "12345678",
-                                    icon: "number"
+                                    icon: "number",
                                 )
 
-                                if !userSettingsManager.userSettings.telegramChatId.isEmpty && !userSettingsManager.userSettings.isTelegramChatIdValid {
+                                if !userSettingsManager.userSettings.telegramChatId.isEmpty, !userSettingsManager.userSettings.isTelegramChatIdValid {
                                     HStack {
                                         Image(systemName: "exclamationmark.triangle.fill")
                                             .foregroundColor(.orange)
@@ -233,7 +222,7 @@ struct SettingsView: View {
                                         Task {
                                             let result = await telegramService.testIntegration(
                                                 botToken: userSettingsManager.userSettings.telegramBotToken,
-                                                chatId: userSettingsManager.userSettings.telegramChatId
+                                                chatId: userSettingsManager.userSettings.telegramChatId,
                                             )
                                             await MainActor.run {
                                                 telegramService.lastTestResult = result
@@ -241,7 +230,6 @@ struct SettingsView: View {
                                         }
                                     }
                                     .buttonStyle(.bordered)
-                                    .tint(.blue)
                                     .disabled(telegramService.isTesting)
                                     .help(userSettingsManager.userSettings.localized("Send a test message to verify Telegram integration"))
 
@@ -273,6 +261,24 @@ struct SettingsView: View {
                 }
                 .padding()
             }
+
+            // Bottom button bar
+            Divider()
+            HStack {
+                Spacer()
+                Button(userSettingsManager.userSettings.localized("Cancel")) {
+                    dismiss()
+                }
+                .buttonStyle(.bordered)
+                Button(userSettingsManager.userSettings.localized("Save")) {
+                    saveSettings()
+                    dismiss()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(!userSettingsManager.userSettings.isValid)
+            }
+            .padding()
+            .background(Color(NSColor.controlBackgroundColor))
         }
         .frame(width: 500, height: 600)
         .alert(userSettingsManager.userSettings.localized("Settings Saved"), isPresented: $showingSaveConfirmation) {
@@ -291,7 +297,7 @@ struct SettingsView: View {
 
     // MARK: - Helper Views
 
-    private func settingsSection<Content: View>(title: String, icon: String, @ViewBuilder content: () -> Content) -> some View {
+    private func settingsSection(title: String, icon: String, @ViewBuilder content: () -> some View) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: icon)
@@ -324,7 +330,7 @@ struct SettingsView: View {
                 SecureField(placeholder, text: value)
                     .textFieldStyle(.roundedBorder)
                     .onChange(of: value.wrappedValue) { newValue in
-                        if let maxLength = maxLength, newValue.count > maxLength {
+                        if let maxLength, newValue.count > maxLength {
                             value.wrappedValue = String(newValue.prefix(maxLength))
                         }
                     }
@@ -332,7 +338,7 @@ struct SettingsView: View {
                 TextField(placeholder, text: value)
                     .textFieldStyle(.roundedBorder)
                     .onChange(of: value.wrappedValue) { newValue in
-                        if let maxLength = maxLength, newValue.count > maxLength {
+                        if let maxLength, newValue.count > maxLength {
                             value.wrappedValue = String(newValue.prefix(maxLength))
                         }
                     }

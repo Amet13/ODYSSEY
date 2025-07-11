@@ -5,6 +5,78 @@ All notable changes to ODYSSEY will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2025-07-11
+
+### Added
+
+- **Robust ChromeDriver Automation**: Reliable sport button clicking with Python Selenium approach and fallback logic
+- **Anti-Detection**: Random user agents, language, mouse movement, and delays to avoid bot detection
+- **Detailed Notifications**: Telegram/email notifications now include facility, people, and schedule info
+- **Color-Coded Status**: Last run status and date are color-coded (green/red/orange) for instant feedback
+- **Manual/Auto Run Tracking**: Status and logs now show if a run was manual or scheduled (auto)
+
+### Changed
+
+- **Production-Ready Cleanup**: All debug and trash code removed for a clean, fast, and stable release
+- **UI Polish**: Status and notification formatting improved for clarity and professionalism
+- **Documentation**: Updated README and changelog for 3.0.0
+
+### Fixed
+
+- **Button Clicking Reliability**: Fallback logic ensures sport button is always clicked, even if DOM changes
+- **Notification Content**: Telegram and email notifications now always include all relevant booking details
+- **Status Display**: Status and date are always color-coded and show run type inline
+
+---
+
+## [2.2.0] - 2025-01-27
+
+### Added
+
+- **Enhanced Documentation**: Comprehensive project review and cleanup
+- **Version Management**: Standardized version numbers across all files
+- **Code Quality**: Improved error handling and logging consistency
+- **UI Polish**: Better visual feedback and consistent styling
+
+### Changed
+
+- **Version Update**: Bumped to version 2.2.0 with build number 8
+- **Documentation**: Updated README with new features and improvements
+- **Constants**: Streamlined sports keywords for better performance
+- **Project Configuration**: Updated XcodeGen project settings
+
+### Fixed
+
+- **Version Inconsistencies**: All version references now consistent across project
+- **Documentation References**: Removed references to deleted BrowserService
+- **Build Warnings**: Addressed SwiftFormat warnings and improved build process
+- **Code Cleanup**: Removed unused constants and improved code organization
+
+### Technical Improvements
+
+- **Build Process**: Enhanced build script with better error handling
+- **Code Organization**: Improved file structure and naming conventions
+- **Performance**: Optimized constants and reduced memory usage
+- **Maintainability**: Better separation of concerns and documentation
+
+## [2.1.0] - 2025-07-11
+
+### Changed
+
+- Major code cleanup: removed all non-critical logger.info and logger.log calls for a clean production build
+- Improved settings UI: consistent dividers, margins, and section separation
+- IMAP and Telegram integration test results now have consistent styling and feedback
+- Fixed duplicate IMAP connection messages and improved error handling
+- Telegram test message restored to informative format
+- General UI polish and bug fixes throughout the app
+
+### Fixed
+
+- Duplicate IMAP connection result messages
+- Inconsistent section margins and divider alignment in settings
+- Telegram test message content and formatting
+- Various minor UI and logic bugs
+
 ## [2.0.0] - 2024-12-19
 
 ### Added
@@ -197,21 +269,3 @@ For support and questions:
 - Updated app branding: custom logo now appears in confirmation dialogs and throughout the app
 - Updated all version references to 1.3.0
 - Polish and prep for new release
-
-## [2.1.0] - 2025-07-11
-
-### Changed
-
-- Major code cleanup: removed all non-critical logger.info and logger.log calls for a clean production build
-- Improved settings UI: consistent dividers, margins, and section separation
-- IMAP and Telegram integration test results now have consistent styling and feedback
-- Fixed duplicate IMAP connection messages and improved error handling
-- Telegram test message restored to informative format
-- General UI polish and bug fixes throughout the app
-
-### Fixed
-
-- Duplicate IMAP connection result messages
-- Inconsistent section margins and divider alignment in settings
-- Telegram test message content and formatting
-- Various minor UI and logic bugs

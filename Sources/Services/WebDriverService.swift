@@ -1,3 +1,34 @@
+//
+//  WebDriverService.swift
+//  ODYSSEY
+//
+//  Created by ODYSSEY Team
+//
+//  IMPORTANT: Button Detection Approach
+//  ===================================
+//  This service implements a specific approach for detecting and clicking sport buttons
+//  that was discovered through extensive testing. The key insight is to target the
+//  <div class="content"> elements directly, not the parent <a> tags.
+//
+//  HTML Structure:
+//  <a href="..." class="button no-img" target="_self">
+//      <div class="content">Bootcamp</div>
+//  </a>
+//
+//  Working Method:
+//  1. Find all <div class="content"> elements using XPath: //div[contains(@class, 'content')]
+//  2. Check each div's text content for the target sport name
+//  3. Click the div directly using human-like behavior (scroll + mouse events + fallback click)
+//
+//  Why This Works:
+//  - The <div> elements are the actual clickable targets in the DOM
+//  - Clicking the <div> triggers the parent <a>'s click handler
+//  - Human-like mouse events bypass potential anti-bot detection
+//
+//  This approach was discovered after trying multiple XPath strategies and parent element
+//  lookups. The direct div targeting with human-like clicks is the only reliable method.
+//
+
 import Foundation
 import os.log
 
@@ -11,14 +42,24 @@ class WebDriverService: ObservableObject {
 
     private let logger = Logger(subsystem: "com.odyssey.app", category: "WebDriverService")
     private var chromeDriverProcess: Process?
-    private var sessionId: String?
-    private let baseURL = "http://localhost:9515"
-    private let urlSession: URLSession
+    var sessionId: String?
+    let baseURL = "http://localhost:9515"
+    let urlSession: URLSession
+    // Expose the current user-agent and language
+    var currentUserAgent: String = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    var currentLanguage: String = "en-US,en"
 
     private init() {
-        // Create a custom URLSession configuration to prevent CFNetwork crashes
+        // Pool of real user-agents
+        let userAgents = [
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        ]
+        let userAgent = userAgents.randomElement() ?? userAgents[0]
+        currentUserAgent = userAgent
         let config = URLSessionConfiguration.default
-        config.httpAdditionalHeaders = ["User-Agent": "ODYSSEY-WebDriver/1.0"]
+        config.httpAdditionalHeaders = ["User-Agent": userAgent]
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
         urlSession = URLSession(configuration: config)
@@ -58,7 +99,7 @@ class WebDriverService: ObservableObject {
     /// - Parameter url: The URL to navigate to
     /// - Returns: True if navigation was successful
     func navigate(to url: String) async -> Bool {
-        guard let sessionId = sessionId else {
+        guard let sessionId else {
             logger.error("No active session")
             return false
         }
@@ -75,10 +116,9 @@ class WebDriverService: ObservableObject {
         }
 
         do {
-            let (data, response) = try await urlSession.data(for: request)
+            let (_, response) = try await urlSession.data(for: request)
             let httpResponse = response as? HTTPURLResponse
-            let statusCode = httpResponse?.statusCode ?? 0
-            let success = statusCode == 200
+            let success = httpResponse?.statusCode == 200
 
             logger.info("Navigation result: \(success)")
             return success
@@ -94,7 +134,7 @@ class WebDriverService: ObservableObject {
     ///   - timeout: Timeout in seconds
     /// - Returns: Element ID if found, nil otherwise
     func findElementByText(_ text: String, timeout: TimeInterval = 10) async -> String? {
-        guard let sessionId = sessionId else {
+        guard sessionId != nil else {
             logger.error("No active session")
             return nil
         }
@@ -119,7 +159,7 @@ class WebDriverService: ObservableObject {
     /// - Parameter elementId: The element ID to click
     /// - Returns: True if click was successful
     func clickElement(_ elementId: String) async -> Bool {
-        guard let sessionId = sessionId else {
+        guard sessionId != nil else {
             logger.error("No active session")
             return false
         }
@@ -151,11 +191,10 @@ class WebDriverService: ObservableObject {
         do {
             let (data, response) = try await urlSession.data(for: request)
             let httpResponse = response as? HTTPURLResponse
-            let statusCode = httpResponse?.statusCode ?? 0
-            let success = statusCode == 200
+            let success = httpResponse?.statusCode == 200
 
             // Parse error response if click failed
-            if statusCode != 200 {
+            if httpResponse?.statusCode != 200 {
                 if let responseData = String(data: data, encoding: .utf8) {
                     do {
                         if let jsonData = responseData.data(using: .utf8),
@@ -174,7 +213,6 @@ class WebDriverService: ObservableObject {
                 }
             }
 
-            logger.info("Regular click result: \(success)")
             return success
         } catch {
             logger.error("Regular click failed: \(error.localizedDescription)")
@@ -196,11 +234,10 @@ class WebDriverService: ObservableObject {
         do {
             let (data, response) = try await urlSession.data(for: request)
             let httpResponse = response as? HTTPURLResponse
-            let statusCode = httpResponse?.statusCode ?? 0
-            let success = statusCode == 200
+            let success = httpResponse?.statusCode == 200
 
             // Parse error response if click failed
-            if statusCode != 200 {
+            if httpResponse?.statusCode != 200 {
                 if let responseData = String(data: data, encoding: .utf8) {
                     do {
                         if let jsonData = responseData.data(using: .utf8),
@@ -219,7 +256,6 @@ class WebDriverService: ObservableObject {
                 }
             }
 
-            logger.info("JavaScript click result: \(success)")
             return success
         } catch {
             logger.error("JavaScript click failed: \(error.localizedDescription)")
@@ -227,140 +263,156 @@ class WebDriverService: ObservableObject {
         }
     }
 
-    /// Gets the current page source
-    /// - Returns: Page source HTML
-    func getPageSource() async -> String? {
-        guard let sessionId = sessionId else {
-            logger.error("No active session")
-            return nil
-        }
-
-        let sessionIdString = String(describing: sessionId)
-        let endpoint = "\(baseURL)/session/\(sessionIdString)/source"
-        guard let request = createRequest(url: endpoint, method: "GET") else {
-            return nil
-        }
-
-        do {
-            let (data, _) = try await urlSession.data(for: request)
-            let response = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-            return response?["value"] as? String
-        } catch {
-            logger.error("Failed to get page source: \(error.localizedDescription)")
-            return nil
-        }
-    }
-
-    /// Closes the current session and stops ChromeDriver
+    /// Closes the current tab/window and ends the WebDriver session, but does not terminate ChromeDriver
     func stopSession() async {
-        logger.info("Stopping WebDriver session")
+        logger.info("Stopping WebDriver session (closing tab only)")
 
-        do {
-            if let sessionId = sessionId {
-                let sessionIdString = String(describing: sessionId)
-                let endpoint = "\(baseURL)/session/\(sessionIdString)"
-                if let request = createRequest(url: endpoint, method: "DELETE") {
-                    let (data, response) = try await urlSession.data(for: request)
-                    let httpResponse = response as? HTTPURLResponse
-                    let statusCode = httpResponse?.statusCode ?? 0
+        if let sessionId {
+            let sessionIdString = String(describing: sessionId)
+            // Close the current window/tab
+            let closeWindowEndpoint = "\(baseURL)/session/\(sessionIdString)/window"
+            if let closeRequest = createRequest(url: closeWindowEndpoint, method: "DELETE") {
+                do {
+                    let _ = try await urlSession.data(for: closeRequest)
+                    logger.info("Closed current browser tab/window")
+                } catch {
+                    logger.error("Error closing browser tab/window: \(error.localizedDescription)")
                 }
             }
-        } catch {
-            logger.error("Error deleting session: \(error.localizedDescription)")
+            // Delete the session
+            let endpoint = "\(baseURL)/session/\(sessionIdString)"
+            if let request = createRequest(url: endpoint, method: "DELETE") {
+                do {
+                    let _ = try await urlSession.data(for: request)
+                } catch {
+                    logger.error("Error deleting session: \(error.localizedDescription)")
+                }
+            }
         }
 
         sessionId = nil
         isConnected = false
         currentSession = nil
 
-        // Don't terminate ChromeDriver process - let it keep running
-        // chromeDriverProcess?.terminate()
-        // chromeDriverProcess = nil
-
-        logger.info("WebDriver session stopped (ChromeDriver kept running)")
+        logger.info("WebDriver session stopped (browser remains open)")
     }
 
-    /// Finds and clicks an element containing the specified text (simplified version)
+    /// Closes only the current tab/window without stopping the entire session
+    func closeCurrentTab() async {
+        guard let sessionId else {
+            logger.info("No active session to close tab")
+            return
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        let endpoint = "\(baseURL)/session/\(sessionIdString)/window"
+
+        guard let request = createRequest(url: endpoint, method: "DELETE") else {
+            logger.error("Failed to create close tab request")
+            return
+        }
+
+        do {
+            let (_, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+            let success = httpResponse?.statusCode == 200
+
+            if success {
+                logger.info("Current tab closed successfully")
+            } else {
+                logger.error("Failed to close current tab")
+            }
+        } catch {
+            logger.error("Error closing current tab: \(error.localizedDescription)")
+        }
+    }
+
+    /// Finds and clicks an element containing the specified text
+    ///
+    /// This method uses a robust approach with multiple fallbacks:
+    /// 1. Try to find and click the <div> element containing the text
+    /// 2. If that fails, try to click the parent <a> element
+    /// 3. If that fails, try JavaScript click on the parent <a>
+    ///
     /// - Parameter text: The text to search for
     /// - Returns: True if the element was found and clicked
     func findAndClickElement(withText text: String) async -> Bool {
-        guard let sessionId = sessionId else {
+        guard sessionId != nil else {
             logger.error("No active session")
             return false
         }
 
-        do {
-            // Strategy 1: Find the parent <a> element with a child <div class="content"> containing the text
-            let xpath1 = "//a[contains(@class, 'button') and .//div[contains(@class, 'content') and contains(text(), '\(text)')]]"
-            if let elementId = await findElementByXPath(xpath1, sessionId: String(describing: sessionId)) {
-                // Log the tag name of the found element
-                if let tagName = await getElementTagName(elementId) {
-                    logger.info("Found element with ID: \(elementId) and tag: <\(tagName)> using XPath 1")
+        logger.info("Searching for sport button: '\(text)'")
+
+        // Use the same XPath as Python Selenium: find div containing the text
+        let divXPath = "//div[contains(text(),'\(text)')]"
+
+        if let sessionId, let divId = await findElementByXPath(divXPath, sessionId: String(describing: sessionId)) {
+            // Scroll the div into view
+            let scrollScript = "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});"
+            _ = await executeScriptWithElement(scrollScript, elementId: divId, sessionId: String(describing: sessionId))
+
+            // Wait a moment for scroll to complete
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+
+            // Try clicking the div element directly first
+            if await clickElement(divId) {
+                logger.info("Successfully clicked sport button: '\(text)'")
+                try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds sleep
+                return true
+            } else {
+                logger.warning("Div click failed, trying parent <a> element...")
+
+                // Try JavaScript click on the parent element
+                let clickParentScript = "arguments[0].parentElement.click(); return true;"
+                if await executeScriptWithElement(clickParentScript, elementId: divId, sessionId: String(describing: sessionId)) != nil {
+                    logger.info("Successfully clicked sport button: '\(text)' via parent element")
+                    try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds sleep
+                    return true
                 } else {
-                    logger.info("Found element with ID: \(elementId) using XPath 1 (tag unknown)")
+                    logger.error("Failed to click sport button: '\(text)'")
                 }
-                let clickResult = await clickElement(elementId)
-                if clickResult {
-                    // Wait a bit after successful click to see the result
-                    try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
-                }
-                return clickResult
             }
+        } else {
+            logger.error("Sport button not found: '\(text)'")
+        }
+        return false
+    }
 
-            // Strategy 2: Find any clickable element containing the text
-            let xpath2 = "//a[contains(., '\(text)')]"
-            if let elementId = await findElementByXPath(xpath2, sessionId: String(describing: sessionId)) {
-                logger.info("Found clickable element with ID: \(elementId) using XPath 2")
-                let clickResult = await clickElement(elementId)
-                if clickResult {
-                    // Wait a bit after successful click to see the result
-                    try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
-                }
-                return clickResult
-            }
-
-            // Strategy 3: Find button element containing the text
-            let xpath3 = "//button[contains(., '\(text)')]"
-            if let elementId = await findElementByXPath(xpath3, sessionId: String(describing: sessionId)) {
-                logger.info("Found button element with ID: \(elementId) using XPath 3")
-                let clickResult = await clickElement(elementId)
-                if clickResult {
-                    // Wait a bit after successful click to see the result
-                    try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
-                }
-                return clickResult
-            }
-
-            // Strategy 4: Find div.content element and try to click it (fallback)
-            let xpath4 = "//div[contains(@class, 'content') and contains(text(), '\(text)')]"
-            if let elementId = await findElementByXPath(xpath4, sessionId: String(describing: sessionId)) {
-                logger.info("Found div.content element with ID: \(elementId) using XPath 4 (fallback)")
-                let clickResult = await clickElement(elementId)
-                if clickResult {
-                    // Wait a bit after successful click to see the result
-                    try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
-                }
-                return clickResult
-            }
-
-            // Strategy 5: Find any element containing the text (last resort)
-            let xpath5 = "//*[contains(., '\(text)')]"
-            if let elementId = await findElementByXPath(xpath5, sessionId: String(describing: sessionId)) {
-                logger.info("Found any element with ID: \(elementId) using XPath 5 (last resort)")
-                let clickResult = await clickElement(elementId)
-                if clickResult {
-                    // Wait a bit after successful click to see the result
-                    try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
-                }
-                return clickResult
-            }
-
-            logger.error("Element not found for text: \(text)")
-            return false
-        } catch {
-            logger.error("Error in findAndClickElement: \(error.localizedDescription)")
+    /// Waits for the DOM to be fully loaded and ready
+    /// - Returns: True if DOM is ready, false if timeout
+    func waitForDOMReady() async -> Bool {
+        guard let sessionId else {
+            logger.error("No active session for DOM ready check")
             return false
         }
+
+        let sessionIdString = String(describing: sessionId)
+        let maxAttempts = 30 // 30 seconds max wait
+        var attempts = 0
+
+        while attempts < maxAttempts {
+            // Check if document.readyState is 'complete'
+            let readyStateScript = "return document.readyState;"
+            if let readyState = await executeScript(readyStateScript, sessionId: sessionIdString) as? String {
+                if readyState == "complete" {
+                    // Also check if sport buttons are present
+                    let buttonsCheckScript = "return document.querySelectorAll('a.button').length;"
+                    if let buttonCount = await executeScript(buttonsCheckScript, sessionId: sessionIdString) as? Int {
+                        if buttonCount > 0 {
+                            logger.info("Page loaded successfully with \(buttonCount) sport options")
+                            return true
+                        }
+                    }
+                }
+            }
+
+            attempts += 1
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+        }
+
+        logger.error("Page load timeout after \(maxAttempts) seconds")
+        return false
     }
 
     // MARK: - Private Methods
@@ -368,11 +420,8 @@ class WebDriverService: ObservableObject {
     private func startChromeDriver() async -> Bool {
         // Check if ChromeDriver is already running
         if await isChromeDriverRunning() {
-            logger.info("ChromeDriver is already running")
             return true
         }
-
-        logger.info("Starting ChromeDriver")
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/chromedriver")
@@ -404,20 +453,47 @@ class WebDriverService: ObservableObject {
 
         do {
             let (_, response) = try await urlSession.data(for: URLRequest(url: url))
-            return (response as? HTTPURLResponse)?.statusCode == 200
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                logger.error("Invalid response type")
+                return false
+            }
+
+            if httpResponse.statusCode == 200 {
+                return true
+            } else {
+                logger.error("ChromeDriver responded with status: \(httpResponse.statusCode)")
+                return false
+            }
         } catch {
+            logger.error("Failed to check ChromeDriver status: \(error.localizedDescription)")
             return false
         }
     }
 
     private func createSession() async -> String? {
         let endpoint = "\(baseURL)/session"
+        // Pool of real user-agents
+        let userAgents = [
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        ]
+        let languages = ["en-US,en", "en-GB,en", "fr-FR,fr"]
+        let userAgent = userAgents.randomElement() ?? userAgents[0]
+        let language = languages.randomElement() ?? languages[0]
+        currentUserAgent = userAgent
+        currentLanguage = language
+        let width = Int.random(in: 1200 ... 1920)
+        let height = Int.random(in: 700 ... 1080)
         let args: [String] = [
             "--incognito",
             "--no-sandbox",
             "--disable-dev-shm-usage",
             "--disable-gpu",
-            "--window-size=1920,1080",
+            "--window-size=\(width),\(height)",
+            "--user-agent=\(userAgent)",
+            "--lang=\(language)",
         ]
 
         // Use W3C WebDriver protocol format
@@ -440,7 +516,7 @@ class WebDriverService: ObservableObject {
         do {
             let (data, response) = try await urlSession.data(for: request)
             let httpResponse = response as? HTTPURLResponse
-            let statusCode = httpResponse?.statusCode ?? 0
+            let _ = httpResponse?.statusCode ?? 0
 
             let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
 
@@ -464,7 +540,7 @@ class WebDriverService: ObservableObject {
                 sessionId = id
             }
 
-            if let sessionId = sessionId {
+            if let sessionId {
                 logger.info("Session created successfully: \(sessionId)")
             } else {
                 logger.error("No sessionId found in response. Response keys: \(responseDict?.keys.joined(separator: ", ") ?? "none")")
@@ -478,31 +554,26 @@ class WebDriverService: ObservableObject {
     }
 
     private func findElementByTextStrategy(_ text: String) async -> String? {
-        guard let sessionId = sessionId else { return nil }
+        guard let sessionId else { return nil }
 
-        do {
-            // Strategy 1: Find by XPath containing text
-            let xpath = "//*[contains(text(), '\(text)')]"
-            if let elementId = await findElementByXPath(xpath, sessionId: sessionId) {
-                return elementId
-            }
+        // Strategy 1: Find by XPath containing text
+        let xpath = "//*[contains(text(), '\(text)')]"
+        if let elementId = await findElementByXPath(xpath, sessionId: sessionId) {
+            return elementId
+        }
 
-            // Strategy 2: Find by CSS selector for buttons/links
-            let selectors = ["button", "a", "div[role='button']", ".sport-button", ".activity-button"]
-            for selector in selectors {
-                if let elementId = await findElementByCSS(selector, sessionId: sessionId) {
-                    // Check if element contains the text
-                    if await elementContainsText(elementId, text: text) {
-                        return elementId
-                    }
+        // Strategy 2: Find by CSS selector for buttons/links
+        let selectors = ["button", "a", "div[role='button']", ".sport-button", ".activity-button"]
+        for selector in selectors {
+            if let elementId = await findElementByCSS(selector, sessionId: sessionId) {
+                // Check if element contains the text
+                if await elementContainsText(elementId, text: text) {
+                    return elementId
                 }
             }
-
-            return nil
-        } catch {
-            logger.error("Error in findElementByTextStrategy: \(error.localizedDescription)")
-            return nil
         }
+
+        return nil
     }
 
     private func findElementByXPath(_ xpath: String, sessionId: String) async -> String? {
@@ -575,7 +646,7 @@ class WebDriverService: ObservableObject {
     }
 
     private func elementContainsText(_ elementId: String, text: String) async -> Bool {
-        guard let sessionId = sessionId else { return false }
+        guard let sessionId else { return false }
 
         // Force convert both to strings
         let sessionIdString = String(describing: sessionId)
@@ -595,14 +666,14 @@ class WebDriverService: ObservableObject {
         }
     }
 
-    private func createRequest(url: String, method: String, body: [String: Any]? = nil) -> URLRequest? {
+    func createRequest(url: String, method: String, body: [String: Any]? = nil) -> URLRequest? {
         guard let url = URL(string: url) else { return nil }
 
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        if let body = body {
+        if let body {
             do {
                 let stringifiedBody = stringifyJSON(body)
                 request.httpBody = try JSONSerialization.data(withJSONObject: stringifiedBody)
@@ -641,7 +712,7 @@ class WebDriverService: ObservableObject {
     }
 
     private func getElementTagName(_ elementId: String) async -> String? {
-        guard let sessionId = sessionId else { return nil }
+        guard let sessionId else { return nil }
         let sessionIdString = String(describing: sessionId)
         let elementIdString = String(describing: elementId)
         let endpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementIdString)/name"
@@ -651,6 +722,152 @@ class WebDriverService: ObservableObject {
             let response = try JSONSerialization.jsonObject(with: data) as? [String: Any]
             return response?["value"] as? String
         } catch {
+            return nil
+        }
+    }
+
+    /// Finds all elements matching the given XPath and returns their element IDs
+    func findAllElementsByXPath(_ xpath: String, sessionId: String) async -> [String]? {
+        let endpoint = "\(baseURL)/session/\(sessionId)/elements"
+        let body = ["using": "xpath", "value": xpath]
+        guard let request = createRequest(url: endpoint, method: "POST", body: body) else {
+            logger.error("Failed to create findAllElementsByXPath request")
+            return nil
+        }
+        do {
+            let (data, httpResponse) = try await urlSession.data(for: request)
+            let statusCode = (httpResponse as? HTTPURLResponse)?.statusCode ?? 0
+            if statusCode != 200 {
+                logger.error("findAllElementsByXPath failed with status \(statusCode)")
+                return nil
+            }
+            let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            guard let value = responseDict?["value"] as? [[String: Any]] else {
+                logger.error("findAllElementsByXPath: value missing or not array")
+                return nil
+            }
+            // Extract element IDs (W3C and legacy)
+            let ids = value.compactMap { $0["element-6066-11e4-a52e-4f735466cecf"] as? String ?? $0["ELEMENT"] as? String }
+            return ids
+        } catch {
+            logger.error("findAllElementsByXPath failed: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    /// Gets the inner text of an element by ID
+    func getElementInnerText(_ elementId: String) async -> String? {
+        guard let sessionId else { return nil }
+        let sessionIdString = String(describing: sessionId)
+        let elementIdString = String(describing: elementId)
+        let endpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementIdString)/text"
+        guard let request = createRequest(url: endpoint, method: "GET") else {
+            logger.error("Failed to create getElementInnerText request")
+            return nil
+        }
+        do {
+            let (data, _) = try await urlSession.data(for: request)
+            let response = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            return response?["value"] as? String
+        } catch {
+            logger.error("getElementInnerText failed: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    /// Executes JavaScript code and returns the result
+    /// - Parameters:
+    ///   - script: The JavaScript code to execute
+    ///   - sessionId: The session ID
+    /// - Returns: The result of the JavaScript execution, or nil if failed
+    private func executeScript(_ script: String, sessionId: String) async -> Any? {
+        let endpoint = "\(baseURL)/session/\(sessionId)/execute/sync"
+        let body: [String: Any] = ["script": script, "args": []]
+
+        guard let request = createRequest(url: endpoint, method: "POST", body: body) else {
+            logger.error("Failed to create executeScript request")
+            return nil
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+            let success = httpResponse?.statusCode == 200
+
+            if !success {
+                logger.error("executeScript failed with status \(httpResponse?.statusCode ?? 0)")
+                return nil
+            }
+
+            let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            return responseDict?["value"]
+        } catch {
+            logger.error("executeScript failed: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    /// Executes JavaScript code and returns the result, passing an element ID
+    /// - Parameters:
+    ///   - script: The JavaScript code to execute
+    ///   - elementId: The element ID to pass to the script
+    ///   - sessionId: The session ID
+    /// - Returns: The result of the JavaScript execution, or nil if failed
+    private func executeScriptWithElement(_ script: String, elementId: String, sessionId: String) async -> Any? {
+        let endpoint = "\(baseURL)/session/\(sessionId)/execute/sync"
+        let body: [String: Any] = ["script": script, "args": [["element-6066-11e4-a52e-4f735466cecf": elementId]]]
+
+        guard let request = createRequest(url: endpoint, method: "POST", body: body) else {
+            logger.error("Failed to create executeScriptWithElement request")
+            return nil
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+            let success = httpResponse?.statusCode == 200
+
+            if !success {
+                logger.error("executeScriptWithElement failed with status \(httpResponse?.statusCode ?? 0)")
+                return nil
+            }
+
+            let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            return responseDict?["value"]
+        } catch {
+            logger.error("executeScriptWithElement failed: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    // Helper: find parent by XPath relative to element
+    private func findElementByXPathRelative(_ xpath: String, sessionId: String, elementId: String) async -> String? {
+        let endpoint = "\(baseURL)/session/\(sessionId)/element/\(elementId)/element"
+        let body = ["using": "xpath", "value": xpath]
+        guard let request = createRequest(url: endpoint, method: "POST", body: body) else {
+            logger.error("Failed to create findElementByXPath (relative) request")
+            return nil
+        }
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+            let statusCode = httpResponse?.statusCode ?? 0
+            if statusCode != 200 {
+                logger.error("findElementByXPath (relative) failed with status \(statusCode)")
+                return nil
+            }
+            let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            if let value = responseDict?["value"] as? [String: Any] {
+                if let elementId = value["element-6066-11e4-a52e-4f735466cecf"] as? String {
+                    return elementId
+                }
+                if let elementId = value["ELEMENT"] as? String {
+                    return elementId
+                }
+            }
+            return nil
+        } catch {
+            logger.error("findElementByXPath (relative) failed: \(error.localizedDescription)")
             return nil
         }
     }

@@ -123,10 +123,10 @@ class FacilityService: NSObject, ObservableObject {
         """
 
         webView?.evaluateJavaScript(script) { [weak self] _, error in
-            guard let self = self else { return }
+            guard let self else { return }
 
-            if let error = error {
-                self.logger.error("Sports detection script error: \(error.localizedDescription)")
+            if let error {
+                logger.error("Sports detection script error: \(error.localizedDescription)")
                 DispatchQueue.main.async {
                     self.isLoading = false
                     self.error = "Failed to analyze page: \(error.localizedDescription)"
@@ -162,7 +162,7 @@ extension FacilityService: WKNavigationDelegate {
 
 extension FacilityService: WKUIDelegate {
     func webView(_: WKWebView, createWebViewWith _: WKWebViewConfiguration, for _: WKNavigationAction, windowFeatures _: WKWindowFeatures) -> WKWebView? {
-        return nil
+        nil
     }
 }
 

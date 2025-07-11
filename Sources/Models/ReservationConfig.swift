@@ -66,13 +66,13 @@ struct ReservationConfig: Codable, Identifiable {
         /// Calendar weekday number (1 = Sunday, 2 = Monday, etc.)
         var calendarWeekday: Int {
             switch self {
-            case .sunday: return 1
-            case .monday: return 2
-            case .tuesday: return 3
-            case .wednesday: return 4
-            case .thursday: return 5
-            case .friday: return 6
-            case .saturday: return 7
+            case .sunday: 1
+            case .monday: 2
+            case .tuesday: 3
+            case .wednesday: 4
+            case .thursday: 5
+            case .friday: 6
+            case .saturday: 7
             }
         }
     }

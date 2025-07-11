@@ -5,7 +5,7 @@ enum Constants {
     // MARK: - App Information
 
     static let appName = "ODYSSEY"
-    static let appVersion = "2.0.0"
+    static let appVersion = "2.2.0"
     static let bundleIdentifier = "com.odyssey.app"
 
     // MARK: - URLs
@@ -51,31 +51,15 @@ enum Constants {
     // MARK: - Sports Keywords
 
     static let sportsKeywords = [
-        "basketball", "volleyball", "badminton", "tennis", "soccer", "football",
-        "hockey", "swimming", "gym", "fitness", "yoga", "pilates", "dance",
-        "skating", "curling", "baseball", "softball", "cricket", "rugby",
-        "lacrosse", "field hockey", "table tennis", "ping pong", "racquetball",
-        "squash", "handball", "boxing", "martial arts", "karate", "taekwondo",
-        "judo", "wrestling", "gymnastics", "cheerleading", "track", "running",
-        "cross country", "cycling", "biking", "rowing", "canoeing", "kayaking",
-        "sailing", "golf", "mini golf", "bowling", "billiards", "pool",
-        "archery", "shooting", "fencing", "rock climbing", "bouldering",
-        "weightlifting", "powerlifting", "bodybuilding", "aerobics", "zumba",
-        "spinning", "cycling", "rowing", "elliptical", "treadmill", "stairmaster",
-    ]
-
-    // MARK: - Excluded Terms for Sports Detection
-
-    static let excludedTerms = [
-        "login", "sign", "register", "search", "filter", "date", "time",
-        "submit", "cancel", "back", "next", "previous", "close", "menu",
-        "home", "about", "contact", "help", "settings", "profile", "account",
-        "logout", "sign out", "signout", "sign up", "signup", "create account",
-        "new account", "forgot password", "reset password", "change password",
-        "update profile", "edit profile", "my account", "my profile",
-        "my settings", "my preferences", "my bookings", "my reservations",
-        "my history", "my schedule", "my calendar", "my activities",
-        "my sports", "my classes", "my programs", "my sessions",
-        "my times", "my slots", "my time slots",
+        "basketball",
+        "volleyball",
+        "badminton",
+        "tennis",
+        "soccer",
+        "hockey",
+        "swimming",
+        "fitness",
+        "gym",
+        "sport",
     ]
 }
