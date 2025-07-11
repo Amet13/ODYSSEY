@@ -149,6 +149,9 @@ struct ConfigurationDetailView: View {
                                 .buttonStyle(.bordered)
                                 .controlSize(.small)
                         }
+                        Text("Maximum 2 time slots per day (no duplicates)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                         if dayTimeSlots.isEmpty {
                             Text("No days selected. Click 'Add Day' to start scheduling.")
                                 .font(.caption)
@@ -196,9 +199,11 @@ struct ConfigurationDetailView: View {
                             }
                             ForEach(sortedDays, id: \.self) { day in
                                 let slots = dayTimeSlots[day] ?? []
-                                let times = slots.map { $0.time.formatted(date: .omitted, time: .shortened) }.joined(separator: ", ")
-                                if !times.isEmpty {
-                                    Text("\(day.shortName): \(times)")
+                                let sortedTimes = slots.sorted { $0.time < $1.time }
+                                    .map { $0.time.formatted(date: .omitted, time: .shortened) }
+                                    .joined(separator: ", ")
+                                if !sortedTimes.isEmpty {
+                                    Text("\(day.shortName): \(sortedTimes)")
                                 }
                             }
                         }
@@ -321,15 +326,68 @@ struct ConfigurationDetailView: View {
     }
     
     private func addTimeSlot(for day: ReservationConfig.Weekday) {
-        let newTime = Calendar.current.date(from: DateComponents(hour: 18, minute: 0)) ?? Date()
         if dayTimeSlots[day] == nil {
+            // First timeslot - use 6:00 PM as default
+            let newTime = Calendar.current.date(from: DateComponents(hour: 18, minute: 0)) ?? Date()
             dayTimeSlots[day] = [TimeSlot(time: newTime)]
-        } else {
-            dayTimeSlots[day]?.append(TimeSlot(time: newTime))
+        } else if (dayTimeSlots[day]?.count ?? 0) < 2 {
+            // Second timeslot - find an available time
+            if let availableTime = findAvailableTime(for: day) {
+                dayTimeSlots[day]?.append(TimeSlot(time: availableTime))
+            }
+        }
+    }
+    
+    private func findAvailableTime(for day: ReservationConfig.Weekday) -> Date? {
+        guard let existingSlots = dayTimeSlots[day] else { return nil }
+        
+        let calendar = Calendar.current
+        let defaultTimes = [
+            DateComponents(hour: 18, minute: 0),  // 6:00 PM
+            DateComponents(hour: 19, minute: 0),  // 7:00 PM
+            DateComponents(hour: 17, minute: 0),  // 5:00 PM
+            DateComponents(hour: 20, minute: 0),  // 8:00 PM
+            DateComponents(hour: 16, minute: 0),  // 4:00 PM
+        ]
+        
+        for timeComponents in defaultTimes {
+            if let newTime = calendar.date(from: timeComponents) {
+                if !isTimeDuplicate(newTime, for: day) {
+                    return newTime
+                }
+            }
+        }
+        
+        // If all default times are taken, find the next available hour
+        let existingHours = existingSlots.compactMap { slot in
+            calendar.dateComponents([.hour], from: slot.time).hour
+        }
+        
+        for hour in 9...22 { // 9 AM to 10 PM
+            if !existingHours.contains(hour) {
+                if let newTime = calendar.date(from: DateComponents(hour: hour, minute: 0)) {
+                    return newTime
+                }
+            }
+        }
+        
+        return nil
+    }
+    
+    private func isTimeDuplicate(_ time: Date, for day: ReservationConfig.Weekday) -> Bool {
+        guard let existingSlots = dayTimeSlots[day] else { return false }
+        
+        let calendar = Calendar.current
+        let newTimeComponents = calendar.dateComponents([.hour, .minute], from: time)
+        
+        return existingSlots.contains { existingSlot in
+            let existingTimeComponents = calendar.dateComponents([.hour, .minute], from: existingSlot.time)
+            return newTimeComponents.hour == existingTimeComponents.hour && 
+                   newTimeComponents.minute == existingTimeComponents.minute
         }
     }
     private func removeTimeSlot(for day: ReservationConfig.Weekday, at index: Int) {
-        if dayTimeSlots[day]?.count ?? 0 > 1 {
+        if (dayTimeSlots[day]?.count ?? 0) > 1 {
             dayTimeSlots[day]?.remove(at: index)
         }
     }
@@ -405,6 +463,8 @@ struct DayTimeSlotEditor: View {
                     Image(systemName: "plus.circle.fill")
                 }
                 .buttonStyle(.bordered)
+                .disabled(slots.count >= 2)
+                .help(slots.count >= 2 ? "Maximum 2 time slots per day" : "Add time slot (no duplicates)")
                 Button(action: onRemoveDay) {
                     Image(systemName: "xmark.circle.fill")
                 }
@@ -416,7 +476,20 @@ struct DayTimeSlotEditor: View {
                     DatePicker("", selection: Binding(
                         get: { slots[index].time },
                         set: { newTime in
-                            slots[index] = TimeSlot(time: newTime)
+                            // Check if the new time would create a duplicate with other slots
+                            let calendar = Calendar.current
+                            let newTimeComponents = calendar.dateComponents([.hour, .minute], from: newTime)
+                            
+                            let isDuplicate = slots.enumerated().contains { otherIndex, otherSlot in
+                                guard otherIndex != index else { return false }
+                                let otherTimeComponents = calendar.dateComponents([.hour, .minute], from: otherSlot.time)
+                                return newTimeComponents.hour == otherTimeComponents.hour && 
+                                       newTimeComponents.minute == otherTimeComponents.minute
+                            }
+                            
+                            if !isDuplicate {
+                                slots[index] = TimeSlot(time: newTime)
+                            }
                         }
                     ), displayedComponents: .hourAndMinute)
                     .labelsHidden()
