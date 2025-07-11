@@ -90,7 +90,7 @@ class EmailService: ObservableObject {
                 port: config.port,
                 useTLS: config.useTLS,
                 email: email,
-                password: password,
+                password: password
             )
             if case .success = result { return result }
             if case let .failure(error) = result {

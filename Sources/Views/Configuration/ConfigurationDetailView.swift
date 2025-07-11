@@ -218,7 +218,7 @@ struct ConfigurationDetailView: View {
                         ),
                         onAdd: { addTimeSlot(for: day) },
                         onRemove: { idx in removeTimeSlot(for: day, at: idx) },
-                        onRemoveDay: { removeDay(day) },
+                        onRemoveDay: { removeDay(day) }
                     )
                 }
             }
