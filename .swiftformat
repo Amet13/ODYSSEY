@@ -1,12 +1,15 @@
 # SwiftFormat Configuration for ODYSSEY
+
 # Ensures consistent code formatting and style
 
 # Indentation
+
 --indent 4
 --tabwidth 4
 --smarttabs enabled
 
 # Line wrapping
+
 --maxwidth 120
 --wraparguments before-first
 --wrapparameters before-first
@@ -15,6 +18,7 @@
 --wraptypealiases before-first
 
 # Spacing
+
 --trimwhitespace always
 --insertlines enabled
 --removelines enabled
@@ -34,20 +38,24 @@
 --exponentcase lowercase
 
 # Imports
+
 --importgrouping alphabetized
 
 # Comments
+
 --header strip
 --comments ignore
 
 # Other
+
 --disable redundantParens
 --disable redundantReturn
 --disable redundantSelf
 
 # Exclude patterns
+
 --exclude Sources/Resources
 --exclude .build
 --exclude Config/ODYSSEY.xcodeproj
 --exclude Documentation
---exclude Scripts 
+--exclude Scripts
