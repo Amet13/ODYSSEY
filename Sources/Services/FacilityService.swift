@@ -161,7 +161,12 @@ extension FacilityService: WKNavigationDelegate {
 // MARK: - WKUIDelegate
 
 extension FacilityService: WKUIDelegate {
-    func webView(_: WKWebView, createWebViewWith _: WKWebViewConfiguration, for _: WKNavigationAction, windowFeatures _: WKWindowFeatures) -> WKWebView? {
+    func webView(
+        _: WKWebView,
+        createWebViewWith _: WKWebViewConfiguration,
+        for _: WKNavigationAction,
+        windowFeatures _: WKWindowFeatures,
+    ) -> WKWebView? {
         nil
     }
 }
@@ -170,9 +175,10 @@ extension FacilityService: WKUIDelegate {
 
 extension FacilityService: WKScriptMessageHandler {
     func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard message.name == "facilityHandler",
-              let body = message.body as? [String: Any],
-              let type = body["type"] as? String
+        guard
+            message.name == "facilityHandler",
+            let body = message.body as? [String: Any],
+            let type = body["type"] as? String
         else {
             logger.warning("Invalid message received from facility WebKit")
             return

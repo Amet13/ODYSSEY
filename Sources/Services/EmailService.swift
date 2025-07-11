@@ -26,12 +26,18 @@ class EmailService: ObservableObject {
 
         var localizedDescription: String {
             switch self {
-            case let .connectionFailed(message): UserSettingsManager.shared.userSettings.localized("Connection failed:") + " \(message)"
-            case let .authenticationFailed(message): UserSettingsManager.shared.userSettings.localized("Authentication failed:") + " \(message)"
-            case let .commandFailed(message): UserSettingsManager.shared.userSettings.localized("Command failed:") + " \(message)"
-            case let .invalidResponse(message): UserSettingsManager.shared.userSettings.localized("Invalid response:") + " \(message)"
-            case let .timeout(message): UserSettingsManager.shared.userSettings.localized("Connection timeout:") + " \(message)"
-            case let .unsupportedServer(message): UserSettingsManager.shared.userSettings.localized("Unsupported server:") + " \(message)"
+            case let .connectionFailed(message): UserSettingsManager.shared.userSettings
+                .localized("Connection failed:") + " \(message)"
+            case let .authenticationFailed(message): UserSettingsManager.shared.userSettings
+                .localized("Authentication failed:") + " \(message)"
+            case let .commandFailed(message): UserSettingsManager.shared.userSettings
+                .localized("Command failed:") + " \(message)"
+            case let .invalidResponse(message): UserSettingsManager.shared.userSettings
+                .localized("Invalid response:") + " \(message)"
+            case let .timeout(message): UserSettingsManager.shared.userSettings
+                .localized("Connection timeout:") + " \(message)"
+            case let .unsupportedServer(message): UserSettingsManager.shared.userSettings
+                .localized("Unsupported server:") + " \(message)"
             }
         }
     }
@@ -57,7 +63,7 @@ class EmailService: ObservableObject {
         }
     }
 
-    private init() {}
+    private init() { }
 
     // MARK: - Public Methods
 
@@ -81,7 +87,7 @@ class EmailService: ObservableObject {
         let portConfigurations = [
             (port: UInt16(993), useTLS: true, description: "SSL/TLS"),
             (port: UInt16(143), useTLS: false, description: "Plain"),
-            (port: UInt16(143), useTLS: true, description: "STARTTLS")
+            (port: UInt16(143), useTLS: true, description: "STARTTLS"),
         ]
         for config in portConfigurations {
             logger.info("Trying IMAP connection to \(server):\(config.port) (\(config.description))")
@@ -91,7 +97,7 @@ class EmailService: ObservableObject {
                 useTLS: config.useTLS,
                 email: email,
                 password: password,
-                )
+            )
             if case .success = result { return result }
             if case let .failure(error) = result {
                 logger.warning("IMAP connection failed on \(server):\(config.port): \(error)")
@@ -100,7 +106,13 @@ class EmailService: ObservableObject {
         return .failure(userSettingsManager.userSettings.localized("All IMAP connection attempts failed"))
     }
 
-    private func connectToIMAP(server: String, port: UInt16, useTLS: Bool, email: String, password: String) async -> TestResult {
+    private func connectToIMAP(
+        server: String,
+        port: UInt16,
+        useTLS: Bool,
+        email: String,
+        password: String,
+    ) async -> TestResult {
         let parameters = NWParameters.tcp
         if useTLS {
             parameters.defaultProtocolStack.applicationProtocols.insert(NWProtocolTLS.Options(), at: 0)
@@ -109,7 +121,7 @@ class EmailService: ObservableObject {
             host: NWEndpoint.Host(server),
             port: NWEndpoint.Port(integerLiteral: port),
             using: parameters,
-            )
+        )
         return await withCheckedContinuation { continuation in
             let hasResumed = AtomicBool(false)
             @Sendable func safeResume(_ result: TestResult) {
@@ -130,7 +142,12 @@ class EmailService: ObservableObject {
                 switch state {
                 case .ready:
                     Task {
-                        await self.performIMAPHandshake(connection: connection, email: email, password: password, useTLS: useTLS) { result in
+                        await self.performIMAPHandshake(
+                            connection: connection,
+                            email: email,
+                            password: password,
+                            useTLS: useTLS,
+                        ) { result in
                             timeoutTask.cancel()
                             safeResume(result)
                             connection.cancel()
@@ -153,7 +170,13 @@ class EmailService: ObservableObject {
         }
     }
 
-    private func performIMAPHandshake(connection: NWConnection, email: String, password: String, useTLS: Bool, completion: @escaping (TestResult) -> Void) async {
+    private func performIMAPHandshake(
+        connection: NWConnection,
+        email: String,
+        password: String,
+        useTLS: Bool,
+        completion: @escaping (TestResult) -> Void,
+    ) async {
         receiveIMAPResponse(connection: connection) { [weak self] (result: Result<String, IMAPError>) in
             guard let self else { return }
             switch result {
@@ -164,14 +187,24 @@ class EmailService: ObservableObject {
                         await self.upgradeToTLS(connection: connection) { tlsResult in
                             switch tlsResult {
                             case .success:
-                                Task { await self.continueIMAPHandshake(connection: connection, email: email, password: password, completion: completion) }
+                                Task { await self.continueIMAPHandshake(
+                                    connection: connection,
+                                    email: email,
+                                    password: password,
+                                    completion: completion,
+                                ) }
                             case let .failure(error):
                                 completion(.failure(error.localizedDescription))
                             }
                         }
                     }
                 } else {
-                    Task { await self.continueIMAPHandshake(connection: connection, email: email, password: password, completion: completion) }
+                    Task { await self.continueIMAPHandshake(
+                        connection: connection,
+                        email: email,
+                        password: password,
+                        completion: completion,
+                    ) }
                 }
             case let .failure(error):
                 completion(.failure(error.localizedDescription))
@@ -179,72 +212,140 @@ class EmailService: ObservableObject {
         }
     }
 
-    private func continueIMAPHandshake(connection: NWConnection, email: String, password: String, completion: @escaping (TestResult) -> Void) async {
-        await sendIMAPCommand(connection: connection, command: "a001 CAPABILITY\r\n") { [weak self] (result: Result<String, IMAPError>) in
+    private func continueIMAPHandshake(
+        connection: NWConnection,
+        email: String,
+        password: String,
+        completion: @escaping (TestResult) -> Void,
+    ) async {
+        await sendIMAPCommand(
+            connection: connection,
+            command: "a001 CAPABILITY\r\n",
+        ) { [weak self] (result: Result<String, IMAPError>) in
             guard let self else { return }
             switch result {
             case .success:
                 let loginCommand = "a002 LOGIN \"\(email)\" \"\(password)\"\r\n"
                 Task {
-                    await self.sendIMAPCommand(connection: connection, command: loginCommand) { [weak self] (result: Result<String, IMAPError>) in
-                        guard let self else { return }
-                        switch result {
-                        case .success:
-                            let selectCommand = "a003 SELECT INBOX\r\n"
-                            Task {
-                                await self.sendIMAPCommand(connection: connection, command: selectCommand) { [weak self] (result: Result<String, IMAPError>) in
-                                    guard let self else { return }
-                                    switch result {
-                                    case .success:
-                                        let searchCommand = "a004 SEARCH ALL\r\n"
-                                        Task {
-                                            await self.sendIMAPCommand(connection: connection, command: searchCommand) { [weak self] (result: Result<String, IMAPError>) in
-                                                guard let self else { return }
-                                                switch result {
-                                                case let .success(searchResponse):
-                                                    let lines = searchResponse.components(separatedBy: .newlines)
-                                                    let searchLine = lines.first(where: { $0.contains("SEARCH") }) ?? ""
-                                                    let parts = searchLine.components(separatedBy: " ")
-                                                    let ids = parts.dropFirst().compactMap { Int($0) }
-                                                    if let lastId = ids.last {
-                                                        let fetchCommand = "a005 FETCH \(lastId) BODY[HEADER.FIELDS (FROM SUBJECT DATE)]\r\n"
-                                                        Task {
-                                                            await self.sendIMAPCommand(connection: connection, command: fetchCommand) { (result: Result<String, IMAPError>) in
-                                                                switch result {
-                                                                case .success:
-                                                                    completion(.success(self.userSettingsManager.userSettings.localized("IMAP connection successful!")))
-                                                                case let .failure(error):
-                                                                    self.logger.error("IMAP: FETCH failed: \(error.localizedDescription)")
-                                                                    completion(.failure(self.userSettingsManager.userSettings.localized("Failed to fetch email:") + " \(error.localizedDescription)"))
+                    await self
+                        .sendIMAPCommand(connection: connection, command: loginCommand) { [weak self] (result: Result<
+                            String,
+                            IMAPError
+                        >) in
+                            guard let self else { return }
+                            switch result {
+                            case .success:
+                                let selectCommand = "a003 SELECT INBOX\r\n"
+                                Task {
+                                    await self
+                                        .sendIMAPCommand(
+                                            connection: connection,
+                                            command: selectCommand,
+                                        ) { [weak self] (result: Result<
+                                            String,
+                                            IMAPError
+                                        >) in
+                                            guard let self else { return }
+                                            switch result {
+                                            case .success:
+                                                let searchCommand = "a004 SEARCH ALL\r\n"
+                                                Task {
+                                                    await self
+                                                        .sendIMAPCommand(
+                                                            connection: connection,
+                                                            command: searchCommand,
+                                                        ) { [weak self] (result: Result<
+                                                            String,
+                                                            IMAPError
+                                                        >) in
+                                                            guard let self else { return }
+                                                            switch result {
+                                                            case let .success(searchResponse):
+                                                                let lines = searchResponse
+                                                                    .components(separatedBy: .newlines)
+                                                                let searchLine = lines
+                                                                    .first(where: { $0.contains("SEARCH") }) ?? ""
+                                                                let parts = searchLine.components(separatedBy: " ")
+                                                                let ids = parts.dropFirst().compactMap { Int($0) }
+                                                                if let lastId = ids.last {
+                                                                    let fetchCommand =
+                                                                        "a005 FETCH \(lastId) BODY[HEADER.FIELDS (FROM SUBJECT DATE)]\r\n"
+                                                                    Task {
+                                                                        await self.sendIMAPCommand(
+                                                                            connection: connection,
+                                                                            command: fetchCommand,
+                                                                        ) { (result: Result<String, IMAPError>) in
+                                                                            switch result {
+                                                                            case .success:
+                                                                                completion(.success(
+                                                                                    self.userSettingsManager
+                                                                                        .userSettings
+                                                                                        .localized(
+                                                                                            "IMAP connection successful!",
+                                                                                        ),
+                                                                                ))
+                                                                            case let .failure(error):
+                                                                                self.logger
+                                                                                    .error(
+                                                                                        "IMAP: FETCH failed: \(error.localizedDescription)",
+                                                                                    )
+                                                                                completion(.failure(
+                                                                                    self.userSettingsManager
+                                                                                        .userSettings
+                                                                                        .localized(
+                                                                                            "Failed to fetch email:",
+                                                                                        ) +
+                                                                                        " \(error.localizedDescription)",
+                                                                                ))
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                } else {
+                                                                    completion(.success(
+                                                                        userSettingsManager.userSettings
+                                                                            .localized("IMAP connection successful!"),
+                                                                    ))
                                                                 }
+                                                            case let .failure(error):
+                                                                completion(.failure(
+                                                                    userSettingsManager.userSettings
+                                                                        .localized("Failed to search mailbox:") +
+                                                                        " \(error.localizedDescription)",
+                                                                ))
                                                             }
                                                         }
-                                                    } else {
-                                                        completion(.success(userSettingsManager.userSettings.localized("IMAP connection successful!")))
-                                                    }
-                                                case let .failure(error):
-                                                    completion(.failure(userSettingsManager.userSettings.localized("Failed to search mailbox:") + " \(error.localizedDescription)"))
                                                 }
+                                            case let .failure(error):
+                                                completion(.failure(
+                                                    userSettingsManager.userSettings
+                                                        .localized("Failed to select INBOX:") +
+                                                        " \(error.localizedDescription)",
+                                                ))
                                             }
                                         }
-                                    case let .failure(error):
-                                        completion(.failure(userSettingsManager.userSettings.localized("Failed to select INBOX:") + " \(error.localizedDescription)"))
-                                    }
                                 }
+                            case let .failure(error):
+                                completion(.failure(
+                                    userSettingsManager.userSettings
+                                        .localized("Authentication failed:") + " \(error.localizedDescription)",
+                                ))
                             }
-                        case let .failure(error):
-                            completion(.failure(userSettingsManager.userSettings.localized("Authentication failed:") + " \(error.localizedDescription)"))
                         }
-                    }
                 }
             case let .failure(error):
-                completion(.failure(userSettingsManager.userSettings.localized("IMAP handshake failed:") + " \(error.localizedDescription)"))
+                completion(.failure(
+                    userSettingsManager.userSettings
+                        .localized("IMAP handshake failed:") + " \(error.localizedDescription)",
+                ))
             }
         }
     }
 
     private func upgradeToTLS(connection: NWConnection, completion: @escaping (Result<Void, IMAPError>) -> Void) async {
-        await sendIMAPCommand(connection: connection, command: "a001 STARTTLS\r\n") { (result: Result<String, IMAPError>) in
+        await sendIMAPCommand(
+            connection: connection,
+            command: "a001 STARTTLS\r\n",
+        ) { (result: Result<String, IMAPError>) in
             switch result {
             case .success:
                 DispatchQueue.global().asyncAfter(deadline: .now() + 1.0) {
@@ -256,7 +357,11 @@ class EmailService: ObservableObject {
         }
     }
 
-    private func sendIMAPCommand(connection: NWConnection, command: String, completion: @escaping (Result<String, IMAPError>) -> Void) async {
+    private func sendIMAPCommand(
+        connection: NWConnection,
+        command: String,
+        completion: @escaping (Result<String, IMAPError>) -> Void,
+    ) async {
         guard let data = command.data(using: .utf8) else {
             completion(.failure(.commandFailed(userSettingsManager.userSettings.localized("Invalid command encoding"))))
             return
@@ -273,12 +378,15 @@ class EmailService: ObservableObject {
         })
     }
 
-    private func receiveIMAPResponse(connection: NWConnection, completion: @escaping (Result<String, IMAPError>) -> Void) {
+    private func receiveIMAPResponse(
+        connection: NWConnection,
+        completion: @escaping (Result<String, IMAPError>) -> Void,
+    ) {
         let localizedReceiveError = userSettingsManager.userSettings.localized("Receive error:")
         let localizedIMAPError = userSettingsManager.userSettings.localized("IMAP error:")
         let localizedInvalidResponse = userSettingsManager.userSettings.localized("Invalid response")
 
-        connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) { content, _, _, error in
+        connection.receive(minimumIncompleteLength: 1, maximumLength: 65_536) { content, _, _, error in
             if let error {
                 completion(.failure(.commandFailed(localizedReceiveError + " \(error.localizedDescription)")))
                 return
@@ -329,7 +437,10 @@ class EmailService: ObservableObject {
             // For now, just log the success
             // In a full implementation, this would send an actual email
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
-            self.logger.info("Success notification would be sent for \(config.sportName) at \(facilityName) to \(self.userSettingsManager.userSettings.imapEmail)")
+            self.logger
+                .info(
+                    "Success notification would be sent for \(config.sportName) at \(facilityName) to \(self.userSettingsManager.userSettings.imapEmail)",
+                )
         }
     }
 }

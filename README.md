@@ -1,3 +1,5 @@
+# ODYSSEY
+
 <div align="center">
   <img src="logo.svg" alt="ODYSSEY Logo" width="120" height="120">
   <h1>ODYSSEY</h1>
@@ -20,7 +22,7 @@
   
   <p>
     <a href="https://github.com/Amet13/ODYSSEY/releases/latest">
-      <img src="https://img.shields.io/badge/Download-v3.0.0-blue?style=for-the-badge&logo=apple" alt="Download v3.0.0">
+      <img src="https://img.shields.io/badge/Download-v3.1.0-blue?style=for-the-badge&logo=apple" alt="Download v3.1.0">
     </a>
   </p>
 </div>
@@ -57,6 +59,8 @@ A sophisticated macOS menu bar application that automates sports reservation boo
 - 🔍 **Advanced Logging** - Comprehensive logging with os.log for debugging
 - 🛡️ **Code Quality** - SwiftLint integration and best practices enforcement
 - 🕵️‍♂️ **Incognito Run (Requires Chrome)** - The "Run" button opens your configuration in a new Google Chrome incognito window for manual verification. **Google Chrome must be installed.**
+- 🔒 **Enhanced Security** - Comprehensive security scanning and validation
+- 📦 **Automated Releases** - Complete CI/CD pipeline with automated DMG creation
 
 ## 📋 Requirements
 
@@ -104,7 +108,7 @@ brew install chromedriver
 
 <div align="center">
   <a href="https://github.com/Amet13/ODYSSEY/releases/latest">
-    <img src="https://img.shields.io/badge/Download-v3.0.0-blue?style=for-the-badge&logo=apple" alt="Download v3.0.0">
+    <img src="https://img.shields.io/badge/Download-v3.1.0-blue?style=for-the-badge&logo=apple" alt="Download v3.1.0">
   </a>
 </div>
 
@@ -123,7 +127,7 @@ brew install chromedriver
 #### Option 1: Download Latest Release (Recommended)
 
 1. **Go to [Releases](https://github.com/Amet13/ODYSSEY/releases)**
-2. **Download the latest DMG file** (e.g., `ODYSSEY-v2.2.0.dmg`)
+2. **Download the latest DMG file** (e.g., `ODYSSEY-v3.1.0.dmg`)
 3. **Double-click the DMG** to mount the disk image
 4. **Drag ODYSSEY to Applications** folder
 5. **Launch ODYSSEY** from Applications (right-click → Open if needed)
@@ -132,7 +136,7 @@ brew install chromedriver
 #### Option 2: Build from Source
 
 1. **Clone the repository** (see Developer Setup below)
-2. **Run the build script**: `./build.sh`
+2. **Run the build script**: `./Scripts/build.sh`
 3. **The app will be built and launched automatically**
 
 ### For Developers
@@ -140,11 +144,11 @@ brew install chromedriver
 #### 1. Prerequisites
 
 ```bash
-# Install XcodeGen (if not already installed)
-brew install xcodegen
+# Install development tools
+brew install xcodegen swiftlint swiftformat
 
-# Install SwiftLint for code quality (optional but recommended)
-brew install swiftlint
+# Install ChromeDriver for automation
+brew install chromedriver
 ```
 
 #### 2. Clone and Setup
@@ -163,37 +167,53 @@ xcodegen
 #### 4. Build and Run
 
 ```bash
-# Quick build and run
-./build.sh
+# Quick build and run with quality checks
+./Scripts/build.sh
 
 # Or open in Xcode
-open ODYSSEY.xcodeproj
+open Config/ODYSSEY.xcodeproj
 ```
 
 ## 🏗️ Project Structure
 
 ```
 odyssey/
-├── ODYSSEY.xcodeproj/              # Xcode project (auto-generated)
+├── Config/
+│   ├── ODYSSEY.xcodeproj/        # Xcode project (auto-generated)
+│   └── project.yml               # XcodeGen project specification
 ├── Sources/
-│   ├── App/ODYSSEYApp.swift        # Main app entry point
-│   ├── ContentView.swift          # Main configuration interface
-│   ├── ConfigurationDetailView.swift # Configuration editor
-│   ├── StatusBarController.swift  # Menu bar integration
-│   ├── ReservationManager.swift   # Web automation engine
-│   ├── FacilityService.swift      # Web scraping and facility data
-│   ├── Configuration.swift        # Settings and preferences
+│   ├── App/
+│   │   ├── ODYSSEYApp.swift      # Main app entry point
+│   │   ├── Constants.swift       # Application constants
+│   │   └── Info.plist           # App metadata
+│   ├── Controllers/
+│   │   └── StatusBarController.swift # Menu bar integration
 │   ├── Models/
-│   │   └── ReservationConfig.swift # Data models
-│   └── Info.plist                 # App metadata
-├── project.yml                    # XcodeGen project specification
-
-├── build.sh                       # Build and run script
-├── README.md                      # This file
-├── DEVELOPMENT.md                 # Developer guide
-├── CONTRIBUTING.md                # Contribution guidelines
-├── CHANGELOG.md                   # Version history
-└── LICENSE                        # MIT License
+│   │   ├── ReservationConfig.swift # Data models
+│   │   └── UserSettings.swift    # User preferences
+│   ├── Services/
+│   │   ├── Configuration.swift   # Settings and preferences
+│   │   ├── EmailService.swift    # IMAP integration
+│   │   ├── FacilityService.swift # Web scraping and facility data
+│   │   ├── ReservationManager.swift # Web automation orchestration
+│   │   ├── TelegramService.swift # Telegram bot integration
+│   │   ├── UserSettingsManager.swift # User settings management
+│   │   ├── WebDriverService.swift # Chrome automation engine
+│   │   └── WebDriverStealth.swift # Anti-detection measures
+│   ├── Views/
+│   │   ├── Configuration/        # Configuration-related views
+│   │   ├── Main/                # Main application views
+│   │   └── Settings/            # Settings views
+│   └── Resources/               # App resources and assets
+├── Scripts/
+│   ├── build.sh                 # Enhanced build script
+│   └── create-release.sh        # Release management script
+├── Documentation/               # Project documentation
+├── .github/workflows/           # CI/CD workflows
+├── .swiftlint.yml              # SwiftLint configuration
+├── .swiftformat                # SwiftFormat configuration
+├── README.md                   # This file
+└── LICENSE                     # MIT License
 ```
 
 ## ⚙️ Configuration
@@ -311,23 +331,6 @@ ODYSSEY supports Telegram integration for notifications and test messages. This 
 - **You can revoke the token** anytime by messaging `/revoke` to @BotFather
 - **Chat ID is not sensitive** - it's just a number that identifies your chat
 
-### 🆕 What's New in v2.2.0
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center"><strong>🎯 Enhanced UI</strong><br/>Improved settings and consistency</td>
-      <td align="center"><strong>🔧 Code Quality</strong><br/>Better error handling and logging</td>
-      <td align="center"><strong>📱 Integration</strong><br/>IMAP and Telegram improvements</td>
-    </tr>
-    <tr>
-      <td align="center"><strong>🧹 Cleanup</strong><br/>Removed debug logs and improved performance</td>
-      <td align="center"><strong>🎨 Visual Polish</strong><br/>Consistent styling and feedback</td>
-      <td align="center"><strong>📚 Documentation</strong><br/>Updated guides and examples</td>
-    </tr>
-  </table>
-</div>
-
 ## 🔧 How It Works
 
 ### Automation Process
@@ -401,46 +404,111 @@ chromedriver --port=9515 --verbose
 
 ## 🧪 Development
 
-### 🚀 CI/CD Pipeline
+### 🚀 Enhanced CI/CD Pipeline
 
-ODYSSEY uses GitHub Actions for continuous integration and deployment:
+ODYSSEY uses a comprehensive GitHub Actions pipeline for continuous integration and deployment:
 
 <div align="center">
   <table>
     <tr>
-      <td align="center"><strong>🔨 CI Workflow</strong><br/>Builds on every push/PR</td>
-      <td align="center"><strong>📦 Release Workflow</strong><br/>Auto-creates DMG installers</td>
-      <td align="center"><strong>🧪 Quality Checks</strong><br/>SwiftLint & testing</td>
+      <td align="center"><strong>🔨 Quality Checks</strong><br/>SwiftFormat & SwiftLint</td>
+      <td align="center"><strong>🏗️ Build & Test</strong><br/>Debug & Release builds</td>
+      <td align="center"><strong>🔒 Security Scan</strong><br/>Vulnerability checks</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>📊 Performance</strong><br/>Build time & size analysis</td>
+      <td align="center"><strong>📦 Release</strong><br/>Automated DMG creation</td>
+      <td align="center"><strong>📝 Documentation</strong><br/>Auto-generated notes</td>
     </tr>
   </table>
 </div>
 
-- **CI Workflow** - Runs on every push and pull request
-  - ✅ Builds the app in Debug configuration
-  - ✅ Runs SwiftLint for code quality
-  - ✅ Uploads build artifacts
-  - ✅ Checks app size and performance
-- **Release Workflow** - Runs when a new version tag is pushed
-  - 🚀 Builds the app in Release configuration
-  - 📦 Creates a DMG installer automatically
-  - 🏷️ Publishes a GitHub release with download links
-  - 🔐 Code signs the application
-- **Quality Assurance** - Comprehensive testing and validation
-  - 🧪 Automated testing on macOS latest
-  - 📊 Build size monitoring
-  - 🔍 Code quality enforcement
+#### CI Workflow Features
+
+- **Quality Checks** - Code formatting and linting with SwiftFormat and SwiftLint
+- **Build & Test** - Debug and Release builds with timing analysis
+- **Security Scan** - Hardcoded secrets, ATS settings, and code signing validation
+- **Performance Check** - Build time analysis and app size monitoring
+- **Caching** - Swift package caching for faster builds
+- **Artifact Upload** - Build artifacts for debugging and distribution
+
+#### Release Workflow Features
+
+- **Version Validation** - Ensures version consistency across all files
+- **Automated Build** - Release build with code signing
+- **Security Audit** - Comprehensive security vulnerability assessment
+- **DMG Creation** - Professional installer with custom branding
+- **Release Notes** - Auto-generated from git history and changelog
+- **GitHub Release** - Complete release with download links
+
+### Code Quality Standards
+
+#### SwiftLint Configuration
+
+ODYSSEY enforces strict code quality standards with a comprehensive SwiftLint configuration:
+
+- **Code Style** - Consistent formatting and naming conventions
+- **Best Practices** - Modern Swift patterns and anti-patterns
+- **Documentation** - Public API documentation requirements
+- **Performance** - Efficient code patterns
+- **Security** - Safe coding practices
+
+#### SwiftFormat Configuration
+
+Automatic code formatting ensures consistency:
+
+- **Indentation** - 4 spaces, smart tabs enabled
+- **Line Length** - 120 characters max
+- **Import Organization** - Alphabetized and grouped
+- **Spacing** - Consistent spacing rules
+
+### Development Workflow
+
+```bash
+# 1. Make changes
+git checkout -b feature/new-feature
+
+# 2. Format and lint code
+swiftformat Sources/
+swiftlint lint --config .swiftlint.yml
+
+# 3. Build and test
+xcodebuild build -project Config/ODYSSEY.xcodeproj -scheme ODYSSEY -configuration Debug
+
+# 4. Commit with conventional commit message
+git add .
+git commit -m "feat: add new automation feature"
+
+# 5. Push and create PR
+git push origin feature/new-feature
+```
 
 ### Creating Releases
 
-To create a new release:
+Use the automated release script for consistent releases:
 
 ```bash
-# Create release v2.2.0
-./scripts/create-release.sh 2.2.0
+# Preview release changes
+./Scripts/create-release.sh --dry-run 3.2.0
 
-# Preview what would be done
-./scripts/create-release.sh --dry-run 2.3.0
+# Create actual release
+./Scripts/create-release.sh 3.2.0
 ```
+
+The release script automatically:
+
+- Updates version numbers in all files
+- Generates changelog entries
+- Creates git tags
+- Triggers CI/CD pipeline for automated release
+
+### Version Management
+
+Follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH):
+
+- **MAJOR** - Breaking changes
+- **MINOR** - New features, backward compatible
+- **PATCH** - Bug fixes, backward compatible
 
 ## 📄 License
 

@@ -6,10 +6,13 @@ on:
   pull_request:
     branches: [main]
 
-jobs:
-  build-and-test:
-    runs-on: macos-latest
+env:
+  SWIFT_VERSION: "5.9"
+  XCODE_VERSION: "15.2"
 
+jobs:
+  quality-checks:
+    runs-on: macos-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -17,33 +20,95 @@ jobs:
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "latest-stable"
+          xcode-version: ${{ env.XCODE_VERSION }}
 
-      - name: Install XcodeGen
+      - name: Cache Swift packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.swiftpm
+            .build
+          key: ${{ runner.os }}-swift-${{ hashFiles('**/Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-swift-
+
+      - name: Install dependencies
         run: |
           brew install xcodegen
-
-      - name: Install SwiftLint
-        run: |
           brew install swiftlint
+          brew install swiftformat
 
       - name: Generate Xcode project
         run: |
           xcodegen --spec Config/project.yml
 
-      - name: Build project
+      - name: Run SwiftFormat
+        run: |
+          swiftformat --lint Sources/ || true
+        continue-on-error: true
+
+      - name: Run SwiftLint
+        run: |
+          swiftlint lint --reporter github-actions-logging --config .swiftlint.yml || true
+        continue-on-error: true
+
+      - name: Check code formatting
+        run: |
+          if ! swiftformat --lint Sources/ > /dev/null 2>&1; then
+            echo "❌ Code formatting issues found. Run 'swiftformat Sources/' to fix."
+            exit 1
+          fi
+          echo "✅ Code formatting is correct"
+
+  build-and-test:
+    runs-on: macos-latest
+    needs: quality-checks
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Cache Swift packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.swiftpm
+            .build
+          key: ${{ runner.os }}-swift-${{ hashFiles('**/Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-swift-
+
+      - name: Install dependencies
+        run: |
+          brew install xcodegen
+
+      - name: Generate Xcode project
+        run: |
+          xcodegen --spec Config/project.yml
+
+      - name: Build Debug
         run: |
           xcodebuild build \
             -project Config/ODYSSEY.xcodeproj \
             -scheme ODYSSEY \
             -configuration Debug \
             -destination 'platform=macOS' \
-            -quiet
+            -quiet \
+            -showBuildTimingSummary
 
-      - name: Run SwiftLint
+      - name: Build Release
         run: |
-          swiftlint lint --reporter github-actions-logging || true
-        continue-on-error: true
+          xcodebuild build \
+            -project Config/ODYSSEY.xcodeproj \
+            -scheme ODYSSEY \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -quiet \
+            -showBuildTimingSummary
 
       - name: Check app size
         run: |
@@ -52,8 +117,16 @@ jobs:
             APP_SIZE=$(du -sh "$APP_PATH" | cut -f1)
             echo "App size: $APP_SIZE"
             echo "APP_SIZE=$APP_SIZE" >> $GITHUB_ENV
+            
+            # Check if app size is reasonable (should be under 10MB)
+            SIZE_BYTES=$(du -s "$APP_PATH" | cut -f1)
+            if [ "$SIZE_BYTES" -gt 10240 ]; then
+              echo "⚠️ App size is larger than expected: $APP_SIZE"
+            else
+              echo "✅ App size is reasonable: $APP_SIZE"
+            fi
           else
-            echo "Could not find built app"
+            echo "❌ Could not find built app"
             exit 1
           fi
 
@@ -62,4 +135,101 @@ jobs:
         with:
           name: odyssey-debug-build
           path: ~/Library/Developer/Xcode/DerivedData/ODYSSEY-*/Build/Products/Debug/ODYSSEY.app
-          retention-days: 1
+          retention-days: 7
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: odyssey-release-build
+          path: ~/Library/Developer/Xcode/DerivedData/ODYSSEY-*/Build/Products/Release/ODYSSEY.app
+          retention-days: 7
+
+  security-scan:
+    runs-on: macos-latest
+    needs: build-and-test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          brew install xcodegen
+
+      - name: Generate Xcode project
+        run: |
+          xcodegen --spec Config/project.yml
+
+      - name: Security scan
+        run: |
+          echo "🔍 Running security checks..."
+
+          # Check for hardcoded secrets
+          if grep -r "password\|secret\|key\|token" Sources/ --exclude-dir=Resources | grep -v "//" | grep -v "import"; then
+            echo "⚠️ Potential hardcoded secrets found"
+          else
+            echo "✅ No hardcoded secrets found"
+          fi
+
+          # Check for proper App Transport Security settings
+          if grep -q "NSAllowsArbitraryLoads.*true" Config/project.yml; then
+            echo "⚠️ App Transport Security allows arbitrary loads"
+          else
+            echo "✅ App Transport Security properly configured"
+          fi
+
+          # Check for proper code signing settings
+          if grep -q "CODE_SIGN_IDENTITY.*\"\"" Config/project.yml; then
+            echo "ℹ️ App not code signed (expected for development)"
+          else
+            echo "✅ Code signing configured"
+          fi
+
+  performance-check:
+    runs-on: macos-latest
+    needs: build-and-test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          brew install xcodegen
+
+      - name: Generate Xcode project
+        run: |
+          xcodegen --spec Config/project.yml
+
+      - name: Performance analysis
+        run: |
+          echo "📊 Running performance analysis..."
+
+          # Build with performance metrics
+          xcodebuild build \
+            -project Config/ODYSSEY.xcodeproj \
+            -scheme ODYSSEY \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -quiet \
+            -showBuildTimingSummary
+
+          # Check build time
+          echo "✅ Build completed successfully"
+
+          # Analyze app size
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
+          if [ -n "$APP_PATH" ]; then
+            echo "📦 App size analysis:"
+            du -sh "$APP_PATH"
+            echo "📁 Contents breakdown:"
+            du -sh "$APP_PATH"/Contents/*
+          fi

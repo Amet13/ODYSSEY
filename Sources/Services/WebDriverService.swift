@@ -46,7 +46,8 @@ class WebDriverService: ObservableObject {
     let baseURL = "http://localhost:9515"
     let urlSession: URLSession
     // Expose the current user-agent and language
-    var currentUserAgent: String = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    var currentUserAgent: String =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     var currentLanguage: String = "en-US,en"
 
     private init() {
@@ -54,7 +55,7 @@ class WebDriverService: ObservableObject {
         let userAgents = [
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         ]
         let userAgent = userAgents.randomElement() ?? userAgents[0]
         currentUserAgent = userAgent
@@ -365,7 +366,13 @@ class WebDriverService: ObservableObject {
 
                 // Try JavaScript click on the parent element
                 let clickParentScript = "arguments[0].parentElement.click(); return true;"
-                if await executeScriptWithElement(clickParentScript, elementId: divId, sessionId: String(describing: sessionId)) != nil {
+                if
+                    await executeScriptWithElement(
+                        clickParentScript,
+                        elementId: divId,
+                        sessionId: String(describing: sessionId),
+                    ) != nil
+                {
                     logger.info("Successfully clicked sport button: '\(text)' via parent element")
                     try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds sleep
                     return true
@@ -477,15 +484,15 @@ class WebDriverService: ObservableObject {
         let userAgents = [
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         ]
         let languages = ["en-US,en", "en-GB,en", "fr-FR,fr"]
         let userAgent = userAgents.randomElement() ?? userAgents[0]
         let language = languages.randomElement() ?? languages[0]
         currentUserAgent = userAgent
         currentLanguage = language
-        let width = Int.random(in: 1200 ... 1920)
-        let height = Int.random(in: 700 ... 1080)
+        let width = Int.random(in: 1_200 ... 1_920)
+        let height = Int.random(in: 700 ... 1_080)
         let args: [String] = [
             "--incognito",
             "--no-sandbox",
@@ -493,7 +500,7 @@ class WebDriverService: ObservableObject {
             "--disable-gpu",
             "--window-size=\(width),\(height)",
             "--user-agent=\(userAgent)",
-            "--lang=\(language)"
+            "--lang=\(language)",
         ]
 
         // Use W3C WebDriver protocol format
@@ -502,10 +509,10 @@ class WebDriverService: ObservableObject {
                 "alwaysMatch": [
                     "browserName": "chrome",
                     "goog:chromeOptions": [
-                        "args": args
-                    ]
-                ]
-            ]
+                        "args": args,
+                    ],
+                ],
+            ],
         ]
 
         guard let request = createRequest(url: endpoint, method: "POST", body: capabilities) else {
@@ -528,20 +535,27 @@ class WebDriverService: ObservableObject {
                 sessionId = id
             }
             // Try value.sessionId (W3C format)
-            else if let value = responseDict?["value"] as? [String: Any],
-                    let id = value["sessionId"] as? String {
+            else if
+                let value = responseDict?["value"] as? [String: Any],
+                let id = value["sessionId"] as? String
+            {
                 sessionId = id
             }
             // Try value.session_id
-            else if let value = responseDict?["value"] as? [String: Any],
-                    let id = value["session_id"] as? String {
+            else if
+                let value = responseDict?["value"] as? [String: Any],
+                let id = value["session_id"] as? String
+            {
                 sessionId = id
             }
 
             if let sessionId {
                 logger.info("Session created successfully: \(sessionId)")
             } else {
-                logger.error("No sessionId found in response. Response keys: \(responseDict?.keys.joined(separator: ", ") ?? "none")")
+                logger
+                    .error(
+                        "No sessionId found in response. Response keys: \(responseDict?.keys.joined(separator: ", ") ?? "none")",
+                    )
             }
 
             return sessionId
@@ -745,7 +759,8 @@ class WebDriverService: ObservableObject {
                 return nil
             }
             // Extract element IDs (W3C and legacy)
-            let ids = value.compactMap { $0["element-6066-11e4-a52e-4f735466cecf"] as? String ?? $0["ELEMENT"] as? String }
+            let ids = value
+                .compactMap { $0["element-6066-11e4-a52e-4f735466cecf"] as? String ?? $0["ELEMENT"] as? String }
             return ids
         } catch {
             logger.error("findAllElementsByXPath failed: \(error.localizedDescription)")

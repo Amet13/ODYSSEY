@@ -176,7 +176,11 @@ class ReservationManager: NSObject, ObservableObject {
             // Step 1: Start WebDriver session and navigate directly to the URL
             await updateTask("Starting WebDriver session")
             guard await webDriverService.startSession() else {
-                await handleError(UserSettingsManager.shared.userSettings.localized("Failed to start WebDriver session"), configId: config.id, runType: runType)
+                await handleError(
+                    UserSettingsManager.shared.userSettings.localized("Failed to start WebDriver session"),
+                    configId: config.id,
+                    runType: runType,
+                )
                 return
             }
 
@@ -184,12 +188,19 @@ class ReservationManager: NSObject, ObservableObject {
             await updateTask("Navigating to facility")
             let navigationResult = await webDriverService.navigate(to: config.facilityURL)
             guard navigationResult else {
-                await handleError(UserSettingsManager.shared.userSettings.localized("Failed to navigate to facility"), configId: config.id, runType: runType)
+                await handleError(
+                    UserSettingsManager.shared.userSettings.localized("Failed to navigate to facility"),
+                    configId: config.id,
+                    runType: runType,
+                )
                 return
             }
 
             // Step 2.5: Inject anti-detection script immediately after navigation
-            await webDriverService.injectAntiDetectionScript(userAgent: webDriverService.currentUserAgent, language: webDriverService.currentLanguage)
+            await webDriverService.injectAntiDetectionScript(
+                userAgent: webDriverService.currentUserAgent,
+                language: webDriverService.currentLanguage,
+            )
 
             // Step 2.6: Simulate random scrolling and mouse movement
             if Bool.random() { await webDriverService.simulateScrolling() }
@@ -233,7 +244,8 @@ class ReservationManager: NSObject, ObservableObject {
                     self.lastRunStatus = .success
                     self.lastRunInfo[config.id] = (.success, Date(), runType)
                     self.lastRunDate = Date()
-                    self.currentTask = UserSettingsManager.shared.userSettings.localized("Reservation completed successfully")
+                    self.currentTask = UserSettingsManager.shared.userSettings
+                        .localized("Reservation completed successfully")
                 }
                 logger.info("Reservation completed successfully for \(config.sportName)")
 
@@ -250,13 +262,22 @@ class ReservationManager: NSObject, ObservableObject {
             } else {
                 logger.error("Failed to click sport button: \(config.sportName)")
                 await MainActor.run {
-                    self.lastRunInfo[config.id] = (.failed(UserSettingsManager.shared.userSettings.localized("Sport button not found on page")), Date(), runType)
+                    self.lastRunInfo[config.id] = (
+                        .failed(UserSettingsManager.shared.userSettings.localized("Sport button not found on page")),
+                        Date(),
+                        runType,
+                    )
                 }
                 throw ReservationError.sportButtonNotFound
             }
 
         } catch {
-            await handleError(UserSettingsManager.shared.userSettings.localized("Automation error:") + " \(error.localizedDescription)", configId: config.id, runType: runType)
+            await handleError(
+                UserSettingsManager.shared.userSettings
+                    .localized("Automation error:") + " \(error.localizedDescription)",
+                configId: config.id,
+                runType: runType,
+            )
         }
     }
 

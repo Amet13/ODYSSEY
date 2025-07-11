@@ -33,7 +33,8 @@ class StatusBarController: NSObject {
     private func setupStatusBar() {
         if let button = statusItem.button {
             let config = NSImage.SymbolConfiguration(pointSize: 18, weight: .medium)
-            let image = NSImage(systemSymbolName: "sportscourt", accessibilityDescription: "ODYSSEY")?.withSymbolConfiguration(config)
+            let image = NSImage(systemSymbolName: "sportscourt", accessibilityDescription: "ODYSSEY")?
+                .withSymbolConfiguration(config)
             image?.isTemplate = true
             button.image = image
             button.action = #selector(togglePopover)
@@ -99,7 +100,8 @@ class StatusBarController: NSObject {
         if let button = statusItem.button {
             let symbolName = isRunning ? "sportscourt.fill" : "sportscourt"
             let config = NSImage.SymbolConfiguration(pointSize: 18, weight: .medium)
-            let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "ODYSSEY")?.withSymbolConfiguration(config)
+            let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "ODYSSEY")?
+                .withSymbolConfiguration(config)
             image?.isTemplate = true
             button.image = image
         }

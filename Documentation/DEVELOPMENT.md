@@ -8,6 +8,8 @@
 - **Xcode 14.0** or later
 - **Swift 5.7** or later
 - **XcodeGen** (for project generation)
+- **SwiftLint** (for code quality)
+- **SwiftFormat** (for code formatting)
 - **Google Chrome** (for automation)
 - **ChromeDriver** (install with `brew install chromedriver`)
 - **System Permissions:**
@@ -20,18 +22,18 @@
    ```bash
    git clone https://github.com/Amet13/ODYSSEY.git
    cd ODYSSEY
-   brew install xcodegen
+   brew install xcodegen swiftlint swiftformat
    xcodegen
    ```
 
 2. **Build and run:**
 
    ```bash
-   ./build.sh
+   ./Scripts/build.sh
    ```
 
 3. **Or use Xcode:**
-   - Open `ODYSSEY.xcodeproj`
+   - Open `Config/ODYSSEY.xcodeproj`
    - Press `Cmd+R` to build and run
    - The app will appear in your menu bar
 
@@ -97,6 +99,42 @@ Sources/
 - **LogsView**: Built-in logging interface
 
 ## 🔧 Development Guidelines
+
+### Code Quality Standards
+
+#### SwiftLint Configuration
+
+ODYSSEY uses a comprehensive SwiftLint configuration (`.swiftlint.yml`) that enforces:
+
+- **Code Style**: Consistent formatting and naming conventions
+- **Best Practices**: Modern Swift patterns and anti-patterns
+- **Documentation**: Public API documentation requirements
+- **Performance**: Efficient code patterns
+- **Security**: Safe coding practices
+
+#### SwiftFormat Configuration
+
+SwiftFormat (`.swiftformat`) ensures consistent code formatting:
+
+- **Indentation**: 4 spaces, smart tabs enabled
+- **Line Length**: 120 characters max
+- **Import Organization**: Alphabetized and grouped
+- **Spacing**: Consistent spacing rules
+
+#### Pre-commit Checks
+
+Before committing code:
+
+```bash
+# Format code
+swiftformat Sources/
+
+# Lint code
+swiftlint lint --config .swiftlint.yml
+
+# Build project
+xcodebuild build -project Config/ODYSSEY.xcodeproj -scheme ODYSSEY -configuration Debug
+```
 
 ### Code Style
 
@@ -168,6 +206,40 @@ enum ReservationError: LocalizedError {
 }
 ```
 
+#### Documentation Standards
+
+All public APIs must be documented:
+
+````swift
+/// Manages web automation and reservation booking for Ottawa Recreation facilities
+///
+/// This service handles the complete automation workflow including:
+/// - Web navigation and form interaction
+/// - Sport selection and slot booking
+/// - Error handling and retry logic
+/// - Status reporting and logging
+///
+/// ## Usage
+/// ```swift
+/// let manager = ReservationManager.shared
+/// await manager.runReservation(for: config)
+/// ```
+///
+/// ## Thread Safety
+/// This class is thread-safe and can be used from any dispatch queue.
+class ReservationManager: ObservableObject {
+    /// Shared instance for singleton access
+    static let shared = ReservationManager()
+
+    /// Runs a reservation for the specified configuration
+    /// - Parameter config: The reservation configuration to execute
+    /// - Returns: A result indicating success or failure with error details
+    func runReservation(for config: ReservationConfig) async -> Result<Void, ReservationError> {
+        // Implementation
+    }
+}
+````
+
 ### Adding New Features
 
 #### 1. New Configuration Options
@@ -200,409 +272,208 @@ struct AdvancedSettings: Codable {
 Extend `ReservationManager.swift`:
 
 ```swift
-private func injectAutomationScript() {
-    let script = """
-    // Add your custom JavaScript here
-    function customAutomation() {
-        // Your automation logic
-        console.log('Custom automation running...');
+extension ReservationManager {
+    /// Enhanced automation with retry logic
+    func runReservationWithRetry(for config: ReservationConfig, maxRetries: Int = 3) async -> Result<Void, ReservationError> {
+        for attempt in 1...maxRetries {
+            let result = await runReservation(for: config)
 
-        // Example: Wait for elements to load
-        return new Promise((resolve) => {
-            const checkElement = () => {
-                const element = document.querySelector('.target-element');
-                if (element) {
-                    resolve(true);
-                } else {
-                    setTimeout(checkElement, 100);
+            switch result {
+            case .success:
+                return .success(())
+            case .failure(let error):
+                if attempt == maxRetries {
+                    return .failure(error)
                 }
-            };
-            checkElement();
-        });
-    }
-    """
 
-    webView?.evaluateJavaScript(script) { result, error in
-        if let error = error {
-            NSLog("ODYSSEY: JavaScript error: \(error)")
-        }
-    }
-}
-```
-
-#### 3. New UI Components
-
-Create new SwiftUI views:
-
-```swift
-struct NewFeatureView: View {
-    @State private var isEnabled = false
-    @State private var selectedOption = ""
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("New Feature")
-                .font(.headline)
-
-            Toggle("Enable Feature", isOn: $isEnabled)
-
-            if isEnabled {
-                Picker("Option", selection: $selectedOption) {
-                    Text("Option 1").tag("option1")
-                    Text("Option 2").tag("option2")
-                }
-                .pickerStyle(SegmentedPickerStyle())
+                // Wait before retry
+                try? await Task.sleep(nanoseconds: UInt64(2.0 * Double(attempt) * 1_000_000_000))
             }
         }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
+
+        return .failure(.networkError("Max retries exceeded"))
     }
 }
 ```
 
-### Web Automation Customization
+## 🚀 CI/CD Pipeline
 
-The app uses WebKit for web automation. To customize for specific websites:
+### Overview
 
-#### 1. Analyze the Target Website
+ODYSSEY uses a comprehensive CI/CD pipeline with multiple stages:
+
+1. **Quality Checks** - Code formatting and linting
+2. **Build & Test** - Compilation and basic testing
+3. **Security Scan** - Security vulnerability checks
+4. **Performance Check** - Build time and size analysis
+5. **Release** - Automated release creation
+
+### CI Workflow (`ci.yml`)
+
+**Triggers**: Push to main/develop, Pull requests
+
+**Stages**:
+
+- **Quality Checks**: SwiftFormat, SwiftLint, code formatting validation
+- **Build & Test**: Debug and Release builds with timing analysis
+- **Security Scan**: Hardcoded secrets, ATS settings, code signing checks
+- **Performance Check**: Build time analysis, app size monitoring
+
+### Release Workflow (`release.yml`)
+
+**Triggers**: Push of version tags (v\*)
+
+**Stages**:
+
+- **Validate Release**: Version consistency checks across all files
+- **Build Release**: Release build with code signing
+- **Security Audit**: Security vulnerability assessment
+- **Create Release**: Automated GitHub release with comprehensive notes
+
+### Local Development Workflow
 
 ```bash
-# Use browser developer tools to:
-# - Identify form elements and buttons
-# - Note any dynamic content loading
-# - Check for AJAX requests
-# - Understand the page flow
+# 1. Make changes
+git checkout -b feature/new-feature
+
+# 2. Format and lint code
+swiftformat Sources/
+swiftlint lint --config .swiftlint.yml
+
+# 3. Build and test
+xcodebuild build -project Config/ODYSSEY.xcodeproj -scheme ODYSSEY -configuration Debug
+
+# 4. Commit with conventional commit message
+git add .
+git commit -m "feat: add new automation feature"
+
+# 5. Push and create PR
+git push origin feature/new-feature
 ```
 
-#### 2. Update JavaScript Injection
+### Version Management
 
-```swift
-private func injectAutomationScript() {
-    let script = """
-    // Custom selectors for your target website
-    const selectors = {
-        sport: 'select[name="sport"], .sport-dropdown',
-        date: 'input[name="date"], .date-picker',
-        time: 'select[name="time"], .time-slot',
-        submit: 'button[type="submit"], .book-button',
-        login: 'input[name="username"], input[name="password"]'
-    };
+#### Semantic Versioning
 
-    // Custom automation logic
-    function bookReservation(config) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                // Wait for page to load
-                await waitForElement(selectors.sport);
+Follow [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH):
 
-                // Fill form
-                await fillForm(config);
+- **MAJOR**: Breaking changes
+- **MINOR**: New features, backward compatible
+- **PATCH**: Bug fixes, backward compatible
 
-                // Submit
-                await submitForm();
+#### Version Update Process
 
-                resolve(true);
-            } catch (error) {
-                reject(error);
-            }
-        });
-    }
+1. **Update version in all files**:
 
-    function waitForElement(selector, timeout = 5000) {
-        return new Promise((resolve, reject) => {
-            const startTime = Date.now();
+   - `Config/project.yml` - `MARKETING_VERSION`
+   - `Sources/App/Info.plist` - `CFBundleShortVersionString`
+   - `Documentation/CHANGELOG.md` - Add new version entry
 
-            const check = () => {
-                const element = document.querySelector(selector);
-                if (element) {
-                    resolve(element);
-                } else if (Date.now() - startTime > timeout) {
-                    reject(new Error(`Element not found: ${selector}`));
-                } else {
-                    setTimeout(check, 100);
-                }
-            };
+2. **Create release tag**:
 
-            check();
-        });
-    }
-    """
-}
-```
+   ```bash
+   git tag v3.2.0
+   git push origin v3.2.0
+   ```
 
-#### 3. Handle Different Page States
-
-```swift
-private func handlePageLoaded(_ data: [String: Any]) {
-    guard let url = data["url"] as? String else { return }
-
-    // Route to different handlers based on URL
-    if url.contains("login") {
-        handleLoginPage()
-    } else if url.contains("booking") {
-        handleBookingPage()
-    } else if url.contains("confirmation") {
-        handleConfirmationPage()
-    } else {
-        NSLog("ODYSSEY: Unknown page type: \(url)")
-    }
-}
-
-private func handleLoginPage() {
-    // Handle login page automation
-    let loginScript = """
-    // Login automation logic
-    """
-    webView?.evaluateJavaScript(loginScript)
-}
-```
+3. **Automated release**:
+   - CI/CD pipeline automatically creates GitHub release
+   - Generates comprehensive release notes
+   - Creates signed DMG installer
 
 ## 🧪 Testing
 
-### Unit Tests
+### Unit Testing
 
-Create tests in `ODYSSEYTests/`:
+Create unit tests for business logic:
 
 ```swift
 import XCTest
 @testable import ODYSSEY
 
 class ConfigurationManagerTests: XCTestCase {
-    var manager: ConfigurationManager!
+    var configManager: ConfigurationManager!
 
     override func setUp() {
         super.setUp()
-        manager = ConfigurationManager.shared
-        // Clear test data
-        UserDefaults.standard.removeObject(forKey: "ODYSSEY_Settings")
+        configManager = ConfigurationManager.shared
     }
 
     func testAddConfiguration() {
-        let config = ReservationConfig(
-            name: "Test Config",
-            facilityURL: "https://test.com",
-            sportName: "Basketball"
-        )
+        // Given
+        let config = ReservationConfig(name: "Test", facilityURL: "https://test.com", sportName: "Tennis")
 
-        manager.addConfiguration(config)
-        XCTAssertEqual(manager.settings.configurations.count, 1)
-        XCTAssertEqual(manager.settings.configurations.first?.name, "Test Config")
-    }
+        // When
+        configManager.addConfiguration(config)
 
-    func testToggleConfiguration() {
-        let config = ReservationConfig(
-            name: "Test Config",
-            facilityURL: "https://test.com",
-            sportName: "Basketball"
-        )
-
-        manager.addConfiguration(config)
-        XCTAssertTrue(manager.settings.configurations.first?.isEnabled ?? false)
-
-        manager.toggleConfigurationEnabled(config)
-        XCTAssertFalse(manager.settings.configurations.first?.isEnabled ?? true)
-    }
-}
-
-class ReservationManagerTests: XCTestCase {
-    func testCronTimeCalculation() {
-        let manager = ReservationManager.shared
-        let config = ReservationConfig(
-            name: "Test",
-            facilityURL: "https://test.com",
-            sportName: "Basketball"
-        )
-
-        // Test cron time calculation logic
-        // Add your test cases here
+        // Then
+        XCTAssertEqual(configManager.settings.configurations.count, 1)
+        XCTAssertEqual(configManager.settings.configurations.first?.name, "Test")
     }
 }
 ```
 
-### Manual Testing
+### UI Testing
 
-#### 1. Configuration Testing
-
-- Add test configurations with various settings
-- Verify persistence across app restarts
-- Test scheduling logic with different time zones
-- Verify autorun calculations
-
-#### 2. Web Automation Testing
-
-- Use test URLs first (create mock pages)
-- Monitor network requests in Console
-- Check for successful form submissions
-- Test error handling and retry logic
-
-#### 3. UI Testing
-
-- Test all interactive elements
-- Verify hover effects and animations
-- Test responsive design on different screen sizes
-- Verify accessibility features
-
-## 📦 Deployment
-
-### Code Signing
-
-#### 1. Developer ID
-
-```bash
-# Build for distribution
-xcodebuild archive \
-    -project ODYSSEY.xcodeproj \
-    -scheme ODYSSEY \
-    -archivePath ODYSSEY.xcarchive
-
-# Export for distribution
-xcodebuild -exportArchive \
-    -archivePath ODYSSEY.xcarchive \
-    -exportPath ODYSSEY-Export \
-    -exportOptionsPlist exportOptions.plist
-```
-
-#### 2. Notarization
-
-```bash
-# Notarize the app
-xcrun notarytool submit ODYSSEY-Export/ODYSSEY.app \
-    --wait \
-    --keychain-profile "AC_PASSWORD"
-```
-
-### Distribution Options
-
-#### Direct Distribution
-
-- Share the `.app` bundle directly
-- Users can drag to Applications folder
-- Requires manual security approval
-
-#### DMG Creation
-
-```bash
-# Install create-dmg
-brew install create-dmg
-
-# Create DMG
-create-dmg \
-    --volname "ODYSSEY" \
-    --window-pos 200 120 \
-    --window-size 600 300 \
-    --icon-size 100 \
-    --icon "ODYSSEY.app" 175 120 \
-    --hide-extension "ODYSSEY.app" \
-    --app-drop-link 425 120 \
-    "ODYSSEY.dmg" \
-    "ODYSSEY-Export/"
-```
-
-#### App Store
-
-- Follow Apple's guidelines for Mac App Store submission
-- Requires App Store Connect setup
-- Review process required
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-#### 1. App doesn't appear in menu bar
-
-**Symptoms**: App launches but no menu bar icon
-**Solutions**:
-
-- Check `LSUIElement` in Info.plist is set to `true`
-- Verify `NSApp.setActivationPolicy(.accessory)` in AppDelegate
-- Check for permission issues in System Preferences
-
-#### 2. Web automation fails
-
-**Symptoms**: Automation runs but doesn't complete booking
-**Solutions**:
-
-- Check website structure changes
-- Verify JavaScript injection is working
-- Monitor console logs for errors
-- Test with manual browser automation
-
-#### 3. Scheduling doesn't work
-
-**Symptoms**: Configurations don't run automatically
-**Solutions**:
-
-- Verify timer setup in AppDelegate
-- Check weekday conversion logic
-- Test with manual triggers
-- Verify time zone handling
-
-### Debug Mode
-
-Enable detailed logging:
+Create UI tests for user interactions:
 
 ```swift
-// In ConfigurationManager
-settings.logLevel = .debug
+import XCTest
 
-// In ReservationManager
-NSLog("ODYSSEY: Debug message here")
+class ODYSSEYUITests: XCTestCase {
+    var app: XCUIApplication!
 
-// Check Console app for logs
-// Filter by "ODYSSEY" to see only app logs
-```
+    override func setUp() {
+        super.setUp()
+        app = XCUIApplication()
+        app.launch()
+    }
 
-### Performance Monitoring
+    func testAddConfiguration() {
+        // Test adding a new configuration
+        app.buttons["Add Configuration"].tap()
 
-```swift
-// Add performance monitoring
-import os.log
+        // Fill in form fields
+        let urlField = app.textFields["Facility URL"]
+        urlField.tap()
+        urlField.typeText("https://test.com")
 
-private let performanceLog = OSLog(subsystem: "com.odyssey.app", category: "performance")
-
-func measurePerformance<T>(_ operation: String, block: () throws -> T) rethrows -> T {
-    let start = CFAbsoluteTimeGetCurrent()
-    let result = try block()
-    let end = CFAbsoluteTimeGetCurrent()
-
-    os_log("Operation '%{public}@' took %{public}f seconds",
-           log: performanceLog, type: .info, operation, end - start)
-
-    return result
+        // Continue with other form fields...
+    }
 }
 ```
 
-## 🤝 Contributing
+## 🔒 Security Guidelines
 
-### Development Workflow
+### Code Security
 
-1. **Fork the repository**
-2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
-3. **Make your changes** following the coding guidelines
-4. **Add tests** for new functionality
-5. **Update documentation** as needed
-6. **Commit your changes** with descriptive messages
-7. **Push to the branch** (`git push origin feature/amazing-feature`)
-8. **Open a Pull Request**
+- **No Hardcoded Secrets**: Never commit API keys, passwords, or tokens
+- **Input Validation**: Validate and sanitize all user inputs
+- **Secure Communication**: Use HTTPS for all network requests
+- **App Transport Security**: Configure ATS properly for required domains
 
-### Commit Message Guidelines
+### App Security
 
-```
-feat: add new configuration option for retry attempts
-fix: resolve scheduling issue with timezone handling
-docs: update README with new feature documentation
-test: add unit tests for ConfigurationManager
-refactor: improve web automation error handling
-```
+- **Code Signing**: Sign releases with Developer ID certificate
+- **Notarization**: Notarize app for macOS security
+- **Sandboxing**: Consider app sandboxing for enhanced security
+- **Permissions**: Request only necessary permissions
 
-### Code Review Process
+## 📊 Performance Guidelines
 
-1. **Self-review** your changes before submitting
-2. **Ensure tests pass** locally
-3. **Update documentation** for any new features
-4. **Request review** from maintainers
-5. **Address feedback** and iterate if needed
+### Memory Management
+
+- **Weak References**: Use `[weak self]` in closures to prevent retain cycles
+- **Resource Cleanup**: Properly dispose of resources in `deinit`
+- **Image Optimization**: Optimize app icons and images
+- **Background Processing**: Use background queues for heavy operations
+
+### Build Performance
+
+- **Incremental Builds**: Leverage Xcode's incremental build system
+- **Parallel Compilation**: Use parallel build settings
+- **Caching**: Use Swift Package Manager caching
+- **Clean Builds**: Periodically clean build folder
 
 ## 📚 Resources
 
@@ -615,8 +486,15 @@ refactor: improve web automation error handling
 ### Tools
 
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen) - Project generation
-- [create-dmg](https://github.com/create-dmg/create-dmg) - DMG creation
 - [SwiftLint](https://github.com/realm/SwiftLint) - Code style enforcement
+- [SwiftFormat](https://github.com/nicklockwood/SwiftFormat) - Code formatting
+- [create-dmg](https://github.com/create-dmg/create-dmg) - DMG creation
+
+### Best Practices
+
+- [Swift API Design Guidelines](https://swift.org/documentation/api-design-guidelines/)
+- [SwiftUI Best Practices](https://developer.apple.com/documentation/swiftui/best_practices)
+- [macOS App Programming Guide](https://developer.apple.com/documentation/appkit/macos_app_programming_guide)
 
 ## 📄 License
 
@@ -625,22 +503,3 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 ---
 
 **Happy coding! 🚀**
-
-## Code Formatting
-
-ODYSSEY uses [swiftformat](https://github.com/nicklockwood/SwiftFormat) for automatic Swift code formatting.
-
-- All code is auto-formatted before every build (see `Scripts/build.sh`).
-- To format manually, run:
-
-```sh
-swiftformat .
-```
-
-- If you don't have swiftformat, install it with:
-
-```sh
-brew install swiftformat
-```
-
-- Formatting is enforced for all contributions. Please ensure your code is formatted before submitting a PR.

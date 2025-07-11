@@ -53,7 +53,7 @@ struct ConfigurationDetailView: View {
         .frame(width: 440, height: 560)
         .navigationTitle(config == nil ? "Add Reservation Configuration" : "Edit Reservation Configuration")
         .alert("Validation Error", isPresented: $showingValidationAlert) {
-            Button("OK") {}
+            Button("OK") { }
         } message: {
             Text(validationMessage)
         }
@@ -61,7 +61,10 @@ struct ConfigurationDetailView: View {
         .sheet(isPresented: $showDayPicker) {
             DayPickerView(selectedDays: Set(dayTimeSlots.keys), onAdd: { day in
                 if dayTimeSlots[day] == nil {
-                    dayTimeSlots[day] = [TimeSlot(time: Calendar.current.date(from: DateComponents(hour: 18, minute: 0)) ?? Date())]
+                    dayTimeSlots[day] = [TimeSlot(time: Calendar.current.date(from: DateComponents(
+                        hour: 18,
+                        minute: 0,
+                    )) ?? Date())]
                 }
             })
         }
@@ -79,8 +82,11 @@ struct ConfigurationDetailView: View {
                 Text("Invalid facility URL. Please enter a valid Ottawa Recreation URL.")
                     .font(.caption)
                     .foregroundColor(.red)
-                Link("View Ottawa Facilities", destination: URL(string: "https://ottawa.ca/en/recreation-and-parks/recreation-facilities")!)
-                    .font(.caption)
+                Link(
+                    "View Ottawa Facilities",
+                    destination: URL(string: "https://ottawa.ca/en/recreation-and-parks/recreation-facilities")!,
+                )
+                .font(.caption)
             }
         }
         .padding(.bottom, 20)
@@ -154,7 +160,8 @@ struct ConfigurationDetailView: View {
                     updateConfigurationName()
                 }) {
                     HStack {
-                        Image(systemName: numberOfPeople == 1 ? "largecircle.fill.circle" : "circle").foregroundColor(numberOfPeople == 1 ? .accentColor : .secondary)
+                        Image(systemName: numberOfPeople == 1 ? "largecircle.fill.circle" : "circle")
+                            .foregroundColor(numberOfPeople == 1 ? .accentColor : .secondary)
                         Text("1 Person").foregroundColor(.primary)
                     }
                 }.buttonStyle(.bordered)
@@ -163,7 +170,8 @@ struct ConfigurationDetailView: View {
                     updateConfigurationName()
                 }) {
                     HStack {
-                        Image(systemName: numberOfPeople == 2 ? "largecircle.fill.circle" : "circle").foregroundColor(numberOfPeople == 2 ? .accentColor : .secondary)
+                        Image(systemName: numberOfPeople == 2 ? "largecircle.fill.circle" : "circle")
+                            .foregroundColor(numberOfPeople == 2 ? .accentColor : .secondary)
                         Text("2 People").foregroundColor(.primary)
                     }
                 }.buttonStyle(.bordered)
@@ -205,7 +213,7 @@ struct ConfigurationDetailView: View {
                     .padding(.vertical, 8)
             } else {
                 let weekdayOrder: [ReservationConfig.Weekday] = [
-                    .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday
+                    .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday,
                 ]
                 ForEach(Array(dayTimeSlots.keys.sorted { lhs, rhs in
                     weekdayOrder.firstIndex(of: lhs)! < weekdayOrder.firstIndex(of: rhs)!
@@ -213,13 +221,16 @@ struct ConfigurationDetailView: View {
                     DayTimeSlotEditor(
                         day: day,
                         slots: Binding(
-                            get: { dayTimeSlots[day] ?? [TimeSlot(time: Calendar.current.date(from: DateComponents(hour: 18, minute: 0)) ?? Date())] },
+                            get: { dayTimeSlots[day] ?? [TimeSlot(time: Calendar.current.date(from: DateComponents(
+                                hour: 18,
+                                minute: 0,
+                            )) ?? Date())] },
                             set: { dayTimeSlots[day] = $0 },
-                            ),
+                        ),
                         onAdd: { addTimeSlot(for: day) },
                         onRemove: { idx in removeTimeSlot(for: day, at: idx) },
                         onRemoveDay: { removeDay(day) },
-                        )
+                    )
                 }
             }
         }
@@ -237,7 +248,7 @@ struct ConfigurationDetailView: View {
             Text("People: \(numberOfPeople)")
             if !dayTimeSlots.isEmpty {
                 let weekdayOrder: [ReservationConfig.Weekday] = [
-                    .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday
+                    .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday,
                 ]
                 let sortedDays = dayTimeSlots.keys.sorted { lhs, rhs in
                     weekdayOrder.firstIndex(of: lhs)! < weekdayOrder.firstIndex(of: rhs)!
@@ -302,7 +313,7 @@ struct ConfigurationDetailView: View {
             numberOfPeople: numberOfPeople,
             isEnabled: isEnabled,
             dayTimeSlots: dayTimeSlots,
-            )
+        )
 
         onSave(newConfig)
         dismiss()
@@ -397,7 +408,7 @@ struct ConfigurationDetailView: View {
             DateComponents(hour: 19, minute: 0), // 7:00 PM
             DateComponents(hour: 17, minute: 0), // 5:00 PM
             DateComponents(hour: 20, minute: 0), // 8:00 PM
-            DateComponents(hour: 16, minute: 0) // 4:00 PM
+            DateComponents(hour: 16, minute: 0), // 4:00 PM
         ]
 
         for timeComponents in defaultTimes {
@@ -532,13 +543,16 @@ struct DayTimeSlotEditor: View {
                 }
                 .buttonStyle(.bordered)
             }
-            ForEach(Array(slots.enumerated().sorted { $0.element.time < $1.element.time }), id: \.element.id) { index, _ in
+            ForEach(
+                Array(slots.enumerated().sorted { $0.element.time < $1.element.time }),
+                id: \.element.id,
+            ) { index, _ in
                 HStack {
                     DatePicker("", selection: Binding(
                         get: { slots[index].time },
                         set: { newValue in slots[index].time = newValue },
-                        ), displayedComponents: .hourAndMinute)
-                    .labelsHidden()
+                    ), displayedComponents: .hourAndMinute)
+                        .labelsHidden()
                     Button(action: { onRemove(index) }) {
                         Image(systemName: "minus.circle.fill")
                             .foregroundColor(.red)

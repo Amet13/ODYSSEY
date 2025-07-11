@@ -42,7 +42,7 @@ class TelegramService: ObservableObject {
         }
     }
 
-    private init() {}
+    private init() { }
 
     // MARK: - Public Methods
 
@@ -55,7 +55,11 @@ class TelegramService: ObservableObject {
         let testMessage = """
         🥅 \(userSettingsManager.userSettings.localized("ODYSSEY Test Message"))
 
-        \(userSettingsManager.userSettings.localized("Hello! This is a test message from ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself."))
+        \(userSettingsManager.userSettings
+            .localized(
+                "Hello! This is a test message from ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself.",
+            )
+        )
 
         ✅ \(userSettingsManager.userSettings.localized("Telegram integration is working correctly!"))
         """
@@ -82,13 +86,16 @@ class TelegramService: ObservableObject {
         let body: [String: Any] = [
             "chat_id": chatId,
             "text": message,
-            "parse_mode": "HTML"
+            "parse_mode": "HTML",
         ]
 
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
         } catch {
-            return .failure(userSettingsManager.userSettings.localized("Failed to serialize request:") + " \(error.localizedDescription)")
+            return .failure(
+                userSettingsManager.userSettings
+                    .localized("Failed to serialize request:") + " \(error.localizedDescription)",
+            )
         }
 
         do {
@@ -106,18 +113,25 @@ class TelegramService: ObservableObject {
                     logger.error("Telegram API error: \(responseString)")
 
                     // Try to extract error description from response
-                    if let jsonData = responseString.data(using: .utf8),
-                       let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
-                       let description = json["description"] as? String {
+                    if
+                        let jsonData = responseString.data(using: .utf8),
+                        let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
+                        let description = json["description"] as? String
+                    {
                         return .failure(description)
                     }
                 }
 
-                return .failure("HTTP \(httpResponse.statusCode): \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
+                return .failure(
+                    "HTTP \(httpResponse.statusCode): \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))",
+                )
             }
         } catch {
             logger.error("Failed to send Telegram message: \(error.localizedDescription)")
-            return .failure(userSettingsManager.userSettings.localized("Network error:") + " \(error.localizedDescription)")
+            return .failure(
+                userSettingsManager.userSettings
+                    .localized("Network error:") + " \(error.localizedDescription)",
+            )
         }
     }
 
@@ -150,14 +164,16 @@ class TelegramService: ObservableObject {
 
         📅 \(userSettingsManager.userSettings.localized("Schedule:")) \(timeSlotsInfo)
 
-        🥅 \(userSettingsManager.userSettings.localized("ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself"))
+        🥅 \(userSettingsManager.userSettings
+            .localized("ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself")
+        )
         """
 
         let result = await sendMessage(
             botToken: userSettingsManager.userSettings.telegramBotToken,
             chatId: userSettingsManager.userSettings.telegramChatId,
             message: successMessage,
-            )
+        )
 
         switch result {
         case .success:
@@ -172,7 +188,8 @@ class TelegramService: ObservableObject {
     /// - Returns: Formatted string of time slots
     private func formatTimeSlotsInfo(for config: ReservationConfig) -> String {
         let sortedDays = config.dayTimeSlots.keys.sorted { day1, day2 in
-            ReservationConfig.Weekday.allCases.firstIndex(of: day1)! < ReservationConfig.Weekday.allCases.firstIndex(of: day2)!
+            ReservationConfig.Weekday.allCases.firstIndex(of: day1)! < ReservationConfig.Weekday.allCases
+                .firstIndex(of: day2)!
         }
 
         var scheduleInfo: [String] = []

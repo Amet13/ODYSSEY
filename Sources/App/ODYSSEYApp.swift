@@ -98,8 +98,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let calendar = Calendar.current
         let currentTime = calendar.dateComponents([.hour, .minute], from: date)
 
-        guard let currentHour = currentTime.hour,
-              let currentMinute = currentTime.minute
+        guard
+            let currentHour = currentTime.hour,
+            let currentMinute = currentTime.minute
         else {
             logger.warning("Could not extract time components from date")
             return false
@@ -124,8 +125,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 for timeSlot in timeSlots {
                     let slotTime = calendar.dateComponents([.hour, .minute], from: timeSlot.time)
 
-                    guard let slotHour = slotTime.hour,
-                          let slotMinute = slotTime.minute
+                    guard
+                        let slotHour = slotTime.hour,
+                        let slotMinute = slotTime.minute
                     else {
                         logger.warning("Could not extract time components from slot")
                         continue

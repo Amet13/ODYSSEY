@@ -46,7 +46,7 @@ private extension ContentView {
                 .foregroundColor(.accentColor)
             Text(userSettingsManager.userSettings.localized(
                 "ODYSSEY – Ottawa Drop-in Your Sports & Schedule Easily Yourself",
-                ))
+            ))
             .font(.title3)
             .fontWeight(.semibold)
             .lineLimit(2)
@@ -70,7 +70,10 @@ private extension ContentView {
         } else {
             AnyView(
                 List {
-                    ForEach(Array(configManager.settings.configurations.enumerated()), id: \.element.id) { index, config in
+                    ForEach(
+                        Array(configManager.settings.configurations.enumerated()),
+                        id: \.element.id,
+                    ) { index, config in
                         ConfigurationRowView(
                             config: config,
                             nextAutorunInfo: getNextCronRunTime(for: config),
@@ -79,7 +82,7 @@ private extension ContentView {
                             onDelete: { configManager.removeConfiguration(config) },
                             onToggle: { configManager.toggleConfiguration(at: index) },
                             onRun: { reservationManager.runReservation(for: config, runType: .manual) },
-                            )
+                        )
                     }
                     .onDelete { indices in
                         for index in indices {
@@ -89,7 +92,7 @@ private extension ContentView {
                     }
                 }
                 .listStyle(.inset),
-                )
+            )
         }
     }
 
@@ -102,11 +105,14 @@ private extension ContentView {
             Text(userSettingsManager.userSettings.localized("No Reservations Configured"))
                 .font(.title3)
                 .fontWeight(.medium)
-            Text(userSettingsManager.userSettings.localized("Add your first reservation configuration to get started with automated booking."))
-                .font(.body)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
+            Text(
+                userSettingsManager.userSettings
+                    .localized("Add your first reservation configuration to get started with automated booking."),
+            )
+            .font(.body)
+            .foregroundColor(.secondary)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal)
             Button(userSettingsManager.userSettings.localized("Add Configuration")) {
                 showingAddConfig = true
             }
@@ -128,10 +134,13 @@ private extension ContentView {
 
                 Spacer()
 
-                Link(userSettingsManager.userSettings.localized("GitHub"), destination: URL(string: "https://github.com/Amet13/ODYSSEY")!)
-                    .font(.footnote)
-                    .foregroundColor(.blue)
-                    .help(userSettingsManager.userSettings.localized("View ODYSSEY on GitHub"))
+                Link(
+                    userSettingsManager.userSettings.localized("GitHub"),
+                    destination: URL(string: "https://github.com/Amet13/ODYSSEY")!,
+                )
+                .font(.footnote)
+                .foregroundColor(.blue)
+                .help(userSettingsManager.userSettings.localized("View ODYSSEY on GitHub"))
 
                 Spacer()
 
@@ -198,9 +207,9 @@ private extension ContentView {
         if timeInterval <= 0 {
             return userSettingsManager.userSettings.localized("now")
         }
-        let days = Int(timeInterval / 86400)
-        let hours = Int((timeInterval.truncatingRemainder(dividingBy: 86400)) / 3600)
-        let minutes = Int((timeInterval.truncatingRemainder(dividingBy: 3600)) / 60)
+        let days = Int(timeInterval / 86_400)
+        let hours = Int((timeInterval.truncatingRemainder(dividingBy: 86_400)) / 3_600)
+        let minutes = Int((timeInterval.truncatingRemainder(dividingBy: 3_600)) / 60)
         if days > 0 {
             let daysText = userSettingsManager.userSettings.localized(days == 1 ? "day" : "days")
             let hoursText = userSettingsManager.userSettings.localized(hours == 1 ? "hour" : "hours")
@@ -263,7 +272,7 @@ struct ConfigurationRowView: View {
                 Toggle("", isOn: Binding(
                     get: { config.isEnabled },
                     set: { _ in onToggle() },
-                    ))
+                ))
                 .toggleStyle(.switch)
                 .labelsHidden()
                 .help(userSettingsManager.userSettings.localized("Enable or disable configuration"))
@@ -306,8 +315,11 @@ struct ConfigurationRowView: View {
             }
         }
         .padding(.vertical, 6)
-        .alert(userSettingsManager.userSettings.localized("Delete Configuration"), isPresented: $showingDeleteConfirmation) {
-            Button(userSettingsManager.userSettings.localized("Cancel"), role: .cancel) {}
+        .alert(
+            userSettingsManager.userSettings.localized("Delete Configuration"),
+            isPresented: $showingDeleteConfirmation,
+        ) {
+            Button(userSettingsManager.userSettings.localized("Cancel"), role: .cancel) { }
             Button(userSettingsManager.userSettings.localized("Delete"), role: .destructive) {
                 onDelete()
             }
@@ -320,7 +332,8 @@ struct ConfigurationRowView: View {
 
     private func formatScheduleInfo() -> String {
         let sortedDays = config.dayTimeSlots.keys.sorted { day1, day2 in
-            ReservationConfig.Weekday.allCases.firstIndex(of: day1)! < ReservationConfig.Weekday.allCases.firstIndex(of: day2)!
+            ReservationConfig.Weekday.allCases.firstIndex(of: day1)! < ReservationConfig.Weekday.allCases
+                .firstIndex(of: day2)!
         }
         var scheduleInfo: [String] = []
         for day in sortedDays {
@@ -384,7 +397,7 @@ struct ConfigurationRowView: View {
                             .foregroundColor(statusInfo.statusColor)
                     }
                 },
-                )
+            )
         } else {
             // Configuration has never been run - show in grey
             return AnyView(
@@ -392,11 +405,14 @@ struct ConfigurationRowView: View {
                     Image(systemName: "questionmark.circle")
                         .foregroundColor(.gray)
                         .font(.caption)
-                    Text(userSettingsManager.userSettings.localized("Last run:") + " " + userSettingsManager.userSettings.localized("never"))
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                    Text(
+                        userSettingsManager.userSettings.localized("Last run:") + " " + userSettingsManager
+                            .userSettings.localized("never"),
+                    )
+                    .font(.caption)
+                    .foregroundColor(.gray)
                 },
-                )
+            )
         }
     }
 }
@@ -441,7 +457,7 @@ struct DeleteConfirmationModal: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(NSColor.windowBackgroundColor))
                 .shadow(radius: 20),
-            )
+        )
         .padding()
     }
 }

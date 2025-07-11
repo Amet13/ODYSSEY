@@ -21,10 +21,11 @@ extension WebDriverService {
         let sessionIdString = String(describing: sessionId)
         let elementIdString = String(describing: elementId)
         for char in text {
-            let endpoint = WebDriverService.shared.baseURL + "/session/" + sessionIdString + "/element/" + elementIdString + "/value"
+            let endpoint = WebDriverService.shared
+                .baseURL + "/session/" + sessionIdString + "/element/" + elementIdString + "/value"
             let body: [String: Any] = [
                 "text": String(char),
-                "value": [String(char)]
+                "value": [String(char)],
             ]
             guard let request = createRequest(url: endpoint, method: "POST", body: body) else { continue }
             _ = try? await urlSession.data(for: request)
@@ -45,7 +46,7 @@ extension WebDriverService {
         """
         let body: [String: Any] = [
             "script": script,
-            "args": []
+            "args": [],
         ]
         guard let request = createRequest(url: endpoint, method: "POST", body: body) else { return }
         _ = try? await urlSession.data(for: request)
@@ -67,9 +68,9 @@ extension WebDriverService {
                 "id": "mouse1",
                 "parameters": ["pointerType": "mouse"],
                 "actions": [
-                    ["type": "pointerMove", "duration": 300, "x": pointerX, "y": pointerY]
-                ]
-            ]]
+                    ["type": "pointerMove", "duration": 300, "x": pointerX, "y": pointerY],
+                ],
+            ]],
         ]
         guard let request = createRequest(url: endpoint, method: "POST", body: actions) else { return }
         _ = try? await urlSession.data(for: request)
@@ -83,7 +84,8 @@ extension WebDriverService {
         guard let sessionId else { return }
         let sessionIdString = String(describing: sessionId)
         let endpoint = WebDriverService.shared.baseURL + "/session/" + sessionIdString + "/execute/sync"
-        let userAgentString = userAgent ?? "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        let userAgentString = userAgent ??
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         let lang = language?.components(separatedBy: ",").first ?? "en-US"
         let langs = language?.components(separatedBy: ",") ?? ["en-US", "en"]
         let script = """
@@ -130,7 +132,7 @@ extension WebDriverService {
         """
         let body: [String: Any] = [
             "script": script,
-            "args": []
+            "args": [],
         ]
         guard let request = createRequest(url: endpoint, method: "POST", body: body) else { return }
         _ = try? await urlSession.data(for: request)
