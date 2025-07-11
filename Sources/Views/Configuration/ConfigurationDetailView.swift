@@ -532,7 +532,7 @@ struct DayTimeSlotEditor: View {
                             if !isDuplicate {
                                 slots[index] = TimeSlot(time: newTime)
                             }
-                        },
+                        }
                     ), displayedComponents: .hourAndMinute
                     )
                         .labelsHidden()
