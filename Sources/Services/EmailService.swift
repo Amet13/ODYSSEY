@@ -111,12 +111,13 @@ class EmailService: ObservableObject {
             using: parameters,
         )
         return await withCheckedContinuation { continuation in
-            var hasResumed = false
             let lock = NSLock()
+            var hasResumed = false
             @Sendable func safeResume(_ result: TestResult) {
                 lock.lock()
                 defer { lock.unlock() }
-                if !hasResumed {
+                let shouldResume = !hasResumed
+                if shouldResume {
                     hasResumed = true
                     Task { @MainActor in
                         self.isTesting = false
@@ -158,7 +159,7 @@ class EmailService: ObservableObject {
     }
 
     private func performIMAPHandshake(connection: NWConnection, email: String, password: String, useTLS: Bool, completion: @escaping (TestResult) -> Void) async {
-        await receiveIMAPResponse(connection: connection) { [weak self] (result: Result<String, IMAPError>) in
+        receiveIMAPResponse(connection: connection) { [weak self] (result: Result<String, IMAPError>) in
             guard let self else { return }
             switch result {
             case let .success(greeting):
@@ -272,7 +273,7 @@ class EmailService: ObservableObject {
                 return
             }
             Task { @MainActor in
-                await self.receiveIMAPResponse(connection: connection, completion: completion)
+                self.receiveIMAPResponse(connection: connection, completion: completion)
             }
         })
     }
