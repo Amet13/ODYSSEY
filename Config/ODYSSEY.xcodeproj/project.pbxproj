@@ -7,41 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0E28C9098796505883EE90CF /* ChromeDriverManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8916524972D57371AFB5A435 /* ChromeDriverManager.swift */; };
-		0F947FD0E62E5650A52019F3 /* NativeAutomation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7422E6AFF689C49E3A512934 /* NativeAutomation.swift */; };
 		183F0E2E156DB04F2DEB8013 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F37E32A2DEAB7D80A5148F2 /* Configuration.swift */; };
 		239CAD5FE2D573E91B2CA9F2 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013C352CF276DF7BEF35BACC /* Constants.swift */; };
 		41CB267A86BBFDE6B8D76B14 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6D876275C546C2EDF4733D3E /* Assets.xcassets */; };
 		57B3EC8C77555EE0A1877A88 /* ReservationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC0F2FC1EC5039DF5FCC39B /* ReservationManager.swift */; };
-		645FBA038334ABCF8C1AA971 /* LogsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36219749D9D057ACE60830EF /* LogsView.swift */; };
 		682EF0598BC17A8022F81E5B /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504F310E3FF9BD25280A3106 /* StatusBarController.swift */; };
 		6CE722921ABA9CF63AF4D2AE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34B7DED97B75C8D92AE1A31 /* ContentView.swift */; };
-		7CF0AD4DF3112A8F27D2E21D /* SwiftWebDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 060987F2FB5A0E1C1E898D67 /* SwiftWebDriver.swift */; };
 		8B1ED020B66221020312C147 /* ReservationConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0EBA9D765D3068E55BA51C /* ReservationConfig.swift */; };
-		A8889EDE7DD4932EFD4A1FF3 /* AppleScriptAutomation.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADED4C492C7526B541CF06D2 /* AppleScriptAutomation.swift */; };
 		AF9C5201A1EA357818523371 /* FacilityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D69C877E24F28F08FF142CE1 /* FacilityService.swift */; };
 		C31CF17307DDA59BA42606BC /* ConfigurationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4032FBD046C7A84D2AB708F7 /* ConfigurationDetailView.swift */; };
 		CB04374E216585BE1DBC7BF4 /* ODYSSEYApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D401C9E0BDAD61E6DECC196A /* ODYSSEYApp.swift */; };
 		FA8FDED3BB6BF7B43C24F5B5 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9F32A0A5C6C800FBB7769711 /* AppIcon.icns */; };
-		FBEAEDEEA226CA7E0A6CCC8E /* LogMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48198530043EBBF1668BC6DD /* LogMonitor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		013C352CF276DF7BEF35BACC /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
-		060987F2FB5A0E1C1E898D67 /* SwiftWebDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftWebDriver.swift; sourceTree = "<group>"; };
 		1CA820C244D658473331FE59 /* ODYSSEY.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ODYSSEY.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DC0F2FC1EC5039DF5FCC39B /* ReservationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationManager.swift; sourceTree = "<group>"; };
-		36219749D9D057ACE60830EF /* LogsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsView.swift; sourceTree = "<group>"; };
 		4032FBD046C7A84D2AB708F7 /* ConfigurationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationDetailView.swift; sourceTree = "<group>"; };
-		48198530043EBBF1668BC6DD /* LogMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogMonitor.swift; sourceTree = "<group>"; };
 		504F310E3FF9BD25280A3106 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		6D876275C546C2EDF4733D3E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		7422E6AFF689C49E3A512934 /* NativeAutomation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAutomation.swift; sourceTree = "<group>"; };
-		8916524972D57371AFB5A435 /* ChromeDriverManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChromeDriverManager.swift; sourceTree = "<group>"; };
 		9F32A0A5C6C800FBB7769711 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		9F37E32A2DEAB7D80A5148F2 /* Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		A7A301E1B3374676F73BCE2C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		ADED4C492C7526B541CF06D2 /* AppleScriptAutomation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScriptAutomation.swift; sourceTree = "<group>"; };
 		D401C9E0BDAD61E6DECC196A /* ODYSSEYApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ODYSSEYApp.swift; sourceTree = "<group>"; };
 		D69C877E24F28F08FF142CE1 /* FacilityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FacilityService.swift; sourceTree = "<group>"; };
 		DA0EBA9D765D3068E55BA51C /* ReservationConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationConfig.swift; sourceTree = "<group>"; };
@@ -84,14 +72,9 @@
 		27D349A2FFC390DE40F1B02D /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				ADED4C492C7526B541CF06D2 /* AppleScriptAutomation.swift */,
-				8916524972D57371AFB5A435 /* ChromeDriverManager.swift */,
 				9F37E32A2DEAB7D80A5148F2 /* Configuration.swift */,
 				D69C877E24F28F08FF142CE1 /* FacilityService.swift */,
-				48198530043EBBF1668BC6DD /* LogMonitor.swift */,
-				7422E6AFF689C49E3A512934 /* NativeAutomation.swift */,
 				2DC0F2FC1EC5039DF5FCC39B /* ReservationManager.swift */,
-				060987F2FB5A0E1C1E898D67 /* SwiftWebDriver.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -116,7 +99,6 @@
 			isa = PBXGroup;
 			children = (
 				E34B7DED97B75C8D92AE1A31 /* ContentView.swift */,
-				36219749D9D057ACE60830EF /* LogsView.swift */,
 			);
 			path = Main;
 			sourceTree = "<group>";
@@ -234,21 +216,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A8889EDE7DD4932EFD4A1FF3 /* AppleScriptAutomation.swift in Sources */,
-				0E28C9098796505883EE90CF /* ChromeDriverManager.swift in Sources */,
 				183F0E2E156DB04F2DEB8013 /* Configuration.swift in Sources */,
 				C31CF17307DDA59BA42606BC /* ConfigurationDetailView.swift in Sources */,
 				239CAD5FE2D573E91B2CA9F2 /* Constants.swift in Sources */,
 				6CE722921ABA9CF63AF4D2AE /* ContentView.swift in Sources */,
 				AF9C5201A1EA357818523371 /* FacilityService.swift in Sources */,
-				FBEAEDEEA226CA7E0A6CCC8E /* LogMonitor.swift in Sources */,
-				645FBA038334ABCF8C1AA971 /* LogsView.swift in Sources */,
-				0F947FD0E62E5650A52019F3 /* NativeAutomation.swift in Sources */,
 				CB04374E216585BE1DBC7BF4 /* ODYSSEYApp.swift in Sources */,
 				8B1ED020B66221020312C147 /* ReservationConfig.swift in Sources */,
 				57B3EC8C77555EE0A1877A88 /* ReservationManager.swift in Sources */,
 				682EF0598BC17A8022F81E5B /* StatusBarController.swift in Sources */,
-				7CF0AD4DF3112A8F27D2E21D /* SwiftWebDriver.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
