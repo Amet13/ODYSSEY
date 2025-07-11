@@ -187,7 +187,7 @@ odyssey/
 │   │   └── ReservationConfig.swift # Data models
 │   └── Info.plist                 # App metadata
 ├── project.yml                    # XcodeGen project specification
-├── .swiftlint.yml                 # SwiftLint configuration
+
 ├── build.sh                       # Build and run script
 ├── README.md                      # This file
 ├── DEVELOPMENT.md                 # Developer guide
