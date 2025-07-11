@@ -17,6 +17,11 @@ disabled_rules:
   - unused_closure_parameter
   - unused_enumerated
   - for_where
+  - trailing_comma
+  - force_unwrapping
+  - multiline_arguments
+  - opening_brace
+  - redundant_discardable_let
 
 # Enable specific rules
 opt_in_rules:

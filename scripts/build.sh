@@ -35,6 +35,22 @@ else
   echo "⚠️  swiftformat not found. Skipping code formatting."
 fi
 
+# Remove trailing commas from Swift files
+if command -v perl >/dev/null 2>&1; then
+  echo "🧹 Removing trailing commas from Swift files..."
+  find Sources -name '*.swift' -exec perl -0777 -i -pe 's/,(\\s*[)\]}])/\\1/g' {} +
+else
+  echo "⚠️  perl not found. Skipping trailing comma removal."
+fi
+
+# Lint Swift code before building
+if command -v swiftlint >/dev/null 2>&1; then
+  echo "🧹 Linting Swift code with swiftlint..."
+  swiftlint lint --config Config/.swiftlint.yml || true
+else
+  echo "⚠️  swiftlint not found. Skipping linting."
+fi
+
 # Build project
 echo "🔨 Building project..."
 cd "$(dirname "$0")/.." && xcodebuild build \
