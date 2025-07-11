@@ -8,22 +8,19 @@
       <img src="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml/badge.svg" alt="CI Status">
     </a>
     <a href="https://github.com/Amet13/ODYSSEY/releases/latest">
-      <img src="https://img.shields.io/github/v/release/Amet13/ODYSSEY?label=Latest%20Release" alt="Latest Release">
+      <img src="https://img.shields.io/badge/Version-2.0.0-blue" alt="Version 2.0.0">
     </a>
     <a href="https://github.com/Amet13/ODYSSEY/blob/main/LICENSE">
-      <img src="https://img.shields.io/github/license/Amet13/ODYSSEY" alt="License">
+      <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License">
     </a>
     <a href="https://github.com/Amet13/ODYSSEY/issues">
-      <img src="https://img.shields.io/github/issues/Amet13/ODYSSEY" alt="Issues">
-    </a>
-    <a href="https://github.com/Amet13/ODYSSEY/stargazers">
-      <img src="https://img.shields.io/github/stars/Amet13/ODYSSEY" alt="Stars">
+      <img src="https://img.shields.io/badge/Support-GitHub%20Issues-orange" alt="GitHub Issues">
     </a>
   </p>
   
   <p>
     <a href="https://github.com/Amet13/ODYSSEY/releases/latest">
-      <img src="https://img.shields.io/badge/Download-Latest%20Release-blue?style=for-the-badge&logo=apple" alt="Download Latest Release">
+      <img src="https://img.shields.io/badge/Download-v2.0.0-blue?style=for-the-badge&logo=apple" alt="Download v2.0.0">
     </a>
   </p>
 </div>
@@ -302,27 +299,13 @@ We welcome contributions! Please see our [Contributing Guide](Documentation/CONT
 - 📖 [Documentation](Documentation/)
 - 🔧 [Development Guide](Documentation/DEVELOPMENT.md)
 
-### 🌟 Star History
-
-<div align="center">
-  <a href="https://star-history.com/#Amet13/ODYSSEY&Timeline">
-    <img src="https://api.star-history.com/svg?repos=Amet13/ODYSSEY&type=Timeline" alt="Star History Chart">
-  </a>
-</div>
-
 ---
 
 <div align="center">
   <p><strong>Made with ❤️ for the Ottawa sports community</strong></p>
   <p>
-    <a href="https://github.com/Amet13/ODYSSEY/stargazers">
-      <img src="https://img.shields.io/github/stars/Amet13/ODYSSEY?style=social" alt="Stars">
-    </a>
-    <a href="https://github.com/Amet13/ODYSSEY/forks">
-      <img src="https://img.shields.io/github/forks/Amet13/ODYSSEY?style=social" alt="Forks">
-    </a>
-    <a href="https://github.com/Amet13/ODYSSEY/watchers">
-      <img src="https://img.shields.io/github/watchers/Amet13/ODYSSEY?style=social" alt="Watchers">
+    <a href="https://github.com/Amet13/ODYSSEY">
+      <img src="https://img.shields.io/badge/GitHub-Repository-blue?logo=github" alt="GitHub Repository">
     </a>
   </p>
 </div>
