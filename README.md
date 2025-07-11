@@ -1,8 +1,47 @@
-# ODYSSEY
-
-> **Ottawa Drop-in Your Sports & Schedule Easily Yourself (macOS Automation)**
+<div align="center">
+  <img src="logo.svg" alt="ODYSSEY Logo" width="120" height="120">
+  <h1>ODYSSEY</h1>
+  <p><strong>Ottawa Drop-in Your Sports & Schedule Easily Yourself (macOS Automation)</strong></p>
+  
+  <p>
+    <a href="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml">
+      <img src="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml/badge.svg" alt="CI Status">
+    </a>
+    <a href="https://github.com/Amet13/ODYSSEY/releases/latest">
+      <img src="https://img.shields.io/github/v/release/Amet13/ODYSSEY?label=Latest%20Release" alt="Latest Release">
+    </a>
+    <a href="https://github.com/Amet13/ODYSSEY/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/Amet13/ODYSSEY" alt="License">
+    </a>
+    <a href="https://github.com/Amet13/ODYSSEY/issues">
+      <img src="https://img.shields.io/github/issues/Amet13/ODYSSEY" alt="Issues">
+    </a>
+    <a href="https://github.com/Amet13/ODYSSEY/stargazers">
+      <img src="https://img.shields.io/github/stars/Amet13/ODYSSEY" alt="Stars">
+    </a>
+  </p>
+  
+  <p>
+    <a href="https://github.com/Amet13/ODYSSEY/releases/latest">
+      <img src="https://img.shields.io/badge/Download-Latest%20Release-blue?style=for-the-badge&logo=apple" alt="Download Latest Release">
+    </a>
+  </p>
+</div>
 
 A sophisticated macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities. ODYSSEY runs quietly in the background and automatically books your preferred sports slots at the optimal time.
+
+## 📋 Table of Contents
+
+- [🚀 Features](#-features)
+- [📋 Requirements](#-requirements)
+- [🛠️ Installation & Setup](#️-installation--setup)
+- [🏗️ Project Structure](#️-project-structure)
+- [⚙️ Configuration](#️-configuration)
+- [🔧 How It Works](#-how-it-works)
+- [🐛 Troubleshooting](#-troubleshooting)
+- [🧪 Development](#-development)
+- [📄 License](#-license)
+- [🤝 Contributing](#-contributing)
 
 ## 🚀 Features
 
@@ -27,6 +66,20 @@ A sophisticated macOS menu bar application that automates sports reservation boo
 - **Xcode 14.0** or later (for development)
 - **Swift 5.7** or later
 
+## 🚀 Quick Start
+
+<div align="center">
+  <a href="https://github.com/Amet13/ODYSSEY/releases/latest">
+    <img src="https://img.shields.io/badge/Download-v2.0.0-blue?style=for-the-badge&logo=apple" alt="Download v2.0.0">
+  </a>
+</div>
+
+1. **Download** the latest release from [Releases](https://github.com/Amet13/ODYSSEY/releases)
+2. **Install** by dragging to Applications folder
+3. **Launch** ODYSSEY (right-click → Open if needed)
+4. **Configure** your first reservation
+5. **Enjoy** automated booking! 🎯
+
 ## 🛠️ Installation & Setup
 
 ### For Users
@@ -34,10 +87,10 @@ A sophisticated macOS menu bar application that automates sports reservation boo
 #### Option 1: Download Latest Release (Recommended)
 
 1. **Go to [Releases](https://github.com/Amet13/ODYSSEY/releases)**
-2. **Download the latest DMG file** (e.g., `ODYSSEY-v1.0.0.dmg`)
+2. **Download the latest DMG file** (e.g., `ODYSSEY-v2.0.0.dmg`)
 3. **Double-click the DMG** to mount the disk image
 4. **Drag ODYSSEY to Applications** folder
-5. **Launch ODYSSEY** from Applications
+5. **Launch ODYSSEY** from Applications (right-click → Open if needed)
 6. **The app will appear in your menu bar**
 
 #### Option 2: Build from Source
@@ -129,6 +182,23 @@ odyssey/
 - **Manual Execution** - Run configurations immediately with the "Run" button
 - **Built-in Logging** - View detailed logs within the app
 
+### 🆕 What's New in v2.0.0
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><strong>🎯 2-Slot Limit</strong><br/>Maximum 2 timeslots per day</td>
+      <td align="center"><strong>🚫 Duplicate Prevention</strong><br/>No overlapping times</td>
+      <td align="center"><strong>🧠 Smart Selection</strong><br/>Intelligent defaults</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>📊 Sorted Preview</strong><br/>Chronological display</td>
+      <td align="center"><strong>🎨 Enhanced UI</strong><br/>Better feedback</td>
+      <td align="center"><strong>📚 Improved Docs</strong><br/>Better guidance</td>
+    </tr>
+  </table>
+</div>
+
 ## 🔧 How It Works
 
 ### Automation Process
@@ -176,106 +246,83 @@ Enable detailed logging by checking the Console app for messages from subsystem 
 
 ## 🧪 Development
 
-### CI/CD Pipeline
+### 🚀 CI/CD Pipeline
 
 ODYSSEY uses GitHub Actions for continuous integration and deployment:
 
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><strong>🔨 CI Workflow</strong><br/>Builds on every push/PR</td>
+      <td align="center"><strong>📦 Release Workflow</strong><br/>Auto-creates DMG installers</td>
+      <td align="center"><strong>🧪 Quality Checks</strong><br/>SwiftLint & testing</td>
+    </tr>
+  </table>
+</div>
+
 - **CI Workflow** - Runs on every push and pull request
-  - Builds the app in Debug configuration
-  - Runs SwiftLint for code quality
-  - Uploads build artifacts
+  - ✅ Builds the app in Debug configuration
+  - ✅ Runs SwiftLint for code quality
+  - ✅ Uploads build artifacts
+  - ✅ Checks app size and performance
 - **Release Workflow** - Runs when a new version tag is pushed
-  - Builds the app in Release configuration
-  - Creates a DMG installer
-  - Publishes a GitHub release with download links
-- **Nightly Build** - Runs daily at 2 AM UTC
-  - Ensures the app builds successfully
-  - Provides early feedback on issues
+  - 🚀 Builds the app in Release configuration
+  - 📦 Creates a DMG installer automatically
+  - 🏷️ Publishes a GitHub release with download links
+  - 🔐 Code signs the application
+- **Quality Assurance** - Comprehensive testing and validation
+  - 🧪 Automated testing on macOS latest
+  - 📊 Build size monitoring
+  - 🔍 Code quality enforcement
 
 ### Creating Releases
 
 To create a new release:
 
 ```bash
-# Create release v1.0.0
-./scripts/create-release.sh 1.0.0
+# Create release v2.0.0
+./scripts/create-release.sh 2.0.0
 
 # Preview what would be done
-./scripts/create-release.sh --dry-run 1.1.0
+./scripts/create-release.sh --dry-run 2.1.0
 ```
-
-This will:
-
-1. Update version numbers in project files
-2. Create a git tag
-3. Push to GitHub
-4. Trigger automatic build and release
-
-### Code Quality
-
-The project uses SwiftLint to enforce code quality standards:
-
-```bash
-# Run SwiftLint manually
-swiftlint lint
-
-# Auto-fix some issues
-swiftlint --fix
-```
-
-### Logging
-
-The app uses `os.log` for comprehensive logging:
-
-- **Info level** - General application flow
-- **Debug level** - Detailed debugging information
-- **Warning level** - Potential issues
-- **Error level** - Errors and failures
-
-### Testing
-
-```bash
-# Build and test
-xcodebuild test -project ODYSSEY.xcodeproj -scheme ODYSSEY
-
-# Run specific tests
-xcodebuild test -project ODYSSEY.xcodeproj -scheme ODYSSEY -only-testing:ODYSSEYTests/ConfigurationManagerTests
-```
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed development guidelines.
-
-1. **Fork the repository**
-2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
-3. **Commit your changes** (`git commit -m 'Add amazing feature'`)
-4. **Push to the branch** (`git push origin feature/amazing-feature`)
-5. **Open a Pull Request**
-
-### Development Guidelines
-
-- Follow SwiftLint rules
-- Use proper logging with `os.log`
-- Write comprehensive tests
-- Update documentation
-- Follow SwiftUI best practices
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## 🤝 Contributing
 
-- Built for the Ottawa sports community
-- Inspired by the need for automated recreation booking
-- Uses modern macOS development practices
+We welcome contributions! Please see our [Contributing Guide](Documentation/CONTRIBUTING.md) for details.
 
-## 📞 Support
+### 📞 Support & Community
 
-- **Issues**: [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Amet13/ODYSSEY/discussions)
-- **Email**: support@odyssey.app
+- 🐛 [Report Issues](https://github.com/Amet13/ODYSSEY/issues)
+- 💬 [Community Discussion](https://github.com/Amet13/ODYSSEY/discussions)
+- 📖 [Documentation](Documentation/)
+- 🔧 [Development Guide](Documentation/DEVELOPMENT.md)
+
+### 🌟 Star History
+
+<div align="center">
+  <a href="https://star-history.com/#Amet13/ODYSSEY&Timeline">
+    <img src="https://api.star-history.com/svg?repos=Amet13/ODYSSEY&type=Timeline" alt="Star History Chart">
+  </a>
+</div>
 
 ---
 
-**Made with ❤️ for the Ottawa sports community**
+<div align="center">
+  <p><strong>Made with ❤️ for the Ottawa sports community</strong></p>
+  <p>
+    <a href="https://github.com/Amet13/ODYSSEY/stargazers">
+      <img src="https://img.shields.io/github/stars/Amet13/ODYSSEY?style=social" alt="Stars">
+    </a>
+    <a href="https://github.com/Amet13/ODYSSEY/forks">
+      <img src="https://img.shields.io/github/forks/Amet13/ODYSSEY?style=social" alt="Forks">
+    </a>
+    <a href="https://github.com/Amet13/ODYSSEY/watchers">
+      <img src="https://img.shields.io/github/watchers/Amet13/ODYSSEY?style=social" alt="Watchers">
+    </a>
+  </p>
+</div>
