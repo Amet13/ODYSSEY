@@ -197,3 +197,21 @@ For support and questions:
 - Updated app branding: custom logo now appears in confirmation dialogs and throughout the app
 - Updated all version references to 1.3.0
 - Polish and prep for new release
+
+## [2.1.0] - 2025-07-11
+
+### Changed
+
+- Major code cleanup: removed all non-critical logger.info and logger.log calls for a clean production build
+- Improved settings UI: consistent dividers, margins, and section separation
+- IMAP and Telegram integration test results now have consistent styling and feedback
+- Fixed duplicate IMAP connection messages and improved error handling
+- Telegram test message restored to informative format
+- General UI polish and bug fixes throughout the app
+
+### Fixed
+
+- Duplicate IMAP connection result messages
+- Inconsistent section margins and divider alignment in settings
+- Telegram test message content and formatting
+- Various minor UI and logic bugs

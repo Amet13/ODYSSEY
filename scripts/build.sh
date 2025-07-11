@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🏀 ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself (macOS Automation)"
+echo "🥅 ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself (macOS Automation)"
 echo "=================================================================="
 echo ""
 

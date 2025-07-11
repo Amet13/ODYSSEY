@@ -8,6 +8,10 @@
 - **Xcode 14.0** or later
 - **Swift 5.7** or later
 - **XcodeGen** (for project generation)
+- **Google Chrome** (for automation)
+- **ChromeDriver** (install with `brew install chromedriver`)
+- **System Permissions:**
+  - You must add **ChromeDriver** to **System Settings > Privacy & Security > Full Disk Access** (and/or **Automation/Accessibility**) for automation to work on macOS. Without this, ChromeDriver may not be able to control Chrome or may be killed by the system.
 
 ### Quick Start
 

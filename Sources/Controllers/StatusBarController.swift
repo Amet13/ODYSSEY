@@ -16,7 +16,6 @@ class StatusBarController: NSObject {
     private let logger = Logger(subsystem: "com.odyssey.app", category: "StatusBarController")
     
     override init() {
-        logger.info("Initializing StatusBarController")
         statusBar = NSStatusBar.system
         statusItem = statusBar.statusItem(withLength: NSStatusItem.variableLength)
         popover = NSPopover()
@@ -27,13 +26,11 @@ class StatusBarController: NSObject {
         setupPopover()
         setupEventMonitor()
         setupObservers()
-        logger.info("StatusBarController initialization completed")
     }
     
     // MARK: - Setup Methods
     
     private func setupStatusBar() {
-        logger.debug("Setting up status bar")
         if let button = statusItem.button {
             let config = NSImage.SymbolConfiguration(pointSize: 18, weight: .medium)
             let image = NSImage(systemSymbolName: "sportscourt", accessibilityDescription: "ODYSSEY")?.withSymbolConfiguration(config)
@@ -41,7 +38,6 @@ class StatusBarController: NSObject {
             button.image = image
             button.action = #selector(togglePopover)
             button.target = self
-            logger.debug("Status bar button configured with sportscourt icon")
         } else {
             logger.error("Status bar button is nil")
         }

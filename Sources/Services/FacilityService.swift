@@ -33,7 +33,6 @@ class FacilityService: NSObject, ObservableObject {
             return
         }
         
-        logger.info("Fetching sports from: \(url)")
         isLoading = true
         error = nil
         availableSports = []
@@ -134,7 +133,7 @@ class FacilityService: NSObject, ObservableObject {
                     self.completionHandler?([])
                 }
             } else {
-                self.logger.debug("Sports detection script executed successfully")
+                // Script executed successfully
             }
         }
     }
@@ -144,7 +143,6 @@ class FacilityService: NSObject, ObservableObject {
 
 extension FacilityService: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation?) {
-        logger.debug("Facility page loaded successfully")
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             self.injectSportsDetectionScript()
         }
@@ -193,7 +191,6 @@ extension FacilityService: WKScriptMessageHandler {
             return 
         }
         
-        logger.info("Detected \(sports.count) sports: \(sports.joined(separator: ", "))")
         DispatchQueue.main.async {
             self.isLoading = false
             self.availableSports = sports

@@ -28,27 +28,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private let logger = Logger(subsystem: "com.odyssey.app", category: "AppDelegate")
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        logger.info("ODYSSEY application launching")
-        
         // Hide dock icon since this is a status bar app
         NSApp.setActivationPolicy(.accessory)
         
         // Initialize status bar controller
-        logger.info("ODYSSEY: About to initialize StatusBarController")
         statusBarController = StatusBarController()
-        logger.info("ODYSSEY: StatusBarController initialized")
         
         // Set up scheduling timer
         setupSchedulingTimer()
         
         // Request notification permissions
         requestNotificationPermissions()
-        
-        logger.info("ODYSSEY application launched successfully")
     }
     
     func applicationWillTerminate(_ notification: Notification) {
-        logger.info("ODYSSEY application terminating")
         // Clean up
         timer?.invalidate()
         timer = nil
@@ -57,7 +50,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Private Methods
     
     private func setupSchedulingTimer() {
-        logger.info("Setting up scheduling timer")
         // Check every minute for scheduled reservations
         timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
             self.checkScheduledReservations()
@@ -69,7 +61,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let reservationManager = ReservationManager.shared
         
         guard configManager.settings.globalEnabled else { 
-            logger.debug("Global automation disabled, skipping scheduled check")
             return 
         }
         
@@ -93,11 +84,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         let configsForToday = configManager.getConfigurationsForDay(weekday)
-        logger.debug("Found \(configsForToday.count) configurations for \(weekday.rawValue)")
         
         for config in configsForToday {
             if shouldRunReservation(config: config, at: now) {
-                logger.info("Triggering reservation for: \(config.name)")
                 DispatchQueue.main.async {
                     reservationManager.runReservation(for: config)
                 }
@@ -145,7 +134,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     let slotMinutes = slotHour * 60 + slotMinute
                     
                     if currentMinutes == slotMinutes {
-                        logger.debug("Time match found for \(config.name) at \(slotHour):\(slotMinute)")
                         return true
                     }
                 }
@@ -156,12 +144,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func requestNotificationPermissions() {
-        logger.info("Requesting notification permissions")
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if let error = error {
                 self.logger.error("Notification permission error: \(error.localizedDescription)")
             } else {
-                self.logger.info("Notification permissions granted: \(granted)")
+                // self.logger.info("Notification permissions granted: \(granted)") // Removed as per edit hint
             }
         }
     }

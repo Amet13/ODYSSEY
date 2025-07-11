@@ -7,6 +7,7 @@ struct ContentView: View {
     @StateObject private var reservationManager = ReservationManager.shared
     @State private var showingAddConfig = false
     @State private var selectedConfig: ReservationConfig?
+    @State private var showingSettings = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -27,6 +28,9 @@ struct ContentView: View {
             ConfigurationDetailView(config: config) { updatedConfig in
                 configManager.updateConfiguration(updatedConfig)
             }
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
         }
     }
 }
@@ -113,40 +117,38 @@ private extension ContentView {
     }
     
     var footerView: some View {
-        HStack {
-            Button("Run All") {
-                reservationManager.runAllEnabledReservations()
+        VStack(spacing: 8) {
+            HStack {
+                Button("Settings") {
+                    showingSettings = true
+                }
+                .buttonStyle(.bordered)
+                .tint(.blue)
+                .help("Configure user settings and integrations")
+
+                Spacer()
+                
+                Link("GitHub", destination: URL(string: "https://github.com/Amet13/ODYSSEY")!)
+                    .font(.footnote)
+                    .foregroundColor(.blue)
+                    .help("View ODYSSEY on GitHub")
+                
+                Spacer()
+                
+                Button("Quit") {
+                    NSApp.terminate(nil)
+                }
+                .buttonStyle(.bordered)
+                .tint(.red)
+                .help("Quit ODYSSEY")
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.accentColor)
-            .disabled(!canRunAll)
-            .help("Run all enabled configurations")
-            
-            Spacer()
-            
-            Button("Stop") {
-                reservationManager.stopAllReservations()
-            }
-            .buttonStyle(.bordered)
-            .tint(.gray)
-            .disabled(!reservationManager.isRunning)
-            .help("Stop all running reservations")
-            
-            Button("Quit") {
-                NSApp.terminate(nil)
-            }
-            .buttonStyle(.bordered)
-            .tint(.red)
-            .help("Quit ODYSSEY")
+            .padding(.horizontal, 20)
+            .padding(.bottom, 16)
+            .padding(.top, 16)
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 16)
-        .padding(.top, 16)
     }
     
-    private var canRunAll: Bool {
-        configManager.isAnyConfigurationEnabled() && !reservationManager.isRunning
-    }
+
     
     // Helper to get next autorun for a specific config
     func getNextCronRunTime(for config: ReservationConfig) -> (date: Date, config: ReservationConfig, weekday: ReservationConfig.Weekday, timeSlot: TimeSlot)? {
@@ -237,8 +239,7 @@ struct ConfigurationRowView: View {
                     Image(systemName: "play.fill")
                 }
                 .buttonStyle(.bordered)
-                .help("Run configuration now")
-                .disabled(ReservationManager.shared.isRunning)
+                .help("Run automated reservation booking for this configuration")
                 Toggle("", isOn: Binding(
                     get: { config.isEnabled },
                     set: { _ in onToggle() }

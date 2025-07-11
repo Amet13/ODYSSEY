@@ -21,10 +21,8 @@ class ConfigurationManager: ObservableObject {
         if let data = userDefaults.data(forKey: settingsKey),
            let savedSettings = try? JSONDecoder().decode(AppSettings.self, from: data) {
             self.settings = savedSettings
-            logger.info("Settings loaded successfully")
         } else {
             self.settings = AppSettings()
-            logger.info("Using default settings")
         }
     }
     
@@ -32,13 +30,11 @@ class ConfigurationManager: ObservableObject {
     
     func addConfiguration(_ config: ReservationConfig) {
         settings.configurations.append(config)
-        logger.info("Added configuration: \(config.name)")
     }
     
     func updateConfiguration(_ config: ReservationConfig) {
         if let index = settings.configurations.firstIndex(where: { $0.id == config.id }) {
             settings.configurations[index] = config
-            logger.info("Updated configuration: \(config.name)")
         } else {
             logger.warning("Configuration not found for update: \(config.id)")
         }
@@ -46,14 +42,12 @@ class ConfigurationManager: ObservableObject {
     
     func removeConfiguration(_ config: ReservationConfig) {
         settings.configurations.removeAll { $0.id == config.id }
-        logger.info("Removed configuration: \(config.name)")
     }
     
     func toggleConfigurationEnabled(_ config: ReservationConfig) {
         if let index = settings.configurations.firstIndex(where: { $0.id == config.id }) {
             settings.configurations[index].isEnabled.toggle()
             let status = settings.configurations[index].isEnabled ? "enabled" : "disabled"
-            logger.info("Configuration \(config.name) \(status)")
         } else {
             logger.warning("Configuration not found for toggle: \(config.id)")
         }
@@ -69,7 +63,6 @@ class ConfigurationManager: ObservableObject {
         do {
             let data = try JSONEncoder().encode(settings)
             userDefaults.set(data, forKey: settingsKey)
-            logger.debug("Settings saved successfully")
         } catch {
             logger.error("Failed to save settings: \(error.localizedDescription)")
         }
@@ -77,7 +70,6 @@ class ConfigurationManager: ObservableObject {
     
     func resetToDefaults() {
         settings = AppSettings()
-        logger.info("Settings reset to defaults")
     }
     
     // MARK: - Convenience Methods
