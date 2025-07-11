@@ -57,7 +57,7 @@ struct SettingsFormView: View {
                                 placeholder: "John Doe",
                                 icon: "person",
                                 maxLength: 30,
-                            )
+                                )
 
                             settingsField(
                                 title: userSettingsManager.userSettings.localized("Phone Number"),
@@ -65,7 +65,7 @@ struct SettingsFormView: View {
                                 placeholder: "234567890",
                                 icon: "phone",
                                 maxLength: 10,
-                            )
+                                )
 
                             if !userSettingsManager.userSettings.phoneNumber.isEmpty, !userSettingsManager.userSettings.isPhoneNumberValid {
                                 HStack {
@@ -88,7 +88,7 @@ struct SettingsFormView: View {
                                 value: $userSettingsManager.userSettings.imapEmail,
                                 placeholder: "my-email@my-domain.com",
                                 icon: "envelope",
-                            )
+                                )
 
                             if !userSettingsManager.userSettings.imapEmail.isEmpty, !userSettingsManager.userSettings.isEmailValid {
                                 HStack {
@@ -106,7 +106,7 @@ struct SettingsFormView: View {
                                 value: $userSettingsManager.userSettings.imapServer,
                                 placeholder: "mail.myserver.com",
                                 icon: "server.rack",
-                            )
+                                )
 
                             settingsField(
                                 title: userSettingsManager.userSettings.localized("Password"),
@@ -114,7 +114,7 @@ struct SettingsFormView: View {
                                 placeholder: "my-password",
                                 icon: "lock",
                                 isSecure: true,
-                            )
+                                )
 
                             if userSettingsManager.userSettings.hasEmailConfigured {
                                 VStack(spacing: 8) {
@@ -134,7 +134,7 @@ struct SettingsFormView: View {
                                                 email: userSettingsManager.userSettings.imapEmail,
                                                 password: userSettingsManager.userSettings.imapPassword,
                                                 server: userSettingsManager.userSettings.imapServer,
-                                            )
+                                                )
                                             await MainActor.run {
                                                 emailService.lastTestResult = result
                                             }
@@ -183,7 +183,7 @@ struct SettingsFormView: View {
                                     placeholder: "12345:AABBCCDDEEFFGG",
                                     icon: "key",
                                     isSecure: true,
-                                )
+                                    )
 
                                 if !userSettingsManager.userSettings.telegramBotToken.isEmpty, !userSettingsManager.userSettings.isTelegramBotTokenValid {
                                     HStack {
@@ -201,7 +201,7 @@ struct SettingsFormView: View {
                                     value: $userSettingsManager.userSettings.telegramChatId,
                                     placeholder: "12345678",
                                     icon: "number",
-                                )
+                                    )
 
                                 if !userSettingsManager.userSettings.telegramChatId.isEmpty, !userSettingsManager.userSettings.isTelegramChatIdValid {
                                     HStack {
@@ -229,7 +229,7 @@ struct SettingsFormView: View {
                                             let result = await telegramService.testIntegration(
                                                 botToken: userSettingsManager.userSettings.telegramBotToken,
                                                 chatId: userSettingsManager.userSettings.telegramChatId,
-                                            )
+                                                )
                                             await MainActor.run {
                                                 telegramService.lastTestResult = result
                                             }

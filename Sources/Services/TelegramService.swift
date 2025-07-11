@@ -157,7 +157,7 @@ class TelegramService: ObservableObject {
             botToken: userSettingsManager.userSettings.telegramBotToken,
             chatId: userSettingsManager.userSettings.telegramChatId,
             message: successMessage,
-        )
+            )
 
         switch result {
         case .success:

@@ -91,7 +91,7 @@ class EmailService: ObservableObject {
                 useTLS: config.useTLS,
                 email: email,
                 password: password,
-            )
+                )
             if case .success = result { return result }
             if case let .failure(error) = result {
                 logger.warning("IMAP connection failed on \(server):\(config.port): \(error)")
@@ -109,7 +109,7 @@ class EmailService: ObservableObject {
             host: NWEndpoint.Host(server),
             port: NWEndpoint.Port(integerLiteral: port),
             using: parameters,
-        )
+            )
         return await withCheckedContinuation { continuation in
             let hasResumed = AtomicBool(false)
             @Sendable func safeResume(_ result: TestResult) {

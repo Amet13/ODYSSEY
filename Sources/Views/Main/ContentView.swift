@@ -46,7 +46,7 @@ private extension ContentView {
                 .foregroundColor(.accentColor)
             Text(userSettingsManager.userSettings.localized(
                 "ODYSSEY – Ottawa Drop-in Your Sports & Schedule Easily Yourself",
-            ))
+                ))
             .font(.title3)
             .fontWeight(.semibold)
             .lineLimit(2)
@@ -79,7 +79,7 @@ private extension ContentView {
                             onDelete: { configManager.removeConfiguration(config) },
                             onToggle: { configManager.toggleConfiguration(at: index) },
                             onRun: { reservationManager.runReservation(for: config, runType: .manual) },
-                        )
+                            )
                     }
                     .onDelete { indices in
                         for index in indices {
@@ -89,7 +89,7 @@ private extension ContentView {
                     }
                 }
                 .listStyle(.inset),
-            )
+                )
         }
     }
 
@@ -263,7 +263,7 @@ struct ConfigurationRowView: View {
                 Toggle("", isOn: Binding(
                     get: { config.isEnabled },
                     set: { _ in onToggle() },
-                ))
+                    ))
                 .toggleStyle(.switch)
                 .labelsHidden()
                 .help(userSettingsManager.userSettings.localized("Enable or disable configuration"))
@@ -384,7 +384,7 @@ struct ConfigurationRowView: View {
                             .foregroundColor(statusInfo.statusColor)
                     }
                 },
-            )
+                )
         } else {
             // Configuration has never been run - show in grey
             return AnyView(
@@ -396,7 +396,7 @@ struct ConfigurationRowView: View {
                         .font(.caption)
                         .foregroundColor(.gray)
                 },
-            )
+                )
         }
     }
 }
@@ -441,7 +441,7 @@ struct DeleteConfirmationModal: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(NSColor.windowBackgroundColor))
                 .shadow(radius: 20),
-        )
+            )
         .padding()
     }
 }
