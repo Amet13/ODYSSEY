@@ -42,6 +42,7 @@ cd "$(dirname "$0")/.." && xcodebuild build \
     -scheme ODYSSEY \
     -configuration Debug \
     -destination 'platform=macOS' \
+    SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
     -quiet
 
 echo "✅ Build successful! (took $(($SECONDS))s)"

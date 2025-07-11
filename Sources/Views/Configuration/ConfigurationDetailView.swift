@@ -177,11 +177,11 @@ struct ConfigurationDetailView: View {
                                     day: day,
                                     slots: Binding(
                                         get: { dayTimeSlots[day] ?? [TimeSlot(time: Calendar.current.date(from: DateComponents(hour: 18, minute: 0)) ?? Date())] },
-                                        set: { dayTimeSlots[day] = $0 },
+                                        set: { dayTimeSlots[day] = $0 }
                                     ),
                                     onAdd: { addTimeSlot(for: day) },
                                     onRemove: { idx in removeTimeSlot(for: day, at: idx) },
-                                    onRemoveDay: { removeDay(day) },
+                                    onRemoveDay: { removeDay(day) }
                                 )
                             }
                         }
@@ -283,7 +283,7 @@ struct ConfigurationDetailView: View {
             sportName: sportName,
             numberOfPeople: numberOfPeople,
             isEnabled: isEnabled,
-            dayTimeSlots: dayTimeSlots,
+            dayTimeSlots: dayTimeSlots
         )
 
         onSave(newConfig)
@@ -533,7 +533,8 @@ struct DayTimeSlotEditor: View {
                                 slots[index] = TimeSlot(time: newTime)
                             }
                         },
-                    ), displayedComponents: .hourAndMinute)
+                    ), displayedComponents: .hourAndMinute
+                    )
                         .labelsHidden()
                     Button(action: { onRemove(index) }) {
                         Image(systemName: "minus.circle.fill")

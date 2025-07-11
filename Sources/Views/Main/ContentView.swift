@@ -72,7 +72,7 @@ private extension ContentView {
                         ConfigurationRowView(
                             config: config,
                             nextAutorunInfo: getNextCronRunTime(for: config),
-                            formatCountdown: formatCountdown,
+                            formatCountdown: formatCountdown
                         ) {
                             selectedConfig = config
                         } onDelete: {
@@ -90,7 +90,7 @@ private extension ContentView {
                         }
                     }
                 }
-                .listStyle(.inset),
+                .listStyle(.inset)
             )
         }
     }
@@ -244,7 +244,7 @@ struct ConfigurationRowView: View {
                 .help(userSettingsManager.userSettings.localized("Run now"))
                 Toggle("", isOn: Binding(
                     get: { config.isEnabled },
-                    set: { _ in onToggle() },
+                    set: { _ in onToggle() }
                 ))
                 .labelsHidden()
                 .toggleStyle(.switch)
@@ -356,7 +356,7 @@ struct ConfigurationRowView: View {
                             .font(.caption2)
                             .foregroundColor(statusColor)
                     }
-                },
+                }
             )
         } else {
             // Configuration has never been run - show in grey
@@ -368,7 +368,7 @@ struct ConfigurationRowView: View {
                     Text(userSettingsManager.userSettings.localized("Last run:") + " " + userSettingsManager.userSettings.localized("never"))
                         .font(.caption)
                         .foregroundColor(.gray)
-                },
+                }
             )
         }
     }
@@ -411,7 +411,7 @@ struct DeleteConfirmationModal: View {
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(NSColor.windowBackgroundColor))
-                .shadow(radius: 20),
+                .shadow(radius: 20)
         )
         .padding()
     }

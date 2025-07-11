@@ -108,17 +108,12 @@ class EmailService: ObservableObject {
         let connection = NWConnection(
             host: NWEndpoint.Host(server),
             port: NWEndpoint.Port(integerLiteral: port),
-            using: parameters,
+            using: parameters
         )
         return await withCheckedContinuation { continuation in
-            let lock = NSLock()
-            var hasResumed = false
+            let hasResumed = AtomicBool(false)
             @Sendable func safeResume(_ result: TestResult) {
-                lock.lock()
-                defer { lock.unlock() }
-                let shouldResume = !hasResumed
-                if shouldResume {
-                    hasResumed = true
+                if hasResumed.testAndSet() {
                     Task { @MainActor in
                         self.isTesting = false
                         self.lastTestResult = result
@@ -336,5 +331,18 @@ class EmailService: ObservableObject {
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
             self.logger.info("Success notification would be sent for \(config.sportName) at \(facilityName) to \(self.userSettingsManager.userSettings.imapEmail)")
         }
+    }
+}
+
+final class AtomicBool {
+    private let lock = NSLock()
+    private var value: Bool
+    init(_ value: Bool) { self.value = value }
+    func testAndSet() -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        if value { return false }
+        value = true
+        return true
     }
 }
