@@ -229,7 +229,7 @@ struct UserSettings: Codable {
             "Failed to start WebDriver session": "Failed to start WebDriver session",
             "Failed to navigate to facility": "Failed to navigate to facility",
             "Automation error:": "Automation error:",
-            "Reservation completed successfully": "Reservation completed successfully"
+            "Reservation completed successfully": "Reservation completed successfully",
         ]
     }
 
@@ -360,7 +360,7 @@ struct UserSettings: Codable {
             "Failed to start WebDriver session": "Échec du démarrage de la session WebDriver",
             "Failed to navigate to facility": "Échec de navigation vers l'installation",
             "Automation error:": "Erreur d'automatisation :",
-            "Reservation completed successfully": "Réservation terminée avec succès"
+            "Reservation completed successfully": "Réservation terminée avec succès",
         ]
     }
 }

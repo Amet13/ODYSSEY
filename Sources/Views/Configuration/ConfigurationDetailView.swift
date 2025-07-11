@@ -205,7 +205,7 @@ struct ConfigurationDetailView: View {
                     .padding(.vertical, 8)
             } else {
                 let weekdayOrder: [ReservationConfig.Weekday] = [
-                    .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday
+                    .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday,
                 ]
                 ForEach(Array(dayTimeSlots.keys.sorted { lhs, rhs in
                     weekdayOrder.firstIndex(of: lhs)! < weekdayOrder.firstIndex(of: rhs)!
@@ -237,7 +237,7 @@ struct ConfigurationDetailView: View {
             Text("People: \(numberOfPeople)")
             if !dayTimeSlots.isEmpty {
                 let weekdayOrder: [ReservationConfig.Weekday] = [
-                    .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday
+                    .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday,
                 ]
                 let sortedDays = dayTimeSlots.keys.sorted { lhs, rhs in
                     weekdayOrder.firstIndex(of: lhs)! < weekdayOrder.firstIndex(of: rhs)!
@@ -397,7 +397,7 @@ struct ConfigurationDetailView: View {
             DateComponents(hour: 19, minute: 0), // 7:00 PM
             DateComponents(hour: 17, minute: 0), // 5:00 PM
             DateComponents(hour: 20, minute: 0), // 8:00 PM
-            DateComponents(hour: 16, minute: 0) // 4:00 PM
+            DateComponents(hour: 16, minute: 0), // 4:00 PM
         ]
 
         for timeComponents in defaultTimes {

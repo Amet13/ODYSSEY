@@ -27,10 +27,6 @@ jobs:
         run: |
           brew install swiftlint
 
-      - name: Remove trailing commas
-        run: |
-          find Sources -name '*.swift' -exec perl -0777 -i -pe 's/,(\s*[)\]}])/\1/g' {} +
-
       - name: Generate Xcode project
         run: |
           xcodegen --spec Config/project.yml

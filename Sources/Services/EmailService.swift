@@ -81,7 +81,7 @@ class EmailService: ObservableObject {
         let portConfigurations = [
             (port: UInt16(993), useTLS: true, description: "SSL/TLS"),
             (port: UInt16(143), useTLS: false, description: "Plain"),
-            (port: UInt16(143), useTLS: true, description: "STARTTLS")
+            (port: UInt16(143), useTLS: true, description: "STARTTLS"),
         ]
         for config in portConfigurations {
             logger.info("Trying IMAP connection to \(server):\(config.port) (\(config.description))")
