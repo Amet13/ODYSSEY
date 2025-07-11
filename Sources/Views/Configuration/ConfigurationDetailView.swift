@@ -538,7 +538,7 @@ struct DayTimeSlotEditor: View {
                         get: { slots[index].time },
                         set: { newValue in slots[index].time = newValue }
                     ), displayedComponents: .hourAndMinute)
-                        .labelsHidden()
+                    .labelsHidden()
                     Button(action: { onRemove(index) }) {
                         Image(systemName: "minus.circle.fill")
                             .foregroundColor(.red)
