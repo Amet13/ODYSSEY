@@ -5,6 +5,7 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var configManager = ConfigurationManager.shared
     @StateObject private var reservationManager = ReservationManager.shared
+    @StateObject private var userSettingsManager = UserSettingsManager.shared
     @State private var showingAddConfig = false
     @State private var selectedConfig: ReservationConfig?
     @State private var showingSettings = false
@@ -43,7 +44,7 @@ private extension ContentView {
             Image(systemName: "sportscourt.fill")
                 .font(.title2)
                 .foregroundColor(.accentColor)
-            Text("ODYSSEY – Ottawa Drop-in Your Sports & Schedule Easily Yourself")
+            Text(userSettingsManager.userSettings.localized("ODYSSEY – Ottawa Drop-in Your Sports & Schedule Easily Yourself"))
                 .font(.title3)
                 .fontWeight(.semibold)
                 .lineLimit(2)
@@ -52,8 +53,9 @@ private extension ContentView {
             Button(action: { showingAddConfig = true }) {
                 Image(systemName: "plus")
             }
-            .buttonStyle(.bordered)
-            .help("Add new configuration")
+            .buttonStyle(.borderedProminent)
+            .tint(.blue)
+            .help(userSettingsManager.userSettings.localized("Add new configuration"))
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
@@ -99,15 +101,15 @@ private extension ContentView {
             Image(systemName: "sportscourt")
                 .font(.system(size: 60))
                 .foregroundColor(.secondary)
-            Text("No Reservations Configured")
+            Text(userSettingsManager.userSettings.localized("No Reservations Configured"))
                 .font(.title3)
                 .fontWeight(.medium)
-            Text("Add your first reservation configuration to get started with automated booking.")
+            Text(userSettingsManager.userSettings.localized("Add your first reservation configuration to get started with automated booking."))
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
-            Button("Add Configuration") {
+            Button(userSettingsManager.userSettings.localized("Add Configuration")) {
                 showingAddConfig = true
             }
             .buttonStyle(.borderedProminent)
@@ -119,28 +121,28 @@ private extension ContentView {
     var footerView: some View {
         VStack(spacing: 8) {
             HStack {
-                Button("Settings") {
+                Button(userSettingsManager.userSettings.localized("Settings")) {
                     showingSettings = true
                 }
                 .buttonStyle(.bordered)
                 .tint(.blue)
-                .help("Configure user settings and integrations")
+                .help(userSettingsManager.userSettings.localized("Configure user settings and integrations"))
 
                 Spacer()
 
-                Link("GitHub", destination: URL(string: "https://github.com/Amet13/ODYSSEY")!)
+                Link(userSettingsManager.userSettings.localized("GitHub"), destination: URL(string: "https://github.com/Amet13/ODYSSEY")!)
                     .font(.footnote)
                     .foregroundColor(.blue)
-                    .help("View ODYSSEY on GitHub")
+                    .help(userSettingsManager.userSettings.localized("View ODYSSEY on GitHub"))
 
                 Spacer()
 
-                Button("Quit") {
+                Button(userSettingsManager.userSettings.localized("Quit")) {
                     NSApp.terminate(nil)
                 }
                 .buttonStyle(.bordered)
                 .tint(.red)
-                .help("Quit ODYSSEY")
+                .help(userSettingsManager.userSettings.localized("Quit ODYSSEY"))
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 16)
@@ -196,17 +198,17 @@ private extension ContentView {
         let now = Date()
         let timeInterval = targetDate.timeIntervalSince(now)
         if timeInterval <= 0 {
-            return "now"
+            return userSettingsManager.userSettings.localized("now")
         }
         let days = Int(timeInterval / 86400)
         let hours = Int((timeInterval.truncatingRemainder(dividingBy: 86400)) / 3600)
         let minutes = Int((timeInterval.truncatingRemainder(dividingBy: 3600)) / 60)
         if days > 0 {
-            return "\(days) day\(days == 1 ? "" : "s"), \(hours) hour\(hours == 1 ? "" : "s")"
+            return "\(days) " + userSettingsManager.userSettings.localized(days == 1 ? "day" : "days") + ", \(hours) " + userSettingsManager.userSettings.localized(hours == 1 ? "hour" : "hours")
         } else if hours > 0 {
-            return "\(hours) hour\(hours == 1 ? "" : "s"), \(minutes) minute\(minutes == 1 ? "" : "s")"
+            return "\(hours) " + userSettingsManager.userSettings.localized(hours == 1 ? "hour" : "hours") + ", \(minutes) " + userSettingsManager.userSettings.localized(minutes == 1 ? "minute" : "minutes")
         } else {
-            return "\(minutes) minute\(minutes == 1 ? "" : "s")"
+            return "\(minutes) " + userSettingsManager.userSettings.localized(minutes == 1 ? "minute" : "minutes")
         }
     }
 }
@@ -224,6 +226,7 @@ struct ConfigurationRowView: View {
     @State private var isHovered = false
     @State private var isToggleHovered = false
     @State private var showingDeleteConfirmation = false
+    @StateObject private var userSettingsManager = UserSettingsManager.shared
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .top, spacing: 8) {
@@ -237,25 +240,25 @@ struct ConfigurationRowView: View {
                     Image(systemName: "play.fill")
                 }
                 .buttonStyle(.bordered)
-                .help("Run automated reservation booking for this configuration")
+                .help(userSettingsManager.userSettings.localized("Run automated reservation booking for this configuration"))
                 Toggle("", isOn: Binding(
                     get: { config.isEnabled },
                     set: { _ in onToggle() }
                 ))
                 .labelsHidden()
                 .toggleStyle(.switch)
-                .help("Enable or disable configuration")
+                .help(userSettingsManager.userSettings.localized("Enable or disable configuration"))
                 Button(action: onEdit) {
                     Image(systemName: "pencil")
                 }
                 .buttonStyle(.bordered)
-                .help("Edit configuration")
+                .help(userSettingsManager.userSettings.localized("Edit configuration"))
                 Button(action: { showingDeleteConfirmation = true }) {
                     Image(systemName: "trash")
                 }
                 .buttonStyle(.bordered)
                 .tint(.red)
-                .help("Delete configuration")
+                .help(userSettingsManager.userSettings.localized("Delete configuration"))
             }
             Text("\(ReservationConfig.extractFacilityName(from: config.facilityURL)) • \(config.sportName) • \(config.numberOfPeople)pp")
                 .font(.subheadline)
@@ -282,13 +285,13 @@ struct ConfigurationRowView: View {
             }
         }
         .padding(.vertical, 6)
-        .alert("Delete Configuration", isPresented: $showingDeleteConfirmation) {
-            Button("Cancel", role: .cancel) {}
-            Button("Delete", role: .destructive) {
+        .alert(userSettingsManager.userSettings.localized("Delete Configuration"), isPresented: $showingDeleteConfirmation) {
+            Button(userSettingsManager.userSettings.localized("Cancel"), role: .cancel) {}
+            Button(userSettingsManager.userSettings.localized("Delete"), role: .destructive) {
                 onDelete()
             }
         } message: {
-            Text("Are you sure you want to delete '\(config.name)'? This action cannot be undone.")
+            Text(userSettingsManager.userSettings.localized("Are you sure you want to delete '") + config.name + userSettingsManager.userSettings.localized("'? This action cannot be undone."))
         }
     }
 
@@ -316,7 +319,7 @@ struct ConfigurationRowView: View {
         let timeFormatter = DateFormatter()
         timeFormatter.timeStyle = .short
         let timeString = timeFormatter.string(from: next.timeSlot.time)
-        return "Next autorun: \(formatCountdown(next.date)) (\(next.weekday.shortName) \(timeString))"
+        return userSettingsManager.userSettings.localized("Next autorun:") + " " + formatCountdown(to: next.date) + " (" + next.weekday.shortName + " " + timeString + ")"
     }
 }
 
@@ -324,6 +327,7 @@ struct DeleteConfirmationModal: View {
     let configName: String
     let onDelete: () -> Void
     let onCancel: () -> Void
+    @StateObject private var userSettingsManager = UserSettingsManager.shared
     var body: some View {
         VStack(spacing: 20) {
             Image("logo")
@@ -331,20 +335,20 @@ struct DeleteConfirmationModal: View {
                 .frame(width: 64, height: 64)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.top, 24)
-            Text("Delete Configuration")
+            Text(userSettingsManager.userSettings.localized("Delete Configuration"))
                 .font(.title3)
                 .fontWeight(.semibold)
-            Text("Are you sure you want to delete '\(configName)'? This action cannot be undone.")
+            Text(userSettingsManager.userSettings.localized("Are you sure you want to delete '") + configName + userSettingsManager.userSettings.localized("'? This action cannot be undone."))
                 .multilineTextAlignment(.center)
                 .font(.body)
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
             HStack(spacing: 20) {
-                Button("Cancel") {
+                Button(userSettingsManager.userSettings.localized("Cancel")) {
                     onCancel()
                 }
                 .buttonStyle(.bordered)
-                Button("Delete") {
+                Button(userSettingsManager.userSettings.localized("Delete")) {
                     onDelete()
                 }
                 .buttonStyle(.borderedProminent)
