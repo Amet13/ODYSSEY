@@ -214,7 +214,7 @@ struct ConfigurationDetailView: View {
                         day: day,
                         slots: Binding(
                             get: { dayTimeSlots[day] ?? [TimeSlot(time: Calendar.current.date(from: DateComponents(hour: 18, minute: 0)) ?? Date())] },
-                            set: { dayTimeSlots[day] = $0 },
+                            set: { dayTimeSlots[day] = $0 }
                         ),
                         onAdd: { addTimeSlot(for: day) },
                         onRemove: { idx in removeTimeSlot(for: day, at: idx) },
@@ -301,7 +301,7 @@ struct ConfigurationDetailView: View {
             sportName: sportName,
             numberOfPeople: numberOfPeople,
             isEnabled: isEnabled,
-            dayTimeSlots: dayTimeSlots,
+            dayTimeSlots: dayTimeSlots
         )
 
         onSave(newConfig)
@@ -536,7 +536,7 @@ struct DayTimeSlotEditor: View {
                 HStack {
                     DatePicker("", selection: Binding(
                         get: { slots[index].time },
-                        set: { newValue in slots[index].time = newValue },
+                        set: { newValue in slots[index].time = newValue }
                     ), displayedComponents: .hourAndMinute)
                         .labelsHidden()
                     Button(action: { onRemove(index) }) {

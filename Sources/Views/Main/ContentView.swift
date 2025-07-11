@@ -45,7 +45,7 @@ private extension ContentView {
                 .font(.title2)
                 .foregroundColor(.accentColor)
             Text(userSettingsManager.userSettings.localized(
-                "ODYSSEY – Ottawa Drop-in Your Sports & Schedule Easily Yourself",
+                "ODYSSEY – Ottawa Drop-in Your Sports & Schedule Easily Yourself"
             ))
             .font(.title3)
             .fontWeight(.semibold)
@@ -78,7 +78,7 @@ private extension ContentView {
                             onEdit: { selectedConfig = config },
                             onDelete: { configManager.removeConfiguration(config) },
                             onToggle: { configManager.toggleConfiguration(at: index) },
-                            onRun: { reservationManager.runReservation(for: config, runType: .manual) },
+                            onRun: { reservationManager.runReservation(for: config, runType: .manual) }
                         )
                     }
                     .onDelete { indices in
@@ -88,7 +88,7 @@ private extension ContentView {
                         }
                     }
                 }
-                .listStyle(.inset),
+                .listStyle(.inset)
             )
         }
     }
@@ -262,7 +262,7 @@ struct ConfigurationRowView: View {
                 .help(userSettingsManager.userSettings.localized("Run now"))
                 Toggle("", isOn: Binding(
                     get: { config.isEnabled },
-                    set: { _ in onToggle() },
+                    set: { _ in onToggle() }
                 ))
                 .toggleStyle(.switch)
                 .labelsHidden()
@@ -383,7 +383,7 @@ struct ConfigurationRowView: View {
                             .font(.caption2)
                             .foregroundColor(statusInfo.statusColor)
                     }
-                },
+                }
             )
         } else {
             // Configuration has never been run - show in grey
@@ -395,7 +395,7 @@ struct ConfigurationRowView: View {
                     Text(userSettingsManager.userSettings.localized("Last run:") + " " + userSettingsManager.userSettings.localized("never"))
                         .font(.caption)
                         .foregroundColor(.gray)
-                },
+                }
             )
         }
     }
@@ -440,7 +440,7 @@ struct DeleteConfirmationModal: View {
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(NSColor.windowBackgroundColor))
-                .shadow(radius: 20),
+                .shadow(radius: 20)
         )
         .padding()
     }

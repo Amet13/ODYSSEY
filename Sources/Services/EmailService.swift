@@ -108,7 +108,7 @@ class EmailService: ObservableObject {
         let connection = NWConnection(
             host: NWEndpoint.Host(server),
             port: NWEndpoint.Port(integerLiteral: port),
-            using: parameters,
+            using: parameters
         )
         return await withCheckedContinuation { continuation in
             let hasResumed = AtomicBool(false)
