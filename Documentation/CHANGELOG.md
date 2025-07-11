@@ -5,6 +5,31 @@ All notable changes to ODYSSEY will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2025-01-27
+
+### Added
+
+- **Full Localization Support**: Complete French localization for all UI elements, status messages, and notifications
+- **Persistent Status Tracking**: Last run status, date, and run type are now persisted across app restarts
+- **Unified Status Format**: Standardized "Last run: success|fail|never (manual|auto) <date>" format for all configurations
+- **Enhanced Telegram Messages**: Bold success messages and cleaner formatting without redundant timestamps
+
+### Changed
+
+- **Localization System**: All user-facing text now supports English and French with proper localization keys
+- **Status Display**: Consistent grey color for never-run configurations and unified status format
+- **Telegram Notifications**: Removed "Booked at" timestamp and made success message bold using HTML formatting
+- **Error Message Localization**: All automation error messages are now properly localized
+
+### Fixed
+
+- **Status Persistence**: Last run information is now saved to UserDefaults and restored on app launch
+- **Localization Consistency**: Telegram messages now respect the app language setting (English/French)
+- **Status Format**: All configurations show status even if never run, with consistent formatting
+- **Build Warnings**: Fixed unused variable warnings and Codable conformance issues
+
+---
+
 ## [3.0.0] - 2025-07-11
 
 ### Added

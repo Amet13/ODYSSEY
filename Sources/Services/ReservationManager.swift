@@ -22,7 +22,38 @@ class ReservationManager: NSObject, ObservableObject {
     @Published var currentTask: String = ""
 
     // Per-configuration last run status, date, and run type
-    @Published private(set) var lastRunInfo: [UUID: (status: RunStatus, date: Date?, runType: RunType)] = [:]
+    struct LastRunInfo: Codable {
+        let status: RunStatusCodable
+        let date: Date?
+        let runType: RunType
+    }
+
+    enum RunStatusCodable: String, Codable {
+        case idle, running, success, failed
+        var toRunStatus: RunStatus {
+            switch self {
+            case .idle: .idle
+            case .running: .running
+            case .success: .success
+            case .failed: .failed("") // error string not persisted
+            }
+        }
+
+        static func from(_ status: RunStatus) -> RunStatusCodable {
+            switch status {
+            case .idle: .idle
+            case .running: .running
+            case .success: .success
+            case .failed: .failed
+            }
+        }
+    }
+
+    @Published private(set) var lastRunInfo: [UUID: (status: RunStatus, date: Date?, runType: RunType)] = [:] {
+        didSet { saveLastRunInfo() }
+    }
+
+    private let lastRunInfoKey = "ReservationManager.lastRunInfo"
 
     private var cancellables = Set<AnyCancellable>()
     private let configurationManager = ConfigurationManager.shared
@@ -46,7 +77,7 @@ class ReservationManager: NSObject, ObservableObject {
         }
     }
 
-    enum RunType {
+    enum RunType: Codable {
         case manual
         case automatic
 
@@ -67,13 +98,13 @@ class ReservationManager: NSObject, ObservableObject {
         var errorDescription: String? {
             switch self {
             case .webDriverNotInitialized:
-                "WebDriver not initialized"
+                UserSettingsManager.shared.userSettings.localized("WebDriver not initialized")
             case .navigationFailed:
-                "Failed to navigate to reservation page"
+                UserSettingsManager.shared.userSettings.localized("Failed to navigate to reservation page")
             case .sportButtonNotFound:
-                "Sport button not found on page"
+                UserSettingsManager.shared.userSettings.localized("Sport button not found on page")
             case .pageLoadTimeout:
-                "Page failed to load completely within timeout"
+                UserSettingsManager.shared.userSettings.localized("Page failed to load completely within timeout")
             }
         }
     }
@@ -81,6 +112,25 @@ class ReservationManager: NSObject, ObservableObject {
     override private init() {
         super.init()
         let _ = webDriverService // Force access to trigger WebDriverService init
+        loadLastRunInfo()
+    }
+
+    private func saveLastRunInfo() {
+        let codableDict = lastRunInfo.mapValues { status, date, runType in
+            LastRunInfo(status: RunStatusCodable.from(status), date: date, runType: runType)
+        }
+        if let data = try? JSONEncoder().encode(codableDict) {
+            UserDefaults.standard.set(data, forKey: lastRunInfoKey)
+        }
+    }
+
+    private func loadLastRunInfo() {
+        guard let data = UserDefaults.standard.data(forKey: lastRunInfoKey),
+              let codableDict = try? JSONDecoder().decode([UUID: LastRunInfo].self, from: data)
+        else { return }
+        lastRunInfo = codableDict.mapValues { info in
+            (info.status.toRunStatus, info.date, info.runType)
+        }
     }
 
     // MARK: - Public Methods
@@ -125,7 +175,7 @@ class ReservationManager: NSObject, ObservableObject {
             // Step 1: Start WebDriver session and navigate directly to the URL
             await updateTask("Starting WebDriver session")
             guard await webDriverService.startSession() else {
-                await handleError("Failed to start WebDriver session", configId: config.id, runType: runType)
+                await handleError(UserSettingsManager.shared.userSettings.localized("Failed to start WebDriver session"), configId: config.id, runType: runType)
                 return
             }
 
@@ -133,7 +183,7 @@ class ReservationManager: NSObject, ObservableObject {
             await updateTask("Navigating to facility")
             let navigationResult = await webDriverService.navigate(to: config.facilityURL)
             guard navigationResult else {
-                await handleError("Failed to navigate to facility", configId: config.id, runType: runType)
+                await handleError(UserSettingsManager.shared.userSettings.localized("Failed to navigate to facility"), configId: config.id, runType: runType)
                 return
             }
 
@@ -182,7 +232,7 @@ class ReservationManager: NSObject, ObservableObject {
                     self.lastRunStatus = .success
                     self.lastRunInfo[config.id] = (.success, Date(), runType)
                     self.lastRunDate = Date()
-                    self.currentTask = "Reservation completed successfully"
+                    self.currentTask = UserSettingsManager.shared.userSettings.localized("Reservation completed successfully")
                 }
                 logger.info("Reservation completed successfully for \(config.sportName)")
 
@@ -199,13 +249,13 @@ class ReservationManager: NSObject, ObservableObject {
             } else {
                 logger.error("Failed to click sport button: \(config.sportName)")
                 await MainActor.run {
-                    self.lastRunInfo[config.id] = (.failed("Sport button not found on the page"), Date(), runType)
+                    self.lastRunInfo[config.id] = (.failed(UserSettingsManager.shared.userSettings.localized("Sport button not found on page")), Date(), runType)
                 }
                 throw ReservationError.sportButtonNotFound
             }
 
         } catch {
-            await handleError("Automation error: \(error.localizedDescription)", configId: config.id, runType: runType)
+            await handleError(UserSettingsManager.shared.userSettings.localized("Automation error:") + " \(error.localizedDescription)", configId: config.id, runType: runType)
         }
     }
 

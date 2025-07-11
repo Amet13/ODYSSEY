@@ -326,22 +326,26 @@ struct ConfigurationRowView: View {
 
     private func lastRunStatusView(for config: ReservationConfig) -> some View {
         if let lastRun = ReservationManager.shared.getLastRunInfo(for: config.id) {
-            let (statusText, statusColor, iconName): (String, Color, String) = switch lastRun.status {
+            let (statusKey, statusColor, iconName): (String, Color, String) = switch lastRun.status {
             case .success:
-                ("Last success \(lastRun.runType.description)", .green, "checkmark.circle.fill")
-            case let .failed(error):
-                ("Last failed: \(error) \(lastRun.runType.description)", .red, "xmark.octagon.fill")
+                ("success", .green, "checkmark.circle.fill")
+            case .failed:
+                ("fail", .red, "xmark.octagon.fill")
             case .running:
                 ("Running...", .orange, "hourglass")
             case .idle:
-                ("Never run", .gray, "questionmark.circle")
+                ("never", .gray, "questionmark.circle")
+            }
+            let runTypeKey = switch lastRun.runType {
+            case .manual: "(manual)"
+            case .automatic: "(auto)"
             }
             return AnyView(
                 HStack(spacing: 6) {
                     Image(systemName: iconName)
                         .foregroundColor(statusColor)
                         .font(.caption)
-                    Text(statusText)
+                    Text(userSettingsManager.userSettings.localized("Last run:") + " " + userSettingsManager.userSettings.localized(statusKey) + " " + userSettingsManager.userSettings.localized(runTypeKey))
                         .font(.caption)
                         .foregroundColor(statusColor)
                     if let date = lastRun.date {
@@ -355,7 +359,17 @@ struct ConfigurationRowView: View {
                 },
             )
         } else {
-            return AnyView(EmptyView())
+            // Configuration has never been run - show in grey
+            return AnyView(
+                HStack(spacing: 6) {
+                    Image(systemName: "questionmark.circle")
+                        .foregroundColor(.gray)
+                        .font(.caption)
+                    Text(userSettingsManager.userSettings.localized("Last run:") + " " + userSettingsManager.userSettings.localized("never"))
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                },
+            )
         }
     }
 }

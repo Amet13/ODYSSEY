@@ -141,7 +141,7 @@ class TelegramService: ObservableObject {
         let timeSlotsInfo = formatTimeSlotsInfo(for: config)
 
         let successMessage = """
-        🎉 \(userSettingsManager.userSettings.localized("Reservation Success!"))
+        <b>🎉 \(userSettingsManager.userSettings.localized("Reservation Success!"))</b>
 
         ✅ \(userSettingsManager.userSettings.localized("Successfully booked:")) \(config.sportName)
 
@@ -150,8 +150,6 @@ class TelegramService: ObservableObject {
         👥 \(userSettingsManager.userSettings.localized("People:")) \(config.numberOfPeople)
 
         📅 \(userSettingsManager.userSettings.localized("Schedule:")) \(timeSlotsInfo)
-
-        🕐 \(userSettingsManager.userSettings.localized("Booked at:")) \(Date().formatted(date: .abbreviated, time: .shortened))
 
         🥅 \(userSettingsManager.userSettings.localized("ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself"))
         """

@@ -8,7 +8,7 @@
       <img src="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml/badge.svg" alt="CI Status">
     </a>
     <a href="https://github.com/Amet13/ODYSSEY/releases/latest">
-      <img src="https://img.shields.io/badge/Version-3.0.0-blue" alt="Version 3.0.0">
+      <img src="https://img.shields.io/badge/Version-3.1.0-blue" alt="Version 3.1.0">
     </a>
     <a href="https://github.com/Amet13/ODYSSEY/blob/main/LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License">
