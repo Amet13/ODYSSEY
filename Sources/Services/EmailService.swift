@@ -90,7 +90,7 @@ class EmailService: ObservableObject {
                 port: config.port,
                 useTLS: config.useTLS,
                 email: email,
-                password: password
+                password: password,
             )
             if case .success = result { return result }
             if case let .failure(error) = result {
@@ -108,7 +108,7 @@ class EmailService: ObservableObject {
         let connection = NWConnection(
             host: NWEndpoint.Host(server),
             port: NWEndpoint.Port(integerLiteral: port),
-            using: parameters
+            using: parameters,
         )
         return await withCheckedContinuation { continuation in
             let hasResumed = AtomicBool(false)
