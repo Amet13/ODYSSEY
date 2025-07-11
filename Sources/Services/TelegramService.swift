@@ -82,7 +82,7 @@ class TelegramService: ObservableObject {
         let body: [String: Any] = [
             "chat_id": chatId,
             "text": message,
-            "parse_mode": "HTML",
+            "parse_mode": "HTML"
         ]
 
         do {
@@ -108,8 +108,7 @@ class TelegramService: ObservableObject {
                     // Try to extract error description from response
                     if let jsonData = responseString.data(using: .utf8),
                        let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
-                       let description = json["description"] as? String
-                    {
+                       let description = json["description"] as? String {
                         return .failure(description)
                     }
                 }

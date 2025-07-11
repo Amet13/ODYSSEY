@@ -58,7 +58,7 @@ class UserSettingsManager: ObservableObject {
             "phone": userSettings.getFormattedPhoneNumber(),
             "email": userSettings.imapEmail,
             "server": userSettings.imapServer,
-            "hasTelegram": userSettings.hasTelegramConfigured ? "Yes" : "No",
+            "hasTelegram": userSettings.hasTelegramConfigured ? "Yes" : "No"
         ]
     }
 
