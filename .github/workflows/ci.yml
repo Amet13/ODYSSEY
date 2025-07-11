@@ -42,7 +42,7 @@ jobs:
 
       - name: Run SwiftLint
         run: |
-          swiftlint lint --reporter github-actions-logging || true
+          swiftlint lint --config Config/.swiftlint.yml --reporter github-actions-logging
 
       - name: Check app size
         run: |

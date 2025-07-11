@@ -88,7 +88,16 @@ struct UserSettings: Codable {
     }
 
     func localized(_ key: String) -> String {
-        let en: [String: String] = [
+        switch language {
+        case .english:
+            englishLocalizations[key] ?? key
+        case .french:
+            frenchLocalizations[key] ?? key
+        }
+    }
+
+    private var englishLocalizations: [String: String] {
+        [
             "Settings": "Settings",
             "Save": "Save",
             "Cancel": "Cancel",
@@ -114,17 +123,20 @@ struct UserSettings: Codable {
             "Language": "Language",
             "App Language": "App Language",
             "Choose the language for the app interface": "Choose the language for the app interface",
-            "ODYSSEY – Ottawa Drop-in Your Sports & Schedule Easily Yourself": "ODYSSEY – Ottawa Drop-in Your Sports & Schedule Easily Yourself",
+            "ODYSSEY – Ottawa Drop-in Your Sports & Schedule Easily Yourself":
+                "ODYSSEY – Ottawa Drop-in Your Sports & Schedule Easily Yourself",
             "Add new configuration": "Add new configuration",
             "No Reservations Configured": "No Reservations Configured",
-            "Add your first reservation configuration to get started with automated booking.": "Add your first reservation configuration to get started with automated booking.",
+            "Add your first reservation configuration to get started with automated booking.":
+                "Add your first reservation configuration to get started with automated booking.",
             "Add Configuration": "Add Configuration",
             "Configure user settings and integrations": "Configure user settings and integrations",
             "GitHub": "GitHub",
             "View ODYSSEY on GitHub": "View ODYSSEY on GitHub",
             "Quit": "Quit",
             "Quit ODYSSEY": "Quit ODYSSEY",
-            "Run automated reservation booking for this configuration": "Run automated reservation booking for this configuration",
+            "Run automated reservation booking for this configuration":
+                "Run automated reservation booking for this configuration",
             "Enable or disable configuration": "Enable or disable configuration",
             "Edit configuration": "Edit configuration",
             "Delete configuration": "Delete configuration",
@@ -146,7 +158,8 @@ struct UserSettings: Codable {
             "Please enter your IMAP server address.": "Please enter your IMAP server address.",
             "Please enter your email password.": "Please enter your email password.",
             "Please enter your Telegram bot token.": "Please enter your Telegram bot token.",
-            "Invalid bot token format. Expected format: number:letters": "Invalid bot token format. Expected format: number:letters",
+            "Invalid bot token format. Expected format: number:letters":
+                "Invalid bot token format. Expected format: number:letters",
             "Please enter your Telegram chat ID.": "Please enter your Telegram chat ID.",
             "Telegram Chat ID can only contain numbers.": "Telegram Chat ID can only contain numbers.",
             "Settings Saved": "Settings Saved",
@@ -156,7 +169,8 @@ struct UserSettings: Codable {
             "Test message sent successfully!": "Test message sent successfully!",
             "Test failed:": "Test failed:",
             "ODYSSEY Test Message": "ODYSSEY Test Message",
-            "Hello! This is a test message from ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself.": "Hello! This is a test message from ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself.",
+            "Hello! This is a test message from ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself.":
+                "Hello! This is a test message from ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself.",
             "Telegram integration is working correctly!": "Telegram integration is working correctly!",
             "Invalid URL": "Invalid URL",
             "Failed to serialize request:": "Failed to serialize request:",
@@ -196,7 +210,8 @@ struct UserSettings: Codable {
             "People:": "People:",
             "Schedule:": "Schedule:",
             "Booked at:": "Booked at:",
-            "ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself": "ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself",
+            "ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself":
+                "ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself",
             "Last success": "Last success",
             "Last failed:": "Last failed:",
             "Running...": "Running...",
@@ -216,7 +231,10 @@ struct UserSettings: Codable {
             "Automation error:": "Automation error:",
             "Reservation completed successfully": "Reservation completed successfully",
         ]
-        let fr: [String: String] = [
+    }
+
+    private var frenchLocalizations: [String: String] {
+        [
             "Settings": "Paramètres",
             "Save": "Sauvegarder",
             "Cancel": "Annuler",
@@ -282,51 +300,51 @@ struct UserSettings: Codable {
             "Your settings have been saved successfully.": "Vos paramètres ont été sauvegardés avec succès.",
             "Validation Error": "Erreur de validation",
             "Test message sent successfully!": "Message de test envoyé avec succès!",
-            "Test failed:": "Test échoué:",
+            "Test failed:": "Test échoué :",
             "ODYSSEY Test Message": "Message de test ODYSSEY",
             "Hello! This is a test message from ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself.": "Bonjour! Ceci est un message de test d'ODYSSEY - Ottawa : Réservez vos sports et horaires facilement vous-même.",
             "Telegram integration is working correctly!": "L'intégration Telegram fonctionne correctement!",
             "Invalid URL": "URL invalide",
-            "Failed to serialize request:": "Échec de la sérialisation de la requête:",
+            "Failed to serialize request:": "Échec de sérialisation de la requête :",
             "Invalid response": "Réponse invalide",
-            "Network error:": "Erreur réseau:",
-            "Connection failed:": "Échec de connexion:",
-            "Authentication failed:": "Échec d'authentification:",
-            "Command failed": "Échec de commande:",
-            "IMAP test failed:": "Test IMAP échoué:",
+            "Network error:": "Erreur réseau :",
+            "Connection failed:": "Échec de connexion :",
+            "Authentication failed:": "Échec d'authentification :",
+            "Command failed:": "Commande échouée :",
+            "IMAP test failed:": "Test IMAP échoué :",
             "Email address is empty": "L'adresse de courriel est vide",
             "Password is empty": "Le mot de passe est vide",
             "IMAP server is empty": "Le serveur IMAP est vide",
             "Invalid email format": "Format de courriel invalide",
             "Connection cancelled": "Connexion annulée",
             "IMAP connection successful!": "Connexion IMAP réussie!",
-            "Failed to fetch email:": "Échec de récupération du courriel:",
-            "Failed to search mailbox:": "Échec de recherche de la boîte de réception:",
-            "Failed to select INBOX:": "Échec de sélection de la boîte de réception:",
-            "IMAP handshake failed:": "Échec de poignée de main IMAP:",
+            "Failed to fetch email:": "Échec de récupération du courriel :",
+            "Failed to search mailbox:": "Échec de recherche de la boîte de réception :",
+            "Failed to select INBOX:": "Échec de sélection de la boîte de réception :",
+            "IMAP handshake failed:": "Échec de poignée de main IMAP :",
             "Invalid command encoding": "Encodage de commande invalide",
-            "Send error:": "Erreur d'envoi:",
-            "Receive error:": "Erreur de réception:",
-            "IMAP error:": "Erreur IMAP:",
-            "Connection timeout:": "Délai d'attente de connexion:",
-            "Unsupported server:": "Serveur non pris en charge:",
+            "Send error:": "Erreur d'envoi :",
+            "Receive error:": "Erreur de réception :",
+            "IMAP error:": "Erreur IMAP :",
+            "Connection timeout:": "Délai d'attente de connexion :",
+            "Unsupported server:": "Serveur non pris en charge :",
             "All IMAP connection attempts failed": "Toutes les tentatives de connexion IMAP ont échoué",
             "Unknown": "Inconnu",
             "No Subject": "Aucun sujet",
             "Unknown Date": "Date inconnue",
-            "From:": "De:",
-            "Subject:": "Sujet:",
-            "Date:": "Date:",
+            "From:": "De :",
+            "Subject:": "Sujet :",
+            "Date:": "Date :",
             "Run now": "Exécuter maintenant",
             "Reservation Success!": "Réservation réussie!",
-            "Successfully booked:": "Réservation réussie:",
-            "Facility:": "Installation:",
-            "People:": "Personnes:",
-            "Schedule:": "Horaire:",
-            "Booked at:": "Réservé à:",
+            "Successfully booked:": "Réservation réussie :",
+            "Facility:": "Installation :",
+            "People:": "Personnes :",
+            "Schedule:": "Horaire :",
+            "Booked at:": "Réservé à :",
             "ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself": "ODYSSEY - Ottawa : Réservez vos sports et horaires facilement vous-même",
             "Last success": "Dernier succès",
-            "Last failed:": "Dernier échec:",
+            "Last failed:": "Dernier échec :",
             "Running...": "En cours...",
             "Never run": "Jamais exécuté",
             "Last run:": "Dernière exécution :",
@@ -338,15 +356,11 @@ struct UserSettings: Codable {
             "WebDriver not initialized": "WebDriver non initialisé",
             "Failed to navigate to reservation page": "Échec de navigation vers la page de réservation",
             "Sport button not found on page": "Bouton de sport non trouvé sur la page",
-            "Page failed to load completely within timeout": "La page n'a pas pu se charger complètement dans le délai imparti",
+            "Page failed to load completely within timeout": "La page n'a pas pu se charger complètement dans le délai d'attente",
             "Failed to start WebDriver session": "Échec du démarrage de la session WebDriver",
             "Failed to navigate to facility": "Échec de navigation vers l'installation",
-            "Automation error:": "Erreur d'automatisation:",
+            "Automation error:": "Erreur d'automatisation :",
             "Reservation completed successfully": "Réservation terminée avec succès",
         ]
-        switch language {
-        case .english: return en[key] ?? key
-        case .french: return fr[key] ?? key
-        }
     }
 }

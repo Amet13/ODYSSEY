@@ -197,14 +197,14 @@ class WebDriverService: ObservableObject {
             if httpResponse?.statusCode != 200 {
                 if let responseData = String(data: data, encoding: .utf8) {
                     do {
-                        if let jsonData = responseData.data(using: .utf8),
-                           let json = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any]
-                        {
-                            if let error = json["error"] as? String {
-                                logger.error("WebDriver error: \(error)")
-                            }
-                            if let message = json["message"] as? String {
-                                logger.error("WebDriver message: \(message)")
+                        if let jsonData = responseData.data(using: .utf8) {
+                            if let json = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
+                                if let error = json["error"] as? String {
+                                    logger.error("WebDriver error: \(error)")
+                                }
+                                if let message = json["message"] as? String {
+                                    logger.error("WebDriver message: \(message)")
+                                }
                             }
                         }
                     } catch {
@@ -240,14 +240,14 @@ class WebDriverService: ObservableObject {
             if httpResponse?.statusCode != 200 {
                 if let responseData = String(data: data, encoding: .utf8) {
                     do {
-                        if let jsonData = responseData.data(using: .utf8),
-                           let json = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any]
-                        {
-                            if let error = json["error"] as? String {
-                                logger.error("WebDriver JavaScript error: \(error)")
-                            }
-                            if let message = json["message"] as? String {
-                                logger.error("WebDriver JavaScript message: \(message)")
+                        if let jsonData = responseData.data(using: .utf8) {
+                            if let json = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
+                                if let error = json["error"] as? String {
+                                    logger.error("WebDriver JavaScript error: \(error)")
+                                }
+                                if let message = json["message"] as? String {
+                                    logger.error("WebDriver JavaScript message: \(message)")
+                                }
                             }
                         }
                     } catch {
@@ -690,8 +690,8 @@ class WebDriverService: ObservableObject {
     private func stringifyJSON(_ value: Any) -> Any {
         if let dict = value as? [String: Any] {
             var newDict: [String: Any] = [:]
-            for (k, v) in dict {
-                newDict[k] = stringifyJSON(v)
+            for (key, value) in dict {
+                newDict[key] = stringifyJSON(value)
             }
             return newDict
         } else if let arr = value as? [Any] {

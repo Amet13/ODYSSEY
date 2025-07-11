@@ -84,12 +84,13 @@ struct ReservationConfig: Codable, Identifiable {
     /// - Returns: Capitalized facility name or empty string if not found
     static func extractFacilityName(from url: String) -> String {
         let pattern = #"https://reservation\.frontdesksuite\.ca/rcfs/([^/]+)"#
-        if let regex = try? NSRegularExpression(pattern: pattern),
-           let match = regex.firstMatch(in: url, range: NSRange(url.startIndex..., in: url))
-        {
-            let facilityRange = Range(match.range(at: 1), in: url)!
-            let facilityName = String(url[facilityRange])
-            return facilityName.capitalized
+        if let regex = try? NSRegularExpression(pattern: pattern) {
+            let nsrange = NSRange(url.startIndex ..< url.endIndex, in: url)
+            if let match = regex.firstMatch(in: url, options: [], range: nsrange) {
+                let facilityRange = Range(match.range(at: 1), in: url)!
+                let facilityName = String(url[facilityRange])
+                return facilityName.capitalized
+            }
         }
         return ""
     }

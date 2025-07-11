@@ -125,11 +125,12 @@ class ReservationManager: NSObject, ObservableObject {
     }
 
     private func loadLastRunInfo() {
-        guard let data = UserDefaults.standard.data(forKey: lastRunInfoKey),
-              let codableDict = try? JSONDecoder().decode([UUID: LastRunInfo].self, from: data)
+        guard let data = UserDefaults.standard.data(forKey: lastRunInfoKey)
         else { return }
-        lastRunInfo = codableDict.mapValues { info in
-            (info.status.toRunStatus, info.date, info.runType)
+        if let codableDict = try? JSONDecoder().decode([UUID: LastRunInfo].self, from: data) {
+            lastRunInfo = codableDict.mapValues { info in
+                (info.status.toRunStatus, info.date, info.runType)
+            }
         }
     }
 

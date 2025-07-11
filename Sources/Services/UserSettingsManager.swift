@@ -20,10 +20,12 @@ class UserSettingsManager: ObservableObject {
 
     private init() {
         // Load saved settings or use defaults
-        if let data = userDefaults.data(forKey: settingsKey),
-           let savedSettings = try? JSONDecoder().decode(UserSettings.self, from: data)
-        {
-            userSettings = savedSettings
+        if let data = userDefaults.data(forKey: settingsKey) {
+            if let savedSettings = try? JSONDecoder().decode(UserSettings.self, from: data) {
+                userSettings = savedSettings
+            } else {
+                userSettings = UserSettings()
+            }
         } else {
             userSettings = UserSettings()
         }

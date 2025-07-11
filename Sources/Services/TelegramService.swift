@@ -157,7 +157,7 @@ class TelegramService: ObservableObject {
         let result = await sendMessage(
             botToken: userSettingsManager.userSettings.telegramBotToken,
             chatId: userSettingsManager.userSettings.telegramChatId,
-            message: successMessage
+            message: successMessage,
         )
 
         switch result {

@@ -234,3 +234,9 @@ xcodegen
 5. Clean Shutdown: Ensure driver.quit() is called in a finally block to release resources.
 
 Refer to the official Selenium documentation for up-to-date APIs and best practices.
+
+# Linting and Code Quality
+
+- All code must pass SwiftLint with zero errors and no new warnings before pushing or releasing.
+- All linter violations must be fixed or explicitly justified in code review.
+- Do not push or release code with unresolved SwiftLint errors or warnings.

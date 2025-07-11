@@ -59,15 +59,15 @@ extension WebDriverService {
         guard let sessionId else { return }
         let sessionIdString = String(describing: sessionId)
         let endpoint = WebDriverService.shared.baseURL + "/session/" + sessionIdString + "/actions"
-        let x = Int.random(in: 0 ... 800)
-        let y = Int.random(in: 0 ... 600)
+        let pointerX = Int.random(in: 0 ... 800)
+        let pointerY = Int.random(in: 0 ... 600)
         let actions: [String: Any] = [
             "actions": [[
                 "type": "pointer",
                 "id": "mouse1",
                 "parameters": ["pointerType": "mouse"],
                 "actions": [
-                    ["type": "pointerMove", "duration": 300, "x": x, "y": y],
+                    ["type": "pointerMove", "duration": 300, "x": pointerX, "y": pointerY],
                 ],
             ]],
         ]
@@ -83,7 +83,7 @@ extension WebDriverService {
         guard let sessionId else { return }
         let sessionIdString = String(describing: sessionId)
         let endpoint = WebDriverService.shared.baseURL + "/session/" + sessionIdString + "/execute/sync"
-        let ua = userAgent ?? "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        let userAgentString = userAgent ?? "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         let lang = language?.components(separatedBy: ",").first ?? "en-US"
         let langs = language?.components(separatedBy: ",") ?? ["en-US", "en"]
         let script = """
@@ -103,7 +103,7 @@ extension WebDriverService {
                 : originalQuery(parameters);
             // User-Agent override
             Object.defineProperty(navigator, 'userAgent', {
-              get: () => '\(ua)'
+              get: () => '\(userAgentString)'
             });
             // WebGL fingerprint spoof
             const getParameter = WebGLRenderingContext.prototype.getParameter;
