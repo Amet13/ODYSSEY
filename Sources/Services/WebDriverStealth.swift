@@ -24,7 +24,7 @@ extension WebDriverService {
             let endpoint = WebDriverService.shared.baseURL + "/session/" + sessionIdString + "/element/" + elementIdString + "/value"
             let body: [String: Any] = [
                 "text": String(char),
-                "value": [String(char)],
+                "value": [String(char)]
             ]
             guard let request = createRequest(url: endpoint, method: "POST", body: body) else { continue }
             _ = try? await urlSession.data(for: request)
@@ -45,7 +45,7 @@ extension WebDriverService {
         """
         let body: [String: Any] = [
             "script": script,
-            "args": [],
+            "args": []
         ]
         guard let request = createRequest(url: endpoint, method: "POST", body: body) else { return }
         _ = try? await urlSession.data(for: request)
@@ -67,9 +67,9 @@ extension WebDriverService {
                 "id": "mouse1",
                 "parameters": ["pointerType": "mouse"],
                 "actions": [
-                    ["type": "pointerMove", "duration": 300, "x": pointerX, "y": pointerY],
-                ],
-            ]],
+                    ["type": "pointerMove", "duration": 300, "x": pointerX, "y": pointerY]
+                ]
+            ]]
         ]
         guard let request = createRequest(url: endpoint, method: "POST", body: actions) else { return }
         _ = try? await urlSession.data(for: request)
@@ -130,7 +130,7 @@ extension WebDriverService {
         """
         let body: [String: Any] = [
             "script": script,
-            "args": [],
+            "args": []
         ]
         guard let request = createRequest(url: endpoint, method: "POST", body: body) else { return }
         _ = try? await urlSession.data(for: request)

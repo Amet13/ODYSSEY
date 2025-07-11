@@ -46,7 +46,7 @@ fi
 # Lint Swift code before building
 if command -v swiftlint >/dev/null 2>&1; then
   echo "🧹 Linting Swift code with swiftlint..."
-  swiftlint lint --config Config/.swiftlint.yml || true
+  swiftlint lint --config Config/.swiftlint.yml --fix
 else
   echo "⚠️  swiftlint not found. Skipping linting."
 fi

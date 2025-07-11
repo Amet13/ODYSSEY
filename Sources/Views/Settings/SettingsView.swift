@@ -56,7 +56,7 @@ struct SettingsFormView: View {
                                 value: $userSettingsManager.userSettings.name,
                                 placeholder: "John Doe",
                                 icon: "person",
-                                maxLength: 30,
+                                maxLength: 30
                             )
 
                             settingsField(
@@ -64,7 +64,7 @@ struct SettingsFormView: View {
                                 value: $userSettingsManager.userSettings.phoneNumber,
                                 placeholder: "234567890",
                                 icon: "phone",
-                                maxLength: 10,
+                                maxLength: 10
                             )
 
                             if !userSettingsManager.userSettings.phoneNumber.isEmpty, !userSettingsManager.userSettings.isPhoneNumberValid {
@@ -87,7 +87,7 @@ struct SettingsFormView: View {
                                 title: userSettingsManager.userSettings.localized("Email Address"),
                                 value: $userSettingsManager.userSettings.imapEmail,
                                 placeholder: "my-email@my-domain.com",
-                                icon: "envelope",
+                                icon: "envelope"
                             )
 
                             if !userSettingsManager.userSettings.imapEmail.isEmpty, !userSettingsManager.userSettings.isEmailValid {
@@ -105,7 +105,7 @@ struct SettingsFormView: View {
                                 title: userSettingsManager.userSettings.localized("IMAP Server"),
                                 value: $userSettingsManager.userSettings.imapServer,
                                 placeholder: "mail.myserver.com",
-                                icon: "server.rack",
+                                icon: "server.rack"
                             )
 
                             settingsField(
@@ -113,7 +113,7 @@ struct SettingsFormView: View {
                                 value: $userSettingsManager.userSettings.imapPassword,
                                 placeholder: "my-password",
                                 icon: "lock",
-                                isSecure: true,
+                                isSecure: true
                             )
 
                             if userSettingsManager.userSettings.hasEmailConfigured {
@@ -133,7 +133,7 @@ struct SettingsFormView: View {
                                             let result = await emailService.testIMAPConnection(
                                                 email: userSettingsManager.userSettings.imapEmail,
                                                 password: userSettingsManager.userSettings.imapPassword,
-                                                server: userSettingsManager.userSettings.imapServer,
+                                                server: userSettingsManager.userSettings.imapServer
                                             )
                                             await MainActor.run {
                                                 emailService.lastTestResult = result
@@ -182,7 +182,7 @@ struct SettingsFormView: View {
                                     value: $userSettingsManager.userSettings.telegramBotToken,
                                     placeholder: "12345:AABBCCDDEEFFGG",
                                     icon: "key",
-                                    isSecure: true,
+                                    isSecure: true
                                 )
 
                                 if !userSettingsManager.userSettings.telegramBotToken.isEmpty, !userSettingsManager.userSettings.isTelegramBotTokenValid {
@@ -200,7 +200,7 @@ struct SettingsFormView: View {
                                     title: userSettingsManager.userSettings.localized("Chat ID"),
                                     value: $userSettingsManager.userSettings.telegramChatId,
                                     placeholder: "12345678",
-                                    icon: "number",
+                                    icon: "number"
                                 )
 
                                 if !userSettingsManager.userSettings.telegramChatId.isEmpty, !userSettingsManager.userSettings.isTelegramChatIdValid {
@@ -228,7 +228,7 @@ struct SettingsFormView: View {
                                         Task {
                                             let result = await telegramService.testIntegration(
                                                 botToken: userSettingsManager.userSettings.telegramBotToken,
-                                                chatId: userSettingsManager.userSettings.telegramChatId,
+                                                chatId: userSettingsManager.userSettings.telegramChatId
                                             )
                                             await MainActor.run {
                                                 telegramService.lastTestResult = result

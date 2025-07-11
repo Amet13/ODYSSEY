@@ -111,7 +111,7 @@ class ReservationManager: NSObject, ObservableObject {
 
     override private init() {
         super.init()
-        let _ = webDriverService // Force access to trigger WebDriverService init
+        _ = webDriverService // Force access to trigger WebDriverService init
         loadLastRunInfo()
     }
 

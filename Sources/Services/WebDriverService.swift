@@ -54,7 +54,7 @@ class WebDriverService: ObservableObject {
         let userAgents = [
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
         ]
         let userAgent = userAgents.randomElement() ?? userAgents[0]
         currentUserAgent = userAgent
@@ -273,7 +273,7 @@ class WebDriverService: ObservableObject {
             let closeWindowEndpoint = "\(baseURL)/session/\(sessionIdString)/window"
             if let closeRequest = createRequest(url: closeWindowEndpoint, method: "DELETE") {
                 do {
-                    let _ = try await urlSession.data(for: closeRequest)
+                    _ = try await urlSession.data(for: closeRequest)
                     logger.info("Closed current browser tab/window")
                 } catch {
                     logger.error("Error closing browser tab/window: \(error.localizedDescription)")
@@ -283,7 +283,7 @@ class WebDriverService: ObservableObject {
             let endpoint = "\(baseURL)/session/\(sessionIdString)"
             if let request = createRequest(url: endpoint, method: "DELETE") {
                 do {
-                    let _ = try await urlSession.data(for: request)
+                    _ = try await urlSession.data(for: request)
                 } catch {
                     logger.error("Error deleting session: \(error.localizedDescription)")
                 }
@@ -477,7 +477,7 @@ class WebDriverService: ObservableObject {
         let userAgents = [
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
         ]
         let languages = ["en-US,en", "en-GB,en", "fr-FR,fr"]
         let userAgent = userAgents.randomElement() ?? userAgents[0]
@@ -493,7 +493,7 @@ class WebDriverService: ObservableObject {
             "--disable-gpu",
             "--window-size=\(width),\(height)",
             "--user-agent=\(userAgent)",
-            "--lang=\(language)",
+            "--lang=\(language)"
         ]
 
         // Use W3C WebDriver protocol format
@@ -502,10 +502,10 @@ class WebDriverService: ObservableObject {
                 "alwaysMatch": [
                     "browserName": "chrome",
                     "goog:chromeOptions": [
-                        "args": args,
-                    ],
-                ],
-            ],
+                        "args": args
+                    ]
+                ]
+            ]
         ]
 
         guard let request = createRequest(url: endpoint, method: "POST", body: capabilities) else {
@@ -516,7 +516,7 @@ class WebDriverService: ObservableObject {
         do {
             let (data, response) = try await urlSession.data(for: request)
             let httpResponse = response as? HTTPURLResponse
-            let _ = httpResponse?.statusCode ?? 0
+            _ = httpResponse?.statusCode ?? 0
 
             let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
 
@@ -529,14 +529,12 @@ class WebDriverService: ObservableObject {
             }
             // Try value.sessionId (W3C format)
             else if let value = responseDict?["value"] as? [String: Any],
-                    let id = value["sessionId"] as? String
-            {
+                    let id = value["sessionId"] as? String {
                 sessionId = id
             }
             // Try value.session_id
             else if let value = responseDict?["value"] as? [String: Any],
-                    let id = value["session_id"] as? String
-            {
+                    let id = value["session_id"] as? String {
                 sessionId = id
             }
 
