@@ -14,7 +14,10 @@ A sophisticated macOS menu bar application that automates sports reservation boo
 - 🔄 **Multiple Configurations** - Set up different sports, facilities, and time slots
 - 📊 **Real-time Status** - See countdown to next autorun and current status
 - 📝 **Built-in Logs** - View automation logs directly in the app
-- 🎯 **Flexible Scheduling** - Choose specific days and multiple time slots per day
+- 🎯 **Flexible Scheduling** - Choose specific days and up to 2 time slots per day
+- 🚫 **Duplicate Prevention** - Automatic detection and prevention of duplicate times
+- 🧠 **Smart Time Selection** - Intelligent default time selection for second timeslot
+- 📊 **Sorted Preview** - Timeslots displayed in chronological order for clarity
 - 🔍 **Advanced Logging** - Comprehensive logging with os.log for debugging
 - 🛡️ **Code Quality** - SwiftLint integration and best practices enforcement
 
@@ -119,7 +122,8 @@ odyssey/
 ### Advanced Features
 
 - **Multiple Configurations** - Set up different sports and facilities
-- **Custom Scheduling** - Choose specific weekdays and multiple time slots
+- **Smart Scheduling** - Choose specific weekdays and up to 2 time slots per day
+- **Duplicate Prevention** - Automatic detection and prevention of duplicate times
 - **Auto-generated Names** - Configuration names are automatically generated
 - **Real-time Status** - See countdown to next autorun
 - **Manual Execution** - Run configurations immediately with the "Run" button

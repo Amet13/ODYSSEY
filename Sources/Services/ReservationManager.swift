@@ -3,8 +3,17 @@ import Foundation
 import os.log
 import WebKit
 
-/// Manages the automation of reservation bookings
-/// Handles web automation for Ottawa recreation facility reservations
+/// Manages the automation of reservation bookings for Ottawa recreation facilities
+/// 
+/// This class handles the complete web automation process including:
+/// - Web navigation to facility websites
+/// - Form automation and data entry
+/// - Slot selection and booking
+/// - Error handling and logging
+/// - Status tracking and user feedback
+/// 
+/// The manager uses WebKit for web automation and provides real-time status updates
+/// through ObservableObject protocol for SwiftUI integration.
 class ReservationManager: NSObject, ObservableObject {
     static let shared = ReservationManager()
     

@@ -18,8 +18,8 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: 12.0
     PRODUCT_BUNDLE_IDENTIFIER: com.odyssey.app
     PRODUCT_NAME: ODYSSEY
-    MARKETING_VERSION: 1.4.0
-    CURRENT_PROJECT_VERSION: 5
+    MARKETING_VERSION: 2.0.0
+    CURRENT_PROJECT_VERSION: 6
     INFOPLIST_FILE: ../Sources/App/Info.plist
     INFOPLIST_KEY_CFBundleDisplayName: ODYSSEY
     INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
@@ -99,8 +99,8 @@ targets:
       properties:
         CFBundleName: ODYSSEY
         CFBundleIdentifier: com.odyssey.app
-        CFBundleShortVersionString: 1.4.0
-        CFBundleVersion: 5
+        CFBundleShortVersionString: 2.0.0
+        CFBundleVersion: 6
         CFBundleDisplayName: ODYSSEY
         CFBundlePackageType: APPL
         CFBundleSignature: ????
@@ -127,8 +127,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.odyssey.app
         PRODUCT_NAME: ODYSSEY
-        MARKETING_VERSION: 1.4.0
-        CURRENT_PROJECT_VERSION: 5
+        MARKETING_VERSION: 2.0.0
+        CURRENT_PROJECT_VERSION: 6
         INFOPLIST_FILE: ../Sources/App/Info.plist
         INFOPLIST_KEY_CFBundleDisplayName: ODYSSEY
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities

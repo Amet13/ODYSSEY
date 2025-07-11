@@ -1,6 +1,16 @@
 import SwiftUI
 
 /// Detailed view for adding and editing reservation configurations
+/// 
+/// This view provides a comprehensive interface for creating and modifying reservation configurations.
+/// It includes validation for timeslot limits (maximum 2 per day) and duplicate prevention.
+/// 
+/// Key Features:
+/// - Facility URL validation and auto-detection
+/// - Sport selection with real-time facility data
+/// - Smart timeslot management with duplicate prevention
+/// - Auto-generated configuration names
+/// - Real-time preview of configuration
 struct ConfigurationDetailView: View {
     let config: ReservationConfig?
     let onSave: (ReservationConfig) -> Void
@@ -325,6 +335,15 @@ struct ConfigurationDetailView: View {
         }
     }
     
+    /// Adds a new timeslot for the specified day
+    /// 
+    /// This function implements smart timeslot management:
+    /// - First timeslot defaults to 6:00 PM
+    /// - Second timeslot uses intelligent time selection to avoid conflicts
+    /// - Maximum of 2 timeslots per day enforced
+    /// - Duplicate prevention ensures no overlapping times
+    /// 
+    /// - Parameter day: The weekday to add the timeslot to
     private func addTimeSlot(for day: ReservationConfig.Weekday) {
         if dayTimeSlots[day] == nil {
             // First timeslot - use 6:00 PM as default
@@ -338,6 +357,18 @@ struct ConfigurationDetailView: View {
         }
     }
     
+    /// Finds an available time for a second timeslot that doesn't conflict with existing times
+    /// 
+    /// This function implements intelligent time selection by trying preferred times in order:
+    /// 1. 6:00 PM (if not already taken)
+    /// 2. 7:00 PM (if not already taken)
+    /// 3. 5:00 PM (if not already taken)
+    /// 4. 8:00 PM (if not already taken)
+    /// 5. 4:00 PM (if not already taken)
+    /// 6. Any available hour between 9 AM and 10 PM
+    /// 
+    /// - Parameter day: The weekday to find an available time for
+    /// - Returns: A Date representing the available time, or nil if no time is available
     private func findAvailableTime(for day: ReservationConfig.Weekday) -> Date? {
         guard let existingSlots = dayTimeSlots[day] else { return nil }
         
@@ -374,6 +405,15 @@ struct ConfigurationDetailView: View {
         return nil
     }
     
+    /// Checks if a given time would create a duplicate with existing timeslots for the specified day
+    /// 
+    /// This function compares times by hour and minute only, ignoring seconds and date components
+    /// to ensure accurate duplicate detection for scheduling purposes.
+    /// 
+    /// - Parameters:
+    ///   - time: The time to check for duplicates
+    ///   - day: The weekday to check against
+    /// - Returns: True if the time would be a duplicate, false otherwise
     private func isTimeDuplicate(_ time: Date, for day: ReservationConfig.Weekday) -> Bool {
         guard let existingSlots = dayTimeSlots[day] else { return false }
         

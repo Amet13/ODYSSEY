@@ -5,6 +5,31 @@ All notable changes to ODYSSEY will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2024-12-19
+
+### Added
+
+- **Timeslot Management Improvements**: Enhanced timeslot configuration with intelligent limits and validation
+- **2-Slot Limit**: Maximum 2 timeslots per day to prevent overbooking
+- **Duplicate Prevention**: Automatic detection and prevention of duplicate times on the same day
+- **Smart Time Selection**: Intelligent default time selection for second timeslot (avoids conflicts)
+- **Sorted Preview**: Timeslots in preview are now sorted by day and time for better readability
+- **Enhanced UI Feedback**: Clear messaging about limits and helpful tooltips
+
+### Changed
+
+- **Configuration Interface**: Improved timeslot editor with better validation and user feedback
+- **Preview Display**: Timeslots are now properly sorted chronologically within each day
+- **User Experience**: More intuitive timeslot management with clear visual indicators
+- **Code Quality**: Improved code organization and error handling in timeslot management
+
+### Technical Improvements
+
+- **Validation Logic**: Robust duplicate detection using hour/minute comparison
+- **Smart Defaults**: Intelligent time selection algorithm for second timeslot
+- **UI Consistency**: Consistent button states and tooltips throughout the interface
+- **Performance**: Optimized timeslot operations and preview rendering
+
 ## [1.4.0] - 2024-07-10
 
 ### Changed

@@ -2,6 +2,11 @@ import SwiftUI
 import UserNotifications
 import os.log
 
+/// Main application entry point for ODYSSEY
+/// 
+/// ODYSSEY is a macOS menu bar application that automates sports reservation bookings
+/// for Ottawa Recreation facilities. It runs quietly in the background and automatically
+/// books preferred sports slots at optimal times.
 @main
 struct ODYSSEYApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -14,6 +19,9 @@ struct ODYSSEYApp: App {
 }
 
 /// App delegate to handle macOS-specific functionality
+/// 
+/// Manages the application lifecycle, status bar integration, and automated scheduling.
+/// Handles background timer setup for reservation automation and notification permissions.
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusBarController: StatusBarController?
     private var timer: Timer?
