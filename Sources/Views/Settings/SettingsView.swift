@@ -1,5 +1,5 @@
-import SwiftUI
 import os.log
+import SwiftUI
 
 /// Settings view for configuring user information and integration settings
 struct SettingsView: View {
@@ -12,9 +12,8 @@ struct SettingsView: View {
     @State private var showingValidationAlert = false
     @State private var validationMessage = ""
 
-    
     private let logger = Logger(subsystem: "com.odyssey.app", category: "SettingsView")
-    
+
     var body: some View {
         VStack(spacing: 0) {
             // Header
@@ -36,9 +35,9 @@ struct SettingsView: View {
             }
             .padding()
             .background(Color(NSColor.controlBackgroundColor))
-            
+
             Divider()
-            
+
             // Content
             ScrollView {
                 VStack(spacing: 24) {
@@ -51,7 +50,7 @@ struct SettingsView: View {
                                 placeholder: "John Doe",
                                 icon: "person"
                             )
-                            
+
                             settingsField(
                                 title: "Phone Number",
                                 value: $userSettingsManager.userSettings.phoneNumber,
@@ -59,7 +58,7 @@ struct SettingsView: View {
                                 icon: "phone",
                                 maxLength: 10
                             )
-                            
+
                             if !userSettingsManager.userSettings.phoneNumber.isEmpty && !userSettingsManager.userSettings.isPhoneNumberValid {
                                 HStack {
                                     Image(systemName: "exclamationmark.triangle.fill")
@@ -82,7 +81,7 @@ struct SettingsView: View {
                                 placeholder: "my-email@my-domain.com",
                                 icon: "envelope"
                             )
-                            
+
                             if !userSettingsManager.userSettings.imapEmail.isEmpty && !userSettingsManager.userSettings.isEmailValid {
                                 HStack {
                                     Image(systemName: "exclamationmark.triangle.fill")
@@ -93,14 +92,14 @@ struct SettingsView: View {
                                     Spacer()
                                 }
                             }
-                            
+
                             settingsField(
                                 title: "IMAP Server",
                                 value: $userSettingsManager.userSettings.imapServer,
                                 placeholder: "mail.myserver.com",
                                 icon: "server.rack"
                             )
-                            
+
                             settingsField(
                                 title: "Password",
                                 value: $userSettingsManager.userSettings.imapPassword,
@@ -108,7 +107,7 @@ struct SettingsView: View {
                                 icon: "lock",
                                 isSecure: true
                             )
-                            
+
                             if userSettingsManager.userSettings.hasEmailConfigured {
                                 VStack(spacing: 8) {
                                     HStack {
@@ -119,7 +118,7 @@ struct SettingsView: View {
                                             .foregroundColor(.secondary)
                                         Spacer()
                                     }
-                                    
+
                                     Button("Test IMAP Connection") {
                                         emailService.lastTestResult = nil
                                         Task {
@@ -137,7 +136,7 @@ struct SettingsView: View {
                                     .tint(.blue)
                                     .disabled(emailService.isTesting)
                                     .help("Test IMAP connection and fetch latest email")
-                                    
+
                                     if emailService.isTesting {
                                         HStack {
                                             ProgressView()
@@ -169,7 +168,7 @@ struct SettingsView: View {
                         VStack(spacing: 16) {
                             Toggle("Enable Telegram Integration", isOn: $userSettingsManager.userSettings.telegramEnabled)
                                 .help("Enable or disable Telegram notifications")
-                            
+
                             if userSettingsManager.userSettings.telegramEnabled {
                                 settingsField(
                                     title: "Bot Token",
@@ -178,7 +177,7 @@ struct SettingsView: View {
                                     icon: "key",
                                     isSecure: true
                                 )
-                                
+
                                 if !userSettingsManager.userSettings.telegramBotToken.isEmpty && !userSettingsManager.userSettings.isTelegramBotTokenValid {
                                     HStack {
                                         Image(systemName: "exclamationmark.triangle.fill")
@@ -189,14 +188,14 @@ struct SettingsView: View {
                                         Spacer()
                                     }
                                 }
-                                
+
                                 settingsField(
                                     title: "Chat ID",
                                     value: $userSettingsManager.userSettings.telegramChatId,
                                     placeholder: "12345678",
                                     icon: "number"
                                 )
-                                
+
                                 if !userSettingsManager.userSettings.telegramChatId.isEmpty && !userSettingsManager.userSettings.isTelegramChatIdValid {
                                     HStack {
                                         Image(systemName: "exclamationmark.triangle.fill")
@@ -207,7 +206,7 @@ struct SettingsView: View {
                                         Spacer()
                                     }
                                 }
-                                
+
                                 if userSettingsManager.userSettings.hasTelegramConfigured {
                                     VStack(spacing: 8) {
                                         HStack {
@@ -218,7 +217,7 @@ struct SettingsView: View {
                                                 .foregroundColor(.secondary)
                                             Spacer()
                                         }
-                                        
+
                                         Button("Test Telegram Connection") {
                                             Task {
                                                 let result = await telegramService.testIntegration(
@@ -234,7 +233,7 @@ struct SettingsView: View {
                                         .tint(.blue)
                                         .disabled(telegramService.isTesting)
                                         .help("Send a test message to verify Telegram integration")
-                                        
+
                                         if telegramService.isTesting {
                                             HStack {
                                                 ProgressView()
@@ -245,7 +244,7 @@ struct SettingsView: View {
                                                 Spacer()
                                             }
                                         }
-                                        
+
                                         if let result = telegramService.lastTestResult {
                                             HStack {
                                                 Image(systemName: result.isSuccess ? "checkmark.circle.fill" : "xmark.circle.fill")
@@ -258,34 +257,30 @@ struct SettingsView: View {
                                         }
                                     }
                                 }
-
                             }
                         }
                     }
-                    
-
                 }
                 .padding()
             }
         }
         .frame(width: 500, height: 600)
         .alert("Settings Saved", isPresented: $showingSaveConfirmation) {
-            Button("OK") { 
+            Button("OK") {
                 dismiss()
             }
         } message: {
             Text("Your settings have been saved successfully.")
         }
         .alert("Validation Error", isPresented: $showingValidationAlert) {
-            Button("OK") { }
+            Button("OK") {}
         } message: {
             Text(validationMessage)
         }
-
     }
-    
+
     // MARK: - Helper Views
-    
+
     private func settingsSection<Content: View>(title: String, icon: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -295,14 +290,14 @@ struct SettingsView: View {
                     .font(.headline)
                 Spacer()
             }
-            
+
             content()
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
         .cornerRadius(8)
     }
-    
+
     private func settingsField(title: String, value: Binding<String>, placeholder: String, icon: String, isSecure: Bool = false, maxLength: Int? = nil) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
@@ -314,7 +309,7 @@ struct SettingsView: View {
                     .fontWeight(.medium)
                 Spacer()
             }
-            
+
             if isSecure {
                 SecureField(placeholder, text: value)
                     .textFieldStyle(.roundedBorder)
@@ -334,9 +329,9 @@ struct SettingsView: View {
             }
         }
     }
-    
+
     // MARK: - Actions
-    
+
     private func saveSettings() {
         // Validate required fields
         if userSettingsManager.userSettings.name.isEmpty {
@@ -344,43 +339,43 @@ struct SettingsView: View {
             showingValidationAlert = true
             return
         }
-        
+
         if userSettingsManager.userSettings.phoneNumber.isEmpty {
             validationMessage = "Please enter your phone number."
             showingValidationAlert = true
             return
         }
-        
+
         if !userSettingsManager.userSettings.isPhoneNumberValid {
             validationMessage = "Phone number must be exactly 10 digits."
             showingValidationAlert = true
             return
         }
-        
+
         if userSettingsManager.userSettings.imapEmail.isEmpty {
             validationMessage = "Please enter your email address."
             showingValidationAlert = true
             return
         }
-        
+
         if !userSettingsManager.userSettings.isEmailValid {
             validationMessage = "Please enter a valid email address."
             showingValidationAlert = true
             return
         }
-        
+
         if userSettingsManager.userSettings.imapServer.isEmpty {
             validationMessage = "Please enter your IMAP server address."
             showingValidationAlert = true
             return
         }
-        
+
         if userSettingsManager.userSettings.imapPassword.isEmpty {
             validationMessage = "Please enter your email password."
             showingValidationAlert = true
             return
         }
-        
+
         // Validate Telegram settings if enabled
         if userSettingsManager.userSettings.telegramEnabled {
             if userSettingsManager.userSettings.telegramBotToken.isEmpty {
@@ -388,27 +383,27 @@ struct SettingsView: View {
                 showingValidationAlert = true
                 return
             }
-            
+
             if !userSettingsManager.userSettings.isTelegramBotTokenValid {
                 validationMessage = "Invalid bot token format. Expected format: number:letters"
                 showingValidationAlert = true
                 return
             }
-            
+
             if userSettingsManager.userSettings.telegramChatId.isEmpty {
                 validationMessage = "Please enter your Telegram chat ID."
                 showingValidationAlert = true
                 return
             }
-            
+
             if !userSettingsManager.userSettings.isTelegramChatIdValid {
                 validationMessage = "Telegram Chat ID can only contain numbers."
                 showingValidationAlert = true
                 return
             }
         }
-        
+
         // Settings are automatically saved by UserSettingsManager
         // No confirmation dialog needed
     }
-} 
+}

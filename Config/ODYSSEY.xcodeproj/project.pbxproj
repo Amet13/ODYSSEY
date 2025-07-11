@@ -347,7 +347,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "";
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_APP_SANDBOX = NO;
@@ -380,7 +380,7 @@
 				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_recreation.ottawa.ca_NSIncludesSubdomains = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Amet13. All rights reserved.";
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -431,7 +431,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "";
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_APP_SANDBOX = NO;
@@ -464,7 +464,7 @@
 				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_recreation.ottawa.ca_NSIncludesSubdomains = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Amet13. All rights reserved.";
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.odyssey.app;

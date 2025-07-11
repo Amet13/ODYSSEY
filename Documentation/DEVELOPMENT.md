@@ -625,3 +625,22 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 ---
 
 **Happy coding! 🚀**
+
+## Code Formatting
+
+ODYSSEY uses [swiftformat](https://github.com/nicklockwood/SwiftFormat) for automatic Swift code formatting.
+
+- All code is auto-formatted before every build (see `Scripts/build.sh`).
+- To format manually, run:
+
+```sh
+swiftformat .
+```
+
+- If you don't have swiftformat, install it with:
+
+```sh
+brew install swiftformat
+```
+
+- Formatting is enforced for all contributions. Please ensure your code is formatted before submitting a PR.
