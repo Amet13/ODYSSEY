@@ -1,10 +1,10 @@
 import SwiftUI
 
 /// Detailed view for adding and editing reservation configurations
-/// 
+///
 /// This view provides a comprehensive interface for creating and modifying reservation configurations.
 /// It includes validation for timeslot limits (maximum 2 per day) and duplicate prevention.
-/// 
+///
 /// Key Features:
 /// - Facility URL validation and auto-detection
 /// - Sport selection with real-time facility data
@@ -14,9 +14,9 @@ import SwiftUI
 struct ConfigurationDetailView: View {
     let config: ReservationConfig?
     let onSave: (ReservationConfig) -> Void
-    
+
     @Environment(\.dismiss) private var dismiss
-    
+
     @State private var name: String = ""
     @State private var facilityURL: String = ""
     @State private var sportName: String = ""
@@ -27,10 +27,10 @@ struct ConfigurationDetailView: View {
     @State private var showingSportsPicker = false
     @State private var availableSports: [String] = []
     @State private var isFetchingSports = false
-    
+
     @State private var showingValidationAlert = false
     @State private var validationMessage = ""
-    
+
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
@@ -77,7 +77,6 @@ struct ConfigurationDetailView: View {
                                             }
                                         }
                                     }
-
                                 }
                             } label: {
                                 HStack {
@@ -169,7 +168,7 @@ struct ConfigurationDetailView: View {
                                 .padding(.vertical, 8)
                         } else {
                             let weekdayOrder: [ReservationConfig.Weekday] = [
-                                .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday
+                                .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday,
                             ]
                             ForEach(Array(dayTimeSlots.keys.sorted { lhs, rhs in
                                 weekdayOrder.firstIndex(of: lhs)! < weekdayOrder.firstIndex(of: rhs)!
@@ -202,7 +201,7 @@ struct ConfigurationDetailView: View {
                         Text("People: \(numberOfPeople)")
                         if !dayTimeSlots.isEmpty {
                             let weekdayOrder: [ReservationConfig.Weekday] = [
-                                .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday
+                                .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday,
                             ]
                             let sortedDays = dayTimeSlots.keys.sorted { lhs, rhs in
                                 weekdayOrder.firstIndex(of: lhs)! < weekdayOrder.firstIndex(of: rhs)!
@@ -246,7 +245,7 @@ struct ConfigurationDetailView: View {
         .frame(width: 440, height: 560)
         .navigationTitle(config == nil ? "Add Reservation Configuration" : "Edit Reservation Configuration")
         .alert("Validation Error", isPresented: $showingValidationAlert) {
-            Button("OK") { }
+            Button("OK") {}
         } message: {
             Text(validationMessage)
         }
@@ -259,23 +258,23 @@ struct ConfigurationDetailView: View {
             })
         }
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func loadConfiguration() {
         guard let config = config else { return }
-        
+
         name = config.name
         facilityURL = config.facilityURL
         sportName = config.sportName
         numberOfPeople = config.numberOfPeople
         isEnabled = config.isEnabled
         dayTimeSlots = config.dayTimeSlots.isEmpty ? [:] : config.dayTimeSlots
-        
+
         // Update the configuration name after loading
         updateConfigurationName()
     }
-    
+
     private func saveConfiguration() {
         let newConfig = ReservationConfig(
             id: config?.id ?? UUID(),
@@ -286,47 +285,48 @@ struct ConfigurationDetailView: View {
             isEnabled: isEnabled,
             dayTimeSlots: dayTimeSlots
         )
-        
+
         onSave(newConfig)
         dismiss()
     }
-    
+
     private var isValidConfiguration: Bool {
-        !name.isEmpty && 
-        isValidFacilityURL(facilityURL) && 
-        !sportName.isEmpty &&
-        !dayTimeSlots.isEmpty
+        !name.isEmpty &&
+            isValidFacilityURL(facilityURL) &&
+            !sportName.isEmpty &&
+            !dayTimeSlots.isEmpty
     }
-    
+
     private func isValidFacilityURL(_ url: String) -> Bool {
         let pattern = #"^https://reservation\.frontdesksuite\.ca/rcfs/[^/]+/?$"#
         return url.range(of: pattern, options: .regularExpression) != nil
     }
-    
+
     private func extractFacilityName(from url: String) -> String {
         let pattern = #"https://reservation\.frontdesksuite\.ca/rcfs/([^/]+)"#
         if let regex = try? NSRegularExpression(pattern: pattern),
-           let match = regex.firstMatch(in: url, range: NSRange(url.startIndex..., in: url)) {
+           let match = regex.firstMatch(in: url, range: NSRange(url.startIndex..., in: url))
+        {
             let facilityRange = Range(match.range(at: 1), in: url)!
             let facilityName = String(url[facilityRange])
             return facilityName.capitalized
         }
         return ""
     }
-    
+
     private func updateConfigurationName() {
         // Auto-generate configuration name
         let facilityName = extractFacilityName(from: facilityURL)
         let peopleText = "\(numberOfPeople)pp"
         name = "\(facilityName) - \(sportName) (\(peopleText))"
     }
-    
+
     private func fetchAvailableSports() {
         guard !facilityURL.isEmpty && isValidFacilityURL(facilityURL) else { return }
-        
+
         isFetchingSports = true
         availableSports = []
-        
+
         FacilityService.shared.fetchAvailableSports(from: facilityURL) { sports in
             DispatchQueue.main.async {
                 self.isFetchingSports = false
@@ -334,15 +334,15 @@ struct ConfigurationDetailView: View {
             }
         }
     }
-    
+
     /// Adds a new timeslot for the specified day
-    /// 
+    ///
     /// This function implements smart timeslot management:
     /// - First timeslot defaults to 6:00 PM
     /// - Second timeslot uses intelligent time selection to avoid conflicts
     /// - Maximum of 2 timeslots per day enforced
     /// - Duplicate prevention ensures no overlapping times
-    /// 
+    ///
     /// - Parameter day: The weekday to add the timeslot to
     private func addTimeSlot(for day: ReservationConfig.Weekday) {
         if dayTimeSlots[day] == nil {
@@ -356,9 +356,9 @@ struct ConfigurationDetailView: View {
             }
         }
     }
-    
+
     /// Finds an available time for a second timeslot that doesn't conflict with existing times
-    /// 
+    ///
     /// This function implements intelligent time selection by trying preferred times in order:
     /// 1. 6:00 PM (if not already taken)
     /// 2. 7:00 PM (if not already taken)
@@ -366,21 +366,21 @@ struct ConfigurationDetailView: View {
     /// 4. 8:00 PM (if not already taken)
     /// 5. 4:00 PM (if not already taken)
     /// 6. Any available hour between 9 AM and 10 PM
-    /// 
+    ///
     /// - Parameter day: The weekday to find an available time for
     /// - Returns: A Date representing the available time, or nil if no time is available
     private func findAvailableTime(for day: ReservationConfig.Weekday) -> Date? {
         guard let existingSlots = dayTimeSlots[day] else { return nil }
-        
+
         let calendar = Calendar.current
         let defaultTimes = [
-            DateComponents(hour: 18, minute: 0),  // 6:00 PM
-            DateComponents(hour: 19, minute: 0),  // 7:00 PM
-            DateComponents(hour: 17, minute: 0),  // 5:00 PM
-            DateComponents(hour: 20, minute: 0),  // 8:00 PM
-            DateComponents(hour: 16, minute: 0),  // 4:00 PM
+            DateComponents(hour: 18, minute: 0), // 6:00 PM
+            DateComponents(hour: 19, minute: 0), // 7:00 PM
+            DateComponents(hour: 17, minute: 0), // 5:00 PM
+            DateComponents(hour: 20, minute: 0), // 8:00 PM
+            DateComponents(hour: 16, minute: 0), // 4:00 PM
         ]
-        
+
         for timeComponents in defaultTimes {
             if let newTime = calendar.date(from: timeComponents) {
                 if !isTimeDuplicate(newTime, for: day) {
@@ -388,50 +388,51 @@ struct ConfigurationDetailView: View {
                 }
             }
         }
-        
+
         // If all default times are taken, find the next available hour
         let existingHours = existingSlots.compactMap { slot in
             calendar.dateComponents([.hour], from: slot.time).hour
         }
-        
-        for hour in 9...22 { // 9 AM to 10 PM
+
+        for hour in 9 ... 22 { // 9 AM to 10 PM
             if !existingHours.contains(hour) {
                 if let newTime = calendar.date(from: DateComponents(hour: hour, minute: 0)) {
                     return newTime
                 }
             }
         }
-        
+
         return nil
     }
-    
+
     /// Checks if a given time would create a duplicate with existing timeslots for the specified day
-    /// 
+    ///
     /// This function compares times by hour and minute only, ignoring seconds and date components
     /// to ensure accurate duplicate detection for scheduling purposes.
-    /// 
+    ///
     /// - Parameters:
     ///   - time: The time to check for duplicates
     ///   - day: The weekday to check against
     /// - Returns: True if the time would be a duplicate, false otherwise
     private func isTimeDuplicate(_ time: Date, for day: ReservationConfig.Weekday) -> Bool {
         guard let existingSlots = dayTimeSlots[day] else { return false }
-        
+
         let calendar = Calendar.current
         let newTimeComponents = calendar.dateComponents([.hour, .minute], from: time)
-        
+
         return existingSlots.contains { existingSlot in
             let existingTimeComponents = calendar.dateComponents([.hour, .minute], from: existingSlot.time)
-            return newTimeComponents.hour == existingTimeComponents.hour && 
-                   newTimeComponents.minute == existingTimeComponents.minute
+            return newTimeComponents.hour == existingTimeComponents.hour &&
+                newTimeComponents.minute == existingTimeComponents.minute
         }
     }
+
     private func removeTimeSlot(for day: ReservationConfig.Weekday, at index: Int) {
         if (dayTimeSlots[day]?.count ?? 0) > 1 {
             dayTimeSlots[day]?.remove(at: index)
         }
     }
-    
+
     private func removeDay(_ day: ReservationConfig.Weekday) {
         dayTimeSlots.removeValue(forKey: day)
     }
@@ -443,17 +444,17 @@ struct DayPickerView: View {
     let selectedDays: Set<ReservationConfig.Weekday>
     let onAdd: (ReservationConfig.Weekday) -> Void
     @Environment(\.dismiss) private var dismiss
-    
+
     var availableDays: [ReservationConfig.Weekday] {
         ReservationConfig.Weekday.allCases.filter { !selectedDays.contains($0) }
     }
-    
+
     var body: some View {
         VStack {
             Text("Add Day")
                 .font(.headline)
                 .padding()
-            
+
             List(availableDays, id: \.self) { day in
                 Button(action: {
                     onAdd(day)
@@ -469,7 +470,7 @@ struct DayPickerView: View {
                 }
                 .buttonStyle(.bordered)
             }
-            
+
             HStack {
                 Spacer()
                 Button("Cancel") {
@@ -511,7 +512,7 @@ struct DayTimeSlotEditor: View {
                 .buttonStyle(.bordered)
                 .tint(.red)
             }
-            ForEach(Array(slots.enumerated().sorted { $0.element.time < $1.element.time }), id: \.element.id) { index, timeSlot in
+            ForEach(Array(slots.enumerated().sorted { $0.element.time < $1.element.time }), id: \.element.id) { index, _ in
                 HStack {
                     DatePicker("", selection: Binding(
                         get: { slots[index].time },
@@ -519,20 +520,20 @@ struct DayTimeSlotEditor: View {
                             // Check if the new time would create a duplicate with other slots
                             let calendar = Calendar.current
                             let newTimeComponents = calendar.dateComponents([.hour, .minute], from: newTime)
-                            
+
                             let isDuplicate = slots.enumerated().contains { otherIndex, otherSlot in
                                 guard otherIndex != index else { return false }
                                 let otherTimeComponents = calendar.dateComponents([.hour, .minute], from: otherSlot.time)
-                                return newTimeComponents.hour == otherTimeComponents.hour && 
-                                       newTimeComponents.minute == otherTimeComponents.minute
+                                return newTimeComponents.hour == otherTimeComponents.hour &&
+                                    newTimeComponents.minute == otherTimeComponents.minute
                             }
-                            
+
                             if !isDuplicate {
                                 slots[index] = TimeSlot(time: newTime)
                             }
                         }
                     ), displayedComponents: .hourAndMinute)
-                    .labelsHidden()
+                        .labelsHidden()
                     Button(action: { onRemove(index) }) {
                         Image(systemName: "minus.circle.fill")
                     }
@@ -548,4 +549,4 @@ struct DayTimeSlotEditor: View {
 
 #Preview {
     ConfigurationDetailView(config: nil) { _ in }
-} 
+}

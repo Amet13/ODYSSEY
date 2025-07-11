@@ -4,21 +4,21 @@ import Foundation
 /// Represents all settings needed to automate a reservation at an Ottawa recreation facility
 struct ReservationConfig: Codable, Identifiable {
     var id: UUID
-    
+
     // Basic settings
     var name: String
     var facilityURL: String
     var sportName: String
     var numberOfPeople: Int = 1
-    
+
     // Scheduling
     var isEnabled: Bool = true
-    
+
     // Time preferences
     var dayTimeSlots: [Weekday: [TimeSlot]] = [:]
-    
+
     // MARK: - Initializers
-    
+
     /// Creates a new reservation configuration
     /// - Parameters:
     ///   - id: Unique identifier (auto-generated if not provided)
@@ -45,9 +45,9 @@ struct ReservationConfig: Codable, Identifiable {
         self.isEnabled = isEnabled
         self.dayTimeSlots = dayTimeSlots
     }
-    
+
     // MARK: - Weekday Enum
-    
+
     /// Represents days of the week for scheduling
     enum Weekday: String, CaseIterable, Codable {
         case sunday = "Sunday"
@@ -57,12 +57,12 @@ struct ReservationConfig: Codable, Identifiable {
         case thursday = "Thursday"
         case friday = "Friday"
         case saturday = "Saturday"
-        
+
         /// Three-letter abbreviation (e.g., "Mon", "Tue")
         var shortName: String {
             String(rawValue.prefix(3))
         }
-        
+
         /// Calendar weekday number (1 = Sunday, 2 = Monday, etc.)
         var calendarWeekday: Int {
             switch self {
@@ -78,14 +78,15 @@ struct ReservationConfig: Codable, Identifiable {
     }
 
     // MARK: - Utility Methods
-    
+
     /// Extracts facility name from a reservation URL
     /// - Parameter url: The facility URL
     /// - Returns: Capitalized facility name or empty string if not found
     static func extractFacilityName(from url: String) -> String {
         let pattern = #"https://reservation\.frontdesksuite\.ca/rcfs/([^/]+)"#
         if let regex = try? NSRegularExpression(pattern: pattern),
-           let match = regex.firstMatch(in: url, range: NSRange(url.startIndex..., in: url)) {
+           let match = regex.firstMatch(in: url, range: NSRange(url.startIndex..., in: url))
+        {
             let facilityRange = Range(match.range(at: 1), in: url)!
             let facilityName = String(url[facilityRange])
             return facilityName.capitalized
@@ -98,18 +99,18 @@ struct ReservationConfig: Codable, Identifiable {
 struct TimeSlot: Codable, Identifiable, Hashable {
     var id: UUID
     var time: Date
-    
+
     /// Creates a new time slot
     /// - Parameter time: The time for this slot
     init(time: Date) {
-        self.id = UUID()
+        id = UUID()
         self.time = time
     }
-    
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
-    
+
     static func == (lhs: TimeSlot, rhs: TimeSlot) -> Bool {
         lhs.id == rhs.id
     }
@@ -122,7 +123,7 @@ struct AppSettings: Codable {
     var notificationsEnabled: Bool = true
     var autoStart: Bool = false
     var logLevel: LogLevel = .info
-    
+
     /// Logging levels for the application
     enum LogLevel: String, CaseIterable, Codable {
         case debug = "Debug"
@@ -130,4 +131,4 @@ struct AppSettings: Codable {
         case warning = "Warning"
         case error = "Error"
     }
-} 
+}

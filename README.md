@@ -56,12 +56,49 @@ A sophisticated macOS menu bar application that automates sports reservation boo
 - 📊 **Sorted Preview** - Timeslots displayed in chronological order for clarity
 - 🔍 **Advanced Logging** - Comprehensive logging with os.log for debugging
 - 🛡️ **Code Quality** - SwiftLint integration and best practices enforcement
+- 🕵️‍♂️ **Incognito Run (Requires Chrome)** - The "Run" button opens your configuration in a new Google Chrome incognito window for manual verification. **Google Chrome must be installed.**
 
 ## 📋 Requirements
 
 - **macOS 12.0** or later
 - **Xcode 14.0** or later (for development)
 - **Swift 5.7** or later
+- **Google Chrome** (for automation)
+- **ChromeDriver** (required for web automation)
+
+### 🔧 Required Setup
+
+#### 1. Install ChromeDriver
+
+```bash
+# Install ChromeDriver via Homebrew
+brew install chromedriver
+```
+
+#### 2. Configure Security Settings
+
+**Important:** ODYSSEY requires specific permissions to automate Chrome browser actions.
+
+1. **Open System Settings** → **Privacy & Security**
+2. **Add ChromeDriver to Full Disk Access:**
+   - Click **Full Disk Access** → **+** button
+   - Navigate to `/opt/homebrew/bin/chromedriver`
+   - Select and add ChromeDriver
+3. **Add ODYSSEY to Automation:**
+   - Click **Automation** → **+** button
+   - Find and select **ODYSSEY** from Applications
+   - Enable **System Events** and **Google Chrome**
+4. **Optional - Add to Accessibility:**
+   - Click **Accessibility** → **+** button
+   - Add both **ODYSSEY** and **ChromeDriver**
+
+**Why these permissions?**
+
+- **Full Disk Access:** Allows ChromeDriver to launch Chrome browser
+- **Automation:** Enables ODYSSEY to control Chrome for web automation
+- **Accessibility:** Provides additional automation capabilities
+
+**Note:** Without these permissions, automation will fail and ChromeDriver may be terminated by macOS security.
 
 ## 🚀 Quick Start
 
@@ -70,6 +107,8 @@ A sophisticated macOS menu bar application that automates sports reservation boo
     <img src="https://img.shields.io/badge/Download-v2.0.0-blue?style=for-the-badge&logo=apple" alt="Download v2.0.0">
   </a>
 </div>
+
+> **Note:** Google Chrome must be installed for the "Run" button (incognito mode) to work.
 
 1. **Download** the latest release from [Releases](https://github.com/Amet13/ODYSSEY/releases)
 2. **Install** by dragging to Applications folder
@@ -178,6 +217,99 @@ odyssey/
 - **Real-time Status** - See countdown to next autorun
 - **Manual Execution** - Run configurations immediately with the "Run" button
 - **Built-in Logging** - View detailed logs within the app
+- **📱 Telegram Integration** - Receive notifications and test messages via Telegram bot
+
+### 📱 Telegram Integration
+
+ODYSSEY supports Telegram integration for notifications and test messages. This feature allows you to receive updates about your automation status and test the integration.
+
+#### Setting Up Telegram Integration
+
+##### 1. Create a Telegram Bot
+
+1. **Open Telegram** and search for `@BotFather`
+2. **Start a chat** with BotFather by clicking "Start"
+3. **Send the command** `/newbot`
+4. **Choose a name** for your bot (e.g., "ODYSSEY Notifications")
+5. **Choose a username** for your bot (must end with "bot", e.g., "odyssey_notifications_bot")
+6. **Copy the bot token** - BotFather will send you a message like:
+   ```
+   Use this token to access the HTTP API:
+   1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
+   ```
+   **⚠️ Keep this token secure - don't share it publicly!**
+
+##### 2. Get Your Chat ID
+
+**Method 1: Using @userinfobot (Recommended)**
+
+1. **Search for** `@userinfobot` in Telegram
+2. **Start a chat** with the bot
+3. **Send any message** to the bot
+4. **Copy your Chat ID** from the response (it will be a number like `123456789`)
+
+**Method 2: Using @RawDataBot**
+
+1. **Search for** `@RawDataBot` in Telegram
+2. **Start a chat** with the bot
+3. **Send any message** to the bot
+4. **Look for** `"id": 123456789` in the response
+5. **Copy the number** after `"id":`
+
+**Method 3: For Group Chats**
+
+1. **Add your bot** to the group where you want notifications
+2. **Send a message** in the group
+3. **Use @RawDataBot** to get the group's Chat ID (will be negative, like `-123456789`)
+
+##### 3. Configure in ODYSSEY
+
+1. **Open ODYSSEY** and click the menu bar icon
+2. **Click "Settings"** to open the settings panel
+3. **Scroll to "Telegram Integration"** section
+4. **Toggle "Enable Telegram Integration"** to ON
+5. **Enter your Bot Token** (the long string from BotFather)
+6. **Enter your Chat ID** (the number from step 2)
+7. **Click "Test Telegram Integration"** to verify the setup
+8. **You should receive** a test message in Telegram
+
+#### Telegram Integration Features
+
+- **✅ Test Integration** - Send test messages to verify your setup
+- **🔔 Notifications** - Receive updates about automation status (coming soon)
+- **📱 Mobile Access** - Check status from anywhere via Telegram
+- **🔒 Secure** - Uses Telegram's official Bot API
+- **⚡ Real-time** - Instant message delivery
+
+#### Troubleshooting Telegram Integration
+
+**"Test failed: Unauthorized"**
+
+- Check that your bot token is correct
+- Ensure you copied the entire token from BotFather
+
+**"Test failed: Chat not found"**
+
+- Verify your Chat ID is correct
+- Make sure you've started a chat with your bot
+- For group chats, ensure the bot is added to the group
+
+**"Test failed: Forbidden"**
+
+- The bot doesn't have permission to send messages
+- Start a chat with your bot first by sending `/start`
+
+**"Network error"**
+
+- Check your internet connection
+- Ensure ODYSSEY has network permissions
+
+#### Security Notes
+
+- **Keep your bot token private** - don't share it in public forums or repositories
+- **The bot can only send messages** - it cannot read your messages or access your account
+- **You can revoke the token** anytime by messaging `/revoke` to @BotFather
+- **Chat ID is not sensitive** - it's just a number that identifies your chat
 
 ### 🆕 What's New in v2.0.0
 
@@ -230,6 +362,22 @@ odyssey/
 - Verify the facility URL is correct
 - Check that the sport is available
 - Review logs in the app for error details
+- **Ensure ChromeDriver is installed:** `brew install chromedriver`
+- **Check ChromeDriver permissions:** Add to Full Disk Access in System Settings
+
+**ChromeDriver issues:**
+
+- **"ChromeDriver is not running" error:**
+  - Install ChromeDriver: `brew install chromedriver`
+  - Add ChromeDriver to **System Settings > Privacy & Security > Full Disk Access**
+  - Restart ODYSSEY after adding permissions
+- **"Failed to start ChromeDriver" error:**
+  - Check if ChromeDriver is installed: `which chromedriver`
+  - Verify the path: `/opt/homebrew/bin/chromedriver`
+  - Ensure proper permissions in System Settings
+- **Chrome opens but automation doesn't work:**
+  - Add ODYSSEY to **System Settings > Privacy & Security > Automation**
+  - Enable **Google Chrome** and **System Events** for ODYSSEY
 
 **Scheduling issues:**
 
@@ -240,6 +388,16 @@ odyssey/
 ### Debug Mode
 
 Enable detailed logging by checking the Console app for messages from subsystem "com.odyssey.app"
+
+**ChromeDriver Debug:**
+
+```bash
+# Check if ChromeDriver is running
+curl http://localhost:9515/status
+
+# Test ChromeDriver manually
+chromedriver --port=9515 --verbose
+```
 
 ## 🧪 Development
 

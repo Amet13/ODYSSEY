@@ -8,6 +8,10 @@
 - **Xcode 14.0** or later
 - **Swift 5.7** or later
 - **XcodeGen** (for project generation)
+- **Google Chrome** (for automation)
+- **ChromeDriver** (install with `brew install chromedriver`)
+- **System Permissions:**
+  - You must add **ChromeDriver** to **System Settings > Privacy & Security > Full Disk Access** (and/or **Automation/Accessibility**) for automation to work on macOS. Without this, ChromeDriver may not be able to control Chrome or may be killed by the system.
 
 ### Quick Start
 
@@ -621,3 +625,22 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 ---
 
 **Happy coding! 🚀**
+
+## Code Formatting
+
+ODYSSEY uses [swiftformat](https://github.com/nicklockwood/SwiftFormat) for automatic Swift code formatting.
+
+- All code is auto-formatted before every build (see `Scripts/build.sh`).
+- To format manually, run:
+
+```sh
+swiftformat .
+```
+
+- If you don't have swiftformat, install it with:
+
+```sh
+brew install swiftformat
+```
+
+- Formatting is enforced for all contributions. Please ensure your code is formatted before submitting a PR.

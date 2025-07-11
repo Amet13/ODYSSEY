@@ -7,7 +7,7 @@ set -e
 
 SVG_FILE="../logo.svg"
 
-echo "🏀 Generating ODYSSEY Icon Assets"
+echo "🥅 Generating ODYSSEY Icon Assets"
 echo "=================================="
 
 # Check if rsvg-convert is installed
@@ -152,4 +152,4 @@ echo "Generated files:"
 echo "  📁 Sources/Resources/Assets.xcassets/AppIcon.appiconset/ - Icon set for Xcode"
 echo "  📄 Sources/Resources/AppIcon.icns - ICNS file for the app"
 echo ""
-echo "The new sportscourt automation logo is now ready to use! 🏀⚙️⏰" 
+echo "The new sportscourt automation logo is now ready to use! 🥅⚙️⏰" 

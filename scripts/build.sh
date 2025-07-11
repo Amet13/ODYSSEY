@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🏀 ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself (macOS Automation)"
+echo "🥅 ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself (macOS Automation)"
 echo "=================================================================="
 echo ""
 
@@ -26,6 +26,14 @@ fi
 # Generate Xcode project
 echo "🔨 Generating Xcode project..."
 cd "$(dirname "$0")/.." && xcodegen --spec Config/project.yml
+
+# Format Swift code before building
+if command -v swiftformat >/dev/null 2>&1; then
+  echo "🧹 Formatting Swift code with swiftformat..."
+  swiftformat .
+else
+  echo "⚠️  swiftformat not found. Skipping code formatting."
+fi
 
 # Build project
 echo "🔨 Building project..."

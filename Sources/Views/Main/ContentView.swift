@@ -7,7 +7,8 @@ struct ContentView: View {
     @StateObject private var reservationManager = ReservationManager.shared
     @State private var showingAddConfig = false
     @State private var selectedConfig: ReservationConfig?
-    
+    @State private var showingSettings = false
+
     var body: some View {
         VStack(spacing: 0) {
             headerView
@@ -27,6 +28,9 @@ struct ContentView: View {
             ConfigurationDetailView(config: config) { updatedConfig in
                 configManager.updateConfiguration(updatedConfig)
             }
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
         }
     }
 }
@@ -55,7 +59,7 @@ private extension ContentView {
         .padding(.top, 16)
         .padding(.bottom, 16)
     }
-    
+
     var mainContentView: some View {
         Group {
             if configManager.settings.configurations.isEmpty {
@@ -88,7 +92,7 @@ private extension ContentView {
             }
         }
     }
-    
+
     var emptyStateView: some View {
         VStack(spacing: 20) {
             Spacer()
@@ -111,43 +115,39 @@ private extension ContentView {
         }
         .padding()
     }
-    
+
     var footerView: some View {
-        HStack {
-            Button("Run All") {
-                reservationManager.runAllEnabledReservations()
+        VStack(spacing: 8) {
+            HStack {
+                Button("Settings") {
+                    showingSettings = true
+                }
+                .buttonStyle(.bordered)
+                .tint(.blue)
+                .help("Configure user settings and integrations")
+
+                Spacer()
+
+                Link("GitHub", destination: URL(string: "https://github.com/Amet13/ODYSSEY")!)
+                    .font(.footnote)
+                    .foregroundColor(.blue)
+                    .help("View ODYSSEY on GitHub")
+
+                Spacer()
+
+                Button("Quit") {
+                    NSApp.terminate(nil)
+                }
+                .buttonStyle(.bordered)
+                .tint(.red)
+                .help("Quit ODYSSEY")
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.accentColor)
-            .disabled(!canRunAll)
-            .help("Run all enabled configurations")
-            
-            Spacer()
-            
-            Button("Stop") {
-                reservationManager.stopAllReservations()
-            }
-            .buttonStyle(.bordered)
-            .tint(.gray)
-            .disabled(!reservationManager.isRunning)
-            .help("Stop all running reservations")
-            
-            Button("Quit") {
-                NSApp.terminate(nil)
-            }
-            .buttonStyle(.bordered)
-            .tint(.red)
-            .help("Quit ODYSSEY")
+            .padding(.horizontal, 20)
+            .padding(.bottom, 16)
+            .padding(.top, 16)
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 16)
-        .padding(.top, 16)
     }
-    
-    private var canRunAll: Bool {
-        configManager.isAnyConfigurationEnabled() && !reservationManager.isRunning
-    }
-    
+
     // Helper to get next autorun for a specific config
     func getNextCronRunTime(for config: ReservationConfig) -> (date: Date, config: ReservationConfig, weekday: ReservationConfig.Weekday, timeSlot: TimeSlot)? {
         guard config.isEnabled else { return nil }
@@ -158,7 +158,7 @@ private extension ContentView {
         var nextTimeSlot: TimeSlot?
         for (weekday, timeSlots) in config.dayTimeSlots {
             for timeSlot in timeSlots {
-                for weekOffset in 0...4 {
+                for weekOffset in 0 ... 4 {
                     let baseDate = calendar.date(byAdding: .weekOfYear, value: weekOffset, to: now) ?? now
                     let reservationDay = getNextWeekday(weekday, from: baseDate)
                     let cronTime = calendar.date(byAdding: .day, value: -2, to: reservationDay) ?? reservationDay
@@ -180,7 +180,7 @@ private extension ContentView {
             return nil
         }
     }
-    
+
     func getNextWeekday(_ weekday: ReservationConfig.Weekday, from date: Date) -> Date {
         let calendar = Calendar.current
         let currentWeekday = calendar.component(.weekday, from: date)
@@ -191,7 +191,7 @@ private extension ContentView {
         }
         return calendar.date(byAdding: .day, value: daysToAdd, to: date) ?? date
     }
-    
+
     func formatCountdown(to targetDate: Date) -> String {
         let now = Date()
         let timeInterval = targetDate.timeIntervalSince(now)
@@ -237,8 +237,7 @@ struct ConfigurationRowView: View {
                     Image(systemName: "play.fill")
                 }
                 .buttonStyle(.bordered)
-                .help("Run configuration now")
-                .disabled(ReservationManager.shared.isRunning)
+                .help("Run automated reservation booking for this configuration")
                 Toggle("", isOn: Binding(
                     get: { config.isEnabled },
                     set: { _ in onToggle() }
@@ -284,7 +283,7 @@ struct ConfigurationRowView: View {
         }
         .padding(.vertical, 6)
         .alert("Delete Configuration", isPresented: $showingDeleteConfirmation) {
-            Button("Cancel", role: .cancel) { }
+            Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) {
                 onDelete()
             }
@@ -292,6 +291,7 @@ struct ConfigurationRowView: View {
             Text("Are you sure you want to delete '\(config.name)'? This action cannot be undone.")
         }
     }
+
     private func formatScheduleInfo() -> String {
         let sortedDays = config.dayTimeSlots.keys.sorted { day1, day2 in
             ReservationConfig.Weekday.allCases.firstIndex(of: day1)! < ReservationConfig.Weekday.allCases.firstIndex(of: day2)!
@@ -311,6 +311,7 @@ struct ConfigurationRowView: View {
         }
         return scheduleInfo.joined(separator: " • ")
     }
+
     private func nextAutorunText(for next: (date: Date, config: ReservationConfig, weekday: ReservationConfig.Weekday, timeSlot: TimeSlot)) -> String {
         let timeFormatter = DateFormatter()
         timeFormatter.timeStyle = .short

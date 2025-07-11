@@ -1,7 +1,7 @@
 import AppKit
 import Combine
-import SwiftUI
 import os.log
+import SwiftUI
 
 /// Manages the status bar (tray) menu for the macOS app
 class StatusBarController: NSObject {
@@ -9,31 +9,28 @@ class StatusBarController: NSObject {
     private var statusItem: NSStatusItem
     private var popover: NSPopover
     private var eventMonitor: EventMonitor?
-    
+
     private let configurationManager = ConfigurationManager.shared
     private let reservationManager = ReservationManager.shared
     private var cancellables = Set<AnyCancellable>()
     private let logger = Logger(subsystem: "com.odyssey.app", category: "StatusBarController")
-    
+
     override init() {
-        logger.info("Initializing StatusBarController")
         statusBar = NSStatusBar.system
         statusItem = statusBar.statusItem(withLength: NSStatusItem.variableLength)
         popover = NSPopover()
-        
+
         super.init()
-        
+
         setupStatusBar()
         setupPopover()
         setupEventMonitor()
         setupObservers()
-        logger.info("StatusBarController initialization completed")
     }
-    
+
     // MARK: - Setup Methods
-    
+
     private func setupStatusBar() {
-        logger.debug("Setting up status bar")
         if let button = statusItem.button {
             let config = NSImage.SymbolConfiguration(pointSize: 18, weight: .medium)
             let image = NSImage(systemSymbolName: "sportscourt", accessibilityDescription: "ODYSSEY")?.withSymbolConfiguration(config)
@@ -41,18 +38,17 @@ class StatusBarController: NSObject {
             button.image = image
             button.action = #selector(togglePopover)
             button.target = self
-            logger.debug("Status bar button configured with sportscourt icon")
         } else {
             logger.error("Status bar button is nil")
         }
     }
-    
+
     private func setupPopover() {
         popover.contentSize = NSSize(width: 400, height: 600)
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(rootView: ContentView())
     }
-    
+
     private func setupEventMonitor() {
         eventMonitor = EventMonitor(mask: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
             if let strongSelf = self, strongSelf.popover.isShown {
@@ -61,7 +57,7 @@ class StatusBarController: NSObject {
         }
         eventMonitor?.start()
     }
-    
+
     private func setupObservers() {
         // Observe reservation manager status
         reservationManager.$isRunning
@@ -69,16 +65,16 @@ class StatusBarController: NSObject {
                 self?.updateStatusBarIcon(isRunning: isRunning)
             }
             .store(in: &cancellables)
-        
+
         reservationManager.$lastRunStatus
             .sink { [weak self] status in
                 self?.updateStatusBarTooltip(status: status)
             }
             .store(in: &cancellables)
     }
-    
+
     // MARK: - Public Methods
-    
+
     @objc func togglePopover() {
         if popover.isShown {
             hidePopover(nil)
@@ -86,19 +82,19 @@ class StatusBarController: NSObject {
             showPopover()
         }
     }
-    
+
     func showPopover() {
         if let button = statusItem.button {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
         }
     }
-    
+
     func hidePopover(_ sender: Any?) {
         popover.performClose(sender)
     }
-    
+
     // MARK: - Private Methods
-    
+
     private func updateStatusBarIcon(isRunning: Bool) {
         if let button = statusItem.button {
             let symbolName = isRunning ? "sportscourt.fill" : "sportscourt"
@@ -108,7 +104,7 @@ class StatusBarController: NSObject {
             button.image = image
         }
     }
-    
+
     private func updateStatusBarTooltip(status: ReservationManager.RunStatus) {
         if let button = statusItem.button {
             button.toolTip = "ODYSSEY - \(status.description)"
@@ -122,24 +118,24 @@ class EventMonitor {
     private var monitor: Any?
     private let mask: NSEvent.EventTypeMask
     private let handler: (NSEvent?) -> Void
-    
+
     init(mask: NSEvent.EventTypeMask, handler: @escaping (NSEvent?) -> Void) {
         self.mask = mask
         self.handler = handler
     }
-    
+
     deinit {
         stop()
     }
-    
+
     func start() {
         monitor = NSEvent.addGlobalMonitorForEvents(matching: mask, handler: handler)
     }
-    
+
     func stop() {
         if let monitor = monitor {
             NSEvent.removeMonitor(monitor)
             self.monitor = nil
         }
     }
-} 
+}
