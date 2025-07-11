@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 env:
-  SWIFT_VERSION: "5.9"
-  XCODE_VERSION: "15.2"
+  SWIFT_VERSION: "6.1"
+  XCODE_VERSION: "16.4"
 
 jobs:
   quality-checks:
