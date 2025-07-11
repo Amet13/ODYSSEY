@@ -11,7 +11,7 @@ permissions:
 
 env:
   SWIFT_VERSION: "6.1"
-  XCODE_VERSION: "16.4"
+  XCODE_VERSION: "16.2"
 
 jobs:
   validate-release:
