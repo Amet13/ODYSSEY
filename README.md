@@ -7,9 +7,6 @@
     <a href="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml">
       <img src="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml/badge.svg" alt="CI Status">
     </a>
-    <a href="https://github.com/Amet13/ODYSSEY/releases/latest">
-      <img src="https://img.shields.io/badge/Version-3.1.0-blue" alt="Version 3.1.0">
-    </a>
     <a href="https://github.com/Amet13/ODYSSEY/blob/main/LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License">
     </a>
@@ -19,8 +16,8 @@
   </p>
   
   <p>
-    <a href="https://github.com/Amet13/ODYSSEY/releases/latest">
-      <img src="https://img.shields.io/badge/Download-v3.1.0-blue?style=for-the-badge&logo=apple" alt="Download v3.1.0">
+    <a href="#installation">
+      <img src="https://img.shields.io/badge/Build%20from%20Source-Development-blue?style=for-the-badge&logo=swift" alt="Build from Source">
     </a>
   </p>
 </div>
@@ -104,33 +101,27 @@ brew install chromedriver
 ## 🚀 Quick Start
 
 <div align="center">
-  <a href="https://github.com/Amet13/ODYSSEY/releases/latest">
-    <img src="https://img.shields.io/badge/Download-v3.1.0-blue?style=for-the-badge&logo=apple" alt="Download v3.1.0">
+  <a href="#installation">
+    <img src="https://img.shields.io/badge/Build%20from%20Source-Development-blue?style=for-the-badge&logo=swift" alt="Build from Source">
   </a>
 </div>
 
 > **Note:** Google Chrome must be installed for the "Run" button (incognito mode) to work.
 
-1. **Download** the latest release from [Releases](https://github.com/Amet13/ODYSSEY/releases)
-2. **Install** by dragging to Applications folder
-3. **Launch** ODYSSEY (right-click → Open if needed)
-4. **Configure** your first reservation
-5. **Enjoy** automated booking! 🎯
+1. **Clone the repository** (see Installation section below)
+2. **Run the build script**: `./Scripts/build.sh`
+3. **Configure** your first reservation
+4. **Enjoy** automated booking! 🎯
+
+> **Development Status**: ODYSSEY is currently in active development. No official releases are available yet. Please build from source to use the application.
 
 ## 🛠️ Installation & Setup
 
 ### For Users
 
-#### Option 1: Download Latest Release (Recommended)
+> **Development Status**: ODYSSEY is currently in active development. No official releases are available yet. Please build from source to use the application.
 
-1. **Go to [Releases](https://github.com/Amet13/ODYSSEY/releases)**
-2. **Download the latest DMG file** (e.g., `ODYSSEY-v3.1.0.dmg`)
-3. **Double-click the DMG** to mount the disk image
-4. **Drag ODYSSEY to Applications** folder
-5. **Launch ODYSSEY** from Applications (right-click → Open if needed)
-6. **The app will appear in your menu bar**
-
-#### Option 2: Build from Source
+#### Build from Source (Currently Required)
 
 1. **Clone the repository** (see Developer Setup below)
 2. **Run the build script**: `./Scripts/build.sh`
@@ -424,16 +415,13 @@ ODYSSEY uses a comprehensive GitHub Actions pipeline for continuous integration 
 
 - **Quality Checks** - Code formatting and linting with SwiftFormat and SwiftLint
 - **Build & Test** - Debug and Release builds with timing analysis
-- **Security Scan** - Hardcoded secrets, ATS settings, and code signing validation
-- **Performance Check** - Build time analysis and app size monitoring
 - **Caching** - Swift package caching for faster builds
 - **Artifact Upload** - Build artifacts for debugging and distribution
 
-#### Release Workflow Features
+#### Release Workflow Features (Ready for Future Releases)
 
 - **Version Validation** - Ensures version consistency across all files
 - **Automated Build** - Release build with code signing
-- **Security Audit** - Comprehensive security vulnerability assessment
 - **DMG Creation** - Professional installer with custom branding
 - **Release Notes** - Auto-generated from git history and changelog
 - **GitHub Release** - Complete release with download links
@@ -480,16 +468,16 @@ git commit -m "feat: add new automation feature"
 git push origin feature/new-feature
 ```
 
-### Creating Releases
+### Creating Releases (Future)
 
-Use the automated release script for consistent releases:
+When ready for official releases, use the automated release script for consistent releases:
 
 ```bash
 # Preview release changes
-./Scripts/create-release.sh --dry-run 3.2.0
+./Scripts/create-release.sh --dry-run 1.0.0
 
 # Create actual release
-./Scripts/create-release.sh 3.2.0
+./Scripts/create-release.sh 1.0.0
 ```
 
 The release script automatically:
@@ -498,6 +486,8 @@ The release script automatically:
 - Generates changelog entries
 - Creates git tags
 - Triggers CI/CD pipeline for automated release
+
+> **Note**: Currently in development. Release workflow is ready but no official releases have been created yet.
 
 ### Version Management
 
