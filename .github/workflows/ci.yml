@@ -30,7 +30,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew install xcodegen
+          brew install xcodegen swiftlint
 
       - name: Generate Xcode project
         run: |
