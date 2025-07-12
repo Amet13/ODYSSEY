@@ -7,12 +7,12 @@ on:
     branches: [main]
 
 env:
-  SWIFT_VERSION: "6.1"
-  XCODE_VERSION: "16.2"
+  SWIFT_VERSION: "6.2"
+  XCODE_VERSION: "16.4"
 
 jobs:
   quality-checks:
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

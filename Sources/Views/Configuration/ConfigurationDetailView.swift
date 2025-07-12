@@ -224,7 +224,8 @@ struct ConfigurationDetailView: View {
                             get: { dayTimeSlots[day] ?? [TimeSlot(time: Calendar.current.date(from: DateComponents(
                                 hour: 18,
                                 minute: 0,
-                            )) ?? Date())] },
+                            )) ?? Date())]
+                            },
                             set: { dayTimeSlots[day] = $0 },
                         ),
                         onAdd: { addTimeSlot(for: day) },

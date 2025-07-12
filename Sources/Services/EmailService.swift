@@ -192,7 +192,8 @@ class EmailService: ObservableObject {
                                     email: email,
                                     password: password,
                                     completion: completion,
-                                ) }
+                                )
+                                }
                             case let .failure(error):
                                 completion(.failure(error.localizedDescription))
                             }
@@ -204,7 +205,8 @@ class EmailService: ObservableObject {
                         email: email,
                         password: password,
                         completion: completion,
-                    ) }
+                    )
+                    }
                 }
             case let .failure(error):
                 completion(.failure(error.localizedDescription))
