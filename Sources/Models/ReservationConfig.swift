@@ -86,8 +86,8 @@ struct ReservationConfig: Codable, Identifiable {
         let pattern = #"https://reservation\.frontdesksuite\.ca/rcfs/([^/]+)"#
         if let regex = try? NSRegularExpression(pattern: pattern) {
             let nsrange = NSRange(url.startIndex ..< url.endIndex, in: url)
-            if let match = regex.firstMatch(in: url, options: [], range: nsrange) {
-                let facilityRange = Range(match.range(at: 1), in: url)!
+            if let match = regex.firstMatch(in: url, options: [], range: nsrange),
+               let facilityRange = Range(match.range(at: 1), in: url) {
                 let facilityName = String(url[facilityRange])
                 return facilityName.capitalized
             }

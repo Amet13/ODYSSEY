@@ -85,11 +85,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         let configsForToday = configManager.getConfigurationsForDay(weekday)
 
-        for config in configsForToday {
-            if shouldRunReservation(config: config, at: now) {
-                DispatchQueue.main.async {
-                    reservationManager.runReservation(for: config)
-                }
+        for config in configsForToday where shouldRunReservation(config: config, at: now) {
+            DispatchQueue.main.async {
+                reservationManager.runReservation(for: config)
             }
         }
     }
