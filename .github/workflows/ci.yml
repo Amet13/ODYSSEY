@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      - run: ls -la /Applications/Xcode*
       - name: Select Xcode 16.4
         run: sudo xcode-select --switch /Applications/Xcode_16.4.app
 
