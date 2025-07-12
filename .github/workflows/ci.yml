@@ -12,9 +12,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - run: ls -la /Applications/Xcode*
-      - name: Select Xcode 16.4
-        run: sudo xcode-select --switch /Applications/Xcode_16.4.app
+
+      - name: Set up Xcode 16.4
+        uses: actions/setup-xcode@v4
+        with:
+          xcode-version: "16.4"
 
       - name: Cache Swift packages
         uses: actions/cache@v4
@@ -55,14 +57,16 @@ jobs:
           echo "✅ Code formatting is correct"
 
   build-and-test:
-    runs-on: macos-latest
+    runs-on: macos-15
     needs: quality-checks
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Select Xcode 16.4
-        run: sudo xcode-select --switch /Applications/Xcode_16.4.app
+      - name: Set up Xcode 16.4
+        uses: actions/setup-xcode@v4
+        with:
+          xcode-version: "16.4"
 
       - name: Cache Swift packages
         uses: actions/cache@v4
@@ -137,14 +141,16 @@ jobs:
           retention-days: 7
 
   security-scan:
-    runs-on: macos-latest
+    runs-on: macos-15
     needs: build-and-test
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Select Xcode 16.4
-        run: sudo xcode-select --switch /Applications/Xcode_16.4.app
+      - name: Set up Xcode 16.4
+        uses: actions/setup-xcode@v4
+        with:
+          xcode-version: "16.4"
 
       - name: Install dependencies
         run: |
@@ -180,14 +186,16 @@ jobs:
           fi
 
   performance-check:
-    runs-on: macos-latest
+    runs-on: macos-15
     needs: build-and-test
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Select Xcode 16.4
-        run: sudo xcode-select --switch /Applications/Xcode_16.4.app
+      - name: Set up Xcode 16.4
+        uses: actions/setup-xcode@v4
+        with:
+          xcode-version: "16.4"
 
       - name: Install dependencies
         run: |

@@ -64,14 +64,16 @@ jobs:
           echo "✅ Changelog generated"
 
   build-release:
-    runs-on: macos-latest
+    runs-on: macos-15
     needs: validate-release
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Select Xcode 16.4
-        run: sudo xcode-select --switch /Applications/Xcode_16.4.app
+      - name: Set up Xcode 16.4
+        uses: actions/setup-xcode@v4
+        with:
+          xcode-version: "16.4"
 
       - name: Cache Swift packages
         uses: actions/cache@v4
@@ -178,14 +180,16 @@ jobs:
           retention-days: 90
 
   security-audit:
-    runs-on: macos-latest
+    runs-on: macos-15
     needs: build-release
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Select Xcode 16.4
-        run: sudo xcode-select --switch /Applications/Xcode_16.4.app
+      - name: Set up Xcode 16.4
+        uses: actions/setup-xcode@v4
+        with:
+          xcode-version: "16.4"
 
       - name: Install dependencies
         run: |
@@ -206,7 +210,7 @@ jobs:
           # like CodeQL, Snyk, or similar services
 
   create-release:
-    runs-on: macos-latest
+    runs-on: macos-15
     needs: [build-release, security-audit]
     steps:
       - name: Checkout code
