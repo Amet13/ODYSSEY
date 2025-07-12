@@ -70,8 +70,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Xcode 16.4
-        uses: actions/setup-xcode@v4
+      - name: Setup Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: "16.4"
 
@@ -186,8 +186,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Xcode 16.4
-        uses: actions/setup-xcode@v4
+      - name: Setup Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: "16.4"
 
