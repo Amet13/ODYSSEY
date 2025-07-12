@@ -1,5 +1,3 @@
-# ODYSSEY
-
 <div align="center">
   <img src="logo.svg" alt="ODYSSEY Logo" width="120" height="120">
   <h1>ODYSSEY</h1>
@@ -31,16 +29,15 @@ A sophisticated macOS menu bar application that automates sports reservation boo
 
 ## 📋 Table of Contents
 
-- [🚀 Features](#-features)
-- [📋 Requirements](#-requirements)
-- [🛠️ Installation & Setup](#️-installation--setup)
-- [🏗️ Project Structure](#️-project-structure)
-- [⚙️ Configuration](#️-configuration)
-- [🔧 How It Works](#-how-it-works)
-- [🐛 Troubleshooting](#-troubleshooting)
-- [🧪 Development](#-development)
-- [📄 License](#-license)
-- [🤝 Contributing](#-contributing)
+- [ODYSSEY - Ottawa Drop-in Your Sports \& Schedule Easily Yourself](#odyssey---ottawa-drop-in-your-sports--schedule-easily-yourself)
+  - [Features](#features)
+  - [Button Detection Approach](#button-detection-approach)
+    - [HTML Structure](#html-structure)
+    - [Working Method](#working-method)
+    - [Why This Works](#why-this-works)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Development](#development)
 
 ## 🚀 Features
 

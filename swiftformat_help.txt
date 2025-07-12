@@ -1,0 +1,52 @@
+SwiftFormat, version 0.56.4
+Copyright (c) 2016 Nick Lockwood
+
+--help             Print this help page
+--version          Print the currently installed swiftformat version
+
+SwiftFormat can operate on files & directories, or directly on input from stdin.
+
+Usage: swiftformat [<file> <file> ...] [--inferoptions] [--output path] [...]
+
+<file> <file> ...  Swift files or directories to be processed, or "stdin"
+
+--filelist         Path to a file with names of files to process, one per line
+--stdinpath        Path to stdin source file (used for generating header)
+--scriptinput      Read Xcode SCRIPT_INPUT_FILE* environment variables as files
+--config           Path to a configuration file containing rules and options
+--baseconfig       Like --config, but local .swiftformat files aren't ignored
+--inferoptions     Instead of formatting input, use it to infer format options
+--output           Output path for formatted file(s) (defaults to input path)
+--exclude          Comma-delimited list of ignored paths (supports glob syntax)
+--unexclude        Paths to not exclude, even if excluded elsewhere in config
+--symlinks         How symlinks are handled: "follow" or "ignore" (default)
+--linerange        Range of lines to process within the input file (first, last)
+--fragment         Input is part of a larger file: "true" or "false" (default)
+--conflictmarkers  Merge-conflict markers: "reject" (default) or "ignore"
+--swiftversion     The Swift compiler version used in the files being formatted
+--languagemode     The Swift language mode used in the files being formatted
+--minversion       The minimum SwiftFormat version to be used for these files
+--cache            Path to cache file, or "clear" or "ignore" the default cache
+--dryrun           Run in "dry" mode (without actually changing any files)
+--lint             Return an error for unformatted input, and list violations
+--report           Path to a file where --lint output should be written
+--reporter         Report format: "json", "github-actions-log", "xml"
+--lenient          Suppress errors for unformatted code in --lint mode
+--strict           Emit errors for unformatted code when formatting
+--verbose          Display detailed formatting output and warnings/errors
+--quiet            Disables non-critical output messages and warnings
+--outputtokens     Outputs an array of tokens instead of text when using stdin
+
+SwiftFormat has a number of rules that can be enabled or disabled. By default
+most rules are enabled. Use --rules to display all enabled/disabled rules.
+
+--rules            The list of rules to apply. Pass nothing to print rules list
+--disable          Comma-delimited list of format rules to be disabled, or "all"
+--enable           Comma-delimited list of rules to be enabled, or "all"
+--lintonly         A list of rules to be enabled only when using --lint mode
+
+SwiftFormat's rules can be configured using options. A given option may affect
+multiple rules. Options have no effect if the related rules have been disabled.
+
+--ruleinfo         Display options for a given rule or rules (comma-delimited)
+--options          Prints a list of all formatting options and their usage

@@ -27,7 +27,6 @@
 --emptybraces spaced
 --ranges spaced
 --semicolons never
---commas always
 --decimalgrouping 3,4
 --binarygrouping 4,8
 --octalgrouping 4,8
