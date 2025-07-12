@@ -31,8 +31,6 @@ jobs:
       - name: Install dependencies
         run: |
           brew install xcodegen
-          brew install swiftlint
-          brew install swiftformat
 
       - name: Generate Xcode project
         run: |
