@@ -84,7 +84,8 @@ struct ConfigurationDetailView: View {
                     .foregroundColor(.red)
                 Link(
                     "View Ottawa Facilities",
-                    destination: URL(string: "https://ottawa.ca/en/recreation-and-parks/recreation-facilities") ?? URL(string: "https://ottawa.ca")!
+                    destination: URL(string: "https://ottawa.ca/en/recreation-and-parks/recreation-facilities") ??
+                        URL(string: "https://ottawa.ca")!,
                 )
                 .font(.caption)
             }
@@ -216,7 +217,9 @@ struct ConfigurationDetailView: View {
                     .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday,
                 ]
                 ForEach(Array(dayTimeSlots.keys.sorted { lhs, rhs in
-                    guard let lhsIndex = weekdayOrder.firstIndex(of: lhs), let rhsIndex = weekdayOrder.firstIndex(of: rhs) else { return false }
+                    guard
+                        let lhsIndex = weekdayOrder.firstIndex(of: lhs),
+                        let rhsIndex = weekdayOrder.firstIndex(of: rhs) else { return false }
                     return lhsIndex < rhsIndex
                 }), id: \.self) { day in
                     DayTimeSlotEditor(
@@ -253,7 +256,9 @@ struct ConfigurationDetailView: View {
                     .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday,
                 ]
                 let sortedDays = dayTimeSlots.keys.sorted { lhs, rhs in
-                    guard let lhsIndex = weekdayOrder.firstIndex(of: lhs), let rhsIndex = weekdayOrder.firstIndex(of: rhs) else { return false }
+                    guard
+                        let lhsIndex = weekdayOrder.firstIndex(of: lhs),
+                        let rhsIndex = weekdayOrder.firstIndex(of: rhs) else { return false }
                     return lhsIndex < rhsIndex
                 }
                 ForEach(sortedDays, id: \.self) { day in

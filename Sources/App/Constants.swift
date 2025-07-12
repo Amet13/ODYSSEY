@@ -60,6 +60,6 @@ enum Constants {
         "swimming",
         "fitness",
         "gym",
-        "sport"
+        "sport",
     ]
 }
