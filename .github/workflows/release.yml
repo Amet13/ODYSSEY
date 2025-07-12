@@ -9,9 +9,6 @@ permissions:
   contents: write
   packages: write
 
-env:
-  SWIFT_VERSION: "6.2"
-
 jobs:
   validate-release:
     runs-on: macos-15

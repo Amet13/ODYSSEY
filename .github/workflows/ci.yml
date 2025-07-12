@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  SWIFT_VERSION: "6.2"
-
 jobs:
   quality-checks:
     runs-on: macos-15
