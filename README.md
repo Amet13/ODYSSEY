@@ -33,6 +33,7 @@ A sophisticated macOS menu bar application that automates sports reservation boo
     - [Working Method](#working-method)
     - [Why This Works](#why-this-works)
   - [Installation](#installation)
+  - [Telegram Bot Setup](#telegram-bot-setup)
   - [Usage](#usage)
   - [Development](#development)
 
@@ -55,6 +56,7 @@ A sophisticated macOS menu bar application that automates sports reservation boo
 - 🕵️‍♂️ **Incognito Run (Requires Chrome)** - The "Run" button opens your configuration in a new Google Chrome incognito window for manual verification. **Google Chrome must be installed.**
 - 🔒 **Enhanced Security** - Comprehensive security scanning and validation
 - 📦 **Automated Releases** - Complete CI/CD pipeline with automated DMG creation
+- 📱 **Telegram Notifications** - Get instant notifications when reservations are successfully booked
 
 ## 📋 Requirements
 
@@ -97,6 +99,85 @@ brew install chromedriver
 - **Accessibility:** Provides additional automation capabilities
 
 **Note:** Without these permissions, automation will fail and ChromeDriver may be terminated by macOS security.
+
+## 🤖 Telegram Bot Setup
+
+ODYSSEY supports Telegram notifications to keep you informed about successful reservations. Follow these steps to set up your Telegram bot:
+
+### Step 1: Create a Telegram Bot
+
+1. **Open Telegram** and search for `@BotFather`
+2. **Start a chat** with BotFather by clicking "Start"
+3. **Send the command**: `/newbot`
+4. **Choose a name** for your bot (e.g., "ODYSSEY Sports Bot")
+5. **Choose a username** ending in "bot" (e.g., "odyssey_sports_bot")
+6. **Save the bot token** - BotFather will give you a token like `123456789:ABCdefGHIjklMNOpqrsTUVwxyz`
+
+### Step 2: Get Your Chat ID
+
+#### Method 1: Using @userinfobot (Recommended)
+
+1. **Search for** `@userinfobot` in Telegram
+2. **Start a chat** with the bot
+3. **Send any message** to the bot
+4. **Copy your Chat ID** from the response (it will be a number like `123456789`)
+
+#### Method 2: Using Your Bot
+
+1. **Start a chat** with your newly created bot
+2. **Send any message** to your bot
+3. **Visit this URL** in your browser (replace with your bot token):
+   ```
+   https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates
+   ```
+4. **Find your Chat ID** in the JSON response under `"chat":{"id":123456789}`
+
+### Step 3: Configure in ODYSSEY
+
+1. **Open ODYSSEY** and go to **Settings**
+2. **Enable Telegram notifications** by checking the box
+3. **Enter your Bot Token** (from Step 1)
+4. **Enter your Chat ID** (from Step 2)
+5. **Test the connection** using the "Test Telegram" button
+
+### Step 4: Test Your Setup
+
+1. **Click "Test Telegram"** in the Settings
+2. **Check your Telegram** for a test message
+3. **Verify the message** appears with the current timestamp
+
+### Troubleshooting
+
+#### Common Issues:
+
+- **"Bot token invalid"**: Double-check your bot token from BotFather
+- **"Chat ID not found"**: Make sure you've sent a message to your bot first
+- **"Test failed"**: Check your internet connection and try again
+- **"Bot blocked"**: Make sure you haven't blocked your bot in Telegram
+
+#### Security Notes:
+
+- **Keep your bot token private** - don't share it publicly
+- **Your bot can only send messages** - it cannot read your messages
+- **You can delete the bot anytime** by messaging BotFather `/deletebot`
+
+### Sample Notification
+
+When ODYSSEY successfully books a reservation, you'll receive a message like:
+
+```
+🎉 Reservation Success!
+
+✅ Successfully booked: Basketball
+
+🏢 Facility: Bob MacQuarrie Recreation Complex
+
+👥 People: 2
+
+📅 Schedule: Mon: 7:00 PM • Wed: 8:00 PM
+
+🥅 ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself
+```
 
 ## 🚀 Quick Start
 
@@ -162,234 +243,6 @@ xcodegen
 open Config/ODYSSEY.xcodeproj
 ```
 
-## 🏗️ Project Structure
-
-```
-odyssey/
-├── Config/
-│   ├── ODYSSEY.xcodeproj/        # Xcode project (auto-generated)
-│   └── project.yml               # XcodeGen project specification
-├── Sources/
-│   ├── App/
-│   │   ├── ODYSSEYApp.swift      # Main app entry point
-│   │   ├── Constants.swift       # Application constants
-│   │   └── Info.plist           # App metadata
-│   ├── Controllers/
-│   │   └── StatusBarController.swift # Menu bar integration
-│   ├── Models/
-│   │   ├── ReservationConfig.swift # Data models
-│   │   └── UserSettings.swift    # User preferences
-│   ├── Services/
-│   │   ├── Configuration.swift   # Settings and preferences
-│   │   ├── EmailService.swift    # IMAP integration
-│   │   ├── FacilityService.swift # Web scraping and facility data
-│   │   ├── ReservationManager.swift # Web automation orchestration
-│   │   ├── TelegramService.swift # Telegram bot integration
-│   │   ├── UserSettingsManager.swift # User settings management
-│   │   ├── WebDriverService.swift # Chrome automation engine
-│   │   └── WebDriverStealth.swift # Anti-detection measures
-│   ├── Views/
-│   │   ├── Configuration/        # Configuration-related views
-│   │   ├── Main/                # Main application views
-│   │   └── Settings/            # Settings views
-│   └── Resources/               # App resources and assets
-├── Scripts/
-│   ├── build.sh                 # Enhanced build script
-│   └── create-release.sh        # Release management script
-├── Documentation/               # Project documentation
-├── .github/workflows/           # CI/CD workflows
-├── .swiftlint.yml              # SwiftLint configuration
-├── .swiftformat                # SwiftFormat configuration
-├── README.md                   # This file
-└── LICENSE                     # MIT License
-```
-
-## ⚙️ Configuration
-
-### Basic Setup
-
-1. **Launch ODYSSEY** - Click the menu bar icon
-2. **Add Configuration** - Click the "+" button
-3. **Enter Facility URL** - Paste your Ottawa Recreation facility URL
-4. **Select Sport** - Choose from available sports at the facility
-5. **Set Number of People** - Choose 1-4 people
-6. **Configure Schedule** - Select days and time slots
-7. **Enable Configuration** - Toggle the switch to activate
-
-### Advanced Features
-
-- **Multiple Configurations** - Set up different sports and facilities
-- **Smart Scheduling** - Choose specific weekdays and up to 2 time slots per day
-- **Duplicate Prevention** - Automatic detection and prevention of duplicate times
-- **Auto-generated Names** - Configuration names are automatically generated
-- **Real-time Status** - See countdown to next autorun
-- **Manual Execution** - Run configurations immediately with the "Run" button
-- **Built-in Logging** - View detailed logs within the app
-- **📱 Telegram Integration** - Receive notifications and test messages via Telegram bot
-
-### 📱 Telegram Integration
-
-ODYSSEY supports Telegram integration for notifications and test messages. This feature allows you to receive updates about your automation status and test the integration.
-
-#### Setting Up Telegram Integration
-
-##### 1. Create a Telegram Bot
-
-1. **Open Telegram** and search for `@BotFather`
-2. **Start a chat** with BotFather by clicking "Start"
-3. **Send the command** `/newbot`
-4. **Choose a name** for your bot (e.g., "ODYSSEY Notifications")
-5. **Choose a username** for your bot (must end with "bot", e.g., "odyssey_notifications_bot")
-6. **Copy the bot token** - BotFather will send you a message like:
-   ```
-   Use this token to access the HTTP API:
-   1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
-   ```
-   **⚠️ Keep this token secure - don't share it publicly!**
-
-##### 2. Get Your Chat ID
-
-**Method 1: Using @userinfobot (Recommended)**
-
-1. **Search for** `@userinfobot` in Telegram
-2. **Start a chat** with the bot
-3. **Send any message** to the bot
-4. **Copy your Chat ID** from the response (it will be a number like `123456789`)
-
-**Method 2: Using @RawDataBot**
-
-1. **Search for** `@RawDataBot` in Telegram
-2. **Start a chat** with the bot
-3. **Send any message** to the bot
-4. **Look for** `"id": 123456789` in the response
-5. **Copy the number** after `"id":`
-
-**Method 3: For Group Chats**
-
-1. **Add your bot** to the group where you want notifications
-2. **Send a message** in the group
-3. **Use @RawDataBot** to get the group's Chat ID (will be negative, like `-123456789`)
-
-##### 3. Configure in ODYSSEY
-
-1. **Open ODYSSEY** and click the menu bar icon
-2. **Click "Settings"** to open the settings panel
-3. **Scroll to "Telegram Integration"** section
-4. **Toggle "Enable Telegram Integration"** to ON
-5. **Enter your Bot Token** (the long string from BotFather)
-6. **Enter your Chat ID** (the number from step 2)
-7. **Click "Test Telegram Integration"** to verify the setup
-8. **You should receive** a test message in Telegram
-
-#### Telegram Integration Features
-
-- **✅ Test Integration** - Send test messages to verify your setup
-- **🔔 Notifications** - Receive updates about automation status (coming soon)
-- **📱 Mobile Access** - Check status from anywhere via Telegram
-- **🔒 Secure** - Uses Telegram's official Bot API
-- **⚡ Real-time** - Instant message delivery
-
-#### Troubleshooting Telegram Integration
-
-**"Test failed: Unauthorized"**
-
-- Check that your bot token is correct
-- Ensure you copied the entire token from BotFather
-
-**"Test failed: Chat not found"**
-
-- Verify your Chat ID is correct
-- Make sure you've started a chat with your bot
-- For group chats, ensure the bot is added to the group
-
-**"Test failed: Forbidden"**
-
-- The bot doesn't have permission to send messages
-- Start a chat with your bot first by sending `/start`
-
-**"Network error"**
-
-- Check your internet connection
-- Ensure ODYSSEY has network permissions
-
-#### Security Notes
-
-- **Keep your bot token private** - don't share it in public forums or repositories
-- **The bot can only send messages** - it cannot read your messages or access your account
-- **You can revoke the token** anytime by messaging `/revoke` to @BotFather
-- **Chat ID is not sensitive** - it's just a number that identifies your chat
-
-## 🔧 How It Works
-
-### Automation Process
-
-1. **Scheduling** - ODYSSEY calculates the optimal booking time (2 days before at 6:00 PM)
-2. **Web Navigation** - Uses WebKit to navigate to the facility website
-3. **Form Automation** - Automatically fills forms with your preferences
-4. **Slot Selection** - Finds and selects available time slots
-5. **Booking** - Completes the reservation process
-6. **Logging** - Records all actions for review
-
-### Technical Architecture
-
-- **SwiftUI** - Modern, declarative UI framework
-- **AppKit** - Native macOS menu bar integration
-- **WebKit** - Web automation and scraping capabilities
-- **UserDefaults** - Persistent configuration storage
-- **Timer** - Automated scheduling system
-- **os.log** - Comprehensive logging system
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**App doesn't appear in menu bar:**
-
-- Check that `LSUIElement` is set to `true` in Info.plist
-- Restart the app
-
-**Automation fails:**
-
-- Verify the facility URL is correct
-- Check that the sport is available
-- Review logs in the app for error details
-- **Ensure ChromeDriver is installed:** `brew install chromedriver`
-- **Check ChromeDriver permissions:** Add to Full Disk Access in System Settings
-
-**ChromeDriver issues:**
-
-- **"ChromeDriver is not running" error:**
-  - Install ChromeDriver: `brew install chromedriver`
-  - Add ChromeDriver to **System Settings > Privacy & Security > Full Disk Access**
-  - Restart ODYSSEY after adding permissions
-- **"Failed to start ChromeDriver" error:**
-  - Check if ChromeDriver is installed: `which chromedriver`
-  - Verify the path: `/opt/homebrew/bin/chromedriver`
-  - Ensure proper permissions in System Settings
-- **Chrome opens but automation doesn't work:**
-  - Add ODYSSEY to **System Settings > Privacy & Security > Automation**
-  - Enable **Google Chrome** and **System Events** for ODYSSEY
-
-**Scheduling issues:**
-
-- Ensure configurations are enabled
-- Check that time slots are configured
-- Verify the countdown timer in the status
-
-### Debug Mode
-
-Enable detailed logging by checking the Console app for messages from subsystem "com.odyssey.app"
-
-**ChromeDriver Debug:**
-
-```bash
-# Check if ChromeDriver is running
-curl http://localhost:9515/status
-
-# Test ChromeDriver manually
-chromedriver --port=9515 --verbose
-```
-
 ## 🧪 Development
 
 ### 🚀 Enhanced CI/CD Pipeline
@@ -400,7 +253,7 @@ ODYSSEY uses a comprehensive GitHub Actions pipeline for continuous integration 
   <table>
     <tr>
       <td align="center"><strong>🔨 Quality Checks</strong><br/>SwiftFormat & SwiftLint</td>
-      <td align="center"><strong>🏗️ Build & Test</strong><br/>Debug & Release builds</td>
+      <td align="center"><strong>🏗️ Build</strong><br/>Debug & Release builds</td>
       <td align="center"><strong>🔒 Security Scan</strong><br/>Vulnerability checks</td>
     </tr>
     <tr>
@@ -414,7 +267,7 @@ ODYSSEY uses a comprehensive GitHub Actions pipeline for continuous integration 
 #### CI Workflow Features
 
 - **Quality Checks** - Code formatting and linting with SwiftFormat and SwiftLint
-- **Build & Test** - Debug and Release builds with timing analysis
+- **Build** - Debug and Release builds with timing analysis
 - **Caching** - Swift package caching for faster builds
 - **Artifact Upload** - Build artifacts for debugging and distribution
 
