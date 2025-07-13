@@ -118,6 +118,7 @@ ODYSSEY is a native macOS application that:
 - All linter violations must be fixed or explicitly justified in code review
 - Do not push or release code with unresolved SwiftLint errors or warnings
 - Keep the repository clean by removing duplicate information
+- After changing any text in the UI always update French translation
 
 ### Setup
 

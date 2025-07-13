@@ -104,42 +104,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return false
         }
 
-        let currentMinutes = currentHour * 60 + currentMinute
-
-        // Check if current time matches any of the enabled time slots exactly
-        for (day, timeSlots) in config.dayTimeSlots {
-            let calendarWeekday = calendar.component(.weekday, from: date)
-            let expectedWeekday = switch day {
-            case .sunday: 1
-            case .monday: 2
-            case .tuesday: 3
-            case .wednesday: 4
-            case .thursday: 5
-            case .friday: 6
-            case .saturday: 7
-            }
-
-            if calendarWeekday == expectedWeekday {
-                for timeSlot in timeSlots {
-                    let slotTime = calendar.dateComponents([.hour, .minute], from: timeSlot.time)
-
-                    guard
-                        let slotHour = slotTime.hour,
-                        let slotMinute = slotTime.minute
-                    else {
-                        logger.warning("Could not extract time components from slot")
-                        continue
-                    }
-
-                    let slotMinutes = slotHour * 60 + slotMinute
-
-                    if currentMinutes == slotMinutes {
-                        return true
-                    }
-                }
-            }
+        // Only trigger at exactly 6:00pm
+        if currentHour != 18 || currentMinute != 0 {
+            return false
         }
 
+        // For each enabled day, check if today is 2 days before that day
+        let today = calendar.startOfDay(for: date)
+        for (day, timeSlots) in config.dayTimeSlots {
+            guard !timeSlots.isEmpty else { continue }
+            // Find the next occurrence of the reservation day
+            let targetWeekday = day.calendarWeekday
+            let currentWeekday = calendar.component(.weekday, from: today)
+            var daysUntilTarget = targetWeekday - currentWeekday
+            if daysUntilTarget <= 0 { daysUntilTarget += 7 }
+            let reservationDay = calendar.date(byAdding: .day, value: daysUntilTarget, to: today) ?? today
+            // Autorun should be 2 days before reservation day
+            let autorunDay = calendar.date(byAdding: .day, value: -2, to: reservationDay) ?? reservationDay
+            if calendar.isDate(today, inSameDayAs: autorunDay) {
+                return true
+            }
+        }
         return false
     }
 

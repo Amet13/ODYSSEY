@@ -58,7 +58,7 @@ Sources/
 - **ReservationManager.swift** - Web automation and reservation booking
 - **FacilityService.swift** - Facility data fetching and sports detection
 - **WebDriverService.swift** - Chrome automation via WebDriver protocol
-- **EmailService.swift** - IMAP integration and email testing
+- **EmailService.swift** - IMAP integration and email
 - **TelegramService.swift** - Telegram bot integration and notifications
 
 ### Controllers Layer
@@ -90,8 +90,8 @@ Sources/
 
 ### Integration Features
 
-- **Telegram Integration** - Bot-based notifications and test messaging
-- **IMAP Integration** - Email service testing and validation
+- **Telegram Integration** - Bot-based notifications
+- **IMAP Integration** - Email service validation
 - **Multi-language Support** - English and French localization
 
 ## Development Guidelines
@@ -116,13 +116,6 @@ Sources/
 - Use async/await for concurrent operations
 - Implement proper cleanup in deinit methods
 - Monitor app size and build performance
-
-### Testing
-
-- Test all business logic and automation flows
-- Validate UI on different macOS versions
-- Test error conditions and edge cases
-- Ensure proper data persistence
 
 ## Build Process
 

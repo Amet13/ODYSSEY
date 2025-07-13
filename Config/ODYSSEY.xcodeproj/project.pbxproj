@@ -23,6 +23,7 @@
 		C31CF17307DDA59BA42606BC /* ConfigurationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4032FBD046C7A84D2AB708F7 /* ConfigurationDetailView.swift */; };
 		CB04374E216585BE1DBC7BF4 /* ODYSSEYApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D401C9E0BDAD61E6DECC196A /* ODYSSEYApp.swift */; };
 		CD28D84649639DDF5D9281B7 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23E39878914FA1362DBDFB3 /* SettingsView.swift */; };
+		DC6BD4AFB504DDB4F2D9BD47 /* WebDriverProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */; };
 		E2CDCC931C7C13AD6F4D8DD4 /* UserSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88087B5FF17E55461F2F9181 /* UserSettingsManager.swift */; };
 		FA8FDED3BB6BF7B43C24F5B5 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9F32A0A5C6C800FBB7769711 /* AppIcon.icns */; };
 /* End PBXBuildFile section */
@@ -38,6 +39,7 @@
 		504F310E3FF9BD25280A3106 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		6D876275C546C2EDF4733D3E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		88087B5FF17E55461F2F9181 /* UserSettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettingsManager.swift; sourceTree = "<group>"; };
+		9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebDriverProtocols.swift; sourceTree = "<group>"; };
 		9F32A0A5C6C800FBB7769711 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		9F37E32A2DEAB7D80A5148F2 /* Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		A7A301E1B3374676F73BCE2C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -93,6 +95,7 @@
 				2DC0F2FC1EC5039DF5FCC39B /* ReservationManager.swift */,
 				ADFCFD349132E8D965235BFE /* TelegramService.swift */,
 				88087B5FF17E55461F2F9181 /* UserSettingsManager.swift */,
+				9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */,
 				17BB4FD5B937C3B916521CE2 /* WebDriverService.swift */,
 				DBCC4A2B64370ACAF412BF87 /* WebDriverStealth.swift */,
 			);
@@ -251,6 +254,7 @@
 				6E267064EF64EE49363B8ED4 /* TelegramService.swift in Sources */,
 				7AB843B692B99A297F71AFA2 /* UserSettings.swift in Sources */,
 				E2CDCC931C7C13AD6F4D8DD4 /* UserSettingsManager.swift in Sources */,
+				DC6BD4AFB504DDB4F2D9BD47 /* WebDriverProtocols.swift in Sources */,
 				9E6D22BDED99426435FB2DC1 /* WebDriverService.swift in Sources */,
 				82BF69EBE3B57623F100A29E /* WebDriverStealth.swift in Sources */,
 			);
@@ -268,7 +272,6 @@
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_TESTABILITY = YES;
 				INFOPLIST_FILE = ../Sources/App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ODYSSEY;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
@@ -296,7 +299,6 @@
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_TESTABILITY = YES;
 				INFOPLIST_FILE = ../Sources/App/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = ODYSSEY;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
@@ -443,7 +445,6 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_TESTABILITY = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = s;
