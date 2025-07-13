@@ -109,6 +109,9 @@ class ReservationManager: NSObject, ObservableObject {
         case navigationFailed
         case sportButtonNotFound
         case pageLoadTimeout
+        case groupSizePageLoadTimeout
+        case numberOfPeopleFieldNotFound
+        case confirmButtonNotFound
 
         var errorDescription: String? {
             switch self {
@@ -120,6 +123,12 @@ class ReservationManager: NSObject, ObservableObject {
                 UserSettingsManager.shared.userSettings.localized("Sport button not found on page")
             case .pageLoadTimeout:
                 UserSettingsManager.shared.userSettings.localized("Page failed to load completely within timeout")
+            case .groupSizePageLoadTimeout:
+                UserSettingsManager.shared.userSettings.localized("Group size page failed to load within timeout")
+            case .numberOfPeopleFieldNotFound:
+                UserSettingsManager.shared.userSettings.localized("Number of people field not found on page")
+            case .confirmButtonNotFound:
+                UserSettingsManager.shared.userSettings.localized("Confirm button not found on page")
             }
         }
     }
@@ -246,9 +255,60 @@ class ReservationManager: NSObject, ObservableObject {
             if buttonClicked {
                 logger.info("Successfully clicked sport button: \(config.sportName)")
 
-                // Step 5: Success - wait a moment and close browser tab
+                // Step 5: Wait for group size page to load
+                await updateTask("Waiting for group size page...")
+                let groupSizePageReady = await webDriverService.waitForGroupSizePage()
+                if !groupSizePageReady {
+                    logger.error("Group size page failed to load within timeout")
+                    throw ReservationError.groupSizePageLoadTimeout
+                }
+
+                logger.info("Group size page loaded successfully")
+
+                // Step 6: Fill number of people field
+                await updateTask("Setting number of people: \(config.numberOfPeople)")
+                await webDriverService.addRandomDelay()
+
+                let peopleFilled = await webDriverService.fillNumberOfPeople(config.numberOfPeople)
+                if !peopleFilled {
+                    logger.warning("Regular fill method failed, trying JavaScript method...")
+                    let peopleFilledJS = await webDriverService.fillNumberOfPeopleWithJavaScript(config.numberOfPeople)
+                    if !peopleFilledJS {
+                        logger.error("Both regular and JavaScript fill methods failed")
+                        throw ReservationError.numberOfPeopleFieldNotFound
+                    }
+                }
+
+                logger.info("Successfully filled number of people: \(config.numberOfPeople)")
+
+                // Step 7: Click confirm button
+                await updateTask("Confirming group size...")
+                await webDriverService.addRandomDelay()
+
+                // Check button status before clicking
+                let buttonStatus = await webDriverService.checkConfirmButtonStatus()
+                if !buttonStatus {
+                    logger.error("Confirm button is not clickable")
+                    throw ReservationError.confirmButtonNotFound
+                }
+
+                let confirmClicked = await webDriverService.clickConfirmButton()
+                if !confirmClicked {
+                    logger.error("Failed to click confirm button")
+                    throw ReservationError.confirmButtonNotFound
+                }
+
+                logger.info("Successfully clicked confirm button")
+
+                // Step 8: Success - wait a moment and close browser tab
                 await updateTask("Success! Closing browser tab...")
                 try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+
+                // Capture screenshot before closing browser
+                var screenshotData: Data?
+                if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
+                    screenshotData = await webDriverService.captureScreenshot()
+                }
 
                 // Close only the current browser tab, not the entire session
                 await webDriverService.stopSession()
@@ -270,7 +330,7 @@ class ReservationManager: NSObject, ObservableObject {
                 }
 
                 if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
-                    await TelegramService.shared.sendSuccessNotification(for: config)
+                    await TelegramService.shared.sendSuccessNotification(for: config, screenshotData: screenshotData)
                 }
 
                 return
@@ -287,6 +347,26 @@ class ReservationManager: NSObject, ObservableObject {
             }
 
         } catch {
+            // Capture screenshot before closing browser
+            var screenshotData: Data? = nil
+            if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
+                screenshotData = await webDriverService.captureScreenshot()
+            }
+
+            // Close browser tab on failure (same as success)
+            await updateTask("Error occurred. Closing browser tab...")
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+            await webDriverService.stopSession()
+
+            // Send Telegram notification with screenshot if enabled
+            if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
+                await TelegramService.shared.sendFailureNotification(
+                    for: config,
+                    error: error.localizedDescription,
+                    screenshotData: screenshotData,
+                )
+            }
+
             await handleError(
                 UserSettingsManager.shared.userSettings
                     .localized("Automation error:") + " \(error.localizedDescription)",

@@ -427,6 +427,384 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
         return false
     }
 
+    /// Waits for the group size page to load after clicking sport button
+    /// - Returns: True if group size page is ready, false if timeout
+    func waitForGroupSizePage() async -> Bool {
+        guard let sessionId else {
+            logger.error("No active session for group size page check")
+            return false
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        let maxAttempts = 30 // 30 seconds max wait
+        var attempts = 0
+
+        while attempts < maxAttempts {
+            // Check if document.readyState is 'complete'
+            let readyStateScript = "return document.readyState;"
+            if let readyState = await executeScript(readyStateScript, sessionId: sessionIdString) as? String {
+                if readyState == "complete" {
+                    // Check if group size form is present
+                    let groupSizeCheckScript = "return document.getElementById('reservationCount') !== null;"
+                    if
+                        let hasGroupSizeForm = await executeScript(
+                            groupSizeCheckScript,
+                            sessionId: sessionIdString,
+                        ) as? Bool
+                    {
+                        if hasGroupSizeForm {
+                            logger.info("Group size page loaded successfully")
+                            return true
+                        }
+                    }
+                }
+            }
+
+            attempts += 1
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+        }
+
+        logger.error("Group size page load timeout after \(maxAttempts) seconds")
+        return false
+    }
+
+    /// Fills the number of people field on the group size page
+    /// - Parameter numberOfPeople: The number of people to set (1 or 2)
+    /// - Returns: True if field was filled successfully
+    func fillNumberOfPeople(_ numberOfPeople: Int) async -> Bool {
+        guard let sessionId else {
+            logger.error("No active session for filling number of people")
+            return false
+        }
+
+        let sessionIdString = String(describing: sessionId)
+
+        // Find the reservation count input field
+        let endpoint = "\(baseURL)/session/\(sessionIdString)/element"
+        let body = ["using": "id", "value": "reservationCount"]
+
+        guard let request = createRequest(url: endpoint, method: "POST", body: body) else {
+            logger.error("Failed to create find element request for reservation count")
+            return false
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+
+            if httpResponse?.statusCode != 200 {
+                logger.error("Failed to find reservation count field")
+                return false
+            }
+
+            let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            if let value = responseDict?["value"] as? [String: Any] {
+                let elementId = value["element-6066-11e4-a52e-4f735466cecf"] as? String ?? value["ELEMENT"] as? String
+                if let elementId {
+                    // First, check the current value
+                    let getValueEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/property/value"
+                    guard let getValueRequest = createRequest(url: getValueEndpoint, method: "GET") else {
+                        logger.error("Failed to create get value request")
+                        return false
+                    }
+
+                    let (valueData, valueResponse) = try await urlSession.data(for: getValueRequest)
+                    let valueHttpResponse = valueResponse as? HTTPURLResponse
+
+                    if valueHttpResponse?.statusCode == 200 {
+                        let valueResponseDict = try JSONSerialization.jsonObject(with: valueData) as? [String: Any]
+                        let currentValue = valueResponseDict?["value"] as? String ?? "1"
+                        logger.info("Current value in field: '\(currentValue)', setting to: '\(numberOfPeople)'")
+                    }
+
+                    // Clear the field first (this removes the default "1" value)
+                    let clearEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/clear"
+                    guard let clearRequest = createRequest(url: clearEndpoint, method: "POST") else {
+                        logger.error("Failed to create clear request")
+                        return false
+                    }
+
+                    let (_, clearResponse) = try await urlSession.data(for: clearRequest)
+                    let clearHttpResponse = clearResponse as? HTTPURLResponse
+
+                    if clearHttpResponse?.statusCode != 200 {
+                        logger.error("Failed to clear reservation count field")
+                        return false
+                    }
+
+                    logger.info("Successfully cleared the field")
+
+                    // Add a small delay to simulate human behavior
+                    try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+
+                    // Fill the field with the number of people
+                    let fillEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/value"
+                    let fillBody: [String: Any] = ["text": String(numberOfPeople), "value": [String(numberOfPeople)]]
+
+                    guard let fillRequest = createRequest(url: fillEndpoint, method: "POST", body: fillBody) else {
+                        logger.error("Failed to create fill request")
+                        return false
+                    }
+
+                    let (_, fillResponse) = try await urlSession.data(for: fillRequest)
+                    let fillHttpResponse = fillResponse as? HTTPURLResponse
+
+                    if fillHttpResponse?.statusCode == 200 {
+                        logger.info("Successfully filled number of people: \(numberOfPeople)")
+
+                        // Add another small delay after filling
+                        try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+
+                        return true
+                    } else {
+                        logger.error("Failed to fill number of people field")
+                        return false
+                    }
+                }
+            }
+
+            logger.error("Failed to extract element ID for reservation count field")
+            return false
+        } catch {
+            logger.error("Error filling number of people: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Fills the number of people field using JavaScript (alternative method)
+    /// - Parameter numberOfPeople: The number of people to set (1 or 2)
+    /// - Returns: True if field was filled successfully
+    func fillNumberOfPeopleWithJavaScript(_ numberOfPeople: Int) async -> Bool {
+        guard let sessionId else {
+            logger.error("No active session for filling number of people with JavaScript")
+            return false
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        let endpoint = "\(baseURL)/session/\(sessionIdString)/execute/sync"
+
+        // JavaScript to clear and fill the field
+        let script = """
+            const field = document.getElementById('reservationCount');
+            if (field) {
+                field.value = '';
+                field.focus();
+                field.value = '\(numberOfPeople)';
+                field.dispatchEvent(new Event('input', { bubbles: true }));
+                field.dispatchEvent(new Event('change', { bubbles: true }));
+                return true;
+            }
+            return false;
+        """
+
+        let body: [String: Any] = [
+            "script": script,
+            "args": [],
+        ]
+
+        guard let request = createRequest(url: endpoint, method: "POST", body: body) else {
+            logger.error("Failed to create JavaScript fill request")
+            return false
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+
+            if httpResponse?.statusCode == 200 {
+                let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                if let result = responseDict?["value"] as? Bool, result {
+                    logger.info("Successfully filled number of people with JavaScript: \(numberOfPeople)")
+                    return true
+                } else {
+                    logger.error("JavaScript fill returned false")
+                    return false
+                }
+            } else {
+                logger.error("JavaScript fill failed with status \(httpResponse?.statusCode ?? 0)")
+                return false
+            }
+        } catch {
+            logger.error("Error filling number of people with JavaScript: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Clicks the confirm button on the group size page
+    /// - Returns: True if confirm button was clicked successfully
+    func clickConfirmButton() async -> Bool {
+        guard let sessionId else { return false }
+        let sessionIdString = String(describing: sessionId)
+        // Only use the most reliable selectors
+        let selectors = [
+            ["using": "id", "value": "submit-btn"],
+            ["using": "css selector", "value": ".mdc-button__ripple"],
+        ]
+        var elementId: String? = nil
+        for selector in selectors {
+            let endpoint = "\(baseURL)/session/\(sessionIdString)/element"
+            guard let request = createRequest(url: endpoint, method: "POST", body: selector) else { continue }
+            do {
+                let (data, response) = try await urlSession.data(for: request)
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                    if
+                        let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                        let value = json["value"] as? [String: Any],
+                        let eid = value["element-6066-11e4-a52e-4f735466cecf"] as? String
+                    {
+                        elementId = eid
+                        break
+                    }
+                }
+            } catch { continue }
+        }
+        if let elementId {
+            let clickEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/click"
+            if let clickRequest = createRequest(url: clickEndpoint, method: "POST") {
+                do {
+                    let (_, clickResponse) = try await urlSession.data(for: clickRequest)
+                    if let httpResponse = clickResponse as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                        return true
+                    }
+                } catch { }
+            }
+        }
+        // Fallback: Use JavaScript to click the ripple element
+        let js = """
+            var ripple = document.querySelector('.mdc-button__ripple');
+            if (ripple) {
+                ripple.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true, view: window}));
+                return true;
+            }
+            return false;
+        """
+        let jsEndpoint = "\(baseURL)/session/\(sessionIdString)/execute/sync"
+        let jsBody: [String: Any] = ["script": js, "args": []]
+        if let jsRequest = createRequest(url: jsEndpoint, method: "POST", body: jsBody) {
+            do {
+                let (data, response) = try await urlSession.data(for: jsRequest)
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                    if
+                        let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                        let value = json["value"] as? Bool, value == true
+                    {
+                        return true
+                    }
+                }
+            } catch { }
+        }
+        return false
+    }
+
+    private func performJavaScriptFormSubmit(sessionId: String) async -> Bool {
+        let endpoint = "\(baseURL)/session/\(sessionId)/execute/sync"
+        let script = """
+            const form = document.getElementById('mainForm');
+            if (form) {
+                form.submit();
+                return true;
+            }
+            return false;
+        """
+        let body: [String: Any] = ["script": script, "args": []]
+
+        guard let request = createRequest(url: endpoint, method: "POST", body: body) else {
+            logger.error("Failed to create JavaScript form submit request")
+            return false
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+
+            if httpResponse?.statusCode == 200 {
+                let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                if let result = responseDict?["value"] as? Bool, result {
+                    return true
+                }
+            }
+
+            // Log the error response for debugging
+            if let responseData = String(data: data, encoding: .utf8) {
+                logger.error("JavaScript form submit failed with response: \(responseData)")
+            }
+            return false
+        } catch {
+            logger.error("JavaScript form submit failed: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Checks if the confirm button is clickable and logs its properties
+    /// - Returns: True if button is found and appears clickable
+    func checkConfirmButtonStatus() async -> Bool {
+        guard let sessionId else {
+            logger.error("No active session for checking confirm button")
+            return false
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        let endpoint = "\(baseURL)/session/\(sessionIdString)/execute/sync"
+
+        let script = """
+            const button = document.getElementById('submit-btn');
+            if (button) {
+                return {
+                    exists: true,
+                    visible: button.offsetParent !== null,
+                    enabled: !button.disabled,
+                    text: button.textContent || button.innerText,
+                    className: button.className,
+                    type: button.type,
+                    id: button.id,
+                    style: button.style.cssText
+                };
+            }
+            return { exists: false };
+        """
+
+        let body: [String: Any] = ["script": script, "args": []]
+
+        guard let request = createRequest(url: endpoint, method: "POST", body: body) else {
+            logger.error("Failed to create button status check request")
+            return false
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+
+            if httpResponse?.statusCode == 200 {
+                let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                if let result = responseDict?["value"] as? [String: Any] {
+                    if let exists = result["exists"] as? Bool, exists {
+                        let visible = result["visible"] as? Bool ?? false
+                        let enabled = result["enabled"] as? Bool ?? false
+                        let text = result["text"] as? String ?? "unknown"
+                        let className = result["className"] as? String ?? "unknown"
+
+                        logger.info("Confirm button found:")
+                        logger.info("  - Text: '\(text)'")
+                        logger.info("  - Visible: \(visible)")
+                        logger.info("  - Enabled: \(enabled)")
+                        logger.info("  - Class: \(className)")
+
+                        return visible && enabled
+                    } else {
+                        logger.error("Confirm button does not exist")
+                        return false
+                    }
+                }
+            }
+
+            logger.error("Failed to check button status")
+            return false
+        } catch {
+            logger.error("Error checking button status: \(error.localizedDescription)")
+            return false
+        }
+    }
+
     // MARK: - WebDriverServiceProtocol Implementation
 
     /// Protocol method: Connect to WebDriver
@@ -1181,5 +1559,40 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
             logger.error("findElementByXPath (relative) failed: \(error.localizedDescription)")
             return nil
         }
+    }
+
+    /// Captures a screenshot of the current browser tab
+    /// - Returns: Screenshot data if successful, nil otherwise
+    func captureScreenshot() async -> Data? {
+        guard let sessionId else {
+            logger.error("No active session for screenshot capture")
+            return nil
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        let endpoint = "\(baseURL)/session/\(sessionIdString)/screenshot"
+
+        guard let request = createRequest(url: endpoint, method: "GET") else {
+            logger.error("Failed to create screenshot request")
+            return nil
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                if
+                    let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                    let base64String = json["value"] as? String,
+                    let screenshotData = Data(base64Encoded: base64String)
+                {
+                    logger.info("Screenshot captured successfully")
+                    return screenshotData
+                }
+            }
+        } catch {
+            logger.error("Failed to capture screenshot: \(error)")
+        }
+
+        return nil
     }
 }
