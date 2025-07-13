@@ -341,9 +341,10 @@ struct ConfigurationRowView: View {
                 let timeStrings = timeSlots.map { timeSlot in
                     let formatter = DateFormatter()
                     formatter.timeStyle = .short
+                    formatter.locale = userSettingsManager.userSettings.locale
                     return formatter.string(from: timeSlot.time)
                 }.sorted()
-                let dayShort = day.shortName
+                let dayShort = day.localizedShortName
                 let timesString = timeStrings.joined(separator: ", ")
                 scheduleInfo.append("\(dayShort): \(timesString)")
             }
@@ -354,10 +355,11 @@ struct ConfigurationRowView: View {
     private func nextAutorunText(for next: NextAutorunInfo) -> String {
         let timeFormatter = DateFormatter()
         timeFormatter.timeStyle = .short
-        let timeString = timeFormatter.string(from: next.timeSlot.time)
+        timeFormatter.locale = userSettingsManager.userSettings.locale
+        let autorunTimeString = timeFormatter.string(from: next.date)
         let autorunText = userSettingsManager.userSettings.localized("Next autorun:")
         let countdownText = formatCountdown(next.date)
-        let scheduleText = "(" + next.weekday.shortName + " " + timeString + ")"
+        let scheduleText = "(" + next.weekday.localizedShortName + " " + autorunTimeString + ")"
         return "\(autorunText) \(countdownText) \(scheduleText)"
     }
 

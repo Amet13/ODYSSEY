@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Stores personal information needed for reservations and notifications
 /// including contact details, email settings, and optional Telegram integration
-struct UserSettings: Codable {
+struct UserSettings: Codable, Equatable {
     // Contact Information
     var phoneNumber: String = ""
     var name: String = ""
@@ -31,6 +31,27 @@ struct UserSettings: Codable {
         if preferred.hasPrefix("fr") { return .french }
         return .english
     }()
+
+    var locale: Locale {
+        switch language {
+        case .english: return Locale(identifier: "en")
+        case .french: return Locale(identifier: "fr")
+        }
+    }
+
+    // MARK: - Equatable
+
+    static func == (lhs: UserSettings, rhs: UserSettings) -> Bool {
+        return lhs.phoneNumber == rhs.phoneNumber &&
+            lhs.name == rhs.name &&
+            lhs.imapEmail == rhs.imapEmail &&
+            lhs.imapPassword == rhs.imapPassword &&
+            lhs.imapServer == rhs.imapServer &&
+            lhs.telegramEnabled == rhs.telegramEnabled &&
+            lhs.telegramBotToken == rhs.telegramBotToken &&
+            lhs.telegramChatId == rhs.telegramChatId &&
+            lhs.language == rhs.language
+    }
 
     // Validation
     var isValid: Bool {
@@ -230,6 +251,46 @@ struct UserSettings: Codable {
             "Failed to navigate to facility": "Failed to navigate to facility",
             "Automation error:": "Automation error:",
             "Reservation completed successfully": "Reservation completed successfully",
+            "Add Reservation Configuration": "Add Reservation Configuration",
+            "Edit Reservation Configuration": "Edit Reservation Configuration",
+            "Sport Name": "Sport Name",
+            "No sports available": "No sports available",
+            "Select Sport": "Select Sport",
+            "Fetching available sports...": "Fetching available sports...",
+            "sports found": "sports found",
+            "Number of People": "Number of People",
+            "Configuration Name": "Configuration Name",
+            "Time Slots": "Time Slots",
+            "Add Day": "Add Day",
+            "Maximum 2 time slots per day (no duplicates)": "Maximum 2 time slots per day (no duplicates)",
+            "No days selected. Click 'Add Day' to start scheduling.": "No days selected. Click 'Add Day' to start scheduling.",
+            "Preview": "Preview",
+            "Name: ": "Name: ",
+            "Sport: ": "Sport: ",
+            "People: ": "People: ",
+            "Not set": "Not set",
+            "Please fill in all required fields with valid data.": "Please fill in all required fields with valid data.",
+            "Facility URL": "Facility URL",
+            "Please enter a valid Ottawa Recreation URL.": "Please enter a valid Ottawa Recreation URL.",
+            "1 Person": "1 Person",
+            "2 People": "2 People",
+            "Enter facility URL": "Enter facility URL",
+            "Add Time Slot (max 2)": "Add Time Slot (max 2)",
+            "Mon": "Mon",
+            "Tue": "Tue",
+            "Wed": "Wed",
+            "Thu": "Thu",
+            "Fri": "Fri",
+            "Sat": "Sat",
+            "Sun": "Sun",
+            "Monday": "Monday",
+            "Tuesday": "Tuesday",
+            "Wednesday": "Wednesday",
+            "Thursday": "Thursday",
+            "Friday": "Friday",
+            "Saturday": "Saturday",
+            "Sunday": "Sunday",
+            "View Ottawa Facilities": "View Ottawa Facilities",
         ]
     }
 
@@ -361,6 +422,46 @@ struct UserSettings: Codable {
             "Failed to navigate to facility": "Échec de navigation vers l'installation",
             "Automation error:": "Erreur d'automatisation :",
             "Reservation completed successfully": "Réservation terminée avec succès",
+            "Add Reservation Configuration": "Ajouter une configuration de réservation",
+            "Edit Reservation Configuration": "Modifier la configuration de réservation",
+            "Sport Name": "Nom du sport",
+            "No sports available": "Aucun sport disponible",
+            "Select Sport": "Sélectionner un sport",
+            "Fetching available sports...": "Récupération des sports disponibles...",
+            "sports found": "sports trouvés",
+            "Number of People": "Nombre de personnes",
+            "Configuration Name": "Nom de la configuration",
+            "Time Slots": "Créneaux horaires",
+            "Add Day": "Ajouter un jour",
+            "Maximum 2 time slots per day (no duplicates)": "Maximum 2 créneaux par jour (pas de doublons)",
+            "No days selected. Click 'Add Day' to start scheduling.": "Aucun jour sélectionné. Cliquez sur 'Ajouter un jour' pour commencer la planification.",
+            "Preview": "Aperçu",
+            "Name: ": "Nom : ",
+            "Sport: ": "Sport : ",
+            "People: ": "Personnes : ",
+            "Not set": "Non défini",
+            "Please fill in all required fields with valid data.": "Veuillez remplir tous les champs requis avec des données valides.",
+            "Facility URL": "URL de l'installation",
+            "Please enter a valid Ottawa Recreation URL.": "Veuillez entrer une URL valide d'Ottawa Recreation.",
+            "1 Person": "1 Personne",
+            "2 People": "2 Personnes",
+            "Enter facility URL": "Entrez l'URL de l'installation",
+            "Add Time Slot (max 2)": "Ajouter un créneau (max 2)",
+            "Mon": "Lun",
+            "Tue": "Mar",
+            "Wed": "Mer",
+            "Thu": "Jeu",
+            "Fri": "Ven",
+            "Sat": "Sam",
+            "Sun": "Dim",
+            "Monday": "Lundi",
+            "Tuesday": "Mardi",
+            "Wednesday": "Mercredi",
+            "Thursday": "Jeudi",
+            "Friday": "Vendredi",
+            "Saturday": "Samedi",
+            "Sunday": "Dimanche",
+            "View Ottawa Facilities": "Voir les installations d'Ottawa",
         ]
     }
 }

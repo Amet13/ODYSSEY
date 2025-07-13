@@ -62,4 +62,9 @@ enum Constants {
         "gym",
         "sport",
     ]
+
+    static let supportedLanguages = [
+        "en": "English",
+        "fr": "Français",
+    ]
 }

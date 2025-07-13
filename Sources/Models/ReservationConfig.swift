@@ -2,7 +2,7 @@ import Foundation
 
 /// Configuration for a single reservation automation
 /// Represents all settings needed to automate a reservation at an Ottawa recreation facility
-struct ReservationConfig: Codable, Identifiable {
+struct ReservationConfig: Codable, Identifiable, Equatable {
     var id: UUID
 
     // Basic settings
@@ -46,6 +46,18 @@ struct ReservationConfig: Codable, Identifiable {
         self.dayTimeSlots = dayTimeSlots
     }
 
+    // MARK: - Equatable
+
+    static func == (lhs: ReservationConfig, rhs: ReservationConfig) -> Bool {
+        return lhs.id == rhs.id &&
+            lhs.name == rhs.name &&
+            lhs.facilityURL == rhs.facilityURL &&
+            lhs.sportName == rhs.sportName &&
+            lhs.numberOfPeople == rhs.numberOfPeople &&
+            lhs.isEnabled == rhs.isEnabled &&
+            lhs.dayTimeSlots == rhs.dayTimeSlots
+    }
+
     // MARK: - Weekday Enum
 
     /// Represents days of the week for scheduling
@@ -61,6 +73,12 @@ struct ReservationConfig: Codable, Identifiable {
         /// Three-letter abbreviation (e.g., "Mon", "Tue")
         var shortName: String {
             String(rawValue.prefix(3))
+        }
+
+        /// Localized three-letter abbreviation
+        var localizedShortName: String {
+            let localizedName = UserSettingsManager.shared.userSettings.localized(rawValue)
+            return String(localizedName.prefix(3))
         }
 
         /// Calendar weekday number (1 = Sunday, 2 = Monday, etc.)

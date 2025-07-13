@@ -61,7 +61,7 @@ class ReservationManager: NSObject, ObservableObject {
     private let logger = Logger(subsystem: "com.odyssey.app", category: "ReservationManager")
     private var currentConfig: ReservationConfig?
 
-    enum RunStatus {
+    enum RunStatus: Equatable {
         case idle
         case running
         case success
@@ -73,6 +73,21 @@ class ReservationManager: NSObject, ObservableObject {
             case .running: "Running"
             case .success: "Success"
             case let .failed(error): "Failed: \(error)"
+            }
+        }
+
+        static func == (lhs: RunStatus, rhs: RunStatus) -> Bool {
+            switch (lhs, rhs) {
+            case (.idle, .idle):
+                return true
+            case (.running, .running):
+                return true
+            case (.success, .success):
+                return true
+            case let (.failed(lhsError), .failed(rhsError)):
+                return lhsError == rhsError
+            default:
+                return false
             }
         }
     }

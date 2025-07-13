@@ -34,11 +34,16 @@ import os.log
 
 /// WebDriver service for Chrome automation
 /// Handles WebDriver protocol communication with ChromeDriver
-class WebDriverService: ObservableObject {
+class WebDriverService: ObservableObject, WebDriverServiceProtocol {
     static let shared = WebDriverService()
 
     @Published var isConnected = false
     @Published var currentSession: String?
+
+    // Protocol conformance properties
+    @Published var isRunning: Bool = false
+    @Published var currentURL: String?
+    @Published var pageTitle: String?
 
     private let logger = Logger(subsystem: "com.odyssey.app", category: "WebDriverService")
     private var chromeDriverProcess: Process?
@@ -420,6 +425,299 @@ class WebDriverService: ObservableObject {
 
         logger.error("Page load timeout after \(maxAttempts) seconds")
         return false
+    }
+
+    // MARK: - WebDriverServiceProtocol Implementation
+
+    /// Protocol method: Connect to WebDriver
+    func connect() async throws {
+        let success = await startSession()
+        if !success {
+            throw WebDriverError.connectionFailed("Failed to start WebDriver session")
+        }
+    }
+
+    /// Protocol method: Disconnect from WebDriver
+    func disconnect() async {
+        await stopSession()
+    }
+
+    /// Protocol method: Navigate to URL (throws version)
+    func navigateToURL(_ url: String) async throws {
+        let success = await self.navigate(to: url)
+        if !success {
+            throw WebDriverError.navigationFailed("Failed to navigate to \(url)")
+        }
+        currentURL = url
+    }
+
+    /// Protocol method: Find element by selector
+    func findElement(by selector: String) async throws -> WebElementProtocol {
+        guard let sessionId else {
+            throw WebDriverError.elementNotFound("No active session")
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        let endpoint = "\(baseURL)/session/\(sessionIdString)/element"
+        let body = ["using": "css selector", "value": selector]
+
+        guard let request = createRequest(url: endpoint, method: "POST", body: body) else {
+            throw WebDriverError.elementNotFound("Failed to create request")
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+
+            if httpResponse?.statusCode != 200 {
+                throw WebDriverError.elementNotFound("Element not found: \(selector)")
+            }
+
+            let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            if let value = responseDict?["value"] as? [String: Any] {
+                let elementId = value["element-6066-11e4-a52e-4f735466cecf"] as? String ?? value["ELEMENT"] as? String
+                if let elementId {
+                    return WebDriverElement(
+                        id: elementId,
+                        sessionId: sessionIdString,
+                        baseURL: baseURL,
+                        urlSession: urlSession,
+                    )
+                }
+            }
+
+            throw WebDriverError.elementNotFound("Element not found: \(selector)")
+        } catch {
+            throw WebDriverError.elementNotFound("Failed to find element: \(error.localizedDescription)")
+        }
+    }
+
+    /// Protocol method: Find elements by selector
+    func findElements(by selector: String) async throws -> [WebElementProtocol] {
+        guard let sessionId else {
+            throw WebDriverError.elementNotFound("No active session")
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        let endpoint = "\(baseURL)/session/\(sessionIdString)/elements"
+        let body = ["using": "css selector", "value": selector]
+
+        guard let request = createRequest(url: endpoint, method: "POST", body: body) else {
+            throw WebDriverError.elementNotFound("Failed to create request")
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+
+            if httpResponse?.statusCode != 200 {
+                throw WebDriverError.elementNotFound("Elements not found: \(selector)")
+            }
+
+            let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            if let value = responseDict?["value"] as? [[String: Any]] {
+                return value.compactMap { elementDict in
+                    let elementId = elementDict["element-6066-11e4-a52e-4f735466cecf"] as? String ??
+                        elementDict["ELEMENT"] as? String
+                    if let elementId {
+                        return WebDriverElement(
+                            id: elementId,
+                            sessionId: sessionIdString,
+                            baseURL: baseURL,
+                            urlSession: urlSession,
+                        )
+                    }
+                    return nil
+                }
+            }
+
+            return []
+        } catch {
+            throw WebDriverError.elementNotFound("Failed to find elements: \(error.localizedDescription)")
+        }
+    }
+
+    /// Protocol method: Get page source
+    func getPageSource() async throws -> String {
+        guard let sessionId else {
+            throw WebDriverError.scriptExecutionFailed("No active session")
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        let endpoint = "\(baseURL)/session/\(sessionIdString)/source"
+
+        guard let request = createRequest(url: endpoint, method: "GET") else {
+            throw WebDriverError.scriptExecutionFailed("Failed to create request")
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+
+            if httpResponse?.statusCode != 200 {
+                throw WebDriverError.scriptExecutionFailed("Failed to get page source")
+            }
+
+            let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            return responseDict?["value"] as? String ?? ""
+        } catch {
+            throw WebDriverError.scriptExecutionFailed("Failed to get page source: \(error.localizedDescription)")
+        }
+    }
+
+    /// Protocol method: Get current URL
+    func getCurrentURL() async throws -> String {
+        guard let sessionId else {
+            throw WebDriverError.scriptExecutionFailed("No active session")
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        let endpoint = "\(baseURL)/session/\(sessionIdString)/url"
+
+        guard let request = createRequest(url: endpoint, method: "GET") else {
+            throw WebDriverError.scriptExecutionFailed("Failed to create request")
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+
+            if httpResponse?.statusCode != 200 {
+                throw WebDriverError.scriptExecutionFailed("Failed to get current URL")
+            }
+
+            let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            return responseDict?["value"] as? String ?? ""
+        } catch {
+            throw WebDriverError.scriptExecutionFailed("Failed to get current URL: \(error.localizedDescription)")
+        }
+    }
+
+    /// Protocol method: Get page title
+    func getTitle() async throws -> String {
+        guard let sessionId else {
+            throw WebDriverError.scriptExecutionFailed("No active session")
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        let endpoint = "\(baseURL)/session/\(sessionIdString)/title"
+
+        guard let request = createRequest(url: endpoint, method: "GET") else {
+            throw WebDriverError.scriptExecutionFailed("Failed to create request")
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+
+            if httpResponse?.statusCode != 200 {
+                throw WebDriverError.scriptExecutionFailed("Failed to get title")
+            }
+
+            let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            return responseDict?["value"] as? String ?? ""
+        } catch {
+            throw WebDriverError.scriptExecutionFailed("Failed to get title: \(error.localizedDescription)")
+        }
+    }
+
+    /// Protocol method: Take screenshot
+    func takeScreenshot() async throws -> Data {
+        guard let sessionId else {
+            throw WebDriverError.screenshotFailed("No active session")
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        let endpoint = "\(baseURL)/session/\(sessionIdString)/screenshot"
+
+        guard let request = createRequest(url: endpoint, method: "GET") else {
+            throw WebDriverError.screenshotFailed("Failed to create request")
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+
+            if httpResponse?.statusCode != 200 {
+                throw WebDriverError.screenshotFailed("Failed to take screenshot")
+            }
+
+            let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            if
+                let base64String = responseDict?["value"] as? String,
+                let screenshotData = Data(base64Encoded: base64String)
+            {
+                return screenshotData
+            }
+
+            throw WebDriverError.screenshotFailed("Invalid screenshot data")
+        } catch {
+            throw WebDriverError.screenshotFailed("Failed to take screenshot: \(error.localizedDescription)")
+        }
+    }
+
+    /// Protocol method: Wait for element
+    func waitForElement(by selector: String, timeout: TimeInterval) async throws -> WebElementProtocol {
+        let startTime = Date()
+
+        while Date().timeIntervalSince(startTime) < timeout {
+            do {
+                return try await findElement(by: selector)
+            } catch {
+                try await Task.sleep(nanoseconds: 100_000_000) // 0.1 second
+            }
+        }
+
+        throw WebDriverError.timeout("Element not found within timeout: \(selector)")
+    }
+
+    /// Protocol method: Wait for element to disappear
+    func waitForElementToDisappear(by selector: String, timeout: TimeInterval) async throws {
+        let startTime = Date()
+
+        while Date().timeIntervalSince(startTime) < timeout {
+            do {
+                _ = try await findElement(by: selector)
+                try await Task.sleep(nanoseconds: 100_000_000) // 0.1 second
+            } catch {
+                return // Element disappeared
+            }
+        }
+
+        throw WebDriverError.timeout("Element did not disappear within timeout: \(selector)")
+    }
+
+    /// Protocol method: Execute script
+    func executeScript(_ script: String) async throws -> String {
+        guard let sessionId else {
+            throw WebDriverError.scriptExecutionFailed("No active session")
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        let endpoint = "\(baseURL)/session/\(sessionIdString)/execute/sync"
+        let body: [String: Any] = ["script": script, "args": []]
+
+        guard let request = createRequest(url: endpoint, method: "POST", body: body) else {
+            throw WebDriverError.scriptExecutionFailed("Failed to create request")
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+
+            if httpResponse?.statusCode != 200 {
+                throw WebDriverError.scriptExecutionFailed("Script execution failed")
+            }
+
+            let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            if let value = responseDict?["value"] {
+                return String(describing: value)
+            }
+
+            return ""
+        } catch {
+            throw WebDriverError.scriptExecutionFailed("Script execution failed: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Private Methods

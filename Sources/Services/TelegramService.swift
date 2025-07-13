@@ -1,18 +1,56 @@
 import Foundation
 import os.log
 
+/// Telegram-specific errors
+enum TelegramError: Error, LocalizedError {
+    case invalidResponse
+    case apiError(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidResponse:
+            return "Invalid response from Telegram API"
+        case let .apiError(message):
+            return "Telegram API error: \(message)"
+        }
+    }
+}
+
+/// Test result for Telegram integration
+enum TestResult {
+    case success(String)
+    case failure(String)
+
+    var isSuccess: Bool {
+        switch self {
+        case .success: true
+        case .failure: false
+        }
+    }
+
+    var description: String {
+        switch self {
+        case let .success(message):
+            message
+        case let .failure(error):
+            "Telegram test failed: \(error)"
+        }
+    }
+}
+
 /// Service for Telegram integration and notifications
 ///
 /// Handles sending messages to Telegram chat via bot API
-/// Provides validation and test functionality for Telegram integration
+/// Provides validation and functionality for Telegram integration
 class TelegramService: ObservableObject {
     static let shared = TelegramService()
 
-    @Published var isTesting = false
-    @Published var lastTestResult: TestResult?
-
     private let logger = Logger(subsystem: "com.odyssey.app", category: "TelegramService")
     private let userSettingsManager = UserSettingsManager.shared
+
+    // Test-related properties
+    @Published var isTesting = false
+    @Published var lastTestResult: TestResult?
 
     // Custom URLSession with User-Agent to prevent CFNetwork crashes
     private lazy var customSession: URLSession = {
@@ -21,62 +59,56 @@ class TelegramService: ObservableObject {
         return URLSession(configuration: config)
     }()
 
-    enum TestResult {
-        case success
-        case failure(String)
-
-        var description: String {
-            switch self {
-            case .success:
-                UserSettingsManager.shared.userSettings.localized("Test message sent successfully!")
-            case let .failure(error):
-                UserSettingsManager.shared.userSettings.localized("Test failed:") + " \(error)"
-            }
-        }
-
-        var isSuccess: Bool {
-            switch self {
-            case .success: true
-            case .failure: false
-            }
-        }
-    }
-
     private init() { }
 
     // MARK: - Public Methods
 
     /// Tests Telegram integration by sending a test message
+    ///
     /// - Parameters:
     ///   - botToken: The Telegram bot token
-    ///   - chatId: The Telegram chat ID
+    ///   - chatId: The chat ID to send the test message to
     /// - Returns: Test result indicating success or failure
     func testIntegration(botToken: String, chatId: String) async -> TestResult {
+        isTesting = true
+        defer { isTesting = false }
+
         let testMessage = """
-        🥅 \(userSettingsManager.userSettings.localized("ODYSSEY Test Message"))
+        🎯 ODYSSEY Test Message
 
-        \(userSettingsManager.userSettings
-            .localized(
-                "Hello! This is a test message from ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself.",
-            )
-        )
-
-        ✅ \(userSettingsManager.userSettings.localized("Telegram integration is working correctly!"))
+        This is a test message from ODYSSEY to verify Telegram integration.
+        Time: \(Date().formatted(date: .abbreviated, time: .shortened))
         """
-        return await sendMessage(botToken: botToken, chatId: chatId, message: testMessage)
+
+        do {
+            let success = try await sendMessage(botToken: botToken, chatId: chatId, message: testMessage)
+            if success {
+                let result = TestResult.success("Test message sent successfully!")
+                lastTestResult = result
+                return result
+            } else {
+                let result = TestResult.failure("Failed to send test message")
+                lastTestResult = result
+                return result
+            }
+        } catch {
+            let result = TestResult.failure("Error: \(error.localizedDescription)")
+            lastTestResult = result
+            return result
+        }
     }
 
     /// Sends a message to Telegram
     /// - Parameters:
     ///   - botToken: The Telegram bot token
-    ///   - chatId: The Telegram chat ID
+    ///   - chatId: The chat ID to send the message to
     ///   - message: The message to send
-    /// - Returns: Result indicating success or failure
-    func sendMessage(botToken: String, chatId: String, message: String) async -> TestResult {
+    /// - Returns: Success or failure result
+    func sendMessage(botToken: String, chatId: String, message: String) async throws -> Bool {
         let urlString = "https://api.telegram.org/bot\(botToken)/sendMessage"
 
         guard let url = URL(string: urlString) else {
-            return .failure(userSettingsManager.userSettings.localized("Invalid URL"))
+            return false
         }
 
         var request = URLRequest(url: url)
@@ -92,46 +124,30 @@ class TelegramService: ObservableObject {
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
         } catch {
-            return .failure(
-                userSettingsManager.userSettings
-                    .localized("Failed to serialize request:") + " \(error.localizedDescription)",
-            )
+            logger.error("Failed to serialize request: \(error.localizedDescription)")
+            throw error
         }
 
         do {
             let (data, response) = try await customSession.data(for: request)
 
             guard let httpResponse = response as? HTTPURLResponse else {
-                return .failure(userSettingsManager.userSettings.localized("Invalid response"))
+                logger.error("Invalid response from Telegram API")
+                throw TelegramError.invalidResponse
             }
 
             if httpResponse.statusCode == 200 {
-                return .success
+                return true
             } else {
                 // Parse error response
-                if let responseString = String(data: data, encoding: .utf8) {
-                    logger.error("Telegram API error: \(responseString)")
-
-                    // Try to extract error description from response
-                    if
-                        let jsonData = responseString.data(using: .utf8),
-                        let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
-                        let description = json["description"] as? String
-                    {
-                        return .failure(description)
-                    }
-                }
-
-                return .failure(
-                    "HTTP \(httpResponse.statusCode): \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))",
-                )
+                let errorData = data
+                let errorString = String(data: errorData, encoding: .utf8) ?? "Unknown error"
+                logger.error("Telegram API error: \(errorString)")
+                throw TelegramError.apiError(errorString)
             }
         } catch {
             logger.error("Failed to send Telegram message: \(error.localizedDescription)")
-            return .failure(
-                userSettingsManager.userSettings
-                    .localized("Network error:") + " \(error.localizedDescription)",
-            )
+            throw error
         }
     }
 
@@ -169,17 +185,20 @@ class TelegramService: ObservableObject {
         )
         """
 
-        let result = await sendMessage(
-            botToken: userSettingsManager.userSettings.telegramBotToken,
-            chatId: userSettingsManager.userSettings.telegramChatId,
-            message: successMessage,
-        )
-
-        switch result {
-        case .success:
-            logger.info("Success notification sent to Telegram for \(config.name)")
-        case let .failure(error):
-            logger.error("Failed to send Telegram success notification: \(error)")
+        do {
+            let success = try await sendMessage(
+                botToken: userSettingsManager.userSettings.telegramBotToken,
+                chatId: userSettingsManager.userSettings.telegramChatId,
+                message: successMessage,
+            )
+            if success {
+                logger.info("Success notification sent to Telegram for \(config.name)")
+            } else {
+                logger.error("Failed to send Telegram success notification for \(config.name)")
+            }
+        } catch {
+            logger
+                .error("Failed to send Telegram success notification for \(config.name): \(error.localizedDescription)")
         }
     }
 
