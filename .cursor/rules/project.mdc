@@ -1,3 +1,9 @@
+---
+description: ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself
+globs: *
+alwaysApply: true
+---
+
 You are an expert assistant working on the **ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself**, a sophisticated macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities.
 
 ## 🎯 Project Overview
@@ -35,32 +41,6 @@ ODYSSEY is a native macOS application that:
 6. **FacilityService** - Web scraping and facility data management
 7. **EmailService** - IMAP integration and email testing
 8. **TelegramService** - Telegram bot integration and notifications
-
-## 📁 Project Structure
-
-```
-Sources/
-├── App/
-│   ├── ODYSSEYApp.swift          # Main app entry point
-│   ├── Constants.swift           # Application constants
-│   └── Info.plist               # App configuration
-├── Controllers/
-│   └── StatusBarController.swift # Menu bar integration
-├── Models/
-│   └── ReservationConfig.swift   # Data models
-├── Services/
-│   ├── Configuration.swift       # Settings management
-│   ├── ReservationManager.swift  # Web automation orchestration
-│   ├── FacilityService.swift     # Web scraping and sports detection
-│   ├── WebDriverService.swift    # Chrome automation engine
-│   ├── EmailService.swift        # IMAP integration
-│   └── TelegramService.swift     # Telegram bot integration
-├── Views/
-│   ├── Main/                     # Main application views
-│   ├── Configuration/            # Configuration-related views
-│   └── Components/               # Reusable UI components
-└── Resources/                    # App resources and assets
-```
 
 ## 🎯 Development Guidelines
 
@@ -109,43 +89,35 @@ Sources/
 - **Process Management:** Handle ChromeDriver startup/shutdown gracefully
 - **Fallback Strategies:** Provide clear error messages for missing dependencies
 
-## 🎯 Current Implementation Status
-
-### ✅ Implemented Features
-
-- **Menu Bar Integration:** Native macOS menu bar app with `StatusBarController`
-- **Configuration Management:** Full CRUD operations for reservation configurations
-- **Web Automation:** Robust Chrome automation via `WebDriverService`
-- **Scheduling System:** Automated reservation triggering based on time slots
-- **Modern UI:** SwiftUI-based configuration interface with settings panel
-- **Logging System:** Comprehensive logging with `os.log`
-- **Error Handling:** Robust error management throughout the app
-- **📱 Telegram Integration:** Bot-based notifications and test messaging via `TelegramService`
-- **📧 IMAP Integration:** Email service testing and validation via `EmailService`
-
-### 🔄 Recent Improvements
-
-- **WebDriver Integration:** Replaced WebKit with Swift WebDriver for better automation
-- **Session Management:** Proper WebDriver session lifecycle management
-- **Element Finding:** Multi-strategy element selection with XPath support
-- **Click Handling:** Both regular and JavaScript click methods with fallback
-- **Error Recovery:** Enhanced error handling and logging for automation failures
-- **📱 Telegram Integration:** Added bot-based notifications and test messaging system
-- **Settings Panel:** New settings interface for user preferences and integrations
-- **User Settings Model:** Comprehensive user preferences management
-- **Multi-language Support:** English and French localization
-- **Code Quality:** Removed debug logs and improved performance
-
-### 🚧 Future Enhancements
-
-- **Advanced Scheduling:** More complex scheduling algorithms
-- **Calendar Integration:** Sync with calendar applications
-- **Notification System:** Enhanced notification capabilities
-- **Accessibility:** VoiceOver support and keyboard navigation
-- **Testing:** Comprehensive unit and UI tests
-- **Performance Monitoring:** Real-time performance metrics
-
 ## 🔧 Development Workflow
+
+### Git Commit Guidelines
+
+- **Do NOT commit code with git until explicitly told to do so**
+- Always wait for explicit permission before committing changes
+- Use descriptive commit messages when committing
+- Test thoroughly before requesting commit permission
+
+### Build Process
+
+- **Always rebuild app using `./Scripts/build.sh` after changing or fixing code**
+- Never skip the build step after making changes
+- Verify the app launches successfully after each build
+- Check for any build warnings or errors
+
+### Documentation Standards
+
+- **Always update documentation if something changes**
+- Keep README.md and other docs in sync with code changes
+- Update any relevant documentation when adding new features
+- Maintain accurate and current documentation
+
+### Code Quality
+
+- **All code must pass SwiftLint with zero errors and no new warnings before pushing or releasing**
+- All linter violations must be fixed or explicitly justified in code review
+- Do not push or release code with unresolved SwiftLint errors or warnings
+- Keep the repository clean by removing duplicate information
 
 ### Setup
 
@@ -229,14 +201,3 @@ xcodegen
 ---
 
 **Remember:** ODYSSEY is designed to help the Ottawa sports community by automating routine reservation tasks. Always prioritize user privacy, security, and ethical automation practices.
-
-4. Logging: Suggest basic logging for debugging automation flows.
-5. Clean Shutdown: Ensure driver.quit() is called in a finally block to release resources.
-
-Refer to the official Selenium documentation for up-to-date APIs and best practices.
-
-# Linting and Code Quality
-
-- All code must pass SwiftLint with zero errors and no new warnings before pushing or releasing.
-- All linter violations must be fixed or explicitly justified in code review.
-- Do not push or release code with unresolved SwiftLint errors or warnings.
