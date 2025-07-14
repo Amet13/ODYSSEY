@@ -57,6 +57,9 @@ A sophisticated macOS menu bar application that automates sports reservation boo
 - 🔒 **Enhanced Security** - Comprehensive security scanning and validation
 - 📦 **Automated Releases** - Complete CI/CD pipeline with automated DMG creation
 - 📱 **Telegram Notifications** - Get instant notifications when reservations are successfully booked
+- 📝 **Contact Form Automation** - Automatically fills contact information (phone, email, name) during booking
+- 🤖 **Human-Like Behavior** - Advanced anti-bot detection with realistic timing and mouse movements
+- ⚡ **Performance Modes** - Choose between normal and fast modes for optimal speed vs. stealth
 
 ## 📋 Requirements
 
@@ -178,6 +181,48 @@ When ODYSSEY successfully books a reservation, you'll receive a message like:
 
 🥅 ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself
 ```
+
+## 🤖 Contact Form Automation
+
+ODYSSEY automatically handles the contact information form during the booking process, eliminating the need for manual data entry.
+
+### ✨ Features
+
+- **Automatic Field Detection** - Intelligently finds phone, email, and name fields using multiple selectors
+- **Human-Like Typing** - Simulates realistic typing patterns with variable delays
+- **Anti-Bot Protection** - Includes mouse movements, scrolling, and natural timing to avoid detection
+- **Dual Fill Modes**:
+  - **Normal Mode**: Human-like typing with realistic delays (recommended)
+  - **Fast Mode**: Optimized for speed while maintaining stealth
+- **Fallback Mechanisms** - Multiple detection strategies ensure reliable field filling
+
+### 🔧 Configuration
+
+Contact information is automatically pulled from your user settings:
+
+1. **Phone Number**: Automatically removes hyphens and formats for the form
+2. **Email Address**: Uses your configured IMAP email
+3. **Full Name**: Uses your configured name
+
+### 🛡️ Anti-Detection Features
+
+- **Random Delays**: Variable timing between actions (0.5-1.5 seconds)
+- **Mouse Movement**: Realistic cursor movements between fields
+- **Scrolling**: Natural page scrolling behavior
+- **Typing Patterns**: Human-like character-by-character input
+- **Field Transitions**: Natural pauses between form fields
+
+### ⚡ Performance Modes
+
+Enable fast mode for quicker automation (use with caution):
+
+```swift
+// In code (for developers)
+WebDriverService.fastModeEnabled = true
+```
+
+**Normal Mode**: 5-8 seconds total (recommended for reliability)
+**Fast Mode**: 4-6 seconds total (faster but may trigger detection)
 
 ## 🚀 Quick Start
 

@@ -55,6 +55,15 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     var currentLanguage: String = "en-US,en"
 
+    // Toggle for instant fill mode (set to true for fastest fill, false for human-like typing)
+    static var instantFillEnabled: Bool = false
+
+    // Toggle for fast mode (reduces all delays for maximum speed)
+    static var fastModeEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: "WebDriverFastMode") }
+        set { UserDefaults.standard.set(newValue, forKey: "WebDriverFastMode") }
+    }
+
     private init() {
         // Pool of real user-agents
         let userAgents = [
@@ -541,8 +550,8 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
                             if (timesList && timesList.style.display !== 'none') isExpanded = true;
                             if (minusIcon) isExpanded = true;
                             if (plusIcon) isExpanded = false;
-                            let debug = {isExpanded, hasPlus: !!plusIcon, hasMinus: !!minusIcon, timesListDisplay: timesList ? timesList.style.display : 'none', allHeaders};
-                            window._odysseyDebug = debug;
+                            // Log which header is being clicked
+                            window._odysseyClickedHeader = headerContent;
                             if (isExpanded) {
                                 return 'already-expanded';
                             } else if (titleElement) {
@@ -554,7 +563,7 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
                         }
                     }
                 }
-                window._odysseyDebug = {allHeaders};
+                window._odysseyAllHeaders = allHeaders;
                 return 'not-found';
             } catch (e) {
                 window._odysseyDebug = {error: e && e.message ? e.message : String(e)};
@@ -568,16 +577,27 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
             .replacingOccurrences(of: "__FULL_DAY_NAME__", with: safeFullDayName)
         logger.info("expandDateSection JS: \(expandLogicScript)")
 
+        // Log all found headers before attempting to expand
+        let logHeadersScript = "return window._odysseyAllHeaders ? JSON.stringify(window._odysseyAllHeaders) : null;"
+        if let headersJson = await executeScript(logHeadersScript, sessionId: sessionIdString) as? String {
+            logger.info("Found date section headers: \(headersJson)")
+        }
+
         if let result = await executeScript(expandLogicScript, sessionId: sessionIdString) as? String {
+            // Log which header was clicked (if any)
+            let clickedHeaderScript = "return window._odysseyClickedHeader ? window._odysseyClickedHeader : null;"
+            if let clickedHeader = await executeScript(clickedHeaderScript, sessionId: sessionIdString) as? String {
+                logger.info("Clicked date section header: \(clickedHeader)")
+            }
             if result == "already-expanded" {
                 logger.info("Section for \(dayName, privacy: .private) is already expanded.")
                 return true
             } else if result == "clicked-to-expand" {
                 logger.info("Clicked to expand section for \(dayName, privacy: .private)")
-                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second wait after clicking
                 return true
             } else {
-                let debugScript = "return window._odysseyDebug ? JSON.stringify(window._odysseyDebug) : null;"
+                let debugScript = "return window._odysseyAllHeaders ? JSON.stringify(window._odysseyAllHeaders) : null;"
                 if let debugInfo = await executeScript(debugScript, sessionId: sessionIdString) as? String {
                     logger.warning("Section expand debug info: \(debugInfo)")
                 }
@@ -589,8 +609,6 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
         return false
     }
 
-    /// Clicks on a time button within the expanded section
-    /// - Parameter timeString: The time to click (e.g., "8:30 AM")
     /// - Returns: True if time button was found and clicked, false otherwise
     func clickTimeButton(timeString: String) async -> Bool {
         guard let sessionId else {
@@ -602,7 +620,18 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
         logger.info("Searching for time button: '\(timeString, privacy: .private)'")
 
         // Wait a moment after expanding section to ensure buttons are loaded
-        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second (configurable if needed)
+
+        // Helper to normalize time strings
+        func normalize(_ s: String) -> String {
+            return s
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+                .replacingOccurrences(of: "\u{202F}", with: " ") // narrow no-break space
+                .replacingOccurrences(of: "\u{00A0}", with: " ") // no-break space
+                .lowercased()
+        }
+        let normalizedSearch = normalize(timeString)
 
         // Log all available time labels in the expanded section
         let logTimesScript = """
@@ -613,16 +642,21 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
             });
             return times;
         """
+        var availableLabels: [String] = []
         if let labels = await executeScript(logTimesScript, sessionId: sessionIdString) as? [String] {
-            logger.info("Available time labels: \(labels.joined(separator: ", "))")
+            availableLabels = labels
+            let normalizedLabels = labels.map { normalize($0) }
+            logger.info("Available time labels (normalized): \(normalizedLabels)")
+            logger.info("Normalized search string: \(normalizedSearch)")
         }
 
-        // Try strict match first
-        let clickTimeScriptStrict = """
+        // Try strict match (normalized)
+        let strictMatchScript = #"""
+            const search = arguments[0];
             const timeButtons = document.querySelectorAll('.time-container');
             for (let button of timeButtons) {
                 const timeLabel = button.querySelector('.available-time');
-                if (timeLabel && timeLabel.textContent.trim() === '\(timeString)') {
+                if (timeLabel && timeLabel.textContent.trim().replace(/\s+/g, ' ').replace(/\u202F|\u00A0/g, ' ').toLowerCase() === search) {
                     const timeItem = button.closest('.time');
                     if (timeItem && !timeItem.classList.contains('reserved')) {
                         button.click();
@@ -631,19 +665,26 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
                 }
             }
             return false;
-        """
-        if let clicked = await executeScript(clickTimeScriptStrict, sessionId: sessionIdString) as? Bool, clicked {
-            logger.info("Successfully clicked time button (strict match): '\(timeString, privacy: .private)'")
+        """#
+        if
+            let clicked = await executeScript(
+                strictMatchScript,
+                sessionId: sessionIdString,
+            ) as? Bool, clicked
+        {
+            logger
+                .info("Successfully clicked time button (strict normalized match): '\(timeString, privacy: .private)'")
             try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
             return true
         }
 
-        // Fallback: Try contains match
-        let clickTimeScriptContains = """
+        // Fallback: Try contains match (normalized)
+        let containsMatchScript = #"""
+            const search = arguments[0];
             const timeButtons = document.querySelectorAll('.time-container');
             for (let button of timeButtons) {
                 const timeLabel = button.querySelector('.available-time');
-                if (timeLabel && timeLabel.textContent.trim().includes('\(timeString)')) {
+                if (timeLabel && timeLabel.textContent.trim().replace(/\s+/g, ' ').replace(/\u202F|\u00A0/g, ' ').toLowerCase().includes(search)) {
                     const timeItem = button.closest('.time');
                     if (timeItem && !timeItem.classList.contains('reserved')) {
                         button.click();
@@ -652,14 +693,49 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
                 }
             }
             return false;
-        """
-        if let clicked = await executeScript(clickTimeScriptContains, sessionId: sessionIdString) as? Bool, clicked {
-            logger.info("Successfully clicked time button (contains match): '\(timeString, privacy: .private)'")
+        """#
+        if
+            let clicked = await executeScript(
+                containsMatchScript,
+                sessionId: sessionIdString,
+            ) as? Bool, clicked
+        {
+            logger
+                .info(
+                    "Successfully clicked time button (contains normalized match): '\(timeString, privacy: .private)'",
+                )
             try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
             return true
         }
 
-        logger.error("Failed to find or click time button: '\(timeString, privacy: .private)'")
+        // Fallback: Try clicking the first available time (if any)
+        if !availableLabels.isEmpty {
+            logger
+                .warning(
+                    "No exact/contains match for time. Attempting to click the first available time: \(availableLabels[0])",
+                )
+            let clickFirstScript = """
+                const timeButtons = document.querySelectorAll('.time-container');
+                for (let button of timeButtons) {
+                    const timeItem = button.closest('.time');
+                    if (timeItem && !timeItem.classList.contains('reserved')) {
+                        button.click();
+                        return true;
+                    }
+                }
+                return false;
+            """
+            if let clicked = await executeScript(clickFirstScript, sessionId: sessionIdString) as? Bool, clicked {
+                logger.info("Clicked the first available time button as fallback.")
+                try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+                return true
+            }
+        }
+
+        logger
+            .error(
+                "Failed to find or click time button: '\(timeString, privacy: .private)'. Available labels: \(availableLabels)",
+            )
         return false
     }
 
@@ -678,7 +754,10 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
             return false
         }
 
-        // Step 2: Click the time button
+        // Step 2: Wait a bit longer to ensure UI is rendered
+        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second (configurable)
+
+        // Step 3: Click the time button
         let timeClicked = await clickTimeButton(timeString: timeString)
         if !timeClicked {
             logger.error("Failed to click time button: '\(timeString, privacy: .private)'")
@@ -686,9 +765,7 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
         }
 
         logger
-            .info(
-                "Successfully selected time slot: \(dayName, privacy: .private) at \(timeString, privacy: .private)",
-            )
+            .info("Successfully selected time slot: \(dayName, privacy: .private) at \(timeString, privacy: .private)")
         return true
     }
 
@@ -1870,5 +1947,470 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
         }
 
         return nil
+    }
+
+    // Helper for appending debug info to a file (only in debug builds)
+    private func appendDebugLog(_ message: String) {
+        #if DEBUG
+            logger.debug("\(message)")
+        #endif
+    }
+
+    // Helper to log all input fields for debugging when field detection fails (only in debug builds)
+    private func logAllInputFields(sessionId _: String, fieldType: String) async {
+        #if DEBUG
+            logger.debug("Logging all input fields for \(fieldType) field detection")
+        #endif
+    }
+
+    // Call this after navigation and after each major step (only in debug builds)
+    func logCurrentPageSource(_ context: String) async {
+        #if DEBUG
+            do {
+                let pageSource = try await getPageSource()
+                logger.debug("Page source after \(context): \(pageSource)")
+            } catch {
+                logger.debug("Failed to get page source after \(context): \(error.localizedDescription)")
+            }
+        #endif
+    }
+
+    func waitForContactInfoPage() async -> Bool {
+        guard let sessionId else {
+            logger.error("No active session for waiting contact info page")
+            return false
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        let startTime = Date()
+        let timeout: TimeInterval = 0.5 // 0.5 seconds timeout (ultra-fast)
+        let fieldIds = ["telephone", "email", "field2021"]
+        var foundByBroaderSelector = false
+
+        while Date().timeIntervalSince(startTime) < timeout {
+            // Try specific fields first
+            for fieldId in fieldIds {
+                let endpoint = "\(baseURL)/session/\(sessionIdString)/element"
+                let body = ["using": "id", "value": fieldId]
+
+                guard let request = createRequest(url: endpoint, method: "POST", body: body) else {
+                    logger.error("Failed to create request for contact info page check (field: \(fieldId))")
+                    continue
+                }
+
+                do {
+                    let (_, response) = try await urlSession.data(for: request)
+                    let httpResponse = response as? HTTPURLResponse
+
+                    if httpResponse?.statusCode == 200 {
+                        logger.info("Contact info page loaded successfully (field: \(fieldId))")
+                        return true
+                    }
+                } catch {
+                    logger.debug("Exception while checking field \(fieldId): \(error.localizedDescription)")
+                }
+            }
+
+            // Broader detection: check for any <input> or the form itself
+            do {
+                // Check for form with id="mainForm"
+                let formEndpoint = "\(baseURL)/session/\(sessionIdString)/element"
+                let formBody = ["using": "id", "value": "mainForm"]
+                if let formRequest = createRequest(url: formEndpoint, method: "POST", body: formBody) {
+                    let (_, formResponse) = try await urlSession.data(for: formRequest)
+                    let formHttpResponse = formResponse as? HTTPURLResponse
+                    if formHttpResponse?.statusCode == 200 {
+                        foundByBroaderSelector = true
+                    }
+                }
+                // Check for any <input> field
+                let inputEndpoint = "\(baseURL)/session/\(sessionIdString)/elements"
+                let inputBody = ["using": "tag name", "value": "input"]
+                if let inputRequest = createRequest(url: inputEndpoint, method: "POST", body: inputBody) {
+                    let (inputData, inputResponse) = try await urlSession.data(for: inputRequest)
+                    let inputHttpResponse = inputResponse as? HTTPURLResponse
+                    if inputHttpResponse?.statusCode == 200 {
+                        let inputDict = try JSONSerialization.jsonObject(with: inputData) as? [String: Any]
+                        if let values = inputDict?["value"] as? [Any], !values.isEmpty {
+                            foundByBroaderSelector = true
+                        }
+                    }
+                }
+            } catch {
+                logger.debug("Exception while checking broader selectors: \(error.localizedDescription)")
+            }
+
+            // Wait before retry
+            try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
+        }
+
+        // If broader selector found, return true (as fallback)
+        if foundByBroaderSelector {
+            logger.info("Contact info page detected via broader selectors")
+            return true
+        }
+
+        logger.error("Contact info page failed to load within timeout")
+        return false
+    }
+
+    /// Fills the phone number field on the contact information page
+    /// - Parameter phoneNumber: The phone number to enter (without hyphens)
+    /// - Returns: True if field was filled successfully
+    func fillPhoneNumber(_ phoneNumber: String) async -> Bool {
+        guard let sessionId else {
+            logger.error("No active session for filling phone number")
+            return false
+        }
+        let sessionIdString = String(describing: sessionId)
+
+        // Comprehensive selectors for phone field
+        let phoneSelectors = [
+            ["using": "id", "value": "telephone"], // Primary selector
+            ["using": "name", "value": "PhoneNumber"], // Fallback
+            ["using": "css selector", "value": ".contact-field.reservation-text-field[type='tel']"], // Specific CSS
+            ["using": "css selector", "value": "#telephone"], // ID selector
+            ["using": "css selector", "value": "input[name='PhoneNumber']"], // Name selector
+            ["using": "xpath", "value": "//input[@type='tel']"], // XPath fallback
+        ]
+        var elementId: String?
+        var successfulSelector = "none"
+        for (index, selector) in phoneSelectors.enumerated() {
+            let endpoint = "\(baseURL)/session/\(sessionIdString)/element"
+            guard let request = createRequest(url: endpoint, method: "POST", body: selector) else {
+                continue
+            }
+            do {
+                let (data, response) = try await urlSession.data(for: request)
+                let httpResponse = response as? HTTPURLResponse
+                if httpResponse?.statusCode == 200 {
+                    let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                    if let value = responseDict?["value"] as? [String: Any] {
+                        let foundElementId = value["element-6066-11e4-a52e-4f735466cecf"] as? String ??
+                            value["ELEMENT"] as? String
+                        if let foundElementId {
+                            elementId = foundElementId
+                            successfulSelector = "\(selector["using"] ?? "unknown"): \(selector["value"] ?? "unknown")"
+                            logger.info("Phone field found with selector: \(successfulSelector)")
+                            break
+                        }
+                    }
+                }
+            } catch {
+                logger.debug("Phone selector \(index + 1) failed: \(error.localizedDescription)")
+            }
+        }
+        guard let elementId else {
+            logger.error("Failed to find phone number field with any selector")
+            return false
+        }
+        // Scroll into view
+        let scrollScript = "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});"
+        _ = await executeScriptWithElement(scrollScript, elementId: elementId, sessionId: sessionIdString)
+        // Simulate mouse movement
+        await simulateMouseMovement(to: elementId)
+        if WebDriverService.instantFillEnabled {
+            // Set value via JS instantly
+            let jsEndpoint = "\(baseURL)/session/\(sessionIdString)/execute/sync"
+            let script = """
+            var el = document.getElementById('telephone');
+            if (el) { el.value = '\(phoneNumber)'; }
+            """
+            let jsBody: [String: Any] = ["script": script, "args": []]
+            if let jsRequest = createRequest(url: jsEndpoint, method: "POST", body: jsBody) {
+                do {
+                    _ = try await urlSession.data(for: jsRequest)
+                    logger.info("Phone field filled instantly via JavaScript")
+                    return true
+                } catch {
+                    logger.error("Failed to set phone field via JavaScript: \(error.localizedDescription)")
+                    return false
+                }
+            }
+            return false
+        }
+        // ... existing code ...
+        // Wait 100ms after focusing
+        try? await Task.sleep(nanoseconds: 100_000_000)
+        // ... existing code ...
+        // Add a small delay to simulate human behavior
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+        // Use human-like typing (fast)
+        await simulateTyping(elementId: elementId, text: phoneNumber)
+
+        logger.info("Successfully filled phone field: \(phoneNumber, privacy: .private)")
+        return true
+    }
+
+    /// Fills the email field on the contact information page
+    /// - Parameter email: The email address to enter
+    /// - Returns: True if field was filled successfully
+    func fillEmail(_ email: String) async -> Bool {
+        guard let sessionId else {
+            logger.error("No active session for filling email")
+            return false
+        }
+
+        let sessionIdString = String(describing: sessionId)
+
+        // Comprehensive selectors for email field
+        let emailSelectors = [
+            ["using": "id", "value": "email"], // Primary selector
+            ["using": "name", "value": "Email"], // Fallback
+            ["using": "css selector", "value": ".contact-field.reservation-text-field[type='email']"], // Specific CSS
+            ["using": "css selector", "value": "#email"], // ID selector
+            ["using": "css selector", "value": "input[name='Email']"], // Name selector
+            ["using": "xpath", "value": "//input[@type='email']"], // XPath fallback
+        ]
+
+        var elementId: String?
+        var successfulSelector = "none"
+
+        for (index, selector) in emailSelectors.enumerated() {
+            let endpoint = "\(baseURL)/session/\(sessionIdString)/element"
+            guard let request = createRequest(url: endpoint, method: "POST", body: selector) else {
+                appendDebugLog("Failed to create request for email selector \(index + 1): \(selector)")
+                continue
+            }
+
+            do {
+                let (data, response) = try await urlSession.data(for: request)
+                let httpResponse = response as? HTTPURLResponse
+
+                if httpResponse?.statusCode == 200 {
+                    let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                    if let value = responseDict?["value"] as? [String: Any] {
+                        let foundElementId = value["element-6066-11e4-a52e-4f735466cecf"] as? String ??
+                            value["ELEMENT"] as? String
+                        if let foundElementId {
+                            elementId = foundElementId
+                            successfulSelector = "\(selector["using"] ?? "unknown"): \(selector["value"] ?? "unknown")"
+                            appendDebugLog("Email field found with selector \(index + 1): \(successfulSelector)")
+                            logger.info("Email field found with selector: \(successfulSelector)")
+                            break
+                        }
+                    }
+                } else {
+                    appendDebugLog("Email selector \(index + 1) failed with status: \(httpResponse?.statusCode ?? 0)")
+                }
+            } catch {
+                appendDebugLog("Email selector \(index + 1) failed with error: \(error.localizedDescription)")
+            }
+        }
+
+        guard let elementId else {
+            logger.error("Failed to find email field with any selector")
+            appendDebugLog("Failed to find email field with any selector")
+            // Log all input fields for debugging
+            await logAllInputFields(sessionId: sessionIdString, fieldType: "email")
+            return false
+        }
+        // Scroll into view
+        let scrollScript = "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});"
+        _ = await executeScriptWithElement(scrollScript, elementId: elementId, sessionId: sessionIdString)
+        // Simulate mouse movement
+        await simulateMouseMovement(to: elementId)
+        // Focus/click the field before clearing/typing
+        let focusEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/click"
+        if let focusRequest = createRequest(url: focusEndpoint, method: "POST") {
+            do {
+                let (_, focusResponse) = try await urlSession.data(for: focusRequest)
+                let focusHttpResponse = focusResponse as? HTTPURLResponse
+                appendDebugLog("Clicked/focused email field (status: \(focusHttpResponse?.statusCode ?? 0))")
+            } catch {
+                appendDebugLog("Failed to click/focus email field: \(error.localizedDescription)")
+            }
+        }
+        // Wait 60ms after focusing
+        try? await Task.sleep(nanoseconds: 60_000_000)
+        // Use human-like typing (fast)
+        let blur = Bool.random() && Bool.random() // ~25% chance
+        await simulateTyping(elementId: elementId, text: email, fastHumanLike: true, blurAfter: blur)
+
+        logger.info("Successfully filled email (human-like typing): \(email, privacy: .private)")
+        appendDebugLog("Successfully filled email with selector: \(successfulSelector)")
+        return true
+    }
+
+    /// Fills the name field on the contact information page
+    /// - Parameter name: The name to enter
+    /// - Returns: True if field was filled successfully
+    func fillName(_ name: String) async -> Bool {
+        guard let sessionId else {
+            logger.error("No active session for filling name")
+            appendDebugLog("No active session for filling name")
+            return false
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        appendDebugLog("Attempting to fill name field with value: \(name)")
+
+        // Comprehensive selectors for name field
+        let nameSelectors = [
+            ["using": "id", "value": "field2021"], // Primary selector
+            ["using": "name", "value": "field2021"], // Fallback
+            ["using": "css selector", "value": ".reservation-text-field[type='text']"], // Specific CSS
+            ["using": "css selector", "value": ".mdc-text-field__input.reservation-text-field"], // Material Design
+            ["using": "xpath", "value": "//input[starts-with(@id, 'field')]"], // XPath pattern
+            ["using": "xpath", "value": "//input[@type='text' and @aria-required='true']"], // Required text field
+        ]
+
+        var elementId: String?
+        var successfulSelector = "none"
+
+        for (index, selector) in nameSelectors.enumerated() {
+            let endpoint = "\(baseURL)/session/\(sessionIdString)/element"
+            guard let request = createRequest(url: endpoint, method: "POST", body: selector) else {
+                appendDebugLog("Failed to create request for name selector \(index + 1): \(selector)")
+                continue
+            }
+
+            do {
+                let (data, response) = try await urlSession.data(for: request)
+                let httpResponse = response as? HTTPURLResponse
+
+                if httpResponse?.statusCode == 200 {
+                    let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                    if let value = responseDict?["value"] as? [String: Any] {
+                        let foundElementId = value["element-6066-11e4-a52e-4f735466cecf"] as? String ??
+                            value["ELEMENT"] as? String
+                        if let foundElementId {
+                            elementId = foundElementId
+                            successfulSelector = "\(selector["using"] ?? "unknown"): \(selector["value"] ?? "unknown")"
+                            appendDebugLog("Name field found with selector \(index + 1): \(successfulSelector)")
+                            logger.info("Name field found with selector: \(successfulSelector)")
+                            break
+                        }
+                    }
+                } else {
+                    appendDebugLog("Name selector \(index + 1) failed with status: \(httpResponse?.statusCode ?? 0)")
+                }
+            } catch {
+                appendDebugLog("Name selector \(index + 1) failed with error: \(error.localizedDescription)")
+            }
+        }
+
+        guard let elementId else {
+            logger.error("Failed to find name field with any selector")
+            appendDebugLog("Failed to find name field with any selector")
+            // Log all input fields for debugging
+            await logAllInputFields(sessionId: sessionIdString, fieldType: "name")
+            return false
+        }
+        // Scroll into view
+        let scrollScript = "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});"
+        _ = await executeScriptWithElement(scrollScript, elementId: elementId, sessionId: sessionIdString)
+        // Simulate mouse movement
+        await simulateMouseMovement(to: elementId)
+        // Focus/click the field before clearing/typing
+        let focusEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/click"
+        if let focusRequest = createRequest(url: focusEndpoint, method: "POST") {
+            do {
+                let (_, focusResponse) = try await urlSession.data(for: focusRequest)
+                let focusHttpResponse = focusResponse as? HTTPURLResponse
+                appendDebugLog("Clicked/focused name field (status: \(focusHttpResponse?.statusCode ?? 0))")
+            } catch {
+                appendDebugLog("Failed to click/focus name field: \(error.localizedDescription)")
+            }
+        }
+        // Wait 60ms after focusing
+        try? await Task.sleep(nanoseconds: 60_000_000)
+        // Use human-like typing (fast)
+        let blur = Bool.random() && Bool.random() // ~25% chance
+        await simulateTyping(elementId: elementId, text: name, fastHumanLike: true, blurAfter: blur)
+
+        logger.info("Successfully filled name (human-like typing): \(name, privacy: .private)")
+        appendDebugLog("Successfully filled name with selector: \(successfulSelector)")
+        return true
+    }
+
+    /// Clicks the confirm button on the contact information page
+    /// - Returns: True if confirm button was clicked successfully
+    func clickContactInfoConfirmButton() async -> Bool {
+        guard let sessionId else { return false }
+        let sessionIdString = String(describing: sessionId)
+
+        // Use the most reliable selectors for the confirm button
+        let selectors = [
+            ["using": "id", "value": "submit-btn"],
+            ["using": "css selector", "value": "button[type='submit']"],
+            ["using": "css selector", "value": ".submit-button"],
+            ["using": "class name", "value": "mdc-button__ripple"], // Fallback: click the ripple class
+        ]
+
+        var elementId: String?
+        for selector in selectors {
+            let endpoint = "\(baseURL)/session/\(sessionIdString)/element"
+            guard let request = createRequest(url: endpoint, method: "POST", body: selector) else { continue }
+            do {
+                let (data, response) = try await urlSession.data(for: request)
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                    if
+                        let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                        let value = json["value"] as? [String: Any],
+                        let eid = value["element-6066-11e4-a52e-4f735466cecf"] as? String
+                    {
+                        elementId = eid
+                        break
+                    }
+                }
+            } catch { continue }
+        }
+
+        if let elementId {
+            let clickEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/click"
+            if let clickRequest = createRequest(url: clickEndpoint, method: "POST") {
+                do {
+                    let (_, clickResponse) = try await urlSession.data(for: clickRequest)
+                    if let httpResponse = clickResponse as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                        logger.info("Successfully clicked contact info confirm button")
+                        return true
+                    }
+                } catch { }
+            }
+        }
+
+        // Fallback: Use JavaScript to click the submit button
+        return await performJavaScriptContactInfoSubmit(sessionId: sessionIdString)
+    }
+
+    private func performJavaScriptContactInfoSubmit(sessionId: String) async -> Bool {
+        let endpoint = "\(baseURL)/session/\(sessionId)/execute/sync"
+        let script = """
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.click();
+                return true;
+            }
+            return false;
+        """
+        let body: [String: Any] = ["script": script, "args": []]
+
+        guard let request = createRequest(url: endpoint, method: "POST", body: body) else {
+            logger.error("Failed to create JavaScript contact info submit request")
+            return false
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+
+            if httpResponse?.statusCode == 200 {
+                let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                if let result = responseDict?["value"] as? Bool, result {
+                    logger.info("Successfully clicked contact info confirm button with JavaScript")
+                    return true
+                }
+            }
+
+            // Log the error response for debugging
+            if let responseData = String(data: data, encoding: .utf8) {
+                logger.error("JavaScript contact info submit failed with response: \(responseData)")
+            }
+            return false
+        } catch {
+            logger.error("JavaScript contact info submit failed: \(error.localizedDescription)")
+            return false
+        }
     }
 }

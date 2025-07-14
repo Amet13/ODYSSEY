@@ -114,6 +114,11 @@ class ReservationManager: NSObject, ObservableObject {
         case confirmButtonNotFound
         case timeSelectionPageLoadTimeout
         case timeSlotSelectionFailed
+        case contactInfoPageLoadTimeout
+        case phoneNumberFieldNotFound
+        case emailFieldNotFound
+        case nameFieldNotFound
+        case contactInfoConfirmButtonNotFound
 
         var errorDescription: String? {
             switch self {
@@ -135,6 +140,18 @@ class ReservationManager: NSObject, ObservableObject {
                 UserSettingsManager.shared.userSettings.localized("Time selection page failed to load within timeout")
             case .timeSlotSelectionFailed:
                 UserSettingsManager.shared.userSettings.localized("Failed to select time slot")
+            case .contactInfoPageLoadTimeout:
+                UserSettingsManager.shared.userSettings
+                    .localized("Contact information page failed to load within timeout")
+            case .phoneNumberFieldNotFound:
+                UserSettingsManager.shared.userSettings.localized("Phone number field not found on page")
+            case .emailFieldNotFound:
+                UserSettingsManager.shared.userSettings.localized("Email field not found on page")
+            case .nameFieldNotFound:
+                UserSettingsManager.shared.userSettings.localized("Name field not found on page")
+            case .contactInfoConfirmButtonNotFound:
+                UserSettingsManager.shared.userSettings
+                    .localized("Contact information confirm button not found on page")
             }
         }
     }
@@ -217,6 +234,8 @@ class ReservationManager: NSObject, ObservableObject {
             // Step 2: Navigate to facility URL
             await updateTask("Navigating to facility")
             let navigationResult = await webDriverService.navigate(to: config.facilityURL)
+            // Log page source after navigation
+            await webDriverService.logCurrentPageSource("after navigation")
             guard navigationResult else {
                 await handleError(
                     UserSettingsManager.shared.userSettings.localized("Failed to navigate to facility"),
@@ -262,6 +281,8 @@ class ReservationManager: NSObject, ObservableObject {
             if Bool.random() { await webDriverService.moveMouseRandomly() }
 
             let buttonClicked = await webDriverService.findAndClickElement(withText: config.sportName)
+            // Log page source after sport click
+            await webDriverService.logCurrentPageSource("after sport click")
             if buttonClicked {
                 logger.info("Successfully clicked sport button: \(config.sportName, privacy: .private)")
 
@@ -303,6 +324,8 @@ class ReservationManager: NSObject, ObservableObject {
                 }
 
                 let confirmClicked = await webDriverService.clickConfirmButton()
+                // Log page source after group size confirm
+                await webDriverService.logCurrentPageSource("after group size confirm")
                 if !confirmClicked {
                     logger.error("Failed to click confirm button")
                     throw ReservationError.confirmButtonNotFound
@@ -340,6 +363,8 @@ class ReservationManager: NSObject, ObservableObject {
                         dayName: dayName,
                         timeString: timeString,
                     )
+                    // Log page source after time slot selection
+                    await webDriverService.logCurrentPageSource("after time slot selection")
                     if !timeSlotSelected {
                         logger.error("Failed to select time slot: \(dayName) at \(timeString, privacy: .private)")
                         throw ReservationError.timeSlotSelectionFailed
@@ -350,7 +375,88 @@ class ReservationManager: NSObject, ObservableObject {
                     logger.warning("No time slots configured, skipping time selection")
                 }
 
-                // Step 10: Success - wait a moment and close browser tab
+                // Step 10: Wait for contact information page to load
+                await updateTask("Waiting for contact information page...")
+                // Log page source before contact info check
+                await webDriverService.logCurrentPageSource("before contact info check")
+                let contactInfoPageReady = await webDriverService.waitForContactInfoPage()
+                if !contactInfoPageReady {
+                    logger.error("Contact information page failed to load within timeout")
+                    throw ReservationError.contactInfoPageLoadTimeout
+                }
+
+                logger.info("Contact information page loaded successfully")
+
+                // Step 11: Fill contact information form
+                await updateTask("Filling contact information...")
+                // Human-like delay before starting to fill form
+                await webDriverService.addRandomDelay()
+
+                // Simulate human-like behavior (mouse movement, scrolling)
+                await webDriverService.simulateScrolling()
+                await webDriverService.moveMouseRandomly()
+
+                // Get user settings for contact information
+                let userSettings = UserSettingsManager.shared.userSettings
+
+                // Fill phone number (remove hyphens as per form instructions)
+                let phoneNumber = userSettings.phoneNumber.replacingOccurrences(of: "-", with: "")
+                let phoneFilled = await webDriverService.fillPhoneNumber(phoneNumber)
+                if !phoneFilled {
+                    logger.error("Failed to fill phone number field")
+                    throw ReservationError.phoneNumberFieldNotFound
+                }
+
+                logger.info("Successfully filled phone number")
+
+                // Human-like delay between fields
+                await webDriverService.addRandomDelay()
+
+                // Simulate human-like behavior between fields
+                await webDriverService.moveMouseRandomly()
+
+                // Fill email address
+                let emailFilled = await webDriverService.fillEmail(userSettings.imapEmail)
+                if !emailFilled {
+                    logger.error("Failed to fill email field")
+                    throw ReservationError.emailFieldNotFound
+                }
+
+                logger.info("Successfully filled email address")
+
+                // Human-like delay between fields
+                await webDriverService.addRandomDelay()
+
+                // Simulate human-like behavior between fields
+                await webDriverService.moveMouseRandomly()
+
+                // Fill name
+                let nameFilled = await webDriverService.fillName(userSettings.name)
+                if !nameFilled {
+                    logger.error("Failed to fill name field")
+                    throw ReservationError.nameFieldNotFound
+                }
+
+                logger.info("Successfully filled name")
+
+                // Step 12: Click confirm button on contact information page
+                await updateTask("Confirming contact information...")
+                // Human-like delay before confirming
+                await webDriverService.addRandomDelay()
+
+                // Simulate human-like behavior before confirming
+                await webDriverService.simulateScrolling()
+                await webDriverService.moveMouseRandomly()
+
+                let contactInfoConfirmed = await webDriverService.clickContactInfoConfirmButton()
+                if !contactInfoConfirmed {
+                    logger.error("Failed to click contact info confirm button")
+                    throw ReservationError.contactInfoConfirmButtonNotFound
+                }
+
+                logger.info("Successfully confirmed contact information")
+
+                // Step 13: Success - wait a moment and close browser tab
                 await updateTask("Success! Closing browser tab...")
                 try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
 

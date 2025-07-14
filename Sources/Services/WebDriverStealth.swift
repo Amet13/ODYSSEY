@@ -3,7 +3,10 @@ import Foundation
 extension WebDriverService {
     /// Adds a random delay to mimic human-like timing
     func addRandomDelay() async {
-        let delay = Double.random(in: 0.5 ... 2.0)
+        // Check if fast mode is enabled (for speed optimization)
+        let isFastMode = UserDefaults.standard.bool(forKey: "WebDriverFastMode")
+        let delayRange = isFastMode ? (0.3 ... 0.8) : (0.5 ... 1.5)
+        let delay = Double.random(in: delayRange)
         try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
     }
 
@@ -16,7 +19,7 @@ extension WebDriverService {
     }
 
     /// Simulates human typing into an input element by sending keys one by one
-    func simulateTyping(elementId: String, text: String) async {
+    func simulateTyping(elementId: String, text: String, fastHumanLike: Bool = false, blurAfter: Bool = false) async {
         guard let sessionId else { return }
         let sessionIdString = String(describing: sessionId)
         let elementIdString = String(describing: elementId)
@@ -29,9 +32,28 @@ extension WebDriverService {
             ]
             guard let request = createRequest(url: endpoint, method: "POST", body: body) else { continue }
             _ = try? await urlSession.data(for: request)
-            // Random delay between keystrokes
-            let delay = Double.random(in: 0.05 ... 0.2)
+            // Random delay between keystrokes (human-like timing)
+            let isFastMode = UserDefaults.standard.bool(forKey: "WebDriverFastMode")
+            let delay = if fastHumanLike {
+                Double.random(in: 0.03 ... 0.08)
+            } else if isFastMode {
+                Double.random(in: 0.08 ... 0.15)
+            } else {
+                Double.random(in: 0.1 ... 0.25)
+            }
             try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+        }
+        // Optionally blur the field after typing
+        if blurAfter {
+            let blurEndpoint = WebDriverService.shared.baseURL + "/session/" + sessionIdString + "/execute/sync"
+            let script = """
+                var el = document.getElementById(arguments[0]);
+                if (el) { el.blur(); }
+            """
+            let body: [String: Any] = ["script": script, "args": [elementIdString]]
+            if let request = createRequest(url: blurEndpoint, method: "POST", body: body) {
+                _ = try? await urlSession.data(for: request)
+            }
         }
     }
 
