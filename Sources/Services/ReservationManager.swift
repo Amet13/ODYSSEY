@@ -112,6 +112,8 @@ class ReservationManager: NSObject, ObservableObject {
         case groupSizePageLoadTimeout
         case numberOfPeopleFieldNotFound
         case confirmButtonNotFound
+        case timeSelectionPageLoadTimeout
+        case timeSlotSelectionFailed
 
         var errorDescription: String? {
             switch self {
@@ -129,6 +131,10 @@ class ReservationManager: NSObject, ObservableObject {
                 UserSettingsManager.shared.userSettings.localized("Number of people field not found on page")
             case .confirmButtonNotFound:
                 UserSettingsManager.shared.userSettings.localized("Confirm button not found on page")
+            case .timeSelectionPageLoadTimeout:
+                UserSettingsManager.shared.userSettings.localized("Time selection page failed to load within timeout")
+            case .timeSlotSelectionFailed:
+                UserSettingsManager.shared.userSettings.localized("Failed to select time slot")
             }
         }
     }
@@ -220,13 +226,17 @@ class ReservationManager: NSObject, ObservableObject {
                 return
             }
 
-            // Step 2.5: Inject anti-detection script immediately after navigation
+            // Step 2.5: Handle cookie consent if present
+            await updateTask("Checking for cookie consent...")
+            _ = await webDriverService.handleCookieConsent()
+
+            // Step 2.6: Inject anti-detection script immediately after navigation
             await webDriverService.injectAntiDetectionScript(
                 userAgent: webDriverService.currentUserAgent,
                 language: webDriverService.currentLanguage,
             )
 
-            // Step 2.6: Simulate random scrolling and mouse movement
+            // Step 2.7: Simulate random scrolling and mouse movement
             if Bool.random() { await webDriverService.simulateScrolling() }
             if Bool.random() { await webDriverService.moveMouseRandomly() }
 
@@ -244,7 +254,7 @@ class ReservationManager: NSObject, ObservableObject {
 
             // Step 4: Find and click sport button
             await updateTask("Looking for sport: \(config.sportName)")
-            logger.info("Searching for sport button with text: '\(config.sportName)'")
+            logger.info("Searching for sport button with text: '\(config.sportName, privacy: .private)'")
             // Simulate human-like mouse movement and delay before interaction
             await webDriverService.simulateMouseMovement(to: config.sportName)
             await webDriverService.addRandomDelay()
@@ -253,7 +263,7 @@ class ReservationManager: NSObject, ObservableObject {
 
             let buttonClicked = await webDriverService.findAndClickElement(withText: config.sportName)
             if buttonClicked {
-                logger.info("Successfully clicked sport button: \(config.sportName)")
+                logger.info("Successfully clicked sport button: \(config.sportName, privacy: .private)")
 
                 // Step 5: Wait for group size page to load
                 await updateTask("Waiting for group size page...")
@@ -300,7 +310,47 @@ class ReservationManager: NSObject, ObservableObject {
 
                 logger.info("Successfully clicked confirm button")
 
-                // Step 8: Success - wait a moment and close browser tab
+                // Step 8: Wait for time selection page to load
+                await updateTask("Waiting for time selection page...")
+                let timeSelectionPageReady = await webDriverService.waitForTimeSelectionPage()
+                if !timeSelectionPageReady {
+                    logger.error("Time selection page failed to load within timeout")
+                    throw ReservationError.timeSelectionPageLoadTimeout
+                }
+
+                logger.info("Time selection page loaded successfully")
+
+                // Step 9: Select time slot based on configuration
+                await updateTask("Selecting time slot...")
+                await webDriverService.addRandomDelay()
+
+                // Get the first available day and time from configuration
+                let selectedDay = config.dayTimeSlots.keys.first
+                let selectedTimeSlot = selectedDay.flatMap { day in
+                    config.dayTimeSlots[day]?.first
+                }
+
+                if let day = selectedDay, let timeSlot = selectedTimeSlot {
+                    let dayName = day.shortName // Use short name like "Tue"
+                    let timeString = timeSlot.formattedTime() // Format like "8:30 AM"
+
+                    logger.info("Attempting to select: \(dayName) at \(timeString, privacy: .private)")
+
+                    let timeSlotSelected = await webDriverService.selectTimeSlot(
+                        dayName: dayName,
+                        timeString: timeString,
+                    )
+                    if !timeSlotSelected {
+                        logger.error("Failed to select time slot: \(dayName) at \(timeString, privacy: .private)")
+                        throw ReservationError.timeSlotSelectionFailed
+                    }
+
+                    logger.info("Successfully selected time slot: \(dayName) at \(timeString, privacy: .private)")
+                } else {
+                    logger.warning("No time slots configured, skipping time selection")
+                }
+
+                // Step 10: Success - wait a moment and close browser tab
                 await updateTask("Success! Closing browser tab...")
                 try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
 
@@ -322,7 +372,7 @@ class ReservationManager: NSObject, ObservableObject {
                     self.currentTask = UserSettingsManager.shared.userSettings
                         .localized("Reservation completed successfully")
                 }
-                logger.info("Reservation completed successfully for \(config.sportName)")
+                logger.info("Reservation completed successfully for \(config.sportName, privacy: .private)")
 
                 // Send notifications if configured
                 if UserSettingsManager.shared.userSettings.hasEmailConfigured {
@@ -335,7 +385,7 @@ class ReservationManager: NSObject, ObservableObject {
 
                 return
             } else {
-                logger.error("Failed to click sport button: \(config.sportName)")
+                logger.error("Failed to click sport button: \(config.sportName, privacy: .private)")
                 await MainActor.run {
                     self.lastRunInfo[config.id] = (
                         .failed(UserSettingsManager.shared.userSettings.localized("Sport button not found on page")),
@@ -348,7 +398,7 @@ class ReservationManager: NSObject, ObservableObject {
 
         } catch {
             // Capture screenshot before closing browser
-            var screenshotData: Data? = nil
+            var screenshotData: Data?
             if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
                 screenshotData = await webDriverService.captureScreenshot()
             }

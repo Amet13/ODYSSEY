@@ -163,7 +163,7 @@ class TelegramService: ObservableObject {
             return
         }
 
-        logger.info("Sending success notification to Telegram for \(config.name)")
+        logger.info("Sending success notification to Telegram for \(config.name, privacy: .private)")
 
         // Extract facility name from URL
         let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
@@ -203,14 +203,17 @@ class TelegramService: ObservableObject {
                     message: successMessage,
                 )
                 if success {
-                    logger.info("Success notification sent to Telegram for \(config.name)")
+                    logger.info("Success notification sent to Telegram for \(config.name, privacy: .private)")
                 } else {
-                    logger.error("Failed to send Telegram success notification for \(config.name)")
+                    logger
+                        .error("Failed to send Telegram success notification for \(config.name, privacy: .private)")
                 }
             }
         } catch {
             logger
-                .error("Failed to send Telegram success notification for \(config.name): \(error.localizedDescription)")
+                .error(
+                    "Failed to send Telegram success notification for \(config.name, privacy: .private): \(error.localizedDescription)",
+                )
         }
     }
 
@@ -225,7 +228,7 @@ class TelegramService: ObservableObject {
             return
         }
 
-        logger.info("Sending failure notification to Telegram for \(config.name)")
+        logger.info("Sending failure notification to Telegram for \(config.name, privacy: .private)")
 
         // Extract facility name from URL
         let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
@@ -236,7 +239,7 @@ class TelegramService: ObservableObject {
         let failureMessage = """
         <b>❌ \(userSettingsManager.userSettings.localized("Reservation Failed"))</b>
 
-        🏀 \(userSettingsManager.userSettings.localized("Failed to book:")) \(config.sportName)
+        🎯 \(userSettingsManager.userSettings.localized("Failed to book:")) \(config.sportName)
 
         🏢 \(userSettingsManager.userSettings.localized("Facility:")) \(facilityName)
 
@@ -268,14 +271,17 @@ class TelegramService: ObservableObject {
                 )
 
                 if success {
-                    logger.info("Failure notification sent to Telegram for \(config.name)")
+                    logger.info("Failure notification sent to Telegram for \(config.name, privacy: .private)")
                 } else {
-                    logger.error("Failed to send Telegram failure notification for \(config.name)")
+                    logger
+                        .error("Failed to send Telegram failure notification for \(config.name, privacy: .private)")
                 }
             }
         } catch {
             logger
-                .error("Failed to send Telegram failure notification for \(config.name): \(error.localizedDescription)")
+                .error(
+                    "Failed to send Telegram failure notification for \(config.name, privacy: .private): \(error.localizedDescription)",
+                )
         }
     }
 
@@ -338,7 +344,8 @@ class TelegramService: ObservableObject {
             }
 
             if httpResponse.statusCode == 200 {
-                logger.info("Failure notification with screenshot sent to Telegram for \(configName)")
+                logger
+                    .info("Failure notification with screenshot sent to Telegram for \(configName, privacy: .private)")
             } else {
                 let errorString = String(data: data, encoding: .utf8) ?? "Unknown error"
                 logger.error("Failed to send photo with caption to Telegram: \(errorString)")

@@ -128,6 +128,15 @@ struct TimeSlot: Codable, Identifiable, Hashable {
         self.time = time
     }
 
+    /// Formats the time to match the website's time format (e.g., "8:30 AM")
+    /// - Returns: Formatted time string
+    func formattedTime() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        formatter.locale = Locale(identifier: "en_US")
+        return formatter.string(from: time)
+    }
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }

@@ -44,6 +44,14 @@ ODYSSEY is a native macOS application that:
 
 ## 🎯 Development Guidelines
 
+### Custom commands
+
+- re - rebuild app
+- lo - tail logs in background for debug purposes
+- fo - format the code and fix linting issues
+- cl - cleanup codebasefo
+- cp - commit and push
+
 ### Code Style & Standards
 
 - **Swift Style**: Follow official Swift style guide and SwiftLint rules

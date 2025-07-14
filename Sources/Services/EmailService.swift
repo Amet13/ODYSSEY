@@ -435,13 +435,13 @@ class EmailService: ObservableObject {
         }
 
         await MainActor.run {
-            self.logger.info("Sending success notification email for \(config.name)")
+            self.logger.info("Sending success notification email for \(config.name, privacy: .private)")
             // For now, just log the success
             // In a full implementation, this would send an actual email
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
             self.logger
                 .info(
-                    "Success notification would be sent for \(config.sportName) at \(facilityName) to \(self.userSettingsManager.userSettings.imapEmail)",
+                    "Success notification would be sent for \(config.name, privacy: .private) at \(facilityName, privacy: .private) to \(self.userSettingsManager.userSettings.imapEmail, privacy: .private)",
                 )
         }
     }

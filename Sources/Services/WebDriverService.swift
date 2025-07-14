@@ -348,7 +348,7 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
             return false
         }
 
-        logger.info("Searching for sport button: '\(text)'")
+        logger.info("Searching for sport button: '\(text, privacy: .private)'")
 
         // Use the same XPath as Python Selenium: find div containing the text
         let divXPath = "//div[contains(text(),'\(text)')]"
@@ -363,7 +363,7 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
 
             // Try clicking the div element directly first
             if await clickElement(divId) {
-                logger.info("Successfully clicked sport button: '\(text)'")
+                logger.info("Successfully clicked sport button: '\(text, privacy: .private)'")
                 try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds sleep
                 return true
             } else {
@@ -378,15 +378,15 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
                         sessionId: String(describing: sessionId),
                     ) != nil
                 {
-                    logger.info("Successfully clicked sport button: '\(text)' via parent element")
+                    logger.info("Successfully clicked sport button: '\(text, privacy: .private)' via parent element")
                     try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds sleep
                     return true
                 } else {
-                    logger.error("Failed to click sport button: '\(text)'")
+                    logger.error("Failed to click sport button: '\(text, privacy: .private)'")
                 }
             }
         } else {
-            logger.error("Sport button not found: '\(text)'")
+            logger.error("Sport button not found: '\(text, privacy: .private)'")
         }
         return false
     }
@@ -466,6 +466,230 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
 
         logger.error("Group size page load timeout after \(maxAttempts) seconds")
         return false
+    }
+
+    /// Waits for the time selection page to load after clicking confirm button
+    /// - Returns: True if time selection page is ready, false if timeout
+    func waitForTimeSelectionPage() async -> Bool {
+        guard let sessionId else {
+            logger.error("No active session for time selection page check")
+            return false
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        let maxAttempts = 30 // 30 seconds max wait
+        var attempts = 0
+
+        while attempts < maxAttempts {
+            // Check if time selection sections are present
+            let sectionsCheckScript = "return document.querySelectorAll('.section.date-list').length;"
+            if let sectionCount = await executeScript(sectionsCheckScript, sessionId: sessionIdString) as? Int {
+                if sectionCount > 0 {
+                    logger.info("Time selection page loaded successfully with \(sectionCount) date sections")
+                    return true
+                }
+            }
+
+            attempts += 1
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+        }
+
+        logger.error("Time selection page load timeout after \(maxAttempts) seconds")
+        return false
+    }
+
+    /// Expands a date section that contains the specified day
+    /// - Parameter dayName: The day name to search for (e.g., "Tue", "Tuesday")
+    /// - Returns: True if section was found and expanded (or already expanded), false otherwise
+    func expandDateSection(for dayName: String) async -> Bool {
+        guard let sessionId else {
+            logger.error("No active session for expanding date section")
+            return false
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        logger.info("Searching for date section containing: '\(dayName, privacy: .private)'")
+
+        // Map short day to full day name
+        let fullDayName: String = switch dayName.lowercased() {
+        case "mon": "Monday"
+        case "tue": "Tuesday"
+        case "wed": "Wednesday"
+        case "thu": "Thursday"
+        case "fri": "Friday"
+        case "sat": "Saturday"
+        case "sun": "Sunday"
+        default: dayName
+        }
+
+        // Use placeholders and replace in Swift
+        let expandLogicScriptTemplate = """
+            try {
+                const sections = document.querySelectorAll('.section.date-list .date');
+                let allHeaders = [];
+                for (let section of sections) {
+                    const headerText = section.querySelector('.header-text');
+                    if (headerText) {
+                        allHeaders.push(headerText.textContent.trim());
+                        const headerContent = headerText.textContent.trim();
+                        if (headerContent.includes('__DAY_NAME__') || headerContent.includes('__FULL_DAY_NAME__')) {
+                            const timesList = section.querySelector('.times-list');
+                            const plusIcon = section.querySelector('.expand-gfx.fa-plus-square');
+                            const minusIcon = section.querySelector('.expand-gfx.fa-minus-square');
+                            const titleElement = section.querySelector('.title');
+                            let isExpanded = false;
+                            if (timesList && timesList.style.display !== 'none') isExpanded = true;
+                            if (minusIcon) isExpanded = true;
+                            if (plusIcon) isExpanded = false;
+                            let debug = {isExpanded, hasPlus: !!plusIcon, hasMinus: !!minusIcon, timesListDisplay: timesList ? timesList.style.display : 'none', allHeaders};
+                            window._odysseyDebug = debug;
+                            if (isExpanded) {
+                                return 'already-expanded';
+                            } else if (titleElement) {
+                                titleElement.click();
+                                return 'clicked-to-expand';
+                            } else {
+                                return 'no-title-element';
+                            }
+                        }
+                    }
+                }
+                window._odysseyDebug = {allHeaders};
+                return 'not-found';
+            } catch (e) {
+                window._odysseyDebug = {error: e && e.message ? e.message : String(e)};
+                return 'js-error';
+            }
+        """
+        let safeDayName = dayName.replacingOccurrences(of: "'", with: "\\'")
+        let safeFullDayName = fullDayName.replacingOccurrences(of: "'", with: "\\'")
+        let expandLogicScript = expandLogicScriptTemplate
+            .replacingOccurrences(of: "__DAY_NAME__", with: safeDayName)
+            .replacingOccurrences(of: "__FULL_DAY_NAME__", with: safeFullDayName)
+        logger.info("expandDateSection JS: \(expandLogicScript)")
+
+        if let result = await executeScript(expandLogicScript, sessionId: sessionIdString) as? String {
+            if result == "already-expanded" {
+                logger.info("Section for \(dayName, privacy: .private) is already expanded.")
+                return true
+            } else if result == "clicked-to-expand" {
+                logger.info("Clicked to expand section for \(dayName, privacy: .private)")
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                return true
+            } else {
+                let debugScript = "return window._odysseyDebug ? JSON.stringify(window._odysseyDebug) : null;"
+                if let debugInfo = await executeScript(debugScript, sessionId: sessionIdString) as? String {
+                    logger.warning("Section expand debug info: \(debugInfo)")
+                }
+                logger.error("Failed to find section for: '\(dayName, privacy: .private)'")
+                return false
+            }
+        }
+        logger.error("Failed to find or expand date section for: '\(dayName, privacy: .private)'")
+        return false
+    }
+
+    /// Clicks on a time button within the expanded section
+    /// - Parameter timeString: The time to click (e.g., "8:30 AM")
+    /// - Returns: True if time button was found and clicked, false otherwise
+    func clickTimeButton(timeString: String) async -> Bool {
+        guard let sessionId else {
+            logger.error("No active session for clicking time button")
+            return false
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        logger.info("Searching for time button: '\(timeString, privacy: .private)'")
+
+        // Wait a moment after expanding section to ensure buttons are loaded
+        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+
+        // Log all available time labels in the expanded section
+        let logTimesScript = """
+            const times = [];
+            document.querySelectorAll('.time-container').forEach(btn => {
+                const label = btn.querySelector('.available-time');
+                if (label) times.push(label.textContent.trim());
+            });
+            return times;
+        """
+        if let labels = await executeScript(logTimesScript, sessionId: sessionIdString) as? [String] {
+            logger.info("Available time labels: \(labels.joined(separator: ", "))")
+        }
+
+        // Try strict match first
+        let clickTimeScriptStrict = """
+            const timeButtons = document.querySelectorAll('.time-container');
+            for (let button of timeButtons) {
+                const timeLabel = button.querySelector('.available-time');
+                if (timeLabel && timeLabel.textContent.trim() === '\(timeString)') {
+                    const timeItem = button.closest('.time');
+                    if (timeItem && !timeItem.classList.contains('reserved')) {
+                        button.click();
+                        return true;
+                    }
+                }
+            }
+            return false;
+        """
+        if let clicked = await executeScript(clickTimeScriptStrict, sessionId: sessionIdString) as? Bool, clicked {
+            logger.info("Successfully clicked time button (strict match): '\(timeString, privacy: .private)'")
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+            return true
+        }
+
+        // Fallback: Try contains match
+        let clickTimeScriptContains = """
+            const timeButtons = document.querySelectorAll('.time-container');
+            for (let button of timeButtons) {
+                const timeLabel = button.querySelector('.available-time');
+                if (timeLabel && timeLabel.textContent.trim().includes('\(timeString)')) {
+                    const timeItem = button.closest('.time');
+                    if (timeItem && !timeItem.classList.contains('reserved')) {
+                        button.click();
+                        return true;
+                    }
+                }
+            }
+            return false;
+        """
+        if let clicked = await executeScript(clickTimeScriptContains, sessionId: sessionIdString) as? Bool, clicked {
+            logger.info("Successfully clicked time button (contains match): '\(timeString, privacy: .private)'")
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+            return true
+        }
+
+        logger.error("Failed to find or click time button: '\(timeString, privacy: .private)'")
+        return false
+    }
+
+    /// Finds and clicks a time slot based on day and time configuration
+    /// - Parameters:
+    ///   - dayName: The day name to search for (e.g., "Tue", "Tuesday")
+    ///   - timeString: The time to click (e.g., "8:30 AM")
+    /// - Returns: True if the time slot was successfully selected, false otherwise
+    func selectTimeSlot(dayName: String, timeString: String) async -> Bool {
+        logger.info("Selecting time slot: \(dayName, privacy: .private) at \(timeString, privacy: .private)")
+
+        // Step 1: Expand the date section
+        let sectionExpanded = await expandDateSection(for: dayName)
+        if !sectionExpanded {
+            logger.error("Failed to expand date section for: '\(dayName, privacy: .private)'")
+            return false
+        }
+
+        // Step 2: Click the time button
+        let timeClicked = await clickTimeButton(timeString: timeString)
+        if !timeClicked {
+            logger.error("Failed to click time button: '\(timeString, privacy: .private)'")
+            return false
+        }
+
+        logger
+            .info(
+                "Successfully selected time slot: \(dayName, privacy: .private) at \(timeString, privacy: .private)",
+            )
+        return true
     }
 
     /// Fills the number of people field on the group size page
@@ -640,7 +864,7 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
             ["using": "id", "value": "submit-btn"],
             ["using": "css selector", "value": ".mdc-button__ripple"],
         ]
-        var elementId: String? = nil
+        var elementId: String?
         for selector in selectors {
             let endpoint = "\(baseURL)/session/\(sessionIdString)/element"
             guard let request = createRequest(url: endpoint, method: "POST", body: selector) else { continue }
@@ -801,6 +1025,58 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
             return false
         } catch {
             logger.error("Error checking button status: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Checks for and clicks the cookie consent button if present
+    /// - Returns: True if cookie button was found and clicked, false if not present
+    func handleCookieConsent() async -> Bool {
+        guard let sessionId else {
+            logger.error("No active session for cookie consent handling")
+            return false
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        logger.info("Checking for cookie consent banner...")
+
+        // Check if cookie consent banner is present
+        let checkCookieScript = """
+            const cookieBanner = document.getElementById('cookieConsent');
+            if (cookieBanner && cookieBanner.style.display !== 'none') {
+                return true;
+            }
+            return false;
+        """
+
+        if
+            let bannerPresent = await executeScript(checkCookieScript, sessionId: sessionIdString) as? Bool,
+            bannerPresent
+        {
+            logger.info("Cookie consent banner detected, attempting to accept...")
+
+            // Click the "Accept necessary cookies" button
+            let acceptCookieScript = """
+                const acceptButton = document.querySelector('button[data-cookie-string*="Consent=yes"]');
+                if (acceptButton) {
+                    acceptButton.click();
+                    return true;
+                }
+                return false;
+            """
+
+            if let accepted = await executeScript(acceptCookieScript, sessionId: sessionIdString) as? Bool, accepted {
+                logger.info("Successfully accepted cookies")
+
+                // Wait a moment for the banner to disappear
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                return true
+            } else {
+                logger.warning("Cookie banner present but accept button not found")
+                return false
+            }
+        } else {
+            logger.info("No cookie consent banner detected")
             return false
         }
     }
