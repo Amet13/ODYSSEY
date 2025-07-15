@@ -127,7 +127,7 @@ class EmailService: ObservableObject {
             if regex.firstMatch(in: trimmedPassword, range: range) == nil {
                 return .failure(
                     .gmailAppPasswordRequired(
-                        "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 lowercase letters with spaces every 4 characters). Example: 'ffks newj eghl hgmj'",
+                        "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 lowercase letters with spaces every 4 characters).",
                     ),
                 )
             }
@@ -137,7 +137,7 @@ class EmailService: ObservableObject {
             if cleanedPassword.count != 16 || !cleanedPassword.allSatisfy({ $0.isLetter && $0.isLowercase }) {
                 return .failure(
                     .gmailAppPasswordRequired(
-                        "Gmail App Password must be 16 lowercase letters in format: 'xxxx xxxx xxxx xxxx'. Example: 'ffks newj eghl hgmj'",
+                        "Gmail App Password must be 16 lowercase letters in format: 'xxxx xxxx xxxx xxxx'.",
                     ),
                 )
             }
@@ -732,14 +732,39 @@ class EmailService: ObservableObject {
     /// - Returns: Array of 4-digit verification codes found
     private func extractVerificationCodes(from body: String) async -> [String] {
         var codes: [String] = []
-        let regex = try? NSRegularExpression(pattern: "\\b\\d{4}\\b")
-        let matches = regex?.matches(in: body, range: NSRange(body.startIndex..., in: body)) ?? []
 
-        for match in matches {
-            if let range = Range(match.range, in: body) {
-                let code = String(body[range])
-                codes.append(code)
-                logger.info("🔢 Found verification code: \(code)")
+        // Try multiple patterns to catch different formats
+        let patterns = [
+            "\\b\\d{4}\\b", // Basic 4-digit pattern
+            "verification code is:\\s*(\\d{4})", // "Your verification code is: 3583"
+            "code is:\\s*(\\d{4})", // "code is: 3583"
+            "code:\\s*(\\d{4})", // "code: 3583"
+        ]
+
+        for pattern in patterns {
+            let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
+            let matches = regex?.matches(in: body, range: NSRange(body.startIndex..., in: body)) ?? []
+
+            for match in matches {
+                if let range = Range(match.range, in: body) {
+                    let matchText = String(body[range])
+
+                    // Extract just the 4-digit code
+                    let codeRegex = try? NSRegularExpression(pattern: "\\d{4}")
+                    if
+                        let codeMatch = codeRegex?.firstMatch(
+                            in: matchText,
+                            range: NSRange(matchText.startIndex..., in: matchText),
+                        ),
+                        let codeRange = Range(codeMatch.range, in: matchText)
+                    {
+                        let code = String(matchText[codeRange])
+                        if !codes.contains(code) {
+                            codes.append(code)
+                            logger.info("🔢 Found verification code: \(code) using pattern: \(pattern)")
+                        }
+                    }
+                }
             }
         }
 
@@ -749,21 +774,51 @@ class EmailService: ObservableObject {
     /// Fetches verification codes from emails using IMAP
     /// - Returns: Array of verification codes found
     private func fetchVerificationCodesFromEmails() async -> [String] {
-        // Set up a timeout for the entire IMAP operation (15 seconds)
-        return await withTimeout(seconds: 15) { [self] in
+        // Remove timeout wrapper to allow IMAP operation to complete
+        return await { [self] in
             let settings = self.userSettingsManager.userSettings
             let port: UInt16 = 993
             let server = settings.currentServer
             let email = settings.currentEmail
             let password = settings.currentPassword
             let fromAddress = "noreply@frontdesksuite.com"
+
+            // Debug logging for password selection
+            logger.info("🔐 Password debug - Email: \(email)")
+            logger.info("🔐 Password debug - Is Gmail: \(settings.isGmailAccount(email))")
+            logger.info("🔐 Password debug - Using password: \(password.prefix(4))...")
+
+            // Additional Gmail App Password validation
+            if settings.isGmailAccount(email) {
+                let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
+                logger.info("🔐 Gmail App Password validation:")
+                logger.info("🔐 - Password length: \(trimmedPassword.count)")
+                logger.info("🔐 - Contains spaces: \(trimmedPassword.contains(" "))")
+                logger.info("🔐 - All lowercase: \(trimmedPassword.allSatisfy { $0.isLetter ? $0.isLowercase : true })")
+                logger.info("🔐 - Password format: \(trimmedPassword)")
+
+                // Check if it matches the expected Gmail App Password format
+                let appPasswordPattern = "^[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}$"
+                let appPasswordRegex = try? NSRegularExpression(pattern: appPasswordPattern)
+                if let regex = appPasswordRegex {
+                    let range = NSRange(trimmedPassword.startIndex..., in: trimmedPassword)
+                    let matches = regex.firstMatch(in: trimmedPassword, range: range)
+                    logger.info("🔐 - Matches Gmail App Password format: \(matches != nil)")
+                }
+            }
+            // Make subject search more flexible to catch variations
             let subject = "Verify your email"
             let now = Date()
-            let fiveMinutesAgo = now.addingTimeInterval(-5 * 60)
+            // Search for emails from the last 15 minutes to catch recent verification emails
+            let fifteenMinutesAgo = now.addingTimeInterval(-15 * 60)
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "d-MMM-yyyy"
             dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-            let sinceDate = dateFormatter.string(from: now)
+            let sinceDate = dateFormatter.string(from: fifteenMinutesAgo)
+
+            // Log the current date, sinceDate, and timezone for debugging
+            logger.info("🕒 System time: \(Date()) (timezone: \(TimeZone.current.identifier))")
+            logger.info("🔍 IMAP search window sinceDate: \(sinceDate)")
 
             logger.info("🔗 Connecting to IMAP server \(server):\(port) for user \(email)")
 
@@ -868,36 +923,154 @@ class EmailService: ObservableObject {
             // Read greeting
             let greeting = await expect("*")
             logger.info("📨 IMAP greeting: \(greeting.prefix(200))")
+            logger.error("📨 IMAP greeting (raw): \(String(describing: greeting))")
+
+            // For Gmail, try CAPABILITY first to see what's supported
+            if settings.isGmailAccount(email) {
+                logger.info("🔍 Checking Gmail IMAP capabilities...")
+                sendCommand("a0 CAPABILITY")
+                let capabilityResp = await expect("a0")
+                logger.info("🔍 Gmail capabilities: \(capabilityResp.prefix(200))")
+            }
 
             // LOGIN
             logger.info("🔐 Attempting IMAP login...")
-            sendCommand("a1 LOGIN \(email) \(password)")
+            sendCommand("a1 LOGIN \"\(email)\" \"\(password)\"")
             let loginResp = await expect("a1")
+
+            // Log the full login response for debugging (without privacy protection)
+            logger.error("🔐 Full IMAP login response (raw): \(String(describing: loginResp))")
+
             guard loginResp.contains("a1 OK") else {
-                logger.error("❌ IMAP login failed: \(loginResp)")
+                logger.error("❌ IMAP login failed: \(String(describing: loginResp))")
+                // Log each line of the response separately to see the full error
+                let lines = loginResp.components(separatedBy: "\n")
+                for (index, line) in lines.enumerated() {
+                    logger.error("🔐 Login response line \(index) (raw): \(String(describing: line))")
+                }
+
+                // Also log the raw response without privacy protection
+                logger.error("🔐 Raw login response: \(String(describing: loginResp))")
+
+                // Try to extract the actual error message by looking for patterns
+                if loginResp.contains("NO") {
+                    logger.error("🔐 IMAP NO response detected - authentication failed")
+                }
+                if loginResp.contains("BAD") {
+                    logger.error("🔐 IMAP BAD response detected - command syntax error")
+                }
+
+                // Log the response length and character codes to help debug
+                logger.error("🔐 Response length: \(loginResp.count)")
+                // logger.error("🔐 Response contains 'OK': \(loginResp.contains(\"OK\"))")
+                // logger.error("🔐 Response contains 'NO': \(loginResp.contains(\"NO\"))")
+                // logger.error("🔐 Response contains 'BAD': \(loginResp.contains(\"BAD\"))")
+
+                // Log the response as hex to see exactly what we're getting
+                let hexString = loginResp.data(using: .utf8)?.map { String(format: "%02x", $0) }.joined() ?? "nil"
+                logger.error("🔐 Response as hex: \(hexString.prefix(100))")
                 return []
             }
             logger.info("✅ IMAP login successful, about to search for verification emails")
 
             // Note: Debug logging removed for production
 
-            // Send search command
-            logger
-                .info(
-                    "🔍 Sending IMAP SEARCH command: a3 SEARCH SINCE \(sinceDate) FROM \"\(fromAddress)\" SUBJECT \"\(subject)\"",
-                )
-            sendCommand("a3 SEARCH SINCE \(sinceDate) FROM \"\(fromAddress)\" SUBJECT \"\(subject)\"")
-            let searchResp = await expect("a3")
-            logger.info("🔍 IMAP SEARCH response: \(searchResp.prefix(500))")
-            let searchLines = searchResp.components(separatedBy: "\n")
-            let searchLine = searchLines.first(where: { $0.contains("SEARCH") }) ?? ""
-            let ids = searchLine.components(separatedBy: " ").dropFirst()
-                .compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
+            // Try multiple search strategies to find verification emails
+            var ids: [Int] = []
 
-            logger.info("🔍 IMAP SEARCH found IDs: \(ids)")
+            // Strategy 1: Search by FROM only (last 30 minutes - extended window)
+            logger.info("🔍 Strategy 1: Searching by FROM only (last 30 minutes)")
+            let thirtyMinutesAgo = now.addingTimeInterval(-30 * 60)
+            let sinceDate30Min = dateFormatter.string(from: thirtyMinutesAgo)
+            let searchCmd1 = "a3 SEARCH SINCE \(sinceDate30Min) FROM \"\(fromAddress)\""
+            logger.info("🔍 Strategy 1 command: \(searchCmd1)")
+            sendCommand(searchCmd1)
+            let searchResp1 = await expect("a3")
+            logger.info("🔍 Strategy 1 response: \(searchResp1.prefix(500))")
+            let searchLines1 = searchResp1.components(separatedBy: "\n")
+            let searchLine1 = searchLines1.first(where: { $0.contains("SEARCH") }) ?? ""
+            let ids1 = searchLine1.components(separatedBy: " ").dropFirst()
+                .compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
+            ids.append(contentsOf: ids1)
+
+            // Strategy 2: Search by FROM and SUBJECT (exact match, last 30 minutes)
+            if ids.isEmpty {
+                logger.info("🔍 Strategy 2: Searching by FROM and SUBJECT (exact, last 30 minutes)")
+                let searchCmd2 = "a4 SEARCH SINCE \(sinceDate30Min) FROM \"\(fromAddress)\" SUBJECT \"\(subject)\""
+                logger.info("🔍 Strategy 2 command: \(searchCmd2)")
+                sendCommand(searchCmd2)
+                let searchResp2 = await expect("a4")
+                logger.info("🔍 Strategy 2 response: \(searchResp2.prefix(500))")
+                let searchLines2 = searchResp2.components(separatedBy: "\n")
+                let searchLine2 = searchLines2.first(where: { $0.contains("SEARCH") }) ?? ""
+                let ids2 = searchLine2.components(separatedBy: " ").dropFirst()
+                    .compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
+                ids.append(contentsOf: ids2)
+            }
+
+            // Strategy 3: Search for any email with "verification" in subject (broader, last 30 minutes)
+            if ids.isEmpty {
+                logger.info("🔍 Strategy 3: Searching for any email with 'verification' in subject (last 30 minutes)")
+                sendCommand("a5 SEARCH SINCE \(sinceDate30Min) SUBJECT \"verification\"")
+                let searchResp3 = await expect("a5")
+                logger.info("🔍 Strategy 3 response: \(searchResp3.prefix(500))")
+                let searchLines3 = searchResp3.components(separatedBy: "\n")
+                let searchLine3 = searchLines3.first(where: { $0.contains("SEARCH") }) ?? ""
+                let ids3 = searchLine3.components(separatedBy: " ").dropFirst()
+                    .compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
+                ids.append(contentsOf: ids3)
+            }
+
+            // Strategy 4: Search in INBOX explicitly (some servers need this)
+            if ids.isEmpty {
+                logger.info("🔍 Strategy 4: Searching in INBOX explicitly (last 30 minutes)")
+                sendCommand("a6 SELECT INBOX")
+                let selectResp = await expect("a6")
+                logger.info("🔍 INBOX select response: \(selectResp.prefix(200))")
+
+                let searchCmd4 = "a7 SEARCH SINCE \(sinceDate30Min) FROM \"\(fromAddress)\""
+                logger.info("🔍 Strategy 4 command: \(searchCmd4)")
+                sendCommand(searchCmd4)
+                let searchResp4 = await expect("a7")
+                logger.info("🔍 Strategy 4 response: \(searchResp4.prefix(500))")
+                let searchLines4 = searchResp4.components(separatedBy: "\n")
+                let searchLine4 = searchLines4.first(where: { $0.contains("SEARCH") }) ?? ""
+                let ids4 = searchLine4.components(separatedBy: " ").dropFirst()
+                    .compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
+                ids.append(contentsOf: ids4)
+            }
+
+            // After all search strategies, if no IDs found, log all recent emails for debugging
+            if ids.isEmpty {
+                logger
+                    .warning(
+                        "⚠️ No email IDs found in any search strategy. Listing all emails from last 30 minutes for debug...",
+                    )
+                // Search for all emails from the last 30 minutes
+                let thirtyMinutesAgo = now.addingTimeInterval(-30 * 60)
+                let sinceDate30Min = dateFormatter.string(from: thirtyMinutesAgo)
+                sendCommand("a8 SEARCH SINCE \(sinceDate30Min)")
+                let searchRespAll = await expect("a8")
+                logger.info("🔍 All email search response: \(searchRespAll.prefix(500))")
+                let searchLinesAll = searchRespAll.components(separatedBy: "\n")
+                let searchLineAll = searchLinesAll.first(where: { $0.contains("SEARCH") }) ?? ""
+                let idsAll = searchLineAll.components(separatedBy: " ").dropFirst()
+                    .compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
+                logger.info("🔍 All email IDs in last 30 minutes: \(idsAll)")
+                // For each email, fetch and log subject and sender
+                for id in idsAll {
+                    sendCommand("a9 FETCH \(id) (BODY[HEADER.FIELDS (SUBJECT FROM DATE)])")
+                    let headerResp = await expect("a9")
+                    logger.info("📧 Email ID \(id) header: \n\(headerResp)")
+                }
+            }
+
+            // Remove duplicates
+            ids = Array(Set(ids)).sorted()
+            logger.info("🔍 Combined search found IDs: \(ids)")
 
             if ids.isEmpty {
-                logger.warning("⚠️ No email IDs found in search response")
+                logger.warning("⚠️ No email IDs found in any search strategy")
                 return []
             }
 
@@ -906,6 +1079,11 @@ class EmailService: ObservableObject {
             let headerDateFormatter = DateFormatter()
             headerDateFormatter.locale = Locale(identifier: "en_US_POSIX")
             headerDateFormatter.dateFormat = "EEE, d MMM yyyy HH:mm:ss Z" // IMAP RFC822
+
+            // Alternative date formatter for different IMAP server formats
+            let altDateFormatter = DateFormatter()
+            altDateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            altDateFormatter.dateFormat = "d MMM yyyy HH:mm:ss Z"
 
             for id in ids {
                 logger.info("📄 Processing email ID \(id)")
@@ -921,15 +1099,26 @@ class EmailService: ObservableObject {
                         separator: ":",
                         maxSplits: 1,
                         omittingEmptySubsequences: false,
-                    ).last?.trimmingCharacters(in: .whitespacesAndNewlines),
-                    let emailDate = headerDateFormatter.date(from: dateStr)
+                    ).last?.trimmingCharacters(in: .whitespacesAndNewlines)
                 else {
-                    logger.info("📅 Skipping email ID \(id): Could not parse date")
+                    logger.info("📅 Skipping email ID \(id): Could not find date header")
                     continue
                 }
 
-                // Skip emails older than 5 minutes
-                if emailDate < fiveMinutesAgo {
+                // Try multiple date formats
+                var emailDate: Date?
+                emailDate = headerDateFormatter.date(from: dateStr)
+                if emailDate == nil {
+                    emailDate = altDateFormatter.date(from: dateStr)
+                }
+
+                guard let emailDate else {
+                    logger.info("📅 Skipping email ID \(id): Could not parse date '\(dateStr)'")
+                    continue
+                }
+
+                // Skip emails older than 30 minutes (matching search window)
+                if emailDate < thirtyMinutesAgo {
                     logger.info("⏰ Skipping email ID \(id): Too old (\(emailDate))")
                     continue
                 }
@@ -950,7 +1139,7 @@ class EmailService: ObservableObject {
 
             logger.info("📋 Found \(codes.count) verification codes: \(codes)")
             return codes
-        }
+        }()
     }
 
     // MARK: - Notification Methods
@@ -1016,23 +1205,10 @@ func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async -> T) a
     }
 }
 
+// MARK: - IMAPStreamDelegate
+
 class IMAPStreamDelegate: NSObject, StreamDelegate {
-    func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
-        switch eventCode {
-        case .openCompleted:
-            print("IMAP Stream opened")
-        case .hasBytesAvailable:
-            print("IMAP Stream has bytes available")
-        case .hasSpaceAvailable:
-            print("IMAP Stream has space available")
-        case .errorOccurred:
-            if let error = aStream.streamError {
-                print("IMAP Stream error: \(error)")
-            }
-        case .endEncountered:
-            print("IMAP Stream ended")
-        default:
-            break
-        }
+    func stream(_: Stream, handle _: Stream.Event) {
+        // No-op for now; can be expanded for error handling or logging
     }
 }

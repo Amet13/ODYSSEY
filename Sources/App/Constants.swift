@@ -17,7 +17,7 @@ enum Constants {
 
     static let webViewTimeout: TimeInterval = 30
     static let sportsDetectionTimeout: TimeInterval = 15
-    static let reservationTimeout: TimeInterval = 30
+    static let reservationTimeout: TimeInterval = 60
 
     // MARK: - UI Constants
 

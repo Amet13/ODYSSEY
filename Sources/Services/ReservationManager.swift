@@ -224,15 +224,56 @@ class ReservationManager: NSObject, ObservableObject {
         }
     }
 
+    /// Emergency cleanup method for unexpected termination
+    /// Captures screenshot and sends notification if automation was running
+    func emergencyCleanup() async {
+        if isRunning, let config = currentConfig {
+            logger.warning("Emergency cleanup triggered - capturing screenshot and sending notification")
+
+            // Capture screenshot before cleanup
+            let screenshotData = await webDriverService.captureScreenshot()
+            if screenshotData != nil {
+                logger.info("Emergency screenshot captured successfully")
+            } else {
+                logger.warning("Failed to capture emergency screenshot")
+            }
+
+            // Send emergency failure notification to Telegram
+            if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
+                await TelegramService.shared.sendFailureNotification(
+                    for: config,
+                    error: "Emergency cleanup - automation was interrupted unexpectedly",
+                    screenshotData: screenshotData,
+                )
+            }
+
+            // Update status
+            await MainActor.run {
+                self.isRunning = false
+                self.lastRunStatus = .failed("Emergency cleanup - automation was interrupted unexpectedly")
+                self.currentTask = "Emergency cleanup completed"
+                self.lastRunDate = Date()
+                self.lastRunInfo[config.id] = (
+                    .failed("Emergency cleanup - automation was interrupted unexpectedly"),
+                    Date(),
+                    .automatic,
+                )
+            }
+        }
+
+        // Always cleanup WebDriver
+        await webDriverService.cleanup()
+    }
+
     // MARK: - Private Methods
 
     private func performReservation(for config: ReservationConfig, runType: RunType) async {
-        // Set up a timeout for the entire reservation process (5 minutes)
+        // Set up a timeout for the entire reservation process (1 minute)
         let timeoutTask = Task {
-            try? await Task.sleep(nanoseconds: 5 * 60 * 1_000_000_000) // 5 minutes
-            logger.error("⏰ Reservation timeout reached (5 minutes)")
+            try? await Task.sleep(nanoseconds: 1 * 60 * 1_000_000_000) // 1 minute
+            logger.error("⏰ Reservation timeout reached (1 minute)")
             await handleError(
-                UserSettingsManager.shared.userSettings.localized("Reservation timed out after 5 minutes"),
+                UserSettingsManager.shared.userSettings.localized("Reservation timed out after 1 minute"),
                 configId: config.id,
                 runType: runType,
             )
@@ -251,6 +292,9 @@ class ReservationManager: NSObject, ObservableObject {
                     )
                     return
                 }
+
+                // Set current configuration for error reporting
+                webDriverService.setCurrentConfig(config)
 
                 // Step 2: Navigate to facility URL
                 await updateTask("Navigating to facility")
@@ -453,7 +497,7 @@ class ReservationManager: NSObject, ObservableObject {
                     await updateTask("Confirming contact information...")
                     await webDriverService.addRandomDelay()
 
-                    let contactConfirmClicked = await webDriverService.clickContactInfoConfirmButton()
+                    let contactConfirmClicked = await webDriverService.clickContactInfoConfirmButtonWithRetry()
                     // Log page source after contact confirm
                     await webDriverService.logCurrentPageSource("after contact confirm")
                     if !contactConfirmClicked {
@@ -506,6 +550,10 @@ class ReservationManager: NSObject, ObservableObject {
                                 screenshotData: screenshotData,
                             )
                         }
+
+                        // Cleanup WebDriver session and close browser after successful reservation
+                        logger.info("Cleaning up WebDriver session after successful reservation")
+                        await webDriverService.cleanup()
                     } else {
                         logger.error("Reservation was not successful")
                         throw ReservationError.reservationFailed
@@ -558,6 +606,30 @@ class ReservationManager: NSObject, ObservableObject {
             }
         }
         logger.error("Reservation error: \(error)")
+
+        // Capture screenshot and send Telegram notification for automation failures
+        if let config = currentConfig {
+            // Capture screenshot before cleanup
+            let screenshotData = await webDriverService.captureScreenshot()
+            if screenshotData != nil {
+                logger.info("Screenshot captured successfully for failure notification")
+            } else {
+                logger.warning("Failed to capture screenshot for failure notification")
+            }
+
+            // Send failure notification with screenshot to Telegram
+            if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
+                await TelegramService.shared.sendFailureNotification(
+                    for: config,
+                    error: error,
+                    screenshotData: screenshotData,
+                )
+            }
+        }
+
+        // Always cleanup WebDriver session and close Chrome window
+        logger.info("Cleaning up WebDriver session after error")
+        await webDriverService.cleanup()
     }
 
     // Helper to get last run info for a config

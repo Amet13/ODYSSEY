@@ -45,6 +45,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Clean up
         timer?.invalidate()
         timer = nil
+
+        // Emergency cleanup for any running automation
+        Task {
+            await ReservationManager.shared.emergencyCleanup()
+        }
     }
 
     // MARK: - Private Methods

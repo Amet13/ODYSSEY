@@ -92,6 +92,10 @@ struct UserSettings: Codable, Equatable {
     }
 
     var currentPassword: String {
+        // For Gmail accounts, use the Gmail App Password
+        if isGmailAccount(imapEmail) {
+            return gmailAppPassword
+        }
         return imapPassword
     }
 
@@ -190,7 +194,7 @@ struct UserSettings: Codable, Equatable {
             "Full Name": "Full Name",
             "Phone Number": "Phone Number",
             "Phone number must be exactly 10 digits": "Phone number must be exactly 10 digits",
-            "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 lowercase letters with spaces every 4 characters). Example: 'ffks newj eghl hgmj'": "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 lowercase letters with spaces every 4 characters)",
+            "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 lowercase letters with spaces every 4 characters).": "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 lowercase letters with spaces every 4 characters)",
             "Only one email provider can be active at a time. Switching will clear the other provider's settings.": "Only one email provider can be active at a time. Switching will clear the other provider's settings.",
             "Email Settings": "Email Settings",
             "Email Provider": "Email Provider",
@@ -392,7 +396,7 @@ struct UserSettings: Codable, Equatable {
             "Full Name": "Nom complet",
             "Phone Number": "Numéro de téléphone",
             "Phone number must be exactly 10 digits": "Le numéro de téléphone doit avoir exactement 10 chiffres",
-            "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 lowercase letters with spaces every 4 characters). Example: 'ffks newj eghl hgmj'": "Le mot de passe d'application Gmail doit être au format 'xxxx xxxx xxxx xxxx' (16 lettres minuscules avec des espaces tous les 4 caractères)",
+            "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 lowercase letters with spaces every 4 characters).": "Le mot de passe d'application Gmail doit être au format 'xxxx xxxx xxxx xxxx' (16 lettres minuscules avec des espaces tous les 4 caractères)",
             "Only one email provider can be active at a time. Switching will clear the other provider's settings.": "Un seul fournisseur de courriel peut être actif à la fois. Changer de fournisseur effacera les paramètres de l'autre fournisseur.",
             "Email Settings": "Paramètres de courriel",
             "Email Provider": "Fournisseur de courriel",

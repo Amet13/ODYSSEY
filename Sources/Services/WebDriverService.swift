@@ -50,6 +50,7 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
     var sessionId: String?
     let baseURL = "http://localhost:9515"
     let urlSession: URLSession
+    private var currentConfig: ReservationConfig?
     // Expose the current user-agent and language
     var currentUserAgent: String =
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -284,23 +285,39 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
 
         if let sessionId {
             let sessionIdString = String(describing: sessionId)
-            // Close the current window/tab
+
+            // First, try to close the current window/tab
             let closeWindowEndpoint = "\(baseURL)/session/\(sessionIdString)/window"
             if let closeRequest = createRequest(url: closeWindowEndpoint, method: "DELETE") {
                 do {
-                    _ = try await urlSession.data(for: closeRequest)
-                    logger.info("Closed current browser tab/window")
+                    let (_, response) = try await urlSession.data(for: closeRequest)
+                    let httpResponse = response as? HTTPURLResponse
+                    if httpResponse?.statusCode == 200 {
+                        logger.info("✅ Closed current browser tab/window successfully")
+                    } else {
+                        logger.warning("⚠️ Close window request returned status: \(httpResponse?.statusCode ?? 0)")
+                    }
                 } catch {
-                    logger.error("Error closing browser tab/window: \(error.localizedDescription)")
+                    logger.error("❌ Error closing browser tab/window: \(error.localizedDescription)")
                 }
             }
-            // Delete the session
+
+            // Wait a moment for the window to close
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+
+            // Then delete the session
             let endpoint = "\(baseURL)/session/\(sessionIdString)"
             if let request = createRequest(url: endpoint, method: "DELETE") {
                 do {
-                    _ = try await urlSession.data(for: request)
+                    let (_, response) = try await urlSession.data(for: request)
+                    let httpResponse = response as? HTTPURLResponse
+                    if httpResponse?.statusCode == 200 {
+                        logger.info("✅ WebDriver session deleted successfully")
+                    } else {
+                        logger.warning("⚠️ Delete session request returned status: \(httpResponse?.statusCode ?? 0)")
+                    }
                 } catch {
-                    logger.error("Error deleting session: \(error.localizedDescription)")
+                    logger.error("❌ Error deleting session: \(error.localizedDescription)")
                 }
             }
         }
@@ -309,7 +326,7 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
         isConnected = false
         currentSession = nil
 
-        logger.info("WebDriver session stopped (browser remains open)")
+        logger.info("🔄 WebDriver session reset")
     }
 
     /// Closes only the current tab/window without stopping the entire session
@@ -1352,6 +1369,12 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
         }
     }
 
+    /// Sets the current configuration for error reporting
+    /// - Parameter config: The current reservation configuration
+    func setCurrentConfig(_ config: ReservationConfig?) {
+        currentConfig = config
+    }
+
     /// Protocol method: Take screenshot
     func takeScreenshot() async throws -> Data {
         guard let sessionId else {
@@ -1461,7 +1484,7 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/chromedriver")
-        process.arguments = ["--port=9515", "--verbose"]
+        process.arguments = ["--port=9515", "--verbose", "--disable-dev-shm-usage"]
 
         do {
             try process.run()
@@ -2104,41 +2127,55 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
             logger.error("Failed to find phone number field with any selector")
             return false
         }
+
+        // Enhanced human-like behavior for contact form (where reCAPTCHA is used)
+        logger.info("🔄 Using enhanced human-like behavior for contact form (reCAPTCHA protection)")
+
         // Scroll into view
         let scrollScript = "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});"
         _ = await executeScriptWithElement(scrollScript, elementId: elementId, sessionId: sessionIdString)
-        // Simulate mouse movement
-        await simulateMouseMovement(to: elementId)
-        if WebDriverService.instantFillEnabled {
-            // Set value via JS instantly
-            let jsEndpoint = "\(baseURL)/session/\(sessionIdString)/execute/sync"
-            let script = """
-            var el = document.getElementById('telephone');
-            if (el) { el.value = '\(phoneNumber)'; }
-            """
-            let jsBody: [String: Any] = ["script": script, "args": []]
-            if let jsRequest = createRequest(url: jsEndpoint, method: "POST", body: jsBody) {
-                do {
-                    _ = try await urlSession.data(for: jsRequest)
-                    logger.info("Phone field filled instantly via JavaScript")
-                    return true
-                } catch {
-                    logger.error("Failed to set phone field via JavaScript: \(error.localizedDescription)")
-                    return false
-                }
-            }
-            return false
-        }
-        // ... existing code ...
-        // Wait 100ms after focusing
-        try? await Task.sleep(nanoseconds: 100_000_000)
-        // ... existing code ...
-        // Add a small delay to simulate human behavior
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-        // Use human-like typing (fast)
-        await simulateTyping(elementId: elementId, text: phoneNumber)
 
-        logger.info("Successfully filled phone field: \(phoneNumber, privacy: .private)")
+        // Simulate mouse movement with more human-like patterns
+        await simulateMouseMovement(to: elementId)
+
+        // Add random delay before focusing (human-like)
+        let randomDelay = UInt64(Int.random(in: 200_000_000 ... 500_000_000)) // 0.2-0.5 seconds
+        try? await Task.sleep(nanoseconds: randomDelay)
+
+        // Focus/click the field before clearing/typing
+        let focusEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/click"
+        if let focusRequest = createRequest(url: focusEndpoint, method: "POST") {
+            do {
+                let (_, focusResponse) = try await urlSession.data(for: focusRequest)
+                let focusHttpResponse = focusResponse as? HTTPURLResponse
+                logger.info("✅ Clicked/focused phone field (status: \(focusHttpResponse?.statusCode ?? 0))")
+            } catch {
+                logger.warning("⚠️ Failed to click/focus phone field: \(error.localizedDescription)")
+            }
+        }
+
+        // Wait after focusing (human-like)
+        try? await Task.sleep(nanoseconds: 150_000_000) // 0.15 seconds
+
+        // Clear the field first
+        let clearEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/clear"
+        if let clearRequest = createRequest(url: clearEndpoint, method: "POST") {
+            do {
+                let (_, clearResponse) = try await urlSession.data(for: clearRequest)
+                let clearHttpResponse = clearResponse as? HTTPURLResponse
+                logger.info("🧹 Cleared phone field (status: \(clearHttpResponse?.statusCode ?? 0))")
+            } catch {
+                logger.warning("⚠️ Failed to clear phone field: \(error.localizedDescription)")
+            }
+        }
+
+        // Wait after clearing (human-like)
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+
+        // Use human-like typing with variable speed
+        await simulateTyping(elementId: elementId, text: phoneNumber, fastHumanLike: false, blurAfter: true)
+
+        logger.info("✅ Successfully filled phone field with human-like behavior: \(phoneNumber, privacy: .private)")
         return true
     }
 
@@ -2205,30 +2242,54 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
             await logAllInputFields(sessionId: sessionIdString, fieldType: "email")
             return false
         }
+        // Enhanced human-like behavior for contact form (where reCAPTCHA is used)
+        logger.info("🔄 Using enhanced human-like behavior for contact form (reCAPTCHA protection)")
+
         // Scroll into view
         let scrollScript = "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});"
         _ = await executeScriptWithElement(scrollScript, elementId: elementId, sessionId: sessionIdString)
-        // Simulate mouse movement
+
+        // Simulate mouse movement with more human-like patterns
         await simulateMouseMovement(to: elementId)
+
+        // Add random delay before focusing (human-like)
+        let randomDelay = UInt64(Int.random(in: 200_000_000 ... 500_000_000)) // 0.2-0.5 seconds
+        try? await Task.sleep(nanoseconds: randomDelay)
+
         // Focus/click the field before clearing/typing
         let focusEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/click"
         if let focusRequest = createRequest(url: focusEndpoint, method: "POST") {
             do {
                 let (_, focusResponse) = try await urlSession.data(for: focusRequest)
                 let focusHttpResponse = focusResponse as? HTTPURLResponse
-                appendDebugLog("Clicked/focused email field (status: \(focusHttpResponse?.statusCode ?? 0))")
+                logger.info("✅ Clicked/focused email field (status: \(focusHttpResponse?.statusCode ?? 0))")
             } catch {
-                appendDebugLog("Failed to click/focus email field: \(error.localizedDescription)")
+                logger.warning("⚠️ Failed to click/focus email field: \(error.localizedDescription)")
             }
         }
-        // Wait 60ms after focusing
-        try? await Task.sleep(nanoseconds: 60_000_000)
-        // Use human-like typing (fast)
-        let blur = Bool.random() && Bool.random() // ~25% chance
-        await simulateTyping(elementId: elementId, text: email, fastHumanLike: true, blurAfter: blur)
 
-        logger.info("Successfully filled email (human-like typing): \(email, privacy: .private)")
-        appendDebugLog("Successfully filled email with selector: \(successfulSelector)")
+        // Wait after focusing (human-like)
+        try? await Task.sleep(nanoseconds: 150_000_000) // 0.15 seconds
+
+        // Clear the field first
+        let clearEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/clear"
+        if let clearRequest = createRequest(url: clearEndpoint, method: "POST") {
+            do {
+                let (_, clearResponse) = try await urlSession.data(for: clearRequest)
+                let clearHttpResponse = clearResponse as? HTTPURLResponse
+                logger.info("🧹 Cleared email field (status: \(clearHttpResponse?.statusCode ?? 0))")
+            } catch {
+                logger.warning("⚠️ Failed to clear email field: \(error.localizedDescription)")
+            }
+        }
+
+        // Wait after clearing (human-like)
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+
+        // Use human-like typing with variable speed
+        await simulateTyping(elementId: elementId, text: email, fastHumanLike: false, blurAfter: true)
+
+        logger.info("✅ Successfully filled email with human-like behavior: \(email, privacy: .private)")
         return true
     }
 
@@ -2297,31 +2358,119 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
             await logAllInputFields(sessionId: sessionIdString, fieldType: "name")
             return false
         }
+        // Enhanced human-like behavior for contact form (where reCAPTCHA is used)
+        logger.info("🔄 Using enhanced human-like behavior for contact form (reCAPTCHA protection)")
+
         // Scroll into view
         let scrollScript = "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});"
         _ = await executeScriptWithElement(scrollScript, elementId: elementId, sessionId: sessionIdString)
-        // Simulate mouse movement
+
+        // Simulate mouse movement with more human-like patterns
         await simulateMouseMovement(to: elementId)
+
+        // Add random delay before focusing (human-like)
+        let randomDelay = UInt64(Int.random(in: 200_000_000 ... 500_000_000)) // 0.2-0.5 seconds
+        try? await Task.sleep(nanoseconds: randomDelay)
+
         // Focus/click the field before clearing/typing
         let focusEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/click"
         if let focusRequest = createRequest(url: focusEndpoint, method: "POST") {
             do {
                 let (_, focusResponse) = try await urlSession.data(for: focusRequest)
                 let focusHttpResponse = focusResponse as? HTTPURLResponse
-                appendDebugLog("Clicked/focused name field (status: \(focusHttpResponse?.statusCode ?? 0))")
+                logger.info("✅ Clicked/focused name field (status: \(focusHttpResponse?.statusCode ?? 0))")
             } catch {
-                appendDebugLog("Failed to click/focus name field: \(error.localizedDescription)")
+                logger.warning("⚠️ Failed to click/focus name field: \(error.localizedDescription)")
             }
         }
-        // Wait 60ms after focusing
-        try? await Task.sleep(nanoseconds: 60_000_000)
-        // Use human-like typing (fast)
-        let blur = Bool.random() && Bool.random() // ~25% chance
-        await simulateTyping(elementId: elementId, text: name, fastHumanLike: true, blurAfter: blur)
 
-        logger.info("Successfully filled name (human-like typing): \(name, privacy: .private)")
-        appendDebugLog("Successfully filled name with selector: \(successfulSelector)")
+        // Wait after focusing (human-like)
+        try? await Task.sleep(nanoseconds: 150_000_000) // 0.15 seconds
+
+        // Clear the field first
+        let clearEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/clear"
+        if let clearRequest = createRequest(url: clearEndpoint, method: "POST") {
+            do {
+                let (_, clearResponse) = try await urlSession.data(for: clearRequest)
+                let clearHttpResponse = clearResponse as? HTTPURLResponse
+                logger.info("🧹 Cleared name field (status: \(clearHttpResponse?.statusCode ?? 0))")
+            } catch {
+                logger.warning("⚠️ Failed to clear name field: \(error.localizedDescription)")
+            }
+        }
+
+        // Wait after clearing (human-like)
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+
+        // Use human-like typing with variable speed
+        await simulateTyping(elementId: elementId, text: name, fastHumanLike: false, blurAfter: true)
+
+        logger.info("✅ Successfully filled name with human-like behavior: \(name, privacy: .private)")
         return true
+    }
+
+    /// Clicks the confirm button on the contact information page
+    /// - Returns: True if confirm button was clicked successfully
+    func clickContactInfoConfirmButtonWithRetry() async -> Bool {
+        guard let sessionId else { return false }
+        let sessionIdString = String(describing: sessionId)
+        let maxAttempts = 3
+        for attempt in 1 ... maxAttempts {
+            logger.info("Attempt #\(attempt) to click contact info confirm button")
+            let clicked = await clickContactInfoConfirmButton()
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1s for UI update
+            // Check for 'Retry' or reCAPTCHA
+            let retryDetected = await detectRetryOrRecaptcha(sessionId: sessionIdString)
+            if !retryDetected {
+                logger.info("No retry or reCAPTCHA detected after confirm click.")
+                return clicked
+            } else {
+                logger.warning("Retry or reCAPTCHA detected! Simulating human behavior and retrying...")
+                await simulateHumanBehavior(sessionId: sessionIdString)
+            }
+        }
+        logger.error("Failed to bypass retry/reCAPTCHA after \(maxAttempts) attempts.")
+        return false
+    }
+
+    /// Detects 'Retry' message or reCAPTCHA on the page
+    private func detectRetryOrRecaptcha(sessionId: String) async -> Bool {
+        let script = """
+            const retry = document.querySelector('span,div,button');
+            if (retry && retry.textContent && retry.textContent.toLowerCase().includes('retry')) return true;
+            if (document.querySelector('iframe[src*="recaptcha"]') || document.querySelector('.g-recaptcha')) return true;
+            return false;
+        """
+        if let result = await executeScript(script, sessionId: sessionId) as? Bool {
+            return result
+        }
+        return false
+    }
+
+    /// Simulates human-like behavior to bypass bot detection
+    private func simulateHumanBehavior(sessionId: String) async {
+        logger.info("Simulating human-like behavior for anti-bot bypass...")
+        // Move mouse randomly
+        for _ in 0 ..< 3 {
+            await simulateMouseMovementRandom(sessionId: sessionId)
+        }
+        // Scroll randomly
+        let scrollScript = "window.scrollTo(0, Math.floor(Math.random() * document.body.scrollHeight));"
+        _ = await executeScript(scrollScript, sessionId: sessionId)
+        // Random delay
+        let delay = UInt64(Int.random(in: 1_000_000_000 ... 3_000_000_000))
+        try? await Task.sleep(nanoseconds: delay)
+    }
+
+    /// Simulates random mouse movement
+    private func simulateMouseMovementRandom(sessionId: String) async {
+        let script = """
+            const x = Math.floor(Math.random() * window.innerWidth);
+            const y = Math.floor(Math.random() * window.innerHeight);
+            const e = new MouseEvent('mousemove', {clientX: x, clientY: y, bubbles: true});
+            document.body.dispatchEvent(e);
+        """
+        _ = await executeScript(script, sessionId: sessionId)
     }
 
     /// Clicks the confirm button on the contact information page
@@ -2459,66 +2608,76 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
         }
         logger.info("✅ SUCCESS: Verification page loaded")
 
-        // Poll for verification email every 5 seconds for up to 1 minute (12 attempts)
-        logger.info("Step 2: Polling for verification email every 5 seconds (max 1 minute)...")
+        // Poll for verification email every 2 seconds for up to 30 seconds (15 attempts)
+        logger.info("Step 2: Polling for verification email every 2 seconds (max 30 seconds)...")
 
-        for attempt in 1 ... 12 {
-            logger.info("📧 Attempt \(attempt)/12: Checking for verification email...")
+        var verificationSuccess = false
+        for attempt in 1 ... 15 {
+            logger.info("📧 Attempt \(attempt)/15: Checking for verification email...")
 
-            // Set up a timeout for each email check (10 seconds max per attempt)
-            let emailCheckTask = Task {
-                logger.info("🔍 Starting verification code extraction from email...")
-                logger.info("📧 Calling EmailService.fetchVerificationCodesForToday()...")
+            let codes = await EmailService.shared.fetchVerificationCodesForToday()
+            logger.info("📧 EmailService returned \(codes.count) verification codes")
 
-                let codes = await EmailService.shared.fetchVerificationCodesForToday()
-                logger.info("📧 EmailService returned \(codes.count) verification codes")
+            if !codes.isEmpty {
+                logger.info("✅ SUCCESS: Found verification codes: \(codes)")
 
-                if !codes.isEmpty {
-                    logger.info("✅ SUCCESS: Found verification codes: \(codes)")
+                // Try to fill the verification code field
+                let codeFilled = await fillVerificationCode(codes.first!)
+                if codeFilled {
+                    logger.info("✅ SUCCESS: Verification code filled successfully")
 
-                    // Try to fill the verification code field
-                    let codeFilled = await fillVerificationCode(codes.first!)
-                    if codeFilled {
-                        logger.info("✅ SUCCESS: Verification code filled successfully")
-
-                        // Try to click the confirm button
-                        let confirmClicked = await clickVerificationConfirmButton()
-                        if confirmClicked {
-                            logger.info("✅ SUCCESS: Verification confirm button clicked")
-                            return true
-                        } else {
-                            logger.error("❌ FAILED: Could not click verification confirm button")
-                            return false
-                        }
+                    // Try to click the confirm button
+                    let confirmClicked = await clickVerificationConfirmButton()
+                    if confirmClicked {
+                        logger.info("✅ SUCCESS: Verification confirm button clicked")
+                        verificationSuccess = true
+                        break
                     } else {
-                        logger.error("❌ FAILED: Could not fill verification code field")
-                        return false
+                        logger.error("❌ FAILED: Could not click verification confirm button")
                     }
                 } else {
-                    logger.info("📧 No verification codes found in attempt \(attempt)/12")
-                    return false
+                    logger.error("❌ FAILED: Could not fill verification code field")
                 }
+            } else {
+                logger.info("📧 No verification codes found in attempt \(attempt)/15")
             }
 
-            // Wait for email check with 10-second timeout
-            let result = await withTimeout(seconds: 10) {
-                await emailCheckTask.value
-            }
-
-            if result == true {
-                logger.info("✅ SUCCESS: Email verification completed successfully")
-                return true
-            }
-
-            // If this wasn't the last attempt, wait 5 seconds before next attempt
-            if attempt < 12 {
-                logger.info("⏳ Waiting 5 seconds before next attempt...")
-                try? await Task.sleep(nanoseconds: 5 * 1_000_000_000)
+            // If this wasn't the last attempt, wait 2 seconds before next attempt
+            if attempt < 15 {
+                logger.info("⏳ Waiting 2 seconds before next attempt...")
+                try? await Task.sleep(nanoseconds: 2 * 1_000_000_000)
             }
         }
 
-        // If we get here, no verification code was found after 1 minute
-        logger.error("❌ FAILED: No verification code found after 1 minute of polling")
+        if verificationSuccess {
+            logger.info("✅ SUCCESS: Email verification completed successfully")
+            return true
+        }
+
+        // If we get here, no verification code was found or filled after 30 seconds
+        logger.error("❌ FAILED: No verification code found or could not fill after 30 seconds of polling")
+
+        // Capture screenshot BEFORE cleanup (while session is still active)
+        var screenshotData: Data?
+        if let config = currentConfig {
+            screenshotData = await captureScreenshot()
+            if screenshotData != nil {
+                logger.info("📸 Screenshot captured for verification timeout")
+            } else {
+                logger.warning("⚠️ Failed to capture screenshot for verification timeout")
+            }
+
+            // Send timeout notification with screenshot to Telegram
+            if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
+                await TelegramService.shared.sendFailureNotification(
+                    for: config,
+                    error: "Email verification timeout - no verification code received after 60 seconds",
+                    screenshotData: screenshotData,
+                )
+            }
+        }
+
+        // Cleanup after capturing screenshot and sending notification
         await cleanupAndCloseBrowser()
         return false
     }
@@ -2535,12 +2694,14 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
                 return nil
             }
 
-            for await result in group {
-                if result != nil {
-                    return result
+            var result: T? = nil
+            for await taskResult in group {
+                if let taskResult {
+                    result = taskResult
+                    break
                 }
             }
-            return nil
+            return result
         }
     }
 
@@ -2548,14 +2709,77 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
     private func cleanupAndCloseBrowser() async {
         logger.info("🧹 Cleaning up and closing browser...")
 
-        // Try to close the browser gracefully
-        if sessionId != nil {
-            await stopSession()
-            logger.info("✅ Browser closed successfully")
+        // First, try to close the browser window/tab gracefully
+        if let sessionId {
+            let sessionIdString = String(describing: sessionId)
+
+            // Close the current window/tab first
+            let closeWindowEndpoint = "\(baseURL)/session/\(sessionIdString)/window"
+            if let closeRequest = createRequest(url: closeWindowEndpoint, method: "DELETE") {
+                do {
+                    let (_, response) = try await urlSession.data(for: closeRequest)
+                    let httpResponse = response as? HTTPURLResponse
+                    if httpResponse?.statusCode == 200 {
+                        logger.info("✅ Closed current browser tab/window successfully")
+                    } else {
+                        logger.warning("⚠️ Close window request returned status: \(httpResponse?.statusCode ?? 0)")
+                    }
+                } catch {
+                    logger.error("❌ Error closing browser tab/window: \(error.localizedDescription)")
+                }
+            }
+
+            // Wait a moment for the window to close
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+
+            // Then delete the session
+            let endpoint = "\(baseURL)/session/\(sessionIdString)"
+            if let request = createRequest(url: endpoint, method: "DELETE") {
+                do {
+                    let (_, response) = try await urlSession.data(for: request)
+                    let httpResponse = response as? HTTPURLResponse
+                    if httpResponse?.statusCode == 200 {
+                        logger.info("✅ WebDriver session deleted successfully")
+                    } else {
+                        logger.warning("⚠️ Delete session request returned status: \(httpResponse?.statusCode ?? 0)")
+                    }
+                } catch {
+                    logger.error("❌ Error deleting session: \(error.localizedDescription)")
+                }
+            }
+
+            logger.info("✅ Browser session closed successfully")
+        }
+
+        // Terminate ChromeDriver process - this closes only the specific Chrome instance
+        // that was launched for this automation session, preserving user's other Chrome windows
+        if let chromeDriverProcess {
+            logger.info("🔄 Terminating ChromeDriver process...")
+            chromeDriverProcess.terminate()
+
+            // Wait a moment for graceful termination
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+
+            // Force kill if still running
+            if chromeDriverProcess.isRunning {
+                logger.warning("ChromeDriver process still running, force killing...")
+                chromeDriverProcess.interrupt()
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+
+                if chromeDriverProcess.isRunning {
+                    logger.error("ChromeDriver process could not be terminated, force killing...")
+                    chromeDriverProcess.terminate()
+                }
+            }
+
+            self.chromeDriverProcess = nil
+            logger.info("✅ ChromeDriver process terminated")
         }
 
         // Reset session
         sessionId = nil
+        isConnected = false
+        currentSession = nil
         logger.info("🔄 WebDriver session reset")
     }
 
@@ -2569,7 +2793,7 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
         }
 
         let sessionIdString = String(describing: sessionId)
-        logger.info("Filling verification code field")
+        logger.info("🔍 Filling verification code field with code: \(code, privacy: .private)")
 
         // Wait a moment for the page to fully render
         try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
@@ -2580,17 +2804,23 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
             ["using": "css selector", "value": "input[name='code']"],
             ["using": "css selector", "value": "input[type='number'][maxlength='4']"],
             ["using": "css selector", "value": "input.mdc-text-field__input"],
+            ["using": "css selector", "value": "input[type='text'][maxlength='4']"],
             ["using": "xpath", "value": "//input[@id='code']"],
             ["using": "xpath", "value": "//input[@name='code']"],
             ["using": "xpath", "value": "//input[@type='number' and @maxlength='4']"],
+            ["using": "xpath", "value": "//input[@type='text' and @maxlength='4']"],
         ]
 
         var elementId: String?
+        var successfulSelector = "none"
 
-        for selector in selectors {
+        for (index, selector) in selectors.enumerated() {
             let endpoint = "\(baseURL)/session/\(sessionIdString)/element"
             guard let request = createRequest(url: endpoint, method: "POST", body: selector) else {
-                logger.error("Failed to create request for verification code field with selector: \(selector)")
+                logger
+                    .debug(
+                        "Failed to create request for verification code field with selector \(index + 1): \(selector)",
+                    )
                 continue
             }
 
@@ -2604,24 +2834,43 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
                         let eid = value["element-6066-11e4-a52e-4f735466cecf"] as? String ?? value["ELEMENT"] as? String
                         if let eid {
                             elementId = eid
-                            logger.info("✅ Found verification code field using selector: \(selector)")
+                            successfulSelector = "\(selector["using"] ?? "unknown"): \(selector["value"] ?? "unknown")"
+                            logger
+                                .info(
+                                    "✅ Found verification code field using selector \(index + 1): \(successfulSelector)",
+                                )
                             break
                         }
                     }
                 } else {
-                    // Selector failed, continue to next one
+                    logger
+                        .debug(
+                            "Verification code selector \(index + 1) failed with status: \(httpResponse?.statusCode ?? 0)",
+                        )
                 }
             } catch {
-                // Selector failed with error, continue to next one
+                logger.debug("Verification code selector \(index + 1) failed with error: \(error.localizedDescription)")
             }
         }
 
         guard let elementId else {
-            logger.error("Failed to find verification code field with any selector")
+            logger.error("❌ Failed to find verification code field with any selector")
+
+            // Debug: Log page source to see what's available
+            do {
+                let pageSource = try await getPageSource()
+                logger.error("🔍 Page source for debugging verification code field:")
+                logger.error("\(pageSource)")
+            } catch {
+                logger.error("🔍 Failed to get page source for debugging: \(error.localizedDescription)")
+            }
+
             return false
         }
 
         // Now that we have the element ID, proceed with filling the field
+        logger.info("🔄 Proceeding to fill verification code field...")
+
         // Scroll into view
         let scrollScript = "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});"
         _ = await executeScriptWithElement(scrollScript, elementId: elementId, sessionId: sessionIdString)
@@ -2635,22 +2884,177 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
             do {
                 let (_, focusResponse) = try await urlSession.data(for: focusRequest)
                 let focusHttpResponse = focusResponse as? HTTPURLResponse
-                logger
-                    .info("Clicked verification code field (status: \(focusHttpResponse?.statusCode ?? 0))")
+                logger.info("✅ Clicked verification code field (status: \(focusHttpResponse?.statusCode ?? 0))")
             } catch {
-                logger.error("Failed to click verification code field: \(error.localizedDescription)")
+                logger.warning("⚠️ Failed to click verification code field: \(error.localizedDescription)")
             }
         }
 
-        // Wait 60ms after focusing
-        try? await Task.sleep(nanoseconds: 60_000_000)
+        // Wait 100ms after focusing
+        try? await Task.sleep(nanoseconds: 100_000_000)
 
-        // Use human-like typing (fast)
-        let blur = Bool.random() && Bool.random() // ~25% chance
-        await simulateTyping(elementId: elementId, text: code, fastHumanLike: true, blurAfter: blur)
+        // Clear the field first (in case there's any existing content)
+        let clearEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/clear"
+        if let clearRequest = createRequest(url: clearEndpoint, method: "POST") {
+            do {
+                let (_, clearResponse) = try await urlSession.data(for: clearRequest)
+                let clearHttpResponse = clearResponse as? HTTPURLResponse
+                logger.info("🧹 Cleared verification code field (status: \(clearHttpResponse?.statusCode ?? 0))")
+            } catch {
+                logger.warning("⚠️ Failed to clear verification code field: \(error.localizedDescription)")
+            }
+        }
 
-        logger.info("Successfully filled verification code field")
-        return true
+        // Wait 50ms after clearing
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        // Try JavaScript method first (more reliable for verification codes)
+        let jsFillSuccess = await fillVerificationCodeWithJavaScript(
+            elementId: elementId,
+            code: code,
+            sessionId: sessionIdString,
+        )
+        if jsFillSuccess {
+            logger.info("✅ Successfully filled verification code field with JavaScript")
+            return true
+        }
+
+        // Fallback to WebDriver method
+        logger.info("🔄 JavaScript fill failed, trying WebDriver method...")
+        let webDriverFillSuccess = await fillVerificationCodeWithWebDriver(
+            elementId: elementId,
+            code: code,
+            sessionId: sessionIdString,
+        )
+        if webDriverFillSuccess {
+            logger.info("✅ Successfully filled verification code field with WebDriver")
+            return true
+        }
+
+        logger.error("❌ Failed to fill verification code field with both methods")
+        return false
+    }
+
+    /// Fills verification code using JavaScript (direct value setting)
+    private func fillVerificationCodeWithJavaScript(elementId: String, code: String, sessionId: String) async -> Bool {
+        let endpoint = "\(baseURL)/session/\(sessionId)/execute/sync"
+        let script = """
+            const field = document.getElementById('code') ||
+                         document.querySelector('[data-element-id=\"\(elementId)\"]') ||
+                         document.getElementById('\(elementId)') ||
+                         document.querySelector('input[type=\"number\"][maxlength=\"4\"]') ||
+                         document.querySelector('input[name=\"code\"]') ||
+                         document.querySelector('#code');
+            if (field) {
+                // Clear and set value as string and number
+                field.value = '';
+                field.focus();
+                field.value = String(\"\(code)\");
+                field.dispatchEvent(new Event('input', { bubbles: true }));
+                field.dispatchEvent(new Event('change', { bubbles: true }));
+                field.dispatchEvent(new Event('blur', { bubbles: true }));
+                // For type=number, also try setting as number
+                if (field.type === 'number') {
+                    field.value = Number(\"\(code)\");
+                    field.dispatchEvent(new Event('input', { bubbles: true }));
+                    field.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                // Log value for debugging
+                window._odysseyDebugCodeValue = field.value;
+                return field.value == String(\"\(code)\");
+            }
+            return false;
+        """
+        let body: [String: Any] = ["script": script, "args": []]
+
+        guard let request = createRequest(url: endpoint, method: "POST", body: body) else {
+            logger.error("Failed to create JavaScript verification code fill request")
+            return false
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+
+            if httpResponse?.statusCode == 200 {
+                let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                if let result = responseDict?["value"] as? Bool, result {
+                    logger.info("✅ Successfully set verification code via JavaScript")
+                    // Log the value for debugging
+                    let debugScript = "return window._odysseyDebugCodeValue ? window._odysseyDebugCodeValue : null;"
+                    if let debugValue = await executeScript(debugScript, sessionId: sessionId) as? String {
+                        logger.info("Verification code field value after JS set: \(debugValue)")
+                    }
+                    return true
+                } else {
+                    logger.warning("JavaScript verification code fill returned false")
+                    return false
+                }
+            } else {
+                logger.error("JavaScript verification code fill failed with status \(httpResponse?.statusCode ?? 0)")
+                return false
+            }
+        } catch {
+            logger.error("JavaScript verification code fill failed: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Fills verification code using WebDriver method (direct paste)
+    private func fillVerificationCodeWithWebDriver(elementId: String, code: String, sessionId: String) async -> Bool {
+        // Use direct paste for verification codes (more reliable than typing)
+        let pasteEndpoint = "\(baseURL)/session/\(sessionId)/element/\(elementId)/value"
+        let pasteBody: [String: Any] = ["text": code, "value": [code]]
+
+        guard let pasteRequest = createRequest(url: pasteEndpoint, method: "POST", body: pasteBody) else {
+            logger.error("Failed to create verification code paste request")
+            return false
+        }
+
+        do {
+            let (_, pasteResponse) = try await urlSession.data(for: pasteRequest)
+            let pasteHttpResponse = pasteResponse as? HTTPURLResponse
+
+            if pasteHttpResponse?.statusCode == 200 {
+                logger.info("✅ Successfully pasted verification code directly")
+
+                // Verify the field was filled correctly
+                let verifyEndpoint = "\(baseURL)/session/\(sessionId)/element/\(elementId)/property/value"
+                if let verifyRequest = createRequest(url: verifyEndpoint, method: "GET") {
+                    do {
+                        let (data, response) = try await urlSession.data(for: verifyRequest)
+                        let httpResponse = response as? HTTPURLResponse
+
+                        if httpResponse?.statusCode == 200 {
+                            let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                            let fieldValue = responseDict?["value"] as? String ?? ""
+
+                            if fieldValue == code {
+                                logger.info("✅ Verification code field value verified correctly")
+                                return true
+                            } else {
+                                logger
+                                    .warning(
+                                        "⚠️ Verification code field value mismatch. Expected: \(code, privacy: .private), Got: \(fieldValue, privacy: .private)",
+                                    )
+                                return false
+                            }
+                        }
+                    } catch {
+                        logger
+                            .warning("⚠️ Failed to verify verification code field value: \(error.localizedDescription)")
+                    }
+                }
+
+                return true // Assume success if we can't verify
+            } else {
+                logger.error("Failed to paste verification code with status \(pasteHttpResponse?.statusCode ?? 0)")
+                return false
+            }
+        } catch {
+            logger.error("Failed to paste verification code: \(error.localizedDescription)")
+            return false
+        }
     }
 
     /// Clicks the confirm button on the verification page
