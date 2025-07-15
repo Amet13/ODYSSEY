@@ -192,14 +192,17 @@ struct SettingsFormView: View {
                                     .buttonStyle(.plain)
                                     .foregroundColor(.blue)
                                     .font(.caption)
-                                    .help("Opens Google's guide to creating app passwords")
+                                    .help(
+                                        userSettingsManager.userSettings
+                                            .localized("Opens Google's guide to creating app passwords"),
+                                    )
                                     Spacer()
                                 }
                             }
 
                             // Test Email Connection Button
                             if userSettingsManager.userSettings.hasEmailConfigured {
-                                Button(userSettingsManager.userSettings.localized("Test Email Connection")) {
+                                Button(userSettingsManager.userSettings.localized("Test Email")) {
                                     emailService.lastTestResult = nil
                                     Task {
                                         let result = await emailService.testIMAPConnection(
@@ -232,7 +235,7 @@ struct SettingsFormView: View {
                                 .disabled(emailService.isTesting)
                                 .help(
                                     userSettingsManager.userSettings
-                                        .localized("Test email connection and fetch latest email"),
+                                        .localized("Test email and fetch latest email"),
                                 )
                             }
 
@@ -268,7 +271,7 @@ struct SettingsFormView: View {
                     Divider().padding(.horizontal, 4)
                     // Telegram Integration Section
                     settingsSection(
-                        title: userSettingsManager.userSettings.localized("Telegram Integration (Optional)"),
+                        title: userSettingsManager.userSettings.localized("Telegram Settings"),
                         icon: "message.circle",
                     ) {
                         VStack(spacing: 16) {
@@ -346,7 +349,7 @@ struct SettingsFormView: View {
                                         Spacer()
                                     }
 
-                                    Button(userSettingsManager.userSettings.localized("Test Telegram Connection")) {
+                                    Button(userSettingsManager.userSettings.localized("Test Telegram")) {
                                         Task {
                                             let result = await telegramService.testIntegration(
                                                 botToken: userSettingsManager.userSettings.telegramBotToken,
@@ -361,7 +364,7 @@ struct SettingsFormView: View {
                                     .disabled(telegramService.isTesting)
                                     .help(
                                         userSettingsManager.userSettings
-                                            .localized("Send a test message to verify Telegram integration"),
+                                            .localized("Send a test message to verify Telegram"),
                                     )
 
                                     if telegramService.isTesting {
@@ -404,17 +407,19 @@ struct SettingsFormView: View {
                     dismiss()
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.regular)
                 Button(userSettingsManager.userSettings.localized("Save")) {
                     saveSettings()
                     dismiss()
                 }
                 .buttonStyle(.borderedProminent)
+                .controlSize(.regular)
                 .disabled(!userSettingsManager.userSettings.isValid)
             }
             .padding()
             .background(Color(NSColor.controlBackgroundColor))
         }
-        .frame(width: 500, height: 600)
+        .frame(width: 440, height: 600)
         .alert(userSettingsManager.userSettings.localized("Settings Saved"), isPresented: $showingSaveConfirmation) {
             Button(userSettingsManager.userSettings.localized("OK")) {
                 dismiss()

@@ -5,7 +5,7 @@ enum Constants {
     // MARK: - App Information
 
     static let appName = "ODYSSEY"
-    static let appVersion = "2.2.0"
+    static let appVersion = "0.1.0"
     static let bundleIdentifier = "com.odyssey.app"
 
     // MARK: - URLs
@@ -17,7 +17,7 @@ enum Constants {
 
     static let webViewTimeout: TimeInterval = 30
     static let sportsDetectionTimeout: TimeInterval = 15
-    static let reservationTimeout: TimeInterval = 60
+    static let reservationTimeout: TimeInterval = 300 // 5 minutes
 
     // MARK: - UI Constants
 

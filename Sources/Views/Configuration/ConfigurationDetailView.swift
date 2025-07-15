@@ -21,6 +21,7 @@ struct ConfigurationDetailView: View {
 
     @State private var showingValidationAlert = false
     @State private var validationMessage = ""
+    @State private var isEditingExistingConfig = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -165,6 +166,7 @@ struct ConfigurationDetailView: View {
                         Text(userSettingsManager.userSettings.localized("1 Person")).foregroundColor(.primary)
                     }
                 }.buttonStyle(.bordered)
+                    .controlSize(.regular)
                 Button(action: {
                     numberOfPeople = 2
                     updateConfigurationName()
@@ -175,6 +177,7 @@ struct ConfigurationDetailView: View {
                         Text(userSettingsManager.userSettings.localized("2 People")).foregroundColor(.primary)
                     }
                 }.buttonStyle(.bordered)
+                    .controlSize(.regular)
             }
         }
         .padding(.bottom, 20)
@@ -255,12 +258,12 @@ struct ConfigurationDetailView: View {
                 .fontWeight(.semibold)
                 .padding(.bottom, 4)
             Text(
-                "\(userSettingsManager.userSettings.localized("Name: "))\(name.isEmpty ? userSettingsManager.userSettings.localized("Not set") : name)",
+                "\(userSettingsManager.userSettings.localized("Name:")) \(name.isEmpty ? userSettingsManager.userSettings.localized("Not set") : name)",
             )
             Text(
-                "\(userSettingsManager.userSettings.localized("Sport: "))\(sportName.isEmpty ? userSettingsManager.userSettings.localized("Not set") : sportName)",
+                "\(userSettingsManager.userSettings.localized("Sport:")) \(sportName.isEmpty ? userSettingsManager.userSettings.localized("Not set") : sportName)",
             )
-            Text("\(userSettingsManager.userSettings.localized("People: "))\(numberOfPeople)")
+            Text("\(userSettingsManager.userSettings.localized("People:")) \(numberOfPeople)")
             if !dayTimeSlots.isEmpty {
                 let weekdayOrder: [ReservationConfig.Weekday] = [
                     .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday,
@@ -291,6 +294,7 @@ struct ConfigurationDetailView: View {
             Spacer()
             Button(userSettingsManager.userSettings.localized("Cancel")) { dismiss() }
                 .buttonStyle(.bordered)
+                .controlSize(.regular)
             Button(userSettingsManager.userSettings.localized("Save")) {
                 if isValidConfiguration {
                     saveConfiguration()
@@ -301,6 +305,7 @@ struct ConfigurationDetailView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
+            .controlSize(.regular)
             .disabled(!isValidConfiguration)
         }
         .padding(.horizontal, 32)
@@ -310,15 +315,22 @@ struct ConfigurationDetailView: View {
     // MARK: - Private Methods
 
     private func loadConfiguration() {
-        guard let config else { return }
+        guard let config else {
+            // Creating a new configuration
+            isEditingExistingConfig = false
+            return
+        }
 
+        // Editing an existing configuration
+        isEditingExistingConfig = true
         name = config.name
         facilityURL = config.facilityURL
         sportName = config.sportName
         numberOfPeople = config.numberOfPeople
         isEnabled = config.isEnabled
 
-        updateConfigurationName()
+        // Don't update the name when editing an existing configuration
+        // to preserve custom names that users have set
     }
 
     private func saveConfiguration() {
@@ -354,8 +366,10 @@ struct ConfigurationDetailView: View {
         let pattern = #"https://reservation\.frontdesksuite\.ca/rcfs/([^/]+)"#
         if let regex = try? NSRegularExpression(pattern: pattern) {
             let nsrange = NSRange(url.startIndex ..< url.endIndex, in: url)
-            if let match = regex.firstMatch(in: url, options: [], range: nsrange) {
-                let facilityRange = Range(match.range(at: 1), in: url)!
+            if
+                let match = regex.firstMatch(in: url, options: [], range: nsrange),
+                let facilityRange = Range(match.range(at: 1), in: url)
+            {
                 let facilityName = String(url[facilityRange])
                 return facilityName.capitalized
             }
@@ -364,9 +378,13 @@ struct ConfigurationDetailView: View {
     }
 
     private func updateConfigurationName() {
-        let facilityName = extractFacilityName(from: facilityURL)
-        let peopleText = "\(numberOfPeople)pp"
-        name = "\(facilityName) - \(sportName) (\(peopleText))"
+        // Only update the name if we're creating a new configuration or if the name is empty
+        // This preserves custom names when editing existing configurations
+        if !isEditingExistingConfig || name.isEmpty {
+            let facilityName = extractFacilityName(from: facilityURL)
+            let peopleText = "\(numberOfPeople)pp"
+            name = "\(facilityName) - \(sportName) (\(peopleText))"
+        }
     }
 
     private func fetchAvailableSports() {
@@ -471,18 +489,20 @@ struct DayPickerView: View {
                     }
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.regular)
             }
 
             HStack {
                 Spacer()
-                Button("Cancel") {
+                Button(userSettingsManager.userSettings.localized("Cancel")) {
                     dismiss()
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.regular)
                 .padding()
             }
         }
-        .frame(width: 300, height: 400)
+        .frame(width: 440, height: 400)
     }
 }
 
@@ -541,7 +561,7 @@ struct TimeSlotPickerView: View {
                     }
                 }) {
                     Label(
-                        UserSettingsManager.shared.userSettings.localized("Add Time Slot (max 2)"),
+                        UserSettingsManager.shared.userSettings.localized("Add Time"),
                         systemImage: "plus.circle.fill",
                     )
                 }

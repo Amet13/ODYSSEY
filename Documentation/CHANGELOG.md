@@ -294,3 +294,15 @@ For support and questions:
 - Updated app branding: custom logo now appears in confirmation dialogs and throughout the app
 - Updated all version references to 1.3.0
 - Polish and prep for new release
+
+## [0.1.0] -
+
+### Added
+
+- Initial public release
+- Requirements: macOS 15, Xcode 16, Swift 6
+- Full audit for English and French localization
+- Consistent logging format across all services
+- UI text and punctuation consistency
+- Button and element sizing polish for modern macOS look
+- Major codebase cleanup and documentation update

@@ -4,9 +4,9 @@
 
 ### Prerequisites
 
-- **macOS 12.0** or later
-- **Xcode 14.0** or later
-- **Swift 5.7** or later
+- **macOS 15.0** or later
+- **Xcode 16.0** or later
+- **Swift 6.0** or later
 - **XcodeGen** (for project generation)
 - **SwiftLint** (for code quality)
 - **SwiftFormat** (for code formatting)

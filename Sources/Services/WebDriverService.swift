@@ -2414,7 +2414,7 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
     func clickContactInfoConfirmButtonWithRetry() async -> Bool {
         guard let sessionId else { return false }
         let sessionIdString = String(describing: sessionId)
-        let maxAttempts = 3
+        let maxAttempts = 5
         for attempt in 1 ... maxAttempts {
             logger.info("Attempt #\(attempt) to click contact info confirm button")
             let clicked = await clickContactInfoConfirmButton()
@@ -2595,7 +2595,7 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
 
     /// Extracts verification code from email and fills the verification field
     /// - Returns: True if verification code was found and filled successfully
-    func handleEmailVerification() async -> Bool {
+    func handleEmailVerification(verificationStart: Date) async -> Bool {
         logger.info("=== STARTING EMAIL VERIFICATION PROCESS ===")
 
         // Wait for verification page to load with timeout
@@ -2603,19 +2603,40 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
         let pageLoaded = await waitForVerificationPage()
         if !pageLoaded {
             logger.error("❌ FAILED: Verification page did not load")
+
+            // Capture screenshot BEFORE cleanup (while session is still active)
+            var screenshotData: Data?
+            if let config = currentConfig {
+                screenshotData = await captureScreenshot()
+                if screenshotData != nil {
+                    logger.info("📸 Screenshot captured for verification page load failure")
+                } else {
+                    logger.warning("⚠️ Failed to capture screenshot for verification page load failure")
+                }
+
+                // Send failure notification with screenshot to Telegram
+                if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
+                    await TelegramService.shared.sendFailureNotification(
+                        for: config,
+                        error: "Verification page failed to load",
+                        screenshotData: screenshotData,
+                    )
+                }
+            }
+
             await cleanupAndCloseBrowser()
             return false
         }
         logger.info("✅ SUCCESS: Verification page loaded")
 
-        // Poll for verification email every 2 seconds for up to 30 seconds (15 attempts)
-        logger.info("Step 2: Polling for verification email every 2 seconds (max 30 seconds)...")
+        // Poll for verification email every 2 seconds for up to 60 seconds (30 attempts)
+        logger.info("Step 2: Polling for verification email every 2 seconds (max 60 seconds)...")
 
         var verificationSuccess = false
-        for attempt in 1 ... 15 {
-            logger.info("📧 Attempt \(attempt)/15: Checking for verification email...")
+        for attempt in 1 ... 30 {
+            logger.info("📧 Attempt \(attempt)/30: Checking for verification email...")
 
-            let codes = await EmailService.shared.fetchVerificationCodesForToday()
+            let codes = await EmailService.shared.fetchVerificationCodesForToday(since: verificationStart)
             logger.info("📧 EmailService returned \(codes.count) verification codes")
 
             if !codes.isEmpty {
@@ -2639,11 +2660,11 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
                     logger.error("❌ FAILED: Could not fill verification code field")
                 }
             } else {
-                logger.info("📧 No verification codes found in attempt \(attempt)/15")
+                logger.info("📧 No verification codes found in attempt \(attempt)/30")
             }
 
             // If this wasn't the last attempt, wait 2 seconds before next attempt
-            if attempt < 15 {
+            if attempt < 30 {
                 logger.info("⏳ Waiting 2 seconds before next attempt...")
                 try? await Task.sleep(nanoseconds: 2 * 1_000_000_000)
             }
@@ -2654,8 +2675,8 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
             return true
         }
 
-        // If we get here, no verification code was found or filled after 30 seconds
-        logger.error("❌ FAILED: No verification code found or could not fill after 30 seconds of polling")
+        // If we get here, no verification code was found or filled after 60 seconds
+        logger.error("❌ FAILED: No verification code found or could not fill after 60 seconds of polling")
 
         // Capture screenshot BEFORE cleanup (while session is still active)
         var screenshotData: Data?
@@ -2671,7 +2692,7 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
             if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
                 await TelegramService.shared.sendFailureNotification(
                     for: config,
-                    error: "Email verification timeout - no verification code received after 60 seconds",
+                    error: "Email verification timeout - no verification code received after 60 seconds of polling",
                     screenshotData: screenshotData,
                 )
             }

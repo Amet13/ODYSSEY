@@ -91,6 +91,9 @@ class EmailService: ObservableObject {
 
     private init() { }
 
+    // Add a static variable to track last connection attempt time
+    private static var lastIMAPConnectionTimestamp: Date? = nil
+
     // MARK: - Gmail Support
 
     /// Checks if the email settings are for a Gmail account
@@ -119,7 +122,8 @@ class EmailService: ObservableObject {
         let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // Check if password matches the expected format: 4 groups of 4 characters separated by spaces
-        let appPasswordPattern = "^[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}$"
+        // Gmail app passwords can contain letters and numbers, not just lowercase letters
+        let appPasswordPattern = "^[a-zA-Z0-9]{4}\\s[a-zA-Z0-9]{4}\\s[a-zA-Z0-9]{4}\\s[a-zA-Z0-9]{4}$"
         let appPasswordRegex = try? NSRegularExpression(pattern: appPasswordPattern)
 
         if let regex = appPasswordRegex {
@@ -127,17 +131,17 @@ class EmailService: ObservableObject {
             if regex.firstMatch(in: trimmedPassword, range: range) == nil {
                 return .failure(
                     .gmailAppPasswordRequired(
-                        "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 lowercase letters with spaces every 4 characters).",
+                        "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 alphanumeric characters with spaces every 4 characters).",
                     ),
                 )
             }
         } else {
             // Fallback validation if regex fails
             let cleanedPassword = trimmedPassword.replacingOccurrences(of: " ", with: "")
-            if cleanedPassword.count != 16 || !cleanedPassword.allSatisfy({ $0.isLetter && $0.isLowercase }) {
+            if cleanedPassword.count != 16 || !cleanedPassword.allSatisfy({ $0.isLetter || $0.isNumber }) {
                 return .failure(
                     .gmailAppPasswordRequired(
-                        "Gmail App Password must be 16 lowercase letters in format: 'xxxx xxxx xxxx xxxx'.",
+                        "Gmail App Password must be 16 alphanumeric characters in format: 'xxxx xxxx xxxx xxxx'.",
                     ),
                 )
             }
@@ -178,7 +182,18 @@ class EmailService: ObservableObject {
 
     /// Fetches all verification codes from emails from noreply@frontdesksuite.com received in the last 5 minutes
     /// - Returns: Array of 4-digit codes (oldest to newest)
-    func fetchVerificationCodesForToday() async -> [String] {
+    func fetchVerificationCodesForToday(since: Date) async -> [String] {
+        let connectionID = UUID().uuidString
+        let now = Date()
+        let lastAttempt = EmailService.lastIMAPConnectionTimestamp
+        EmailService.lastIMAPConnectionTimestamp = now
+        if let last = lastAttempt {
+            let interval = now.timeIntervalSince(last)
+            logger.info("[IMAP][\(connectionID)] Time since last connection: \(interval) seconds")
+        } else {
+            logger.info("[IMAP][\(connectionID)] First connection attempt in this session")
+        }
+        logger.info("[IMAP][\(connectionID)] Starting fetchVerificationCodesForToday() at \(now)")
         logger.info("📧 EmailService: Starting fetchVerificationCodesForToday()")
 
         let settings = userSettingsManager.userSettings
@@ -189,46 +204,225 @@ class EmailService: ObservableObject {
 
         logger.info("✅ EmailService: Email settings are configured")
 
-        // Check if it's a Gmail account and validate accordingly
-        let isGmail = settings.isGmailAccount(settings.imapEmail)
-        logger.info("📧 EmailService: Is Gmail account: \(isGmail)")
-
-        if isGmail {
-            let gmailValidation = validateGmailSettings(
-                email: settings.imapEmail,
-                password: settings.imapPassword,
-                server: settings.currentServer,
+        // Log the credentials being used (with masked password)
+        let maskedPassword = String(settings.imapPassword.prefix(2)) + "***" + String(settings.imapPassword.suffix(2))
+        logger
+            .info(
+                "🔐 EmailService: Test connection using - Email: \(settings.imapEmail), Server: \(settings.currentServer), Password: \(maskedPassword)",
             )
-            if case let .failure(error) = gmailValidation {
-                logger.error("❌ EmailService: Gmail validation failed: \(error.localizedDescription)")
-                return []
-            }
-            logger.info("✅ EmailService: Gmail validation passed")
-        }
 
-        // Use the unified approach for both Gmail and IMAP
-        let result = await testIMAPConnection(
-            email: settings.currentEmail,
-            password: settings.currentPassword,
-            server: settings.currentServer,
-            isGmail: isGmail,
-            provider: isGmail ? .gmail : .imap,
+        // Add raw credential logging for debugging
+        logger
+            .info(
+                "🔍 EmailService: Raw credentials - Email length: \(settings.imapEmail.count), Password length: \(settings.imapPassword.count), Server: \(settings.currentServer)",
+            )
+
+        // Check if it's a Gmail account and validate accordingly
+        // let isGmail = settings.isGmailAccount(settings.imapEmail) // removed unused
+
+        logger.info("🔍 EmailService: Using \(settings.isGmailAccount(settings.imapEmail) ? "Gmail" : "IMAP") provider")
+
+        // Log the credentials being used (with masked password)
+        let maskedPasswordForLog = String(settings.imapPassword.prefix(2)) + "***" +
+            String(settings.imapPassword.suffix(2))
+        logger
+            .info(
+                "🔐 EmailService: Reservation flow using - Email: \(settings.imapEmail), Server: \(settings.currentServer), Password: \(maskedPasswordForLog)",
+            )
+
+        // Use the same NWConnection-based implementation that works for the test
+        // This replaces the old InputStream/OutputStream implementation
+        return await fetchVerificationCodesWithSameConnection(since: since)
+    }
+
+    /// Fetches verification codes using the same connection logic as the test
+    private func fetchVerificationCodesWithSameConnection(since: Date) async -> [String] {
+        // Removed unused: let settings = userSettingsManager.userSettings
+
+        logger.info("🔍 EmailService: Fetching verification codes with same connection logic")
+
+        // Use the same NWConnection-based implementation that works for the test
+        // This replaces the old InputStream/OutputStream implementation
+        return await fetchVerificationCodesWithNWConnection(since: since)
+    }
+
+    /// Fetches verification codes using NWConnection (same implementation as test)
+    private func fetchVerificationCodesWithNWConnection(since: Date) async -> [String] {
+        let settings = userSettingsManager.userSettings
+
+        logger.info("🔍 EmailService: Fetching verification codes with NWConnection")
+
+        // Determine port and TLS settings based on server
+        let server = settings.currentServer
+        let port: UInt16 = server == "imap.gmail.com" ? 993 : 993 // Default to 993 for most IMAP servers
+        let useTLS = true // Most modern IMAP servers require TLS
+
+        // Create a new connection for the actual email fetching
+        let parameters = NWParameters.tcp
+        if useTLS {
+            parameters.defaultProtocolStack.applicationProtocols.insert(NWProtocolTLS.Options(), at: 0)
+        }
+        let connection = NWConnection(
+            host: NWEndpoint.Host(server),
+            port: NWEndpoint.Port(integerLiteral: port),
+            using: parameters,
         )
 
-        switch result {
-        case let .success(message):
-            logger.info("✅ EmailService: IMAP connection successful: \(message)")
-        case let .failure(error, provider):
-            logger.error("❌ EmailService: \(provider == .gmail ? "Gmail" : "IMAP") connection failed: \(error)")
-            return []
+        return await withCheckedContinuation { (continuation: CheckedContinuation<[String], Never>) in
+            connection.stateUpdateHandler = { [weak self] (state: NWConnection.State) in
+                guard let self else { return }
+                switch state {
+                case .ready:
+                    Task {
+                        await self.performEmailSearch(
+                            connection: connection,
+                            since: since,
+                            continuation: continuation,
+                        )
+                    }
+                case let .failed(error):
+                    self.logger.error("❌ EmailService: Connection failed: \(error)")
+                    continuation.resume(returning: [])
+                case .cancelled:
+                    self.logger.error("❌ EmailService: Connection cancelled")
+                    continuation.resume(returning: [])
+                default:
+                    break
+                }
+            }
+            connection.start(queue: .global())
         }
+    }
 
-        // Now fetch the actual verification codes
-        logger.info("🔍 EmailService: Fetching verification codes from emails...")
-        let codes = await fetchVerificationCodesFromEmails()
-        logger.info("📋 EmailService: Found \(codes.count) verification codes: \(codes)")
+    /// Performs email search and code extraction using NWConnection
+    private func performEmailSearch(
+        connection: NWConnection,
+        since: Date,
+        continuation: CheckedContinuation<[String], Never>,
+    ) async {
+        let settings = userSettingsManager.userSettings
+        let isGmail = settings.isGmailAccount(settings.imapEmail)
+        let provider: EmailProvider = isGmail ? .gmail : .imap
 
-        return codes
+        // Determine port and TLS settings based on server
+        let useTLS = true
+
+        // First authenticate
+        await performIMAPHandshake(
+            connection: connection,
+            email: settings.currentEmail,
+            password: settings.currentPassword,
+            useTLS: useTLS,
+            isGmail: isGmail,
+            provider: provider,
+        ) { [weak self] result in
+            guard let self else {
+                continuation.resume(returning: [])
+                return
+            }
+
+            switch result {
+            case .success:
+                // Now search for verification emails
+                Task {
+                    await self.searchForVerificationEmails(
+                        connection: connection,
+                        since: since,
+                        continuation: continuation,
+                    )
+                }
+            case let .failure(error, _):
+                self.logger.error("❌ EmailService: Authentication failed: \(error)")
+                continuation.resume(returning: [])
+            }
+        }
+    }
+
+    /// Searches for verification emails and extracts codes
+    private func searchForVerificationEmails(
+        connection: NWConnection,
+        since: Date,
+        continuation: CheckedContinuation<[String], Never>,
+    ) async {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd-MMM-yyyy"
+        let sinceDateStr = dateFormatter.string(from: since)
+
+        // Search for emails from noreply@frontdesksuite.com since the given date
+        let searchCommand = "a001 SEARCH SINCE \(sinceDateStr) FROM \"noreply@frontdesksuite.com\"\r\n"
+
+        await sendIMAPCommand(connection: connection, command: searchCommand) { [weak self] result in
+            guard let self else {
+                continuation.resume(returning: [])
+                return
+            }
+
+            switch result {
+            case let .success(searchResponse):
+                self.logger.info("📧 EmailService: Search response: \(searchResponse)")
+
+                // Parse message IDs from search response
+                let lines = searchResponse.components(separatedBy: .newlines)
+                let searchLine = lines.first(where: { $0.contains("SEARCH") }) ?? ""
+                let parts = searchLine.components(separatedBy: " ")
+                let ids = parts.dropFirst().compactMap { Int($0) }
+
+                if ids.isEmpty {
+                    self.logger.info("📧 EmailService: No verification emails found")
+                    continuation.resume(returning: [])
+                    return
+                }
+
+                self.logger.info("📧 EmailService: Found \(ids.count) verification emails")
+
+                // Fetch the latest email content
+                if let lastId = ids.last {
+                    let fetchCommand = "a002 FETCH \(lastId) BODY[TEXT]\r\n"
+                    Task {
+                        await self
+                            .sendIMAPCommand(connection: connection, command: fetchCommand) { [weak self] result in
+                                guard let self else {
+                                    continuation.resume(returning: [])
+                                    return
+                                }
+
+                                switch result {
+                                case let .success(fetchResponse):
+                                    self.logger.info("📧 EmailService: Fetch response received")
+
+                                    // Extract verification codes from email body
+                                    Task {
+                                        let codes = await self.extractVerificationCodes(from: fetchResponse)
+                                        self.logger
+                                            .info(
+                                                "📧 EmailService: Extracted \(codes.count) verification codes: \(codes)",
+                                            )
+
+                                        continuation.resume(returning: codes)
+                                    }
+
+                                case let .failure(error):
+                                    self.logger.error("❌ EmailService: Fetch failed: \(error)")
+                                    continuation.resume(returning: [])
+                                }
+                            }
+                    }
+                } else {
+                    continuation.resume(returning: [])
+                }
+
+            case let .failure(error):
+                self.logger.error("❌ EmailService: Search failed: \(error)")
+                continuation.resume(returning: [])
+            }
+        }
+    }
+
+    /// Runs email configuration diagnostic and returns detailed report
+    /// - Returns: Diagnostic report string
+    func runEmailDiagnostic() async -> String {
+        logger.info("🔍 Running email configuration diagnostic...")
+        return await diagnoseEmailConfiguration()
     }
 
     func testGmailConnection(email: String, appPassword: String) async -> TestResult {
@@ -245,7 +439,7 @@ class EmailService: ObservableObject {
         email: String,
         password: String,
         server: String,
-        isGmail: Bool = false,
+        isGmail _: Bool = false,
         provider: EmailProvider = .imap,
     ) async -> TestResult {
         isTesting = true
@@ -293,8 +487,6 @@ class EmailService: ObservableObject {
                 useTLS: config.useTLS,
                 email: email,
                 password: password,
-                isGmail: isGmail,
-                provider: provider,
             )
             if case .success = result { return result }
             if case let .failure(error, _) = result {
@@ -307,81 +499,190 @@ class EmailService: ObservableObject {
         )
     }
 
+    /// Connects to IMAP server and performs authentication
+    /// - Parameters:
+    ///   - server: IMAP server address
+    ///   - port: IMAP server port
+    ///   - useTLS: Whether to use TLS encryption
+    ///   - email: Email address for authentication
+    ///   - password: Password for authentication
+    /// - Returns: Connect result
     private func connectToIMAP(
         server: String,
         port: UInt16,
         useTLS: Bool,
         email: String,
         password: String,
-        isGmail: Bool = false,
-        provider: EmailProvider = .imap,
     ) async -> TestResult {
-        let parameters = NWParameters.tcp
-        if useTLS {
-            parameters.defaultProtocolStack.applicationProtocols.insert(NWProtocolTLS.Options(), at: 0)
+        return await withCheckedContinuation { (continuation: CheckedContinuation<TestResult, Never>) in
+            self.startIMAPConnection(
+                continuation: continuation,
+                server: server,
+                port: port,
+                useTLS: useTLS,
+                email: email,
+                password: password,
+            )
         }
+    }
+
+    private func startIMAPConnection(
+        continuation: CheckedContinuation<TestResult, Never>,
+        server: String,
+        port: UInt16,
+        useTLS: Bool,
+        email: String,
+        password: String,
+    ) {
+        let connectionID = UUID().uuidString
+        let now = Date()
+        let lastAttempt = EmailService.lastIMAPConnectionTimestamp
+        EmailService.lastIMAPConnectionTimestamp = now
+        if let last = lastAttempt {
+            let interval = now.timeIntervalSince(last)
+            logger.info("[IMAP][\(connectionID)] Time since last connection: \(interval) seconds")
+        } else {
+            logger.info("[IMAP][\(connectionID)] First connection attempt in this session")
+        }
+        logger.info("[IMAP][\(connectionID)] Starting connectToIMAP at \(now)")
+        logger.info("[IMAP][\(connectionID)] Attempting connection to \(server):\(port) TLS=\(useTLS)")
+
+        let provider: EmailProvider = server == "imap.gmail.com" ? .gmail : .imap
+        logger
+            .info(
+                "[IMAP] Attempting connection to \(server):\(port) TLS=\(useTLS) for provider \(String(describing: provider))",
+            )
+
         let connection = NWConnection(
             host: NWEndpoint.Host(server),
             port: NWEndpoint.Port(integerLiteral: port),
-            using: parameters,
+            using: .tls,
         )
-        return await withCheckedContinuation { continuation in
-            let hasResumed = AtomicBool(false)
-            @Sendable func safeResume(_ result: TestResult) {
-                if hasResumed.testAndSet() {
-                    Task { @MainActor in
-                        self.isTesting = false
-                        self.lastTestResult = result
-                        continuation.resume(returning: result)
-                    }
-                }
-            }
-            let timeoutTask = Task {
-                try? await Task.sleep(nanoseconds: 30_000_000_000)
-                safeResume(.failure(
-                    IMAPError.timeout("Connection timed out after 30 seconds").localizedDescription,
+
+        let state = IMAPConnectionState()
+
+        connection.stateUpdateHandler = { [weak self] nwState in
+            self?.handleIMAPState(
+                state: nwState,
+                connection: connection,
+                connectionID: connectionID,
+                server: server,
+                port: port,
+                useTLS: useTLS,
+                email: email,
+                password: password,
+                continuation: continuation,
+                stateObj: state,
+            )
+        }
+
+        connection.start(queue: .global())
+
+        // Set a timeout for the entire connection process
+        DispatchQueue.global().asyncAfter(deadline: .now() + 30) { [self] in
+            if !state.authenticationCompleted, !state.didResume {
+                logger
+                    .error(
+                        "[IMAP][\(connectionID)] Connection to \(server):\(port) timed out after 30 seconds (TLS=\(useTLS))",
+                    )
+                connection.cancel()
+                let provider: EmailProvider = server == "imap.gmail.com" ? .gmail : .imap
+                state.didResume = true
+                continuation.resume(returning: .failure(
+                    "Connection timed out after 30 seconds",
                     provider: provider,
                 ))
             }
-            connection.stateUpdateHandler = { [weak self] state in
-                guard let self else { return }
-                switch state {
-                case .ready:
-                    let isGmailCopy = isGmail
-                    Task {
-                        await self.performIMAPHandshake(
-                            connection: connection,
-                            email: email,
-                            password: password,
-                            useTLS: useTLS,
-                            isGmail: isGmailCopy,
-                            provider: provider,
-                        ) { result in
-                            timeoutTask.cancel()
-                            safeResume(result)
-                            connection.cancel()
+        }
+
+        // Fallback: ensure continuation is always resumed
+        DispatchQueue.global().asyncAfter(deadline: .now() + 35) { [self] in
+            if !state.didResume {
+                state.didResume = true
+                let provider: EmailProvider = server == "imap.gmail.com" ? .gmail : .imap
+                logger.error("[IMAP][\(connectionID)] Fallback: forcibly resuming continuation after 35s")
+                continuation.resume(returning: .failure(
+                    "IMAP connection did not complete or resume in time (internal fallback)",
+                    provider: provider,
+                ))
+            }
+        }
+    }
+
+    private nonisolated func handleIMAPState(
+        state: NWConnection.State,
+        connection: NWConnection,
+        connectionID: String,
+        server: String,
+        port: UInt16,
+        useTLS: Bool,
+        email: String,
+        password: String,
+        continuation: CheckedContinuation<TestResult, Never>,
+        stateObj: IMAPConnectionState,
+    ) {
+        let staticLogger = Logger(subsystem: "ODYSSEY", category: "IMAP")
+        stateObj.connectionState = "\(state)"
+        let stateMsg = "[IMAP][\(connectionID)] Connection state for \(server):\(port) is \(state) (TLS=\(useTLS))"
+        staticLogger.info("\(stateMsg, privacy: .public)")
+
+        switch state {
+        case .ready:
+            let readyMsg = "[IMAP][\(connectionID)] Connection ready for \(server):\(port) (TLS=\(useTLS))"
+            staticLogger.info("\(readyMsg, privacy: .public)")
+            if !stateObj.handshakeCompleted {
+                stateObj.handshakeCompleted = true
+                let handshakeMsg = "[IMAP][\(connectionID)] Starting handshake for \(server) connection (TLS=\(useTLS))"
+                staticLogger.info("\(handshakeMsg, privacy: .public)")
+                let provider: EmailProvider = server == "imap.gmail.com" ? .gmail : .imap
+                Task {
+                    await self.performIMAPHandshake(
+                        connection: connection,
+                        email: email,
+                        password: password,
+                        useTLS: useTLS,
+                        isGmail: server == "imap.gmail.com",
+                        provider: provider,
+                    ) { result in
+                        stateObj.authenticationCompleted = true
+                        if !stateObj.didResume {
+                            stateObj.didResume = true
+                            continuation.resume(returning: result)
                         }
                     }
-                case let .failed(error):
-                    timeoutTask.cancel()
-                    safeResume(.failure(
-                        IMAPError.connectionFailed(error.localizedDescription).localizedDescription,
-                        provider: provider,
-                    ))
-                    connection.cancel()
-                case .cancelled:
-                    timeoutTask.cancel()
-                    safeResume(.failure(
-                        IMAPError.connectionFailed("Connection cancelled").localizedDescription,
-                        provider: provider,
-                    ))
-                case let .waiting(error):
-                    logger.warning("IMAP connection waiting: \(error)")
-                default:
-                    break
                 }
             }
-            connection.start(queue: .global())
+        case let .failed(error):
+            let failMsg = "[IMAP][\(connectionID)] Connection failed for \(server):\(port) (TLS=\(useTLS)): \(error)"
+            staticLogger.error("\(failMsg, privacy: .public)")
+            let provider: EmailProvider = server == "imap.gmail.com" ? .gmail : .imap
+            if !stateObj.didResume {
+                stateObj.didResume = true
+                continuation.resume(returning: .failure(
+                    "Connection failed: \(error.localizedDescription)",
+                    provider: provider,
+                ))
+            }
+        case .cancelled:
+            if stateObj.authenticationCompleted {
+                let cancelMsg =
+                    "[IMAP][\(connectionID)] Connection cancelled after successful authentication for \(server):\(port) (TLS=\(useTLS))"
+                staticLogger.info("\(cancelMsg, privacy: .public)")
+            } else {
+                let cancelMsg =
+                    "❌ [IMAP][\(connectionID)] Connection cancelled on \(server):\(port) (TLS=\(useTLS)): Connection was cancelled"
+                staticLogger.error("\(cancelMsg, privacy: .public)")
+                if !stateObj.didResume {
+                    stateObj.didResume = true
+                    let provider: EmailProvider = server == "imap.gmail.com" ? .gmail : .imap
+                    continuation.resume(returning: .failure(
+                        "Connection cancelled before authentication",
+                        provider: provider,
+                    ))
+                }
+            }
+        default:
+            break
         }
     }
 
@@ -394,28 +695,49 @@ class EmailService: ObservableObject {
         provider: EmailProvider,
         completion: @escaping (TestResult) -> Void,
     ) async {
-        receiveIMAPResponse(connection: connection) { [weak self] (result: Result<String, IMAPError>) in
+        logger.info("[IMAP] Starting handshake for \(provider == .gmail ? "Gmail" : "IMAP") connection (TLS=\(useTLS))")
+
+        await receiveIMAPResponse(connection: connection) { [weak self] (result: Result<String, IMAPError>) in
             guard let self else { return }
             switch result {
             case let .success(greeting):
-                logger.info("IMAP greeting received: \(greeting.prefix(100))")
+                logger.info("[IMAP] Greeting received: \(greeting.prefix(200))")
+
+                // Check for authentication errors in the greeting
+                if greeting.contains("NO"), greeting.lowercased().contains("login") {
+                    logger.error("[IMAP] Authentication failed in greeting: \(greeting)")
+                    completion(.failure(
+                        userSettingsManager.userSettings.localized("Authentication failed: Invalid email or password"),
+                        provider: provider,
+                    ))
+                    return
+                }
+
+                if greeting.contains("BAD") {
+                    logger.error("[IMAP] Server rejected connection: \(greeting)")
+                    completion(.failure(
+                        userSettingsManager.userSettings.localized("Server rejected connection: \(greeting)"),
+                        provider: provider,
+                    ))
+                    return
+                }
+
                 if !useTLS, greeting.contains("STARTTLS") {
-                    let isGmailCopy = isGmail
+                    logger.info("[IMAP] Server supports STARTTLS, upgrading connection")
                     Task {
                         await self
                             .upgradeToTLS(
                                 connection: connection,
-                                isGmail: isGmailCopy,
+                                isGmail: isGmail,
                                 provider: provider,
                             ) { tlsResult in
                                 switch tlsResult {
                                 case .success:
-                                    let isGmailCopy2 = isGmailCopy
                                     Task { await self.continueIMAPHandshake(
                                         connection: connection,
                                         email: email,
                                         password: password,
-                                        isGmail: isGmailCopy2,
+                                        isGmail: isGmail,
                                         provider: provider,
                                         completion: completion,
                                     )
@@ -426,19 +748,32 @@ class EmailService: ObservableObject {
                             }
                     }
                 } else {
-                    let isGmailCopy = isGmail
+                    logger.info("[IMAP] Proceeding with authentication")
                     Task { await self.continueIMAPHandshake(
                         connection: connection,
                         email: email,
                         password: password,
-                        isGmail: isGmailCopy,
+                        isGmail: isGmail,
                         provider: provider,
                         completion: completion,
                     )
                     }
                 }
             case let .failure(error):
-                completion(.failure(error.localizedDescription, provider: provider))
+                logger.error("[IMAP] Failed to receive greeting: \(error.localizedDescription)")
+
+                // Provide more specific error messages
+                if error.localizedDescription.contains("timeout") {
+                    completion(.failure(
+                        userSettingsManager.userSettings
+                            .localized(
+                                "Server did not respond with IMAP greeting. Check if IMAP is enabled on port \(useTLS ? "993" : "143")",
+                            ),
+                        provider: provider,
+                    ))
+                } else {
+                    completion(.failure(error.localizedDescription, provider: provider))
+                }
             }
         }
     }
@@ -447,7 +782,7 @@ class EmailService: ObservableObject {
         connection: NWConnection,
         email: String,
         password: String,
-        isGmail: Bool,
+        isGmail _: Bool,
         provider: EmailProvider,
         completion: @escaping (TestResult) -> Void,
     ) async {
@@ -456,7 +791,6 @@ class EmailService: ObservableObject {
             command: "a001 CAPABILITY\r\n",
         ) { [weak self] (result: Result<String, IMAPError>) in
             guard let self else { return }
-            let isGmailCopy = isGmail
             switch result {
             case .success:
                 let loginCommand = "a002 LOGIN \"\(email)\" \"\(password)\"\r\n"
@@ -468,113 +802,196 @@ class EmailService: ObservableObject {
                         >) in
                             guard let self else { return }
                             switch result {
-                            case .success:
-                                let selectCommand = "a003 SELECT INBOX\r\n"
-                                Task {
-                                    let isGmailCopy2 = isGmailCopy
-                                    await self
-                                        .sendIMAPCommand(
-                                            connection: connection,
-                                            command: selectCommand,
-                                        ) { [weak self] (result: Result<
-                                            String,
-                                            IMAPError
-                                        >) in
-                                            guard let self else { return }
-                                            switch result {
-                                            case .success:
-                                                let searchCommand = "a004 SEARCH ALL\r\n"
-                                                Task {
-                                                    let isGmailCopy3 = isGmailCopy2
-                                                    await self
-                                                        .sendIMAPCommand(
-                                                            connection: connection,
-                                                            command: searchCommand,
-                                                        ) { [weak self] (result: Result<
-                                                            String,
-                                                            IMAPError
-                                                        >) in
-                                                            guard let self else { return }
-                                                            switch result {
-                                                            case let .success(searchResponse):
-                                                                let lines = searchResponse
-                                                                    .components(separatedBy: .newlines)
-                                                                let searchLine = lines
-                                                                    .first(where: { $0.contains("SEARCH") }) ?? ""
-                                                                let parts = searchLine.components(separatedBy: " ")
-                                                                let ids = parts.dropFirst().compactMap { Int($0) }
-                                                                if let lastId = ids.last {
-                                                                    let fetchCommand =
-                                                                        "a005 FETCH \(lastId) BODY[HEADER.FIELDS (FROM SUBJECT DATE)]\r\n"
-                                                                    Task {
-                                                                        let isGmailCopy4 = isGmailCopy3
-                                                                        await self.sendIMAPCommand(
-                                                                            connection: connection,
-                                                                            command: fetchCommand,
-                                                                        ) { (result: Result<String, IMAPError>) in
-                                                                            switch result {
-                                                                            case let .success(fetchResponse):
-                                                                                let subject = self
-                                                                                    .parseEmailSubject(
-                                                                                        from: fetchResponse,
-                                                                                    )
-                                                                                let baseMessage = isGmailCopy4 ?
-                                                                                    "Gmail connection successful!" :
-                                                                                    "IMAP connection successful!"
-                                                                                let fullMessage = subject.isEmpty ?
-                                                                                    baseMessage :
-                                                                                    "\(baseMessage) Latest email: \(subject)"
-                                                                                completion(.success(
-                                                                                    self.userSettingsManager
-                                                                                        .userSettings
-                                                                                        .localized(fullMessage),
-                                                                                ))
-                                                                            case let .failure(error):
-                                                                                self.logger
-                                                                                    .error(
-                                                                                        "IMAP: FETCH failed: \(error.localizedDescription)",
-                                                                                    )
-                                                                                completion(.failure(
-                                                                                    self.userSettingsManager
+                            case let .success(loginResponse):
+                                // Log the full LOGIN response for debugging
+                                self.logger.info("[IMAP] LOGIN response: \(loginResponse)")
+                                // Parse response lines for the LOGIN tag (a002)
+                                let loginLines = loginResponse.components(separatedBy: .newlines)
+                                self.logger.info("[IMAP] LOGIN response lines: \(loginLines)")
+
+                                // Check ALL lines for authentication result, not just the first tagged line
+                                var authenticationResult: String?
+                                for line in loginLines {
+                                    let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+                                    if trimmedLine.hasPrefix("a002") {
+                                        authenticationResult = trimmedLine
+                                        self.logger.info("[IMAP] Found tagged line: '\(trimmedLine)'")
+                                        break
+                                    }
+                                }
+
+                                // If no tagged line found, check for any line with OK/NO/BAD
+                                if authenticationResult == nil {
+                                    for line in loginLines {
+                                        let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+                                        if
+                                            trimmedLine.contains("OK") || trimmedLine.contains("NO") || trimmedLine
+                                                .contains("BAD")
+                                        {
+                                            authenticationResult = trimmedLine
+                                            self.logger.info("[IMAP] Found auth result line: '\(trimmedLine)'")
+                                            break
+                                        }
+                                    }
+                                }
+
+                                if let result = authenticationResult {
+                                    if result.contains("OK") {
+                                        self.logger.info("[IMAP] Authentication successful: \(result)")
+                                        // Continue with SELECT INBOX
+                                        let selectCommand = "a003 SELECT INBOX\r\n"
+                                        Task {
+                                            await self
+                                                .sendIMAPCommand(
+                                                    connection: connection,
+                                                    command: selectCommand,
+                                                ) { [weak self] (result: Result<
+                                                    String,
+                                                    IMAPError
+                                                >) in
+                                                    guard let self else { return }
+                                                    switch result {
+                                                    case let .success(selectResponse):
+                                                        self.logger
+                                                            .info("[IMAP] SELECT INBOX response: \(selectResponse)")
+                                                        // After selecting INBOX, search for the latest email
+                                                        let searchCommand = "a004 SEARCH ALL\r\n"
+                                                        Task {
+                                                            await self.sendIMAPCommand(
+                                                                connection: connection,
+                                                                command: searchCommand,
+                                                            ) { [weak self] (result: Result<String, IMAPError>) in
+                                                                guard let self else { return }
+                                                                switch result {
+                                                                case let .success(searchResponse):
+                                                                    self.logger
+                                                                        .info(
+                                                                            "[IMAP] SEARCH response: \(searchResponse)",
+                                                                        )
+                                                                    // Parse the search response for message IDs
+                                                                    let lines = searchResponse
+                                                                        .components(separatedBy: .newlines)
+                                                                    let searchLine = lines
+                                                                        .first(where: { $0.contains("SEARCH") }) ?? ""
+                                                                    let parts = searchLine.components(separatedBy: " ")
+                                                                    let ids = parts.dropFirst().compactMap { Int($0) }
+                                                                    if let lastId = ids.last {
+                                                                        let fetchCommand =
+                                                                            "a005 FETCH \(lastId) BODY[HEADER.FIELDS (SUBJECT)]\r\n"
+                                                                        Task {
+                                                                            await self.sendIMAPCommand(
+                                                                                connection: connection,
+                                                                                command: fetchCommand,
+                                                                            ) { [weak self] (result: Result<
+                                                                                String,
+                                                                                IMAPError
+                                                                            >) in
+                                                                                guard let self else { return }
+                                                                                switch result {
+                                                                                case let .success(fetchResponse):
+                                                                                    self.logger
+                                                                                        .info(
+                                                                                            "[IMAP] FETCH response: \(fetchResponse)",
+                                                                                        )
+                                                                                    // Extract subject
+                                                                                    let subject = self
+                                                                                        .parseEmailSubject(
+                                                                                            from: fetchResponse,
+                                                                                        )
+                                                                                    let baseMessage = self
+                                                                                        .userSettingsManager
                                                                                         .userSettings
                                                                                         .localized(
-                                                                                            "Failed to fetch email:",
-                                                                                        ) +
-                                                                                        " \(error.localizedDescription)",
-                                                                                    provider: provider,
-                                                                                ))
+                                                                                            "IMAP connection successful!",
+                                                                                        )
+                                                                                    let fullMessage = subject
+                                                                                        .isEmpty ? baseMessage :
+                                                                                        "\(baseMessage) Latest email: \(subject)"
+                                                                                    completion(.success(fullMessage))
+                                                                                case let .failure(error):
+                                                                                    self.logger
+                                                                                        .error(
+                                                                                            "[IMAP] FETCH failed: \(error.localizedDescription)",
+                                                                                        )
+                                                                                    completion(.failure(
+                                                                                        self.userSettingsManager
+                                                                                            .userSettings
+                                                                                            .localized(
+                                                                                                "Failed to fetch email: ",
+                                                                                            ) +
+                                                                                            error.localizedDescription,
+                                                                                        provider: provider,
+                                                                                    ))
+                                                                                }
                                                                             }
                                                                         }
-                                                                    }
-                                                                } else {
-                                                                    completion(.success(
-                                                                        userSettingsManager.userSettings
-                                                                            .localized(
-                                                                                isGmailCopy3 ?
-                                                                                    "Gmail connection successful!" :
+                                                                    } else {
+                                                                        // No emails found
+                                                                        completion(.success(
+                                                                            self.userSettingsManager
+                                                                                .userSettings
+                                                                                .localized(
                                                                                     "IMAP connection successful!",
-                                                                            ),
+                                                                                ),
+                                                                        ))
+                                                                    }
+                                                                case let .failure(error):
+                                                                    self.logger
+                                                                        .error(
+                                                                            "[IMAP] SEARCH failed: \(error.localizedDescription)",
+                                                                        )
+                                                                    completion(.failure(
+                                                                        self.userSettingsManager.userSettings
+                                                                            .localized("Failed to search mailbox: ") +
+                                                                            error.localizedDescription,
+                                                                        provider: provider,
                                                                     ))
                                                                 }
-                                                            case let .failure(error):
-                                                                completion(.failure(
-                                                                    userSettingsManager.userSettings
-                                                                        .localized("Failed to search mailbox:") +
-                                                                        " \(error.localizedDescription)",
-                                                                    provider: provider,
-                                                                ))
                                                             }
                                                         }
+                                                    case let .failure(error):
+                                                        self.logger
+                                                            .error(
+                                                                "[IMAP] SELECT INBOX failed: \(error.localizedDescription)",
+                                                            )
+                                                        completion(.failure(
+                                                            self.userSettingsManager.userSettings
+                                                                .localized("Mailbox selection failed: ") + error
+                                                                .localizedDescription,
+                                                            provider: provider,
+                                                        ))
+                                                    }
                                                 }
-                                            case let .failure(error):
-                                                completion(.failure(
-                                                    userSettingsManager.userSettings
-                                                        .localized("Failed to select INBOX:") +
-                                                        " \(error.localizedDescription)",
-                                                    provider: provider,
-                                                ))
-                                            }
                                         }
+                                    } else if result.contains("NO") || result.lowercased().contains("login") {
+                                        self.logger.error("[IMAP] Authentication failed: \(result)")
+                                        completion(.failure(
+                                            self.userSettingsManager.userSettings
+                                                .localized("Authentication failed: Invalid email or password"),
+                                            provider: provider,
+                                        ))
+                                    } else if result.contains("BAD") {
+                                        self.logger.error("[IMAP] Authentication error: \(result)")
+                                        completion(.failure(
+                                            self.userSettingsManager.userSettings
+                                                .localized("Authentication error: ") + result,
+                                            provider: provider,
+                                        ))
+                                    } else {
+                                        self.logger.error("[IMAP] Unknown authentication result: \(result)")
+                                        completion(.failure(
+                                            self.userSettingsManager.userSettings
+                                                .localized("Authentication failed: Unknown response"),
+                                            provider: provider,
+                                        ))
+                                    }
+                                } else {
+                                    self.logger.error("[IMAP] No authentication result found in response")
+                                    completion(.failure(
+                                        self.userSettingsManager.userSettings
+                                            .localized("Authentication failed: No response from server"),
+                                        provider: provider,
+                                    ))
                                 }
                             case let .failure(error):
                                 completion(.failure(
@@ -586,9 +1003,11 @@ class EmailService: ObservableObject {
                         }
                 }
             case let .failure(error):
+                let errorMessage = "IMAP capability command failed: \(error.localizedDescription)"
+                self.logger.error("❌ \(errorMessage)")
                 completion(.failure(
                     userSettingsManager.userSettings
-                        .localized("IMAP handshake failed:") + " \(error.localizedDescription)",
+                        .localized("IMAP command failed:") + " \(error.localizedDescription)",
                     provider: provider,
                 ))
             }
@@ -621,46 +1040,37 @@ class EmailService: ObservableObject {
         command: String,
         completion: @escaping (Result<String, IMAPError>) -> Void,
     ) async {
-        guard let data = command.data(using: .utf8) else {
-            completion(.failure(.commandFailed(userSettingsManager.userSettings.localized("Invalid command encoding"))))
-            return
-        }
-        let localizedSendError = userSettingsManager.userSettings.localized("Send error:")
-        connection.send(content: data, completion: .contentProcessed { error in
+        let data = Data(command.utf8)
+        logger.info("📤 IMAP Command: \(command.trimmingCharacters(in: .whitespacesAndNewlines))")
+
+        connection.send(content: data, completion: .contentProcessed { [self] error in
             if let error {
-                completion(.failure(.commandFailed(localizedSendError + " \(error.localizedDescription)")))
+                logger.error("❌ IMAP send error: \(error.localizedDescription)")
+                completion(.failure(.commandFailed("Send failed: \(error.localizedDescription)")))
                 return
             }
-            Task { @MainActor in
-                self.receiveIMAPResponse(connection: connection, completion: completion)
-            }
+            logger.info("✅ IMAP command sent successfully")
+            Task { await self.receiveIMAPResponse(connection: connection, completion: completion) }
         })
     }
 
     private func receiveIMAPResponse(
         connection: NWConnection,
         completion: @escaping (Result<String, IMAPError>) -> Void,
-    ) {
-        let localizedReceiveError = userSettingsManager.userSettings.localized("Receive error:")
-        let localizedIMAPError = userSettingsManager.userSettings.localized("IMAP error:")
-        let localizedInvalidResponse = userSettingsManager.userSettings.localized("Invalid response")
-
-        connection.receive(minimumIncompleteLength: 1, maximumLength: 65_536) { content, _, _, error in
+    ) async {
+        connection.receive(minimumIncompleteLength: 1, maximumLength: 65_536) { [self] data, _, _, error in
             if let error {
-                completion(.failure(.commandFailed(localizedReceiveError + " \(error.localizedDescription)")))
+                logger.error("❌ [IMAP] Receive error: \(error.localizedDescription)")
+                completion(.failure(.invalidResponse("Receive failed: \(error.localizedDescription)")))
                 return
             }
-            if let data = content, let response = String(data: data, encoding: .utf8) {
-                if response.contains("OK") {
-                    completion(.success(response))
-                } else if response.contains("NO") || response.contains("BAD") {
-                    completion(.failure(.commandFailed(localizedIMAPError + " \(response)")))
-                } else {
-                    completion(.success(response))
-                }
-            } else {
-                completion(.failure(.invalidResponse(localizedInvalidResponse)))
+            guard let data, let response = String(data: data, encoding: .utf8) else {
+                logger.error("❌ [IMAP] Invalid response data (empty or not UTF-8)")
+                completion(.failure(.invalidResponse("Invalid response data")))
+                return
             }
+            logger.info("[IMAP] Raw server response: \(response.prefix(500))")
+            completion(.success(response))
         }
     }
 
@@ -691,7 +1101,9 @@ class EmailService: ObservableObject {
                 date = String(line.dropFirst(6)).trimmingCharacters(in: .whitespaces)
             }
         }
-        return "\(userSettingsManager.userSettings.localized("From:")) \(from) - \(userSettingsManager.userSettings.localized("Subject:")) \(subject) - \(userSettingsManager.userSettings.localized("Date:")) \(date)"
+        return "\(userSettingsManager.userSettings.localized("From:")) \(from) - " +
+            "\(userSettingsManager.userSettings.localized("Subject:")) \(subject) - " +
+            "\(userSettingsManager.userSettings.localized("Date:")) \(date)"
     }
 
     /// Extracts the email body from IMAP FETCH response
@@ -727,53 +1139,84 @@ class EmailService: ObservableObject {
         return response
     }
 
-    /// Extracts verification codes from email body using regex
-    /// - Parameter body: The email body content
+    /// Extracts verification codes from email body
+    /// - Parameter body: The email body text
     /// - Returns: Array of 4-digit verification codes found
     private func extractVerificationCodes(from body: String) async -> [String] {
-        var codes: [String] = []
+        logger.info("🔍 Extracting verification codes from email body...")
+        logger.debug("📧 Full email body (first 1000 chars): \(body.prefix(1_000))")
 
-        // Try multiple patterns to catch different formats
+        // Multiple patterns to match verification codes
         let patterns = [
-            "\\b\\d{4}\\b", // Basic 4-digit pattern
-            "verification code is:\\s*(\\d{4})", // "Your verification code is: 3583"
-            "code is:\\s*(\\d{4})", // "code is: 3583"
-            "code:\\s*(\\d{4})", // "code: 3583"
+            // Standard 4-digit code patterns
+            "\\b\\d{4}\\b", // Any 4-digit number
+            "verification code[\\s:]*([0-9]{4})", // "verification code: 1234"
+            "code[\\s:]*([0-9]{4})", // "code: 1234"
+            "([0-9]{4})[\\s]*is your verification code", // "1234 is your verification code"
+            "your code is[\\s:]*([0-9]{4})", // "your code is 1234"
+            "enter[\\s:]*([0-9]{4})", // "enter 1234"
+            "use[\\s:]*([0-9]{4})", // "use 1234"
         ]
 
+        var codes: Set<String> = []
+
         for pattern in patterns {
-            let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive)
-            let matches = regex?.matches(in: body, range: NSRange(body.startIndex..., in: body)) ?? []
+            do {
+                logger.debug("🔎 Trying regex pattern: \(pattern)")
+                let regex = try NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
+                let range = NSRange(body.startIndex..., in: body)
+                let matches = regex.matches(in: body, options: [], range: range)
+                logger.debug("🔎 Pattern \(pattern) found \(matches.count) matches")
 
-            for match in matches {
-                if let range = Range(match.range, in: body) {
-                    let matchText = String(body[range])
+                for match in matches {
+                    if match.numberOfRanges > 1 {
+                        // If there's a capture group, use it
+                        if let range = Range(match.range(at: 1), in: body) {
+                            let code = String(body[range])
+                            if code.count == 4, code.allSatisfy(\.isNumber) {
+                                codes.insert(code)
+                                logger.info("✅ Found verification code: \(code) with pattern: \(pattern)")
+                            }
+                        }
+                    } else {
+                        // If no capture group, use the full match
+                        if let range = Range(match.range, in: body) {
+                            let matchText = String(body[range])
+                            // Extract 4-digit numbers from the match
+                            let numberRegex = try NSRegularExpression(pattern: "\\b\\d{4}\\b")
+                            let numberRange = NSRange(matchText.startIndex..., in: matchText)
+                            let numberMatches = numberRegex.matches(in: matchText, options: [], range: numberRange)
 
-                    // Extract just the 4-digit code
-                    let codeRegex = try? NSRegularExpression(pattern: "\\d{4}")
-                    if
-                        let codeMatch = codeRegex?.firstMatch(
-                            in: matchText,
-                            range: NSRange(matchText.startIndex..., in: matchText),
-                        ),
-                        let codeRange = Range(codeMatch.range, in: matchText)
-                    {
-                        let code = String(matchText[codeRange])
-                        if !codes.contains(code) {
-                            codes.append(code)
-                            logger.info("🔢 Found verification code: \(code) using pattern: \(pattern)")
+                            for numberMatch in numberMatches {
+                                if let numberRange = Range(numberMatch.range, in: matchText) {
+                                    let code = String(matchText[numberRange])
+                                    codes.insert(code)
+                                    logger.info("✅ Found verification code: \(code) with pattern: \(pattern)")
+                                }
+                            }
                         }
                     }
                 }
+            } catch {
+                logger.warning("⚠️ Failed to compile regex pattern '\(pattern)': \(error.localizedDescription)")
             }
         }
 
-        return codes
+        let result = Array(codes).sorted()
+        logger.info("📋 Extracted \(result.count) unique verification codes: \(result)")
+
+        // If no codes found, log the email body for debugging (truncated)
+        if result.isEmpty {
+            logger.warning("⚠️ No verification codes found in email body")
+            logger.debug("📧 Email body preview (first 500 chars): \(body.prefix(500))")
+        }
+
+        return result
     }
 
     /// Fetches verification codes from emails using IMAP
     /// - Returns: Array of verification codes found
-    private func fetchVerificationCodesFromEmails() async -> [String] {
+    private func fetchVerificationCodesFromEmails(since: Date) async -> [String] {
         // Remove timeout wrapper to allow IMAP operation to complete
         return await { [self] in
             let settings = self.userSettingsManager.userSettings
@@ -783,44 +1226,35 @@ class EmailService: ObservableObject {
             let password = settings.currentPassword
             let fromAddress = "noreply@frontdesksuite.com"
 
-            // Debug logging for password selection
-            logger.info("🔐 Password debug - Email: \(email)")
-            logger.info("🔐 Password debug - Is Gmail: \(settings.isGmailAccount(email))")
-            logger.info("🔐 Password debug - Using password: \(password.prefix(4))...")
+            // Log email configuration for debugging
+            logger.info("Email configuration - Email: \(email)")
+            logger.info("Email configuration - Is Gmail: \(settings.isGmailAccount(email))")
 
             // Additional Gmail App Password validation
             if settings.isGmailAccount(email) {
                 let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
-                logger.info("🔐 Gmail App Password validation:")
-                logger.info("🔐 - Password length: \(trimmedPassword.count)")
-                logger.info("🔐 - Contains spaces: \(trimmedPassword.contains(" "))")
-                logger.info("🔐 - All lowercase: \(trimmedPassword.allSatisfy { $0.isLetter ? $0.isLowercase : true })")
-                logger.info("🔐 - Password format: \(trimmedPassword)")
-
-                // Check if it matches the expected Gmail App Password format
+                // Validate Gmail App Password format
                 let appPasswordPattern = "^[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}$"
                 let appPasswordRegex = try? NSRegularExpression(pattern: appPasswordPattern)
                 if let regex = appPasswordRegex {
                     let range = NSRange(trimmedPassword.startIndex..., in: trimmedPassword)
                     let matches = regex.firstMatch(in: trimmedPassword, range: range)
-                    logger.info("🔐 - Matches Gmail App Password format: \(matches != nil)")
+                    if matches == nil {
+                        logger.warning("Gmail App Password format validation failed")
+                    }
                 }
             }
             // Make subject search more flexible to catch variations
             let subject = "Verify your email"
-            let now = Date()
-            // Search for emails from the last 15 minutes to catch recent verification emails
-            let fifteenMinutesAgo = now.addingTimeInterval(-15 * 60)
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "d-MMM-yyyy"
             dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-            let sinceDate = dateFormatter.string(from: fifteenMinutesAgo)
+            let sinceDate = dateFormatter.string(from: since)
 
-            // Log the current date, sinceDate, and timezone for debugging
-            logger.info("🕒 System time: \(Date()) (timezone: \(TimeZone.current.identifier))")
-            logger.info("🔍 IMAP search window sinceDate: \(sinceDate)")
+            // Log search parameters
+            logger.info("IMAP search window sinceDate: \(sinceDate)")
 
-            logger.info("🔗 Connecting to IMAP server \(server):\(port) for user \(email)")
+            logger.info("Connecting to IMAP server \(server):\(port) for user \(email)")
 
             var inputStream: InputStream?
             var outputStream: OutputStream?
@@ -838,7 +1272,7 @@ class EmailService: ObservableObject {
             }
 
             guard let inputStream, let outputStream else {
-                logger.error("❌ Failed to open IMAP streams")
+                logger.error("Failed to open IMAP streams")
                 return []
             }
 
@@ -862,12 +1296,12 @@ class EmailService: ObservableObject {
             if inputStream.streamStatus != .open || outputStream.streamStatus != .open {
                 logger
                     .error(
-                        "❌ Failed to open IMAP streams - status: input=\(inputStream.streamStatus.rawValue), output=\(outputStream.streamStatus.rawValue)",
+                        "Failed to open IMAP streams - status: input=\(inputStream.streamStatus.rawValue), output=\(outputStream.streamStatus.rawValue)",
                     )
                 return []
             }
 
-            logger.info("✅ IMAP streams opened successfully")
+            logger.info("IMAP streams opened successfully")
 
             defer {
                 inputStream.close()
@@ -876,10 +1310,12 @@ class EmailService: ObservableObject {
 
             func sendCommand(_ cmd: String) {
                 let data = Array((cmd + "\r\n").utf8)
-                _ = data.withUnsafeBytes { outputStream.write(
-                    $0.bindMemory(to: UInt8.self).baseAddress!,
-                    maxLength: data.count,
-                ) }
+                data.withUnsafeBytes { bytes in
+                    guard let baseAddress = bytes.bindMemory(to: UInt8.self).baseAddress else {
+                        return
+                    }
+                    outputStream.write(baseAddress, maxLength: data.count)
+                }
             }
 
             func expect(_ tag: String) async -> String {
@@ -916,91 +1352,74 @@ class EmailService: ObservableObject {
                     try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
                 }
 
-                logger.warning("⏰ IMAP expect timeout for tag \(tag) after \(timeout) seconds")
+                logger.warning("IMAP expect timeout for tag \(tag) after \(timeout) seconds")
                 return response
             }
 
             // Read greeting
             let greeting = await expect("*")
-            logger.info("📨 IMAP greeting: \(greeting.prefix(200))")
-            logger.error("📨 IMAP greeting (raw): \(String(describing: greeting))")
+            logger.info("IMAP greeting: \(greeting.prefix(200))")
+            logger.error("IMAP greeting (raw): \(String(describing: greeting))")
 
             // For Gmail, try CAPABILITY first to see what's supported
             if settings.isGmailAccount(email) {
-                logger.info("🔍 Checking Gmail IMAP capabilities...")
+                logger.info("Checking Gmail IMAP capabilities...")
                 sendCommand("a0 CAPABILITY")
                 let capabilityResp = await expect("a0")
-                logger.info("🔍 Gmail capabilities: \(capabilityResp.prefix(200))")
+                logger.info("Gmail capabilities: \(capabilityResp.prefix(200))")
             }
 
             // LOGIN
-            logger.info("🔐 Attempting IMAP login...")
+            logger.info("Attempting IMAP login...")
             sendCommand("a1 LOGIN \"\(email)\" \"\(password)\"")
             let loginResp = await expect("a1")
 
             // Log the full login response for debugging (without privacy protection)
-            logger.error("🔐 Full IMAP login response (raw): \(String(describing: loginResp))")
+            logger.error("IMAP login response: \(String(describing: loginResp))")
 
             guard loginResp.contains("a1 OK") else {
-                logger.error("❌ IMAP login failed: \(String(describing: loginResp))")
-                // Log each line of the response separately to see the full error
+                logger.error("IMAP login failed: \(String(describing: loginResp))")
+                // Log response details for debugging
                 let lines = loginResp.components(separatedBy: "\n")
                 for (index, line) in lines.enumerated() {
-                    logger.error("🔐 Login response line \(index) (raw): \(String(describing: line))")
+                    logger.error("Login response line \(index): \(String(describing: line))")
                 }
-
-                // Also log the raw response without privacy protection
-                logger.error("🔐 Raw login response: \(String(describing: loginResp))")
 
                 // Try to extract the actual error message by looking for patterns
                 if loginResp.contains("NO") {
-                    logger.error("🔐 IMAP NO response detected - authentication failed")
+                    logger.error("IMAP NO response detected - authentication failed")
                 }
                 if loginResp.contains("BAD") {
-                    logger.error("🔐 IMAP BAD response detected - command syntax error")
+                    logger.error("IMAP BAD response detected - command syntax error")
                 }
 
-                // Log the response length and character codes to help debug
-                logger.error("🔐 Response length: \(loginResp.count)")
-                // logger.error("🔐 Response contains 'OK': \(loginResp.contains(\"OK\"))")
-                // logger.error("🔐 Response contains 'NO': \(loginResp.contains(\"NO\"))")
-                // logger.error("🔐 Response contains 'BAD': \(loginResp.contains(\"BAD\"))")
-
-                // Log the response as hex to see exactly what we're getting
-                let hexString = loginResp.data(using: .utf8)?.map { String(format: "%02x", $0) }.joined() ?? "nil"
-                logger.error("🔐 Response as hex: \(hexString.prefix(100))")
+                // Log response analysis
+                logger.error("Response length: \(loginResp.count)")
                 return []
             }
-            logger.info("✅ IMAP login successful, about to search for verification emails")
+            logger.info("IMAP login successful, about to search for verification emails")
 
             // Note: Debug logging removed for production
 
             // Try multiple search strategies to find verification emails
             var ids: [Int] = []
 
-            // Strategy 1: Search by FROM only (last 30 minutes - extended window)
-            logger.info("🔍 Strategy 1: Searching by FROM only (last 30 minutes)")
-            let thirtyMinutesAgo = now.addingTimeInterval(-30 * 60)
-            let sinceDate30Min = dateFormatter.string(from: thirtyMinutesAgo)
-            let searchCmd1 = "a3 SEARCH SINCE \(sinceDate30Min) FROM \"\(fromAddress)\""
-            logger.info("🔍 Strategy 1 command: \(searchCmd1)")
+            // Strategy 1: Search by FROM only (since the provided timestamp)
+            let sinceDateStr = dateFormatter.string(from: since)
+            let searchCmd1 = "a3 SEARCH SINCE \(sinceDateStr) FROM \"\(fromAddress)\""
             sendCommand(searchCmd1)
             let searchResp1 = await expect("a3")
-            logger.info("🔍 Strategy 1 response: \(searchResp1.prefix(500))")
             let searchLines1 = searchResp1.components(separatedBy: "\n")
             let searchLine1 = searchLines1.first(where: { $0.contains("SEARCH") }) ?? ""
             let ids1 = searchLine1.components(separatedBy: " ").dropFirst()
                 .compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
             ids.append(contentsOf: ids1)
 
-            // Strategy 2: Search by FROM and SUBJECT (exact match, last 30 minutes)
+            // Strategy 2: Search by FROM and SUBJECT (exact match, since the provided timestamp)
             if ids.isEmpty {
-                logger.info("🔍 Strategy 2: Searching by FROM and SUBJECT (exact, last 30 minutes)")
-                let searchCmd2 = "a4 SEARCH SINCE \(sinceDate30Min) FROM \"\(fromAddress)\" SUBJECT \"\(subject)\""
-                logger.info("🔍 Strategy 2 command: \(searchCmd2)")
+                let searchCmd2 = "a4 SEARCH SINCE \(sinceDateStr) FROM \"\(fromAddress)\" SUBJECT \"\(subject)\""
                 sendCommand(searchCmd2)
                 let searchResp2 = await expect("a4")
-                logger.info("🔍 Strategy 2 response: \(searchResp2.prefix(500))")
                 let searchLines2 = searchResp2.components(separatedBy: "\n")
                 let searchLine2 = searchLines2.first(where: { $0.contains("SEARCH") }) ?? ""
                 let ids2 = searchLine2.components(separatedBy: " ").dropFirst()
@@ -1008,12 +1427,10 @@ class EmailService: ObservableObject {
                 ids.append(contentsOf: ids2)
             }
 
-            // Strategy 3: Search for any email with "verification" in subject (broader, last 30 minutes)
+            // Strategy 3: Search for any email with "verification" in subject (broader, since the provided timestamp)
             if ids.isEmpty {
-                logger.info("🔍 Strategy 3: Searching for any email with 'verification' in subject (last 30 minutes)")
-                sendCommand("a5 SEARCH SINCE \(sinceDate30Min) SUBJECT \"verification\"")
+                sendCommand("a5 SEARCH SINCE \(sinceDateStr) SUBJECT \"verification\"")
                 let searchResp3 = await expect("a5")
-                logger.info("🔍 Strategy 3 response: \(searchResp3.prefix(500))")
                 let searchLines3 = searchResp3.components(separatedBy: "\n")
                 let searchLine3 = searchLines3.first(where: { $0.contains("SEARCH") }) ?? ""
                 let ids3 = searchLine3.components(separatedBy: " ").dropFirst()
@@ -1023,16 +1440,12 @@ class EmailService: ObservableObject {
 
             // Strategy 4: Search in INBOX explicitly (some servers need this)
             if ids.isEmpty {
-                logger.info("🔍 Strategy 4: Searching in INBOX explicitly (last 30 minutes)")
                 sendCommand("a6 SELECT INBOX")
-                let selectResp = await expect("a6")
-                logger.info("🔍 INBOX select response: \(selectResp.prefix(200))")
+                _ = await expect("a6")
 
-                let searchCmd4 = "a7 SEARCH SINCE \(sinceDate30Min) FROM \"\(fromAddress)\""
-                logger.info("🔍 Strategy 4 command: \(searchCmd4)")
+                let searchCmd4 = "a7 SEARCH SINCE \(sinceDateStr) FROM \"\(fromAddress)\""
                 sendCommand(searchCmd4)
                 let searchResp4 = await expect("a7")
-                logger.info("🔍 Strategy 4 response: \(searchResp4.prefix(500))")
                 let searchLines4 = searchResp4.components(separatedBy: "\n")
                 let searchLine4 = searchLines4.first(where: { $0.contains("SEARCH") }) ?? ""
                 let ids4 = searchLine4.components(separatedBy: " ").dropFirst()
@@ -1044,19 +1457,15 @@ class EmailService: ObservableObject {
             if ids.isEmpty {
                 logger
                     .warning(
-                        "⚠️ No email IDs found in any search strategy. Listing all emails from last 30 minutes for debug...",
+                        "⚠️ No email IDs found in any search strategy. Listing all emails since provided timestamp for debug...",
                     )
-                // Search for all emails from the last 30 minutes
-                let thirtyMinutesAgo = now.addingTimeInterval(-30 * 60)
-                let sinceDate30Min = dateFormatter.string(from: thirtyMinutesAgo)
-                sendCommand("a8 SEARCH SINCE \(sinceDate30Min)")
+                // Search for all emails since the provided timestamp
+                sendCommand("a8 SEARCH SINCE \(sinceDateStr)")
                 let searchRespAll = await expect("a8")
-                logger.info("🔍 All email search response: \(searchRespAll.prefix(500))")
                 let searchLinesAll = searchRespAll.components(separatedBy: "\n")
                 let searchLineAll = searchLinesAll.first(where: { $0.contains("SEARCH") }) ?? ""
                 let idsAll = searchLineAll.components(separatedBy: " ").dropFirst()
                     .compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
-                logger.info("🔍 All email IDs in last 30 minutes: \(idsAll)")
                 // For each email, fetch and log subject and sender
                 for id in idsAll {
                     sendCommand("a9 FETCH \(id) (BODY[HEADER.FIELDS (SUBJECT FROM DATE)])")
@@ -1067,7 +1476,6 @@ class EmailService: ObservableObject {
 
             // Remove duplicates
             ids = Array(Set(ids)).sorted()
-            logger.info("🔍 Combined search found IDs: \(ids)")
 
             if ids.isEmpty {
                 logger.warning("⚠️ No email IDs found in any search strategy")
@@ -1117,8 +1525,8 @@ class EmailService: ObservableObject {
                     continue
                 }
 
-                // Skip emails older than 30 minutes (matching search window)
-                if emailDate < thirtyMinutesAgo {
+                // Skip emails older than the provided timestamp
+                if emailDate < since {
                     logger.info("⏰ Skipping email ID \(id): Too old (\(emailDate))")
                     continue
                 }
@@ -1140,6 +1548,95 @@ class EmailService: ObservableObject {
             logger.info("📋 Found \(codes.count) verification codes: \(codes)")
             return codes
         }()
+    }
+
+    // MARK: - Email Configuration Diagnostics
+
+    /// Comprehensive email configuration diagnostic
+    /// - Returns: Detailed diagnostic information
+    func diagnoseEmailConfiguration() async -> String {
+        let settings = userSettingsManager.userSettings
+        var diagnostic = "=== EMAIL CONFIGURATION DIAGNOSTIC ===\n\n"
+
+        // Check if email settings are configured
+        if !settings.hasEmailConfigured {
+            diagnostic += "❌ Email settings are not configured\n"
+            diagnostic += "Please configure your email settings in the app preferences.\n\n"
+            return diagnostic
+        }
+
+        diagnostic += "📧 Email: \(settings.imapEmail)\n"
+        diagnostic += "🔒 Server: \(settings.imapServer)\n"
+        diagnostic += "🔑 Password: \(settings.imapPassword.isEmpty ? "Not set" : "Set")\n\n"
+
+        // Check if it's a Gmail account
+        let isGmail = settings.isGmailAccount(settings.imapEmail)
+        if isGmail {
+            diagnostic += "📧 Detected Gmail account\n"
+            diagnostic += "For Gmail, you need to:\n"
+            diagnostic += "1. Enable 2-factor authentication\n"
+            diagnostic += "2. Generate an App Password\n"
+            diagnostic += "3. Use 'imap.gmail.com' as server\n"
+            diagnostic += "4. Use port 993 with SSL/TLS\n\n"
+
+            // Validate Gmail settings
+            let gmailValidation = validateGmailSettings(
+                email: settings.imapEmail,
+                password: settings.imapPassword,
+                server: settings.imapServer,
+            )
+
+            if case let .failure(error) = gmailValidation {
+                diagnostic += "❌ Gmail configuration error: \(error.localizedDescription)\n\n"
+            } else {
+                diagnostic += "✅ Gmail configuration appears valid\n\n"
+            }
+        }
+
+        // Test IMAP connection
+        diagnostic += "🔍 Testing IMAP connection...\n"
+        let testResult = await testIMAPConnection(
+            email: settings.imapEmail,
+            password: settings.imapPassword,
+            server: settings.imapServer,
+            isGmail: isGmail,
+            provider: isGmail ? .gmail : .imap,
+        )
+
+        switch testResult {
+        case let .success(message):
+            diagnostic += "✅ IMAP connection successful: \(message)\n\n"
+        case let .failure(error, provider):
+            diagnostic += "❌ \(provider == .gmail ? "Gmail" : "IMAP") connection failed: \(error)\n\n"
+
+            // Provide specific troubleshooting advice
+            if error.contains("Invalid email or password") {
+                diagnostic += "💡 Troubleshooting:\n"
+                if isGmail {
+                    diagnostic += "- Make sure you're using an App Password, not your regular Gmail password\n"
+                    diagnostic += "- Generate a new App Password: Google Account → Security → App passwords\n"
+                    diagnostic += "- App Password format: xxxx xxxx xxxx xxxx (16 lowercase letters)\n"
+                } else {
+                    diagnostic += "- Check your email and password\n"
+                    diagnostic += "- Make sure your email provider allows IMAP access\n"
+                    diagnostic += "- Try enabling 2-factor authentication and using an app password\n"
+                }
+            } else if error.contains("Connection failed") {
+                diagnostic += "💡 Troubleshooting:\n"
+                diagnostic += "- Check your internet connection\n"
+                diagnostic += "- Verify the IMAP server address is correct\n"
+                diagnostic += "- Try different ports: 993 (SSL), 143 (plain), 143 (STARTTLS)\n"
+                diagnostic += "- Check if your email provider blocks IMAP connections\n"
+            } else if error.contains("timeout") {
+                diagnostic += "💡 Troubleshooting:\n"
+                diagnostic += "- Check your internet connection\n"
+                diagnostic += "- The server might be slow or overloaded\n"
+                diagnostic += "- Try again in a few minutes\n"
+            }
+        }
+
+        diagnostic += "\n=== END DIAGNOSTIC ==="
+        return diagnostic
     }
 
     // MARK: - Notification Methods
@@ -1165,17 +1662,11 @@ class EmailService: ObservableObject {
     }
 }
 
-final class AtomicBool {
-    private let lock = NSLock()
-    private var value: Bool
-    init(_ value: Bool) { self.value = value }
-    func testAndSet() -> Bool {
-        lock.lock()
-        defer { lock.unlock() }
-        if value { return false }
-        value = true
-        return true
-    }
+private final class IMAPConnectionState: @unchecked Sendable {
+    var connectionState: String = "preparing"
+    var handshakeCompleted: Bool = false
+    var authenticationCompleted: Bool = false
+    var didResume: Bool = false
 }
 
 /// Helper function to add timeout to async operations
@@ -1188,10 +1679,6 @@ func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async -> T) a
         group.addTask {
             try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
             // Return a default value that indicates timeout
-            // For arrays, return empty array
-            if T.self == [String].self {
-                return [] as! T
-            }
             // For other types, we'd need to handle them specifically
             fatalError("Timeout not implemented for type \(T.self)")
         }

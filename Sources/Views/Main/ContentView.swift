@@ -18,7 +18,7 @@ struct ContentView: View {
             Divider()
             footerView
         }
-        .frame(width: 400, height: 600)
+        .frame(width: 440, height: 600)
         .background(Color(NSColor.windowBackgroundColor))
         .sheet(isPresented: $showingAddConfig) {
             ConfigurationDetailView(config: nil) { config in
@@ -57,6 +57,7 @@ private extension ContentView {
                     .foregroundColor(.white)
             }
             .buttonStyle(.borderedProminent)
+            .controlSize(.regular)
             .help(userSettingsManager.userSettings.localized("Add new configuration"))
         }
         .padding(.horizontal, 20)
@@ -84,12 +85,12 @@ private extension ContentView {
                             onRun: { reservationManager.runReservation(for: config, runType: .manual) },
                         )
                     }
-                    .onDelete { indices in
+                    .onDelete(perform: { indices in
                         for index in indices {
                             let config = configManager.settings.configurations[index]
                             configManager.removeConfiguration(config)
                         }
-                    }
+                    })
                 }
                 .listStyle(.inset),
             )
@@ -117,6 +118,7 @@ private extension ContentView {
                 showingAddConfig = true
             }
             .buttonStyle(.borderedProminent)
+            .controlSize(.regular)
             Spacer()
         }
         .padding()
@@ -130,13 +132,14 @@ private extension ContentView {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.blue)
+                .controlSize(.regular)
                 .help(userSettingsManager.userSettings.localized("Configure user settings and integrations"))
 
                 Spacer()
 
                 Link(
                     userSettingsManager.userSettings.localized("GitHub"),
-                    destination: URL(string: "https://github.com/Amet13/ODYSSEY")!,
+                    destination: URL(string: "https://github.com/Amet13/ODYSSEY") ?? URL(string: "https://github.com")!,
                 )
                 .font(.footnote)
                 .foregroundColor(.blue)
@@ -149,6 +152,7 @@ private extension ContentView {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.red)
+                .controlSize(.regular)
                 .help(userSettingsManager.userSettings.localized("Quit ODYSSEY"))
             }
             .padding(.horizontal, 20)
@@ -173,7 +177,13 @@ private extension ContentView {
                     let cronTime = calendar.date(byAdding: .day, value: -2, to: reservationDay) ?? reservationDay
                     let finalCronTime = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: cronTime) ?? cronTime
                     if finalCronTime > now {
-                        if nextCronTime == nil || finalCronTime < nextCronTime! {
+                        if let currentNextCronTime = nextCronTime {
+                            if finalCronTime < currentNextCronTime {
+                                nextCronTime = finalCronTime
+                                nextWeekday = weekday
+                                nextTimeSlot = timeSlot
+                            }
+                        } else {
                             nextCronTime = finalCronTime
                             nextWeekday = weekday
                             nextTimeSlot = timeSlot
@@ -289,10 +299,12 @@ struct ConfigurationRowView: View {
                 .help(userSettingsManager.userSettings.localized("Delete configuration"))
             }
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
-            Text("\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            Text(
+                "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)\(userSettingsManager.userSettings.localized("pp"))",
+            )
+            .font(.subheadline)
+            .foregroundColor(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
             VStack(alignment: .leading, spacing: 2) {
                 if !config.dayTimeSlots.isEmpty {
                     Text(formatScheduleInfo())
@@ -332,8 +344,13 @@ struct ConfigurationRowView: View {
 
     private func formatScheduleInfo() -> String {
         let sortedDays = config.dayTimeSlots.keys.sorted { day1, day2 in
-            ReservationConfig.Weekday.allCases.firstIndex(of: day1)! < ReservationConfig.Weekday.allCases
-                .firstIndex(of: day2)!
+            guard
+                let index1 = ReservationConfig.Weekday.allCases.firstIndex(of: day1),
+                let index2 = ReservationConfig.Weekday.allCases.firstIndex(of: day2)
+            else {
+                return false
+            }
+            return index1 < index2
         }
         var scheduleInfo: [String] = []
         for day in sortedDays {
@@ -369,15 +386,27 @@ struct ConfigurationRowView: View {
             case .success:
                 LastRunStatusInfo(statusKey: "success", statusColor: .green, iconName: "checkmark.circle.fill")
             case .failed:
-                LastRunStatusInfo(statusKey: "fail", statusColor: .red, iconName: "xmark.octagon.fill")
+                LastRunStatusInfo(
+                    statusKey: userSettingsManager.userSettings.localized("fail"),
+                    statusColor: .red,
+                    iconName: "xmark.octagon.fill",
+                )
             case .running:
-                LastRunStatusInfo(statusKey: "Running...", statusColor: .orange, iconName: "hourglass")
+                LastRunStatusInfo(
+                    statusKey: userSettingsManager.userSettings.localized("Running..."),
+                    statusColor: .orange,
+                    iconName: "hourglass",
+                )
             case .idle:
-                LastRunStatusInfo(statusKey: "never", statusColor: .gray, iconName: "questionmark.circle")
+                LastRunStatusInfo(
+                    statusKey: userSettingsManager.userSettings.localized("never"),
+                    statusColor: .gray,
+                    iconName: "questionmark.circle",
+                )
             }
             let runTypeKey = switch lastRun.runType {
-            case .manual: "(manual)"
-            case .automatic: "(auto)"
+            case .manual: userSettingsManager.userSettings.localized("(manual)")
+            case .automatic: userSettingsManager.userSettings.localized("(auto)")
             }
             return AnyView(
                 HStack(spacing: 6) {

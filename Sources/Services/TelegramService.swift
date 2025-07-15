@@ -83,16 +83,19 @@ class TelegramService: ObservableObject {
         do {
             let success = try await sendMessage(botToken: botToken, chatId: chatId, message: testMessage)
             if success {
-                let result = TestResult.success("Test message sent successfully!")
+                let result = TestResult
+                    .success(userSettingsManager.userSettings.localized("Test message sent successfully!"))
                 lastTestResult = result
                 return result
             } else {
-                let result = TestResult.failure("Failed to send test message")
+                let result = TestResult
+                    .failure(userSettingsManager.userSettings.localized("Failed to send test message"))
                 lastTestResult = result
                 return result
             }
         } catch {
-            let result = TestResult.failure("Error: \(error.localizedDescription)")
+            let result = TestResult
+                .failure(userSettingsManager.userSettings.localized("Error:") + " \(error.localizedDescription)")
             lastTestResult = result
             return result
         }
@@ -360,8 +363,13 @@ class TelegramService: ObservableObject {
     /// - Returns: Formatted string of time slots
     private func formatTimeSlotsInfo(for config: ReservationConfig) -> String {
         let sortedDays = config.dayTimeSlots.keys.sorted { day1, day2 in
-            ReservationConfig.Weekday.allCases.firstIndex(of: day1)! < ReservationConfig.Weekday.allCases
-                .firstIndex(of: day2)!
+            guard
+                let index1 = ReservationConfig.Weekday.allCases.firstIndex(of: day1),
+                let index2 = ReservationConfig.Weekday.allCases.firstIndex(of: day2)
+            else {
+                return false
+            }
+            return index1 < index2
         }
 
         var scheduleInfo: [String] = []

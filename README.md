@@ -63,9 +63,9 @@ A sophisticated macOS menu bar application that automates sports reservation boo
 
 ## 📋 Requirements
 
-- **macOS 12.0** or later
-- **Xcode 14.0** or later (for development)
-- **Swift 5.7** or later
+- **macOS 15.0** or later
+- **Xcode 16.0** or later (for development)
+- **Swift 6.0** or later
 - **Google Chrome** (for automation)
 - **ChromeDriver** (required for web automation)
 

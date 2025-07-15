@@ -268,12 +268,12 @@ class ReservationManager: NSObject, ObservableObject {
     // MARK: - Private Methods
 
     private func performReservation(for config: ReservationConfig, runType: RunType) async {
-        // Set up a timeout for the entire reservation process (1 minute)
+        // Set up a timeout for the entire reservation process (5 minutes)
         let timeoutTask = Task {
-            try? await Task.sleep(nanoseconds: 1 * 60 * 1_000_000_000) // 1 minute
-            logger.error("⏰ Reservation timeout reached (1 minute)")
+            try? await Task.sleep(nanoseconds: UInt64(Constants.reservationTimeout) * 1_000_000_000) // 5 minutes
+            logger.error("Reservation timeout reached (5 minutes)")
             await handleError(
-                UserSettingsManager.shared.userSettings.localized("Reservation timed out after 1 minute"),
+                UserSettingsManager.shared.userSettings.localized("Reservation timed out after 5 minutes"),
                 configId: config.id,
                 runType: runType,
             )
@@ -497,6 +497,8 @@ class ReservationManager: NSObject, ObservableObject {
                     await updateTask("Confirming contact information...")
                     await webDriverService.addRandomDelay()
 
+                    // Record timestamp before clicking confirm
+                    let verificationStart = Date()
                     let contactConfirmClicked = await webDriverService.clickContactInfoConfirmButtonWithRetry()
                     // Log page source after contact confirm
                     await webDriverService.logCurrentPageSource("after contact confirm")
@@ -512,9 +514,28 @@ class ReservationManager: NSObject, ObservableObject {
                     let verificationRequired = await webDriverService.isEmailVerificationRequired()
                     if verificationRequired {
                         logger.info("Email verification required, starting verification process...")
-                        let verificationSuccess = await webDriverService.handleEmailVerification()
+                        let verificationSuccess = await webDriverService
+                            .handleEmailVerification(verificationStart: verificationStart)
                         if !verificationSuccess {
                             logger.error("Email verification failed")
+
+                            // Capture screenshot before throwing error
+                            let screenshotData = await webDriverService.captureScreenshot()
+                            if screenshotData != nil {
+                                logger.info("Screenshot captured for email verification failure")
+                            } else {
+                                logger.warning("Failed to capture screenshot for email verification failure")
+                            }
+
+                            // Send failure notification with screenshot to Telegram
+                            if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
+                                await TelegramService.shared.sendFailureNotification(
+                                    for: config,
+                                    error: "Email verification failed",
+                                    screenshotData: screenshotData,
+                                )
+                            }
+
                             throw ReservationError.emailVerificationFailed
                         }
                         logger.info("Email verification completed successfully")
