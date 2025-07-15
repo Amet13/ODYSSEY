@@ -9,10 +9,23 @@ struct UserSettings: Codable, Equatable {
     var phoneNumber: String = ""
     var name: String = ""
 
+    // Email Provider Type
+    enum EmailProvider: String, CaseIterable, Identifiable, Codable {
+        case imap = "IMAP"
+        case gmail = "Gmail"
+        var id: String { rawValue }
+    }
+
+    var emailProvider: EmailProvider = .imap
+
     // Email/IMAP Settings
     var imapEmail: String = ""
     var imapPassword: String = ""
     var imapServer: String = ""
+
+    // Gmail Settings
+    var gmailEmail: String = ""
+    var gmailAppPassword: String = ""
 
     // Telegram Integration (Optional)
     var telegramEnabled: Bool = false
@@ -44,9 +57,12 @@ struct UserSettings: Codable, Equatable {
     static func == (lhs: UserSettings, rhs: UserSettings) -> Bool {
         return lhs.phoneNumber == rhs.phoneNumber &&
             lhs.name == rhs.name &&
+            lhs.emailProvider == rhs.emailProvider &&
             lhs.imapEmail == rhs.imapEmail &&
             lhs.imapPassword == rhs.imapPassword &&
             lhs.imapServer == rhs.imapServer &&
+            lhs.gmailEmail == rhs.gmailEmail &&
+            lhs.gmailAppPassword == rhs.gmailAppPassword &&
             lhs.telegramEnabled == rhs.telegramEnabled &&
             lhs.telegramBotToken == rhs.telegramBotToken &&
             lhs.telegramChatId == rhs.telegramChatId &&
@@ -55,8 +71,7 @@ struct UserSettings: Codable, Equatable {
 
     // Validation
     var isValid: Bool {
-        !phoneNumber.isEmpty && !name.isEmpty && !imapEmail.isEmpty && !imapPassword.isEmpty && !imapServer.isEmpty &&
-            isPhoneNumberValid && isEmailValid
+        !phoneNumber.isEmpty && !name.isEmpty && hasEmailConfigured && isPhoneNumberValid && isEmailValid
     }
 
     var hasTelegramConfigured: Bool {
@@ -64,7 +79,27 @@ struct UserSettings: Codable, Equatable {
     }
 
     var hasEmailConfigured: Bool {
-        !imapEmail.isEmpty && !imapPassword.isEmpty && !imapServer.isEmpty && isEmailValid
+        let isGmail = isGmailAccount(imapEmail)
+        if isGmail {
+            return !imapEmail.isEmpty && !imapPassword.isEmpty && isGmailEmailValid && isGmailAppPasswordValid
+        } else {
+            return !imapEmail.isEmpty && !imapPassword.isEmpty && !imapServer.isEmpty && isEmailValid
+        }
+    }
+
+    var currentEmail: String {
+        return imapEmail
+    }
+
+    var currentPassword: String {
+        return imapPassword
+    }
+
+    var currentServer: String {
+        if isGmailAccount(imapEmail) {
+            return "imap.gmail.com"
+        }
+        return imapServer
     }
 
     // Phone number validation (10 digits)
@@ -73,11 +108,40 @@ struct UserSettings: Codable, Equatable {
         return cleaned.count == 10
     }
 
-    // Email validation
+    // Email validation for any email
     var isEmailValid: Bool {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         return emailPredicate.evaluate(with: imapEmail)
+    }
+
+    // Gmail email validation
+    var isGmailEmailValid: Bool {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
+        return emailPredicate.evaluate(with: imapEmail)
+    }
+
+    // Gmail app password validation (format: xxxx xxxx xxxx xxxx)
+    var isGmailAppPasswordValid: Bool {
+        let trimmedPassword = imapPassword.trimmingCharacters(in: .whitespacesAndNewlines)
+        let appPasswordPattern = "^[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}$"
+        let appPasswordRegex = try? NSRegularExpression(pattern: appPasswordPattern)
+
+        if let regex = appPasswordRegex {
+            let range = NSRange(trimmedPassword.startIndex..., in: trimmedPassword)
+            return regex.firstMatch(in: trimmedPassword, range: range) != nil
+        } else {
+            // Fallback validation if regex fails
+            let cleanedPassword = trimmedPassword.replacingOccurrences(of: " ", with: "")
+            return cleanedPassword.count == 16 && cleanedPassword.allSatisfy { $0.isLetter && $0.isLowercase }
+        }
+    }
+
+    // Helper function to detect Gmail accounts
+    func isGmailAccount(_ email: String) -> Bool {
+        let domain = email.components(separatedBy: "@").last?.lowercased() ?? ""
+        return domain == "gmail.com" || domain.hasSuffix(".gmail.com")
     }
 
     // Telegram bot token validation (format: number:letters)
@@ -126,13 +190,23 @@ struct UserSettings: Codable, Equatable {
             "Full Name": "Full Name",
             "Phone Number": "Phone Number",
             "Phone number must be exactly 10 digits": "Phone number must be exactly 10 digits",
+            "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 lowercase letters with spaces every 4 characters). Example: 'ffks newj eghl hgmj'": "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 lowercase letters with spaces every 4 characters)",
+            "Only one email provider can be active at a time. Switching will clear the other provider's settings.": "Only one email provider can be active at a time. Switching will clear the other provider's settings.",
             "Email Settings": "Email Settings",
+            "Email Provider": "Email Provider",
             "Email Address": "Email Address",
             "Please enter a valid email address": "Please enter a valid email address",
             "IMAP Server": "IMAP Server",
             "Password": "Password",
+            "App Password": "App Password",
+            "Gmail App Password": "Gmail App Password",
+            "How to create Gmail App Password": "How to create Gmail App Password",
+            "Test Gmail Connection": "Test Gmail Connection",
+            "Testing Gmail connection...": "Testing Gmail connection...",
+            "Gmail connection successful!": "Gmail connection successful!",
             "Email settings configured": "Email settings configured",
             "Test IMAP Connection": "Test IMAP Connection",
+            "Test Email Connection": "Test Email Connection",
             "Testing email connection...": "Testing email connection...",
             "Telegram Integration (Optional)": "Telegram Integration (Optional)",
             "Enable Telegram Integration": "Enable Telegram Integration",
@@ -201,6 +275,7 @@ struct UserSettings: Codable, Equatable {
             "Authentication failed:": "Authentication failed:",
             "Command failed:": "Command failed:",
             "IMAP test failed:": "IMAP test failed:",
+            "Gmail test failed:": "Gmail test failed:",
             "Email address is empty": "Email address is empty",
             "Password is empty": "Password is empty",
             "IMAP server is empty": "IMAP server is empty",
@@ -317,13 +392,23 @@ struct UserSettings: Codable, Equatable {
             "Full Name": "Nom complet",
             "Phone Number": "Numéro de téléphone",
             "Phone number must be exactly 10 digits": "Le numéro de téléphone doit avoir exactement 10 chiffres",
+            "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 lowercase letters with spaces every 4 characters). Example: 'ffks newj eghl hgmj'": "Le mot de passe d'application Gmail doit être au format 'xxxx xxxx xxxx xxxx' (16 lettres minuscules avec des espaces tous les 4 caractères)",
+            "Only one email provider can be active at a time. Switching will clear the other provider's settings.": "Un seul fournisseur de courriel peut être actif à la fois. Changer de fournisseur effacera les paramètres de l'autre fournisseur.",
             "Email Settings": "Paramètres de courriel",
+            "Email Provider": "Fournisseur de courriel",
             "Email Address": "Adresse de courriel",
             "Please enter a valid email address": "Veuillez entrer une adresse de courriel valide",
             "IMAP Server": "Serveur IMAP",
             "Password": "Mot de passe",
+            "App Password": "Mot de passe d'application",
+            "Gmail App Password": "Mot de passe d'application Gmail",
+            "How to create Gmail App Password": "Comment créer un mot de passe d'application Gmail",
+            "Test Gmail Connection": "Tester la connexion Gmail",
+            "Testing Gmail connection...": "Test de connexion Gmail...",
+            "Gmail connection successful!": "Connexion Gmail réussie!",
             "Email settings configured": "Paramètres de courriel configurés",
             "Test IMAP Connection": "Tester la connexion IMAP",
+            "Test Email Connection": "Tester la connexion courriel",
             "Testing email connection...": "Test de connexion courriel...",
             "Telegram Integration (Optional)": "Intégration Telegram (optionnel)",
             "Enable Telegram Integration": "Activer l'intégration Telegram",
@@ -387,6 +472,7 @@ struct UserSettings: Codable, Equatable {
             "Authentication failed:": "Échec d'authentification :",
             "Command failed:": "Commande échouée :",
             "IMAP test failed:": "Test IMAP échoué :",
+            "Gmail test failed:": "Test Gmail échoué :",
             "Email address is empty": "L'adresse de courriel est vide",
             "Password is empty": "Le mot de passe est vide",
             "IMAP server is empty": "Le serveur IMAP est vide",

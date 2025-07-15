@@ -119,6 +119,8 @@ class ReservationManager: NSObject, ObservableObject {
         case emailFieldNotFound
         case nameFieldNotFound
         case contactInfoConfirmButtonNotFound
+        case emailVerificationFailed
+        case reservationFailed
 
         var errorDescription: String? {
             switch self {
@@ -152,6 +154,12 @@ class ReservationManager: NSObject, ObservableObject {
             case .contactInfoConfirmButtonNotFound:
                 UserSettingsManager.shared.userSettings
                     .localized("Contact information confirm button not found on page")
+            case .emailVerificationFailed:
+                UserSettingsManager.shared.userSettings
+                    .localized("Email verification failed")
+            case .reservationFailed:
+                UserSettingsManager.shared.userSettings
+                    .localized("Reservation was not successful")
             }
         }
     }
@@ -219,316 +227,317 @@ class ReservationManager: NSObject, ObservableObject {
     // MARK: - Private Methods
 
     private func performReservation(for config: ReservationConfig, runType: RunType) async {
-        do {
-            // Step 1: Start WebDriver session and navigate directly to the URL
-            await updateTask("Starting WebDriver session")
-            guard await webDriverService.startSession() else {
-                await handleError(
-                    UserSettingsManager.shared.userSettings.localized("Failed to start WebDriver session"),
-                    configId: config.id,
-                    runType: runType,
-                )
-                return
-            }
-
-            // Step 2: Navigate to facility URL
-            await updateTask("Navigating to facility")
-            let navigationResult = await webDriverService.navigate(to: config.facilityURL)
-            // Log page source after navigation
-            await webDriverService.logCurrentPageSource("after navigation")
-            guard navigationResult else {
-                await handleError(
-                    UserSettingsManager.shared.userSettings.localized("Failed to navigate to facility"),
-                    configId: config.id,
-                    runType: runType,
-                )
-                return
-            }
-
-            // Step 2.5: Handle cookie consent if present
-            await updateTask("Checking for cookie consent...")
-            _ = await webDriverService.handleCookieConsent()
-
-            // Step 2.6: Inject anti-detection script immediately after navigation
-            await webDriverService.injectAntiDetectionScript(
-                userAgent: webDriverService.currentUserAgent,
-                language: webDriverService.currentLanguage,
-            )
-
-            // Step 2.7: Simulate random scrolling and mouse movement
-            if Bool.random() { await webDriverService.simulateScrolling() }
-            if Bool.random() { await webDriverService.moveMouseRandomly() }
-
-            // Step 3: Wait for page to load
-            await updateTask("Waiting for page to load")
-
-            // Wait for DOM to be fully ready with sport buttons
-            let domReady = await webDriverService.waitForDOMReady()
-            if !domReady {
-                logger.error("DOM failed to load properly within timeout")
-                throw ReservationError.pageLoadTimeout
-            }
-
-            logger.info("Page loaded successfully")
-
-            // Step 4: Find and click sport button
-            await updateTask("Looking for sport: \(config.sportName)")
-            logger.info("Searching for sport button with text: '\(config.sportName, privacy: .private)'")
-            // Simulate human-like mouse movement and delay before interaction
-            await webDriverService.simulateMouseMovement(to: config.sportName)
-            await webDriverService.addRandomDelay()
-            if Bool.random() { await webDriverService.simulateScrolling() }
-            if Bool.random() { await webDriverService.moveMouseRandomly() }
-
-            let buttonClicked = await webDriverService.findAndClickElement(withText: config.sportName)
-            // Log page source after sport click
-            await webDriverService.logCurrentPageSource("after sport click")
-            if buttonClicked {
-                logger.info("Successfully clicked sport button: \(config.sportName, privacy: .private)")
-
-                // Step 5: Wait for group size page to load
-                await updateTask("Waiting for group size page...")
-                let groupSizePageReady = await webDriverService.waitForGroupSizePage()
-                if !groupSizePageReady {
-                    logger.error("Group size page failed to load within timeout")
-                    throw ReservationError.groupSizePageLoadTimeout
-                }
-
-                logger.info("Group size page loaded successfully")
-
-                // Step 6: Fill number of people field
-                await updateTask("Setting number of people: \(config.numberOfPeople)")
-                await webDriverService.addRandomDelay()
-
-                let peopleFilled = await webDriverService.fillNumberOfPeople(config.numberOfPeople)
-                if !peopleFilled {
-                    logger.warning("Regular fill method failed, trying JavaScript method...")
-                    let peopleFilledJS = await webDriverService.fillNumberOfPeopleWithJavaScript(config.numberOfPeople)
-                    if !peopleFilledJS {
-                        logger.error("Both regular and JavaScript fill methods failed")
-                        throw ReservationError.numberOfPeopleFieldNotFound
-                    }
-                }
-
-                logger.info("Successfully filled number of people: \(config.numberOfPeople)")
-
-                // Step 7: Click confirm button
-                await updateTask("Confirming group size...")
-                await webDriverService.addRandomDelay()
-
-                // Check button status before clicking
-                let buttonStatus = await webDriverService.checkConfirmButtonStatus()
-                if !buttonStatus {
-                    logger.error("Confirm button is not clickable")
-                    throw ReservationError.confirmButtonNotFound
-                }
-
-                let confirmClicked = await webDriverService.clickConfirmButton()
-                // Log page source after group size confirm
-                await webDriverService.logCurrentPageSource("after group size confirm")
-                if !confirmClicked {
-                    logger.error("Failed to click confirm button")
-                    throw ReservationError.confirmButtonNotFound
-                }
-
-                logger.info("Successfully clicked confirm button")
-
-                // Step 8: Wait for time selection page to load
-                await updateTask("Waiting for time selection page...")
-                let timeSelectionPageReady = await webDriverService.waitForTimeSelectionPage()
-                if !timeSelectionPageReady {
-                    logger.error("Time selection page failed to load within timeout")
-                    throw ReservationError.timeSelectionPageLoadTimeout
-                }
-
-                logger.info("Time selection page loaded successfully")
-
-                // Step 9: Select time slot based on configuration
-                await updateTask("Selecting time slot...")
-                await webDriverService.addRandomDelay()
-
-                // Get the first available day and time from configuration
-                let selectedDay = config.dayTimeSlots.keys.first
-                let selectedTimeSlot = selectedDay.flatMap { day in
-                    config.dayTimeSlots[day]?.first
-                }
-
-                if let day = selectedDay, let timeSlot = selectedTimeSlot {
-                    let dayName = day.shortName // Use short name like "Tue"
-                    let timeString = timeSlot.formattedTime() // Format like "8:30 AM"
-
-                    logger.info("Attempting to select: \(dayName) at \(timeString, privacy: .private)")
-
-                    let timeSlotSelected = await webDriverService.selectTimeSlot(
-                        dayName: dayName,
-                        timeString: timeString,
-                    )
-                    // Log page source after time slot selection
-                    await webDriverService.logCurrentPageSource("after time slot selection")
-                    if !timeSlotSelected {
-                        logger.error("Failed to select time slot: \(dayName) at \(timeString, privacy: .private)")
-                        throw ReservationError.timeSlotSelectionFailed
-                    }
-
-                    logger.info("Successfully selected time slot: \(dayName) at \(timeString, privacy: .private)")
-                } else {
-                    logger.warning("No time slots configured, skipping time selection")
-                }
-
-                // Step 10: Wait for contact information page to load
-                await updateTask("Waiting for contact information page...")
-                // Log page source before contact info check
-                await webDriverService.logCurrentPageSource("before contact info check")
-                let contactInfoPageReady = await webDriverService.waitForContactInfoPage()
-                if !contactInfoPageReady {
-                    logger.error("Contact information page failed to load within timeout")
-                    throw ReservationError.contactInfoPageLoadTimeout
-                }
-
-                logger.info("Contact information page loaded successfully")
-
-                // Step 11: Fill contact information form
-                await updateTask("Filling contact information...")
-                // Human-like delay before starting to fill form
-                await webDriverService.addRandomDelay()
-
-                // Simulate human-like behavior (mouse movement, scrolling)
-                await webDriverService.simulateScrolling()
-                await webDriverService.moveMouseRandomly()
-
-                // Get user settings for contact information
-                let userSettings = UserSettingsManager.shared.userSettings
-
-                // Fill phone number (remove hyphens as per form instructions)
-                let phoneNumber = userSettings.phoneNumber.replacingOccurrences(of: "-", with: "")
-                let phoneFilled = await webDriverService.fillPhoneNumber(phoneNumber)
-                if !phoneFilled {
-                    logger.error("Failed to fill phone number field")
-                    throw ReservationError.phoneNumberFieldNotFound
-                }
-
-                logger.info("Successfully filled phone number")
-
-                // Human-like delay between fields
-                await webDriverService.addRandomDelay()
-
-                // Simulate human-like behavior between fields
-                await webDriverService.moveMouseRandomly()
-
-                // Fill email address
-                let emailFilled = await webDriverService.fillEmail(userSettings.imapEmail)
-                if !emailFilled {
-                    logger.error("Failed to fill email field")
-                    throw ReservationError.emailFieldNotFound
-                }
-
-                logger.info("Successfully filled email address")
-
-                // Human-like delay between fields
-                await webDriverService.addRandomDelay()
-
-                // Simulate human-like behavior between fields
-                await webDriverService.moveMouseRandomly()
-
-                // Fill name
-                let nameFilled = await webDriverService.fillName(userSettings.name)
-                if !nameFilled {
-                    logger.error("Failed to fill name field")
-                    throw ReservationError.nameFieldNotFound
-                }
-
-                logger.info("Successfully filled name")
-
-                // Step 12: Click confirm button on contact information page
-                await updateTask("Confirming contact information...")
-                // Human-like delay before confirming
-                await webDriverService.addRandomDelay()
-
-                // Simulate human-like behavior before confirming
-                await webDriverService.simulateScrolling()
-                await webDriverService.moveMouseRandomly()
-
-                let contactInfoConfirmed = await webDriverService.clickContactInfoConfirmButton()
-                if !contactInfoConfirmed {
-                    logger.error("Failed to click contact info confirm button")
-                    throw ReservationError.contactInfoConfirmButtonNotFound
-                }
-
-                logger.info("Successfully confirmed contact information")
-
-                // Step 13: Success - wait a moment and close browser tab
-                await updateTask("Success! Closing browser tab...")
-                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
-
-                // Capture screenshot before closing browser
-                var screenshotData: Data?
-                if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
-                    screenshotData = await webDriverService.captureScreenshot()
-                }
-
-                // Close only the current browser tab, not the entire session
-                await webDriverService.stopSession()
-
-                // Update status to success
-                await MainActor.run {
-                    self.isRunning = false
-                    self.lastRunStatus = .success
-                    self.lastRunInfo[config.id] = (.success, Date(), runType)
-                    self.lastRunDate = Date()
-                    self.currentTask = UserSettingsManager.shared.userSettings
-                        .localized("Reservation completed successfully")
-                }
-                logger.info("Reservation completed successfully for \(config.sportName, privacy: .private)")
-
-                // Send notifications if configured
-                if UserSettingsManager.shared.userSettings.hasEmailConfigured {
-                    await EmailService.shared.sendSuccessNotification(for: config)
-                }
-
-                if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
-                    await TelegramService.shared.sendSuccessNotification(for: config, screenshotData: screenshotData)
-                }
-
-                return
-            } else {
-                logger.error("Failed to click sport button: \(config.sportName, privacy: .private)")
-                await MainActor.run {
-                    self.lastRunInfo[config.id] = (
-                        .failed(UserSettingsManager.shared.userSettings.localized("Sport button not found on page")),
-                        Date(),
-                        runType,
-                    )
-                }
-                throw ReservationError.sportButtonNotFound
-            }
-
-        } catch {
-            // Capture screenshot before closing browser
-            var screenshotData: Data?
-            if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
-                screenshotData = await webDriverService.captureScreenshot()
-            }
-
-            // Close browser tab on failure (same as success)
-            await updateTask("Error occurred. Closing browser tab...")
-            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
-            await webDriverService.stopSession()
-
-            // Send Telegram notification with screenshot if enabled
-            if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
-                await TelegramService.shared.sendFailureNotification(
-                    for: config,
-                    error: error.localizedDescription,
-                    screenshotData: screenshotData,
-                )
-            }
-
+        // Set up a timeout for the entire reservation process (5 minutes)
+        let timeoutTask = Task {
+            try? await Task.sleep(nanoseconds: 5 * 60 * 1_000_000_000) // 5 minutes
+            logger.error("⏰ Reservation timeout reached (5 minutes)")
             await handleError(
-                UserSettingsManager.shared.userSettings
-                    .localized("Automation error:") + " \(error.localizedDescription)",
+                UserSettingsManager.shared.userSettings.localized("Reservation timed out after 5 minutes"),
                 configId: config.id,
                 runType: runType,
             )
+            await webDriverService.cleanup()
+        }
+
+        let reservationTask = Task {
+            do {
+                // Step 1: Start WebDriver session and navigate directly to the URL
+                await updateTask("Starting WebDriver session")
+                guard await webDriverService.startSession() else {
+                    await handleError(
+                        UserSettingsManager.shared.userSettings.localized("Failed to start WebDriver session"),
+                        configId: config.id,
+                        runType: runType,
+                    )
+                    return
+                }
+
+                // Step 2: Navigate to facility URL
+                await updateTask("Navigating to facility")
+                let navigationResult = await webDriverService.navigate(to: config.facilityURL)
+                // Log page source after navigation
+                await webDriverService.logCurrentPageSource("after navigation")
+                guard navigationResult else {
+                    await handleError(
+                        UserSettingsManager.shared.userSettings.localized("Failed to navigate to facility"),
+                        configId: config.id,
+                        runType: runType,
+                    )
+                    return
+                }
+
+                // Step 2.5: Handle cookie consent if present
+                await updateTask("Checking for cookie consent...")
+                _ = await webDriverService.handleCookieConsent()
+
+                // Step 2.6: Inject anti-detection script immediately after navigation
+                await webDriverService.injectAntiDetectionScript(
+                    userAgent: webDriverService.currentUserAgent,
+                    language: webDriverService.currentLanguage,
+                )
+
+                // Step 2.7: Simulate random scrolling and mouse movement
+                if Bool.random() { await webDriverService.simulateScrolling() }
+                if Bool.random() { await webDriverService.moveMouseRandomly() }
+
+                // Step 3: Wait for page to load
+                await updateTask("Waiting for page to load")
+
+                // Wait for DOM to be fully ready with sport buttons
+                let domReady = await webDriverService.waitForDOMReady()
+                if !domReady {
+                    logger.error("DOM failed to load properly within timeout")
+                    throw ReservationError.pageLoadTimeout
+                }
+
+                logger.info("Page loaded successfully")
+
+                // Step 4: Find and click sport button
+                await updateTask("Looking for sport: \(config.sportName)")
+                logger.info("Searching for sport button with text: '\(config.sportName, privacy: .private)'")
+                // Simulate human-like mouse movement and delay before interaction
+                await webDriverService.simulateMouseMovement(to: config.sportName)
+                await webDriverService.addRandomDelay()
+                if Bool.random() { await webDriverService.simulateScrolling() }
+                if Bool.random() { await webDriverService.moveMouseRandomly() }
+
+                let buttonClicked = await webDriverService.findAndClickElement(withText: config.sportName)
+                // Log page source after sport click
+                await webDriverService.logCurrentPageSource("after sport click")
+                if buttonClicked {
+                    logger.info("Successfully clicked sport button: \(config.sportName, privacy: .private)")
+
+                    // Step 5: Wait for group size page to load
+                    await updateTask("Waiting for group size page...")
+                    let groupSizePageReady = await webDriverService.waitForGroupSizePage()
+                    if !groupSizePageReady {
+                        logger.error("Group size page failed to load within timeout")
+                        throw ReservationError.groupSizePageLoadTimeout
+                    }
+
+                    logger.info("Group size page loaded successfully")
+
+                    // Step 6: Fill number of people field
+                    await updateTask("Setting number of people: \(config.numberOfPeople)")
+                    await webDriverService.addRandomDelay()
+
+                    let peopleFilled = await webDriverService.fillNumberOfPeople(config.numberOfPeople)
+                    if !peopleFilled {
+                        logger.warning("Regular fill method failed, trying JavaScript method...")
+                        let peopleFilledJS = await webDriverService
+                            .fillNumberOfPeopleWithJavaScript(config.numberOfPeople)
+                        if !peopleFilledJS {
+                            logger.error("Both regular and JavaScript fill methods failed")
+                            throw ReservationError.numberOfPeopleFieldNotFound
+                        }
+                    }
+
+                    logger.info("Successfully filled number of people: \(config.numberOfPeople)")
+
+                    // Step 7: Click confirm button
+                    await updateTask("Confirming group size...")
+                    await webDriverService.addRandomDelay()
+
+                    // Check button status before clicking
+                    let buttonStatus = await webDriverService.checkConfirmButtonStatus()
+                    if !buttonStatus {
+                        logger.error("Confirm button is not clickable")
+                        throw ReservationError.confirmButtonNotFound
+                    }
+
+                    let confirmClicked = await webDriverService.clickConfirmButton()
+                    // Log page source after group size confirm
+                    await webDriverService.logCurrentPageSource("after group size confirm")
+                    if !confirmClicked {
+                        logger.error("Failed to click confirm button")
+                        throw ReservationError.confirmButtonNotFound
+                    }
+
+                    logger.info("Successfully clicked confirm button")
+
+                    // Step 8: Wait for time selection page to load
+                    await updateTask("Waiting for time selection page...")
+                    let timeSelectionPageReady = await webDriverService.waitForTimeSelectionPage()
+                    if !timeSelectionPageReady {
+                        logger.error("Time selection page failed to load within timeout")
+                        throw ReservationError.timeSelectionPageLoadTimeout
+                    }
+
+                    logger.info("Time selection page loaded successfully")
+
+                    // Step 9: Select time slot based on configuration
+                    await updateTask("Selecting time slot...")
+                    await webDriverService.addRandomDelay()
+
+                    // Get the first available day and time from configuration
+                    let selectedDay = config.dayTimeSlots.keys.first
+                    let selectedTimeSlot = selectedDay.flatMap { day in
+                        config.dayTimeSlots[day]?.first
+                    }
+
+                    if let day = selectedDay, let timeSlot = selectedTimeSlot {
+                        let dayName = day.shortName // Use short name like "Tue"
+                        let timeString = timeSlot.formattedTime() // Format like "8:30 AM"
+
+                        logger.info("Attempting to select: \(dayName) at \(timeString, privacy: .private)")
+
+                        let timeSlotSelected = await webDriverService.selectTimeSlot(
+                            dayName: dayName,
+                            timeString: timeString,
+                        )
+                        // Log page source after time slot selection
+                        await webDriverService.logCurrentPageSource("after time slot selection")
+                        if !timeSlotSelected {
+                            logger.error("Failed to select time slot: \(dayName) at \(timeString, privacy: .private)")
+                            throw ReservationError.timeSlotSelectionFailed
+                        }
+
+                        logger.info("Successfully selected time slot: \(dayName) at \(timeString, privacy: .private)")
+                    } else {
+                        logger.warning("No time slots configured, skipping time selection")
+                    }
+
+                    // Step 10: Wait for contact information page to load
+                    await updateTask("Waiting for contact information page...")
+                    // Log page source before contact info check
+                    await webDriverService.logCurrentPageSource("before contact info check")
+                    let contactInfoPageReady = await webDriverService.waitForContactInfoPage()
+                    if !contactInfoPageReady {
+                        logger.error("Contact information page failed to load within timeout")
+                        throw ReservationError.contactInfoPageLoadTimeout
+                    }
+
+                    logger.info("Contact information page loaded successfully")
+
+                    // Step 11: Fill contact information form
+                    await updateTask("Filling contact information...")
+                    // Human-like delay before starting to fill form
+                    await webDriverService.addRandomDelay()
+
+                    // Simulate human-like behavior (mouse movement, scrolling)
+                    await webDriverService.simulateScrolling()
+                    await webDriverService.moveMouseRandomly()
+
+                    // Get user settings for contact information
+                    let userSettings = UserSettingsManager.shared.userSettings
+
+                    // Fill phone number (remove hyphens as per form instructions)
+                    let phoneNumber = userSettings.phoneNumber.replacingOccurrences(of: "-", with: "")
+                    let phoneFilled = await webDriverService.fillPhoneNumber(phoneNumber)
+                    if !phoneFilled {
+                        logger.error("Failed to fill phone number")
+                        throw ReservationError.phoneNumberFieldNotFound
+                    }
+
+                    logger.info("Successfully filled phone number")
+
+                    // Fill email address
+                    let emailFilled = await webDriverService.fillEmail(userSettings.imapEmail)
+                    if !emailFilled {
+                        logger.error("Failed to fill email address")
+                        throw ReservationError.emailFieldNotFound
+                    }
+
+                    logger.info("Successfully filled email address")
+
+                    // Fill name
+                    let nameFilled = await webDriverService.fillName(userSettings.name)
+                    if !nameFilled {
+                        logger.error("Failed to fill name")
+                        throw ReservationError.nameFieldNotFound
+                    }
+
+                    logger.info("Successfully filled name")
+
+                    // Step 12: Click confirm button for contact information
+                    await updateTask("Confirming contact information...")
+                    await webDriverService.addRandomDelay()
+
+                    let contactConfirmClicked = await webDriverService.clickContactInfoConfirmButton()
+                    // Log page source after contact confirm
+                    await webDriverService.logCurrentPageSource("after contact confirm")
+                    if !contactConfirmClicked {
+                        logger.error("Failed to click contact confirm button")
+                        throw ReservationError.contactInfoConfirmButtonNotFound
+                    }
+
+                    logger.info("Successfully clicked contact confirm button")
+
+                    // Step 13: Handle email verification if required
+                    await updateTask("Checking for email verification...")
+                    let verificationRequired = await webDriverService.isEmailVerificationRequired()
+                    if verificationRequired {
+                        logger.info("Email verification required, starting verification process...")
+                        let verificationSuccess = await webDriverService.handleEmailVerification()
+                        if !verificationSuccess {
+                            logger.error("Email verification failed")
+                            throw ReservationError.emailVerificationFailed
+                        }
+                        logger.info("Email verification completed successfully")
+                    } else {
+                        logger.info("No email verification required")
+                    }
+
+                    // Step 14: Check for success
+                    await updateTask("Checking reservation success...")
+                    let success = await webDriverService.checkReservationSuccess()
+                    if success {
+                        logger.info("🎉 Reservation completed successfully!")
+
+                        // Update status to success
+                        await MainActor.run {
+                            self.isRunning = false
+                            self.lastRunStatus = .success
+                            self.lastRunInfo[config.id] = (.success, Date(), runType)
+                            self.lastRunDate = Date()
+                            self.currentTask = UserSettingsManager.shared.userSettings
+                                .localized("Reservation completed successfully")
+                        }
+
+                        // Send notifications if configured
+                        if UserSettingsManager.shared.userSettings.hasEmailConfigured {
+                            await EmailService.shared.sendSuccessNotification(for: config)
+                        }
+
+                        if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
+                            let screenshotData = await webDriverService.captureScreenshot()
+                            await TelegramService.shared.sendSuccessNotification(
+                                for: config,
+                                screenshotData: screenshotData,
+                            )
+                        }
+                    } else {
+                        logger.error("Reservation was not successful")
+                        throw ReservationError.reservationFailed
+                    }
+
+                } else {
+                    logger.error("Failed to click sport button: \(config.sportName, privacy: .private)")
+                    throw ReservationError.sportButtonNotFound
+                }
+
+            } catch {
+                logger.error("Reservation failed with error: \(error)")
+                await handleError(
+                    error.localizedDescription,
+                    configId: config.id,
+                    runType: runType,
+                )
+            }
+        }
+
+        // Wait for either the reservation to complete or timeout
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask { await reservationTask.value }
+            group.addTask { await timeoutTask.value }
+
+            // Wait for the first task to complete
+            for await _ in group {
+                // Cancel the other task
+                timeoutTask.cancel()
+                reservationTask.cancel()
+                break
+            }
         }
     }
 

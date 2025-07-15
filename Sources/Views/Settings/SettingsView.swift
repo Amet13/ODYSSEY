@@ -20,6 +20,12 @@ struct SettingsFormView: View {
 
     private let logger = Logger(subsystem: "com.odyssey.app", category: "SettingsView")
 
+    // Helper function to detect Gmail accounts
+    private func isGmailAccount(_ email: String) -> Bool {
+        let domain = email.components(separatedBy: "@").last?.lowercased() ?? ""
+        return domain == "gmail.com" || domain.hasSuffix(".gmail.com")
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Header
@@ -98,12 +104,19 @@ struct SettingsFormView: View {
                         icon: "envelope.circle",
                     ) {
                         VStack(spacing: 16) {
+                            // Email Address Field
                             settingsField(
                                 title: userSettingsManager.userSettings.localized("Email Address"),
                                 value: $userSettingsManager.userSettings.imapEmail,
-                                placeholder: "my-email@my-domain.com",
+                                placeholder: "your-email@domain.com",
                                 icon: "envelope",
                             )
+                            .onChange(of: userSettingsManager.userSettings.imapEmail) { newEmail in
+                                // Auto-set IMAP server for Gmail accounts
+                                if isGmailAccount(newEmail) {
+                                    userSettingsManager.userSettings.imapServer = "imap.gmail.com"
+                                }
+                            }
 
                             if
                                 !userSettingsManager.userSettings.imapEmail.isEmpty,
@@ -122,80 +135,133 @@ struct SettingsFormView: View {
                                 }
                             }
 
+                            // IMAP Server Field (auto-filled for Gmail)
                             settingsField(
                                 title: userSettingsManager.userSettings.localized("IMAP Server"),
                                 value: $userSettingsManager.userSettings.imapServer,
                                 placeholder: "mail.myserver.com",
                                 icon: "server.rack",
+                                isReadOnly: isGmailAccount(userSettingsManager.userSettings.imapEmail),
                             )
 
+                            // Password/App Password Field
                             settingsField(
-                                title: userSettingsManager.userSettings.localized("Password"),
+                                title: isGmailAccount(userSettingsManager.userSettings.imapEmail) ?
+                                    userSettingsManager.userSettings.localized("Gmail App Password") :
+                                    userSettingsManager.userSettings.localized("Password"),
                                 value: $userSettingsManager.userSettings.imapPassword,
-                                placeholder: "my-password",
+                                placeholder: isGmailAccount(userSettingsManager.userSettings.imapEmail) ?
+                                    "16-character app password" : "my-password",
                                 icon: "lock",
                                 isSecure: true,
                             )
 
-                            if userSettingsManager.userSettings.hasEmailConfigured {
-                                VStack(spacing: 8) {
+                            // Gmail App Password validation and help
+                            if isGmailAccount(userSettingsManager.userSettings.imapEmail) {
+                                if
+                                    !userSettingsManager.userSettings.imapPassword.isEmpty,
+                                    !userSettingsManager.userSettings.isGmailAppPasswordValid
+                                {
                                     HStack {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.green)
-                                        Text(userSettingsManager.userSettings.localized("Email settings configured"))
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
+                                        Image(systemName: "exclamationmark.triangle.fill")
+                                            .foregroundColor(.orange)
+                                        Text(
+                                            userSettingsManager.userSettings
+                                                .localized(
+                                                    "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 lowercase letters with spaces every 4 characters)",
+                                                ),
+                                        )
+                                        .font(.caption)
+                                        .foregroundColor(.orange)
                                         Spacer()
                                     }
+                                }
 
-                                    Button(userSettingsManager.userSettings.localized("Test IMAP Connection")) {
-                                        emailService.lastTestResult = nil
-                                        Task {
-                                            let result = await emailService.testIMAPConnection(
-                                                email: userSettingsManager.userSettings.imapEmail,
-                                                password: userSettingsManager.userSettings.imapPassword,
-                                                server: userSettingsManager.userSettings.imapServer,
-                                            )
-                                            await MainActor.run {
-                                                emailService.lastTestResult = result
+                                HStack {
+                                    Button(
+                                        userSettingsManager.userSettings
+                                            .localized("How to create Gmail App Password"),
+                                    ) {
+                                        if
+                                            let url =
+                                            URL(string: "https://support.google.com/accounts/answer/185833")
+                                        {
+                                            NSWorkspace.shared.open(url)
+                                        }
+                                    }
+                                    .buttonStyle(.plain)
+                                    .foregroundColor(.blue)
+                                    .font(.caption)
+                                    .help("Opens Google's guide to creating app passwords")
+                                    Spacer()
+                                }
+                            }
+
+                            // Test Email Connection Button
+                            if userSettingsManager.userSettings.hasEmailConfigured {
+                                Button(userSettingsManager.userSettings.localized("Test Email Connection")) {
+                                    emailService.lastTestResult = nil
+                                    Task {
+                                        let result = await emailService.testIMAPConnection(
+                                            email: userSettingsManager.userSettings.imapEmail,
+                                            password: userSettingsManager.userSettings.imapPassword,
+                                            server: userSettingsManager.userSettings.imapServer,
+                                            provider: isGmailAccount(userSettingsManager.userSettings.imapEmail) ?
+                                                .gmail : .imap,
+                                        )
+                                        await MainActor.run {
+                                            emailService.lastTestResult = result
+                                            if result.isSuccess {
+                                                if isGmailAccount(userSettingsManager.userSettings.imapEmail) {
+                                                    userSettingsManager.saveLastSuccessfulGmailConfig(
+                                                        email: userSettingsManager.userSettings.imapEmail,
+                                                        appPassword: userSettingsManager.userSettings.imapPassword,
+                                                    )
+                                                } else {
+                                                    userSettingsManager.saveLastSuccessfulIMAPConfig(
+                                                        email: userSettingsManager.userSettings.imapEmail,
+                                                        password: userSettingsManager.userSettings.imapPassword,
+                                                        server: userSettingsManager.userSettings.imapServer,
+                                                    )
+                                                }
                                             }
                                         }
                                     }
-                                    .buttonStyle(.bordered)
-                                    .disabled(emailService.isTesting)
-                                    .help(
-                                        userSettingsManager.userSettings
-                                            .localized("Test IMAP connection and fetch latest email"),
-                                    )
-
-                                    if emailService.isTesting {
-                                        HStack {
-                                            ProgressView()
-                                                .scaleEffect(0.8)
-                                            Text(
-                                                userSettingsManager.userSettings
-                                                    .localized("Testing email connection..."),
-                                            )
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                            Spacer()
-                                        }
-                                    }
-                                    if let result = emailService.lastTestResult {
-                                        HStack {
-                                            Image(
-                                                systemName: result
-                                                    .isSuccess ? "checkmark.circle.fill" : "xmark.circle.fill",
-                                            )
-                                            .foregroundColor(result.isSuccess ? .green : .red)
-                                            Text(result.description)
-                                                .font(.caption)
-                                                .foregroundColor(result.isSuccess ? .green : .red)
-                                            Spacer()
-                                        }
-                                        .padding(.top, 4)
-                                    }
                                 }
+                                .buttonStyle(.bordered)
+                                .disabled(emailService.isTesting)
+                                .help(
+                                    userSettingsManager.userSettings
+                                        .localized("Test email connection and fetch latest email"),
+                                )
+                            }
+
+                            // Test Results Section
+                            if emailService.isTesting {
+                                HStack {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                    Text(
+                                        userSettingsManager.userSettings.localized("Testing email connection..."),
+                                    )
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    Spacer()
+                                }
+                            }
+                            if let result = emailService.lastTestResult {
+                                HStack {
+                                    Image(
+                                        systemName: result
+                                            .isSuccess ? "checkmark.circle.fill" : "xmark.circle.fill",
+                                    )
+                                    .foregroundColor(result.isSuccess ? .green : .red)
+                                    Text(result.description)
+                                        .font(.caption)
+                                        .foregroundColor(result.isSuccess ? .green : .red)
+                                    Spacer()
+                                }
+                                .padding(.top, 4)
                             }
                         }
                     }
@@ -389,6 +455,7 @@ struct SettingsFormView: View {
         icon: String,
         isSecure: Bool = false,
         maxLength: Int? = nil,
+        isReadOnly: Bool = false,
     ) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
@@ -401,22 +468,29 @@ struct SettingsFormView: View {
                 Spacer()
             }
 
-            if isSecure {
-                SecureField(placeholder, text: value)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: value.wrappedValue) { newValue in
-                        if let maxLength, newValue.count > maxLength {
-                            value.wrappedValue = String(newValue.prefix(maxLength))
-                        }
-                    }
-            } else {
+            if isReadOnly {
                 TextField(placeholder, text: value)
                     .textFieldStyle(.roundedBorder)
-                    .onChange(of: value.wrappedValue) { newValue in
-                        if let maxLength, newValue.count > maxLength {
-                            value.wrappedValue = String(newValue.prefix(maxLength))
+                    .foregroundColor(.secondary)
+                    .disabled(true)
+            } else {
+                if isSecure {
+                    SecureField(placeholder, text: value)
+                        .textFieldStyle(.roundedBorder)
+                        .onChange(of: value.wrappedValue) { newValue in
+                            if let maxLength, newValue.count > maxLength {
+                                value.wrappedValue = String(newValue.prefix(maxLength))
+                            }
                         }
-                    }
+                } else {
+                    TextField(placeholder, text: value)
+                        .textFieldStyle(.roundedBorder)
+                        .onChange(of: value.wrappedValue) { newValue in
+                            if let maxLength, newValue.count > maxLength {
+                                value.wrappedValue = String(newValue.prefix(maxLength))
+                            }
+                        }
+                }
             }
         }
     }

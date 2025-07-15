@@ -14,6 +14,10 @@ class UserSettingsManager: ObservableObject {
         }
     }
 
+    // Store last successful configs
+    private var lastSuccessfulIMAPConfig: (email: String, password: String, server: String)?
+    private var lastSuccessfulGmailConfig: (email: String, appPassword: String)?
+
     private let userDefaults = UserDefaults.standard
     private let settingsKey = "ODYSSEY_UserSettings"
     private let logger = Logger(subsystem: "com.odyssey.app", category: "UserSettingsManager")
@@ -60,6 +64,31 @@ class UserSettingsManager: ObservableObject {
             "server": userSettings.imapServer,
             "hasTelegram": userSettings.hasTelegramConfigured ? "Yes" : "No",
         ]
+    }
+
+    // MARK: - Last Successful Config Management
+
+    func saveLastSuccessfulIMAPConfig(email: String, password: String, server: String) {
+        lastSuccessfulIMAPConfig = (email, password, server)
+    }
+
+    func saveLastSuccessfulGmailConfig(email: String, appPassword: String) {
+        lastSuccessfulGmailConfig = (email, appPassword)
+    }
+
+    func restoreIMAPConfigIfAvailable() {
+        if let config = lastSuccessfulIMAPConfig {
+            userSettings.imapEmail = config.email
+            userSettings.imapPassword = config.password
+            userSettings.imapServer = config.server
+        }
+    }
+
+    func restoreGmailConfigIfAvailable() {
+        if let config = lastSuccessfulGmailConfig {
+            userSettings.gmailEmail = config.email
+            userSettings.gmailAppPassword = config.appPassword
+        }
     }
 
     // MARK: - Private Methods

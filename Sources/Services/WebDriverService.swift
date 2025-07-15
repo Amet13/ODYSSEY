@@ -2413,4 +2413,420 @@ class WebDriverService: ObservableObject, WebDriverServiceProtocol {
             return false
         }
     }
+
+    /// Waits for the email verification code page to load
+    /// - Returns: True if verification page is ready, false if timeout
+    func waitForVerificationPage() async -> Bool {
+        guard let sessionId else {
+            logger.error("No active session for verification page check")
+            return false
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        let maxAttempts = 30 // 30 seconds max wait
+        var attempts = 0
+
+        while attempts < maxAttempts {
+            // Check if verification code field is present
+            let codeFieldCheckScript = "return document.getElementById('code') !== null;"
+            if let hasCodeField = await executeScript(codeFieldCheckScript, sessionId: sessionIdString) as? Bool {
+                if hasCodeField {
+                    logger.info("Verification page loaded successfully")
+                    return true
+                }
+            }
+
+            attempts += 1
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+        }
+
+        logger.error("Verification page load timeout after \(maxAttempts) seconds")
+        return false
+    }
+
+    /// Extracts verification code from email and fills the verification field
+    /// - Returns: True if verification code was found and filled successfully
+    func handleEmailVerification() async -> Bool {
+        logger.info("=== STARTING EMAIL VERIFICATION PROCESS ===")
+
+        // Wait for verification page to load with timeout
+        logger.info("Step 1: Waiting for verification page to load...")
+        let pageLoaded = await waitForVerificationPage()
+        if !pageLoaded {
+            logger.error("❌ FAILED: Verification page did not load")
+            await cleanupAndCloseBrowser()
+            return false
+        }
+        logger.info("✅ SUCCESS: Verification page loaded")
+
+        // Poll for verification email every 5 seconds for up to 1 minute (12 attempts)
+        logger.info("Step 2: Polling for verification email every 5 seconds (max 1 minute)...")
+
+        for attempt in 1 ... 12 {
+            logger.info("📧 Attempt \(attempt)/12: Checking for verification email...")
+
+            // Set up a timeout for each email check (10 seconds max per attempt)
+            let emailCheckTask = Task {
+                logger.info("🔍 Starting verification code extraction from email...")
+                logger.info("📧 Calling EmailService.fetchVerificationCodesForToday()...")
+
+                let codes = await EmailService.shared.fetchVerificationCodesForToday()
+                logger.info("📧 EmailService returned \(codes.count) verification codes")
+
+                if !codes.isEmpty {
+                    logger.info("✅ SUCCESS: Found verification codes: \(codes)")
+
+                    // Try to fill the verification code field
+                    let codeFilled = await fillVerificationCode(codes.first!)
+                    if codeFilled {
+                        logger.info("✅ SUCCESS: Verification code filled successfully")
+
+                        // Try to click the confirm button
+                        let confirmClicked = await clickVerificationConfirmButton()
+                        if confirmClicked {
+                            logger.info("✅ SUCCESS: Verification confirm button clicked")
+                            return true
+                        } else {
+                            logger.error("❌ FAILED: Could not click verification confirm button")
+                            return false
+                        }
+                    } else {
+                        logger.error("❌ FAILED: Could not fill verification code field")
+                        return false
+                    }
+                } else {
+                    logger.info("📧 No verification codes found in attempt \(attempt)/12")
+                    return false
+                }
+            }
+
+            // Wait for email check with 10-second timeout
+            let result = await withTimeout(seconds: 10) {
+                await emailCheckTask.value
+            }
+
+            if result == true {
+                logger.info("✅ SUCCESS: Email verification completed successfully")
+                return true
+            }
+
+            // If this wasn't the last attempt, wait 5 seconds before next attempt
+            if attempt < 12 {
+                logger.info("⏳ Waiting 5 seconds before next attempt...")
+                try? await Task.sleep(nanoseconds: 5 * 1_000_000_000)
+            }
+        }
+
+        // If we get here, no verification code was found after 1 minute
+        logger.error("❌ FAILED: No verification code found after 1 minute of polling")
+        await cleanupAndCloseBrowser()
+        return false
+    }
+
+    /// Helper function to add timeout to async operations
+    private func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async -> T) async -> T? {
+        return await withTaskGroup(of: T?.self) { group in
+            group.addTask {
+                return await operation()
+            }
+
+            group.addTask {
+                try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                return nil
+            }
+
+            for await result in group {
+                if result != nil {
+                    return result
+                }
+            }
+            return nil
+        }
+    }
+
+    /// Cleanup and close browser when verification fails or times out
+    private func cleanupAndCloseBrowser() async {
+        logger.info("🧹 Cleaning up and closing browser...")
+
+        // Try to close the browser gracefully
+        if sessionId != nil {
+            await stopSession()
+            logger.info("✅ Browser closed successfully")
+        }
+
+        // Reset session
+        sessionId = nil
+        logger.info("🔄 WebDriver session reset")
+    }
+
+    /// Fills the verification code field
+    /// - Parameter code: The verification code to enter
+    /// - Returns: True if field was filled successfully
+    private func fillVerificationCode(_ code: String) async -> Bool {
+        guard let sessionId else {
+            logger.error("No active session for filling verification code")
+            return false
+        }
+
+        let sessionIdString = String(describing: sessionId)
+        logger.info("Filling verification code field")
+
+        // Wait a moment for the page to fully render
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+
+        // Try multiple selectors to find the verification code field
+        let selectors = [
+            ["using": "id", "value": "code"],
+            ["using": "css selector", "value": "input[name='code']"],
+            ["using": "css selector", "value": "input[type='number'][maxlength='4']"],
+            ["using": "css selector", "value": "input.mdc-text-field__input"],
+            ["using": "xpath", "value": "//input[@id='code']"],
+            ["using": "xpath", "value": "//input[@name='code']"],
+            ["using": "xpath", "value": "//input[@type='number' and @maxlength='4']"],
+        ]
+
+        var elementId: String?
+
+        for selector in selectors {
+            let endpoint = "\(baseURL)/session/\(sessionIdString)/element"
+            guard let request = createRequest(url: endpoint, method: "POST", body: selector) else {
+                logger.error("Failed to create request for verification code field with selector: \(selector)")
+                continue
+            }
+
+            do {
+                let (data, response) = try await urlSession.data(for: request)
+                let httpResponse = response as? HTTPURLResponse
+
+                if httpResponse?.statusCode == 200 {
+                    let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                    if let value = responseDict?["value"] as? [String: Any] {
+                        let eid = value["element-6066-11e4-a52e-4f735466cecf"] as? String ?? value["ELEMENT"] as? String
+                        if let eid {
+                            elementId = eid
+                            logger.info("✅ Found verification code field using selector: \(selector)")
+                            break
+                        }
+                    }
+                } else {
+                    // Selector failed, continue to next one
+                }
+            } catch {
+                // Selector failed with error, continue to next one
+            }
+        }
+
+        guard let elementId else {
+            logger.error("Failed to find verification code field with any selector")
+            return false
+        }
+
+        // Now that we have the element ID, proceed with filling the field
+        // Scroll into view
+        let scrollScript = "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});"
+        _ = await executeScriptWithElement(scrollScript, elementId: elementId, sessionId: sessionIdString)
+
+        // Simulate mouse movement
+        await simulateMouseMovement(to: elementId)
+
+        // Focus/click the field
+        let focusEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/click"
+        if let focusRequest = createRequest(url: focusEndpoint, method: "POST") {
+            do {
+                let (_, focusResponse) = try await urlSession.data(for: focusRequest)
+                let focusHttpResponse = focusResponse as? HTTPURLResponse
+                logger
+                    .info("Clicked verification code field (status: \(focusHttpResponse?.statusCode ?? 0))")
+            } catch {
+                logger.error("Failed to click verification code field: \(error.localizedDescription)")
+            }
+        }
+
+        // Wait 60ms after focusing
+        try? await Task.sleep(nanoseconds: 60_000_000)
+
+        // Use human-like typing (fast)
+        let blur = Bool.random() && Bool.random() // ~25% chance
+        await simulateTyping(elementId: elementId, text: code, fastHumanLike: true, blurAfter: blur)
+
+        logger.info("Successfully filled verification code field")
+        return true
+    }
+
+    /// Clicks the confirm button on the verification page
+    /// - Returns: True if confirm button was clicked successfully
+    private func clickVerificationConfirmButton() async -> Bool {
+        guard let sessionId else { return false }
+        let sessionIdString = String(describing: sessionId)
+
+        // Use the most reliable selectors for the confirm button
+        let selectors = [
+            ["using": "css selector", "value": "button[onclick*='SubmitContactInfoValidationCode']"],
+            ["using": "css selector", "value": "button.mdc-button--unelevated"],
+            ["using": "xpath", "value": "//button[contains(text(), 'Confirm')]"],
+        ]
+
+        var elementId: String?
+        for selector in selectors {
+            let endpoint = "\(baseURL)/session/\(sessionIdString)/element"
+            guard let request = createRequest(url: endpoint, method: "POST", body: selector) else { continue }
+            do {
+                let (data, response) = try await urlSession.data(for: request)
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                    if
+                        let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                        let value = json["value"] as? [String: Any],
+                        let eid = value["element-6066-11e4-a52e-4f735466cecf"] as? String
+                    {
+                        elementId = eid
+                        break
+                    }
+                }
+            } catch { continue }
+        }
+
+        if let elementId {
+            let clickEndpoint = "\(baseURL)/session/\(sessionIdString)/element/\(elementId)/click"
+            if let clickRequest = createRequest(url: clickEndpoint, method: "POST") {
+                do {
+                    let (_, clickResponse) = try await urlSession.data(for: clickRequest)
+                    if let httpResponse = clickResponse as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                        logger.info("Successfully clicked verification confirm button")
+                        return true
+                    }
+                } catch { }
+            }
+        }
+
+        // Fallback: Use JavaScript to click the submit button
+        return await performJavaScriptVerificationSubmit(sessionId: sessionIdString)
+    }
+
+    private func performJavaScriptVerificationSubmit(sessionId: String) async -> Bool {
+        let endpoint = "\(baseURL)/session/\(sessionId)/execute/sync"
+        let script = """
+            submitCommand('SubmitContactInfoValidationCode');
+            return true;
+        """
+        let body: [String: Any] = ["script": script, "args": []]
+
+        guard let request = createRequest(url: endpoint, method: "POST", body: body) else {
+            logger.error("Failed to create JavaScript verification submit request")
+            return false
+        }
+
+        do {
+            let (data, response) = try await urlSession.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+
+            if httpResponse?.statusCode == 200 {
+                let responseDict = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                if let result = responseDict?["value"] as? Bool, result {
+                    logger.info("Successfully clicked verification confirm button with JavaScript")
+                    return true
+                }
+            }
+
+            // Log the error response for debugging
+            if let responseData = String(data: data, encoding: .utf8) {
+                logger.error("JavaScript verification submit failed with response: \(responseData)")
+            }
+            return false
+        } catch {
+            logger.error("JavaScript verification submit failed: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Public cleanup method for external use
+    func cleanup() async {
+        await cleanupAndCloseBrowser()
+    }
+
+    /// Checks if email verification is required on the current page
+    /// - Returns: True if email verification is required, false otherwise
+    func isEmailVerificationRequired() async -> Bool {
+        logger.info("🔍 Checking if email verification is required...")
+
+        do {
+            // Look for verification code input field
+            _ =
+                try await findElement(
+                    by: "input[type='text'][placeholder*='verification'], input[type='text'][placeholder*='code'], input[name*='verification'], input[name*='code']",
+                )
+
+            // If we get here, the element was found
+            logger.info("✅ Email verification field found - verification required")
+            return true
+
+        } catch {
+            // If we can't find the element, check for verification-related text on the page
+            do {
+                let pageText = try await getPageSource()
+                let verificationKeywords = ["verification", "verify", "code", "enter code", "verification code"]
+
+                for keyword in verificationKeywords {
+                    if pageText.lowercased().contains(keyword.lowercased()) {
+                        logger.info("✅ Email verification keyword found: \(keyword) - verification required")
+                        return true
+                    }
+                }
+
+                logger.info("❌ No email verification required")
+                return false
+
+            } catch {
+                logger.warning("⚠️ Error checking for email verification: \(error)")
+                // If we can't determine, assume verification is not required
+                return false
+            }
+        }
+    }
+
+    /// Checks if the reservation was successful
+    /// - Returns: True if reservation was successful, false otherwise
+    func checkReservationSuccess() async -> Bool {
+        logger.info("🔍 Checking if reservation was successful...")
+
+        do {
+            // Get the current page source to analyze
+            let pageText = try await getPageSource()
+
+            // Look for success indicators
+            let successKeywords = [
+                "success", "successful", "confirmed", "confirmation",
+                "reservation confirmed", "booking confirmed", "thank you",
+                "reservation successful", "booking successful",
+            ]
+
+            for keyword in successKeywords {
+                if pageText.lowercased().contains(keyword.lowercased()) {
+                    logger.info("✅ Success keyword found: \(keyword)")
+                    return true
+                }
+            }
+
+            // Look for error indicators
+            let errorKeywords = [
+                "error", "failed", "failure", "unavailable", "not available",
+                "booking failed", "reservation failed", "try again",
+            ]
+
+            for keyword in errorKeywords {
+                if pageText.lowercased().contains(keyword.lowercased()) {
+                    logger.warning("⚠️ Error keyword found: \(keyword)")
+                    return false
+                }
+            }
+
+            // If we can't determine, assume success (optimistic approach)
+            logger.info("❓ Could not determine success status, assuming success")
+            return true
+
+        } catch {
+            logger.warning("⚠️ Error checking reservation success: \(error)")
+            // If we can't determine, assume success
+            return true
+        }
+    }
 }
