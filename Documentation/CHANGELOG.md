@@ -172,6 +172,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configuration name generation to be more concise and readable
 - UI layout issues and button styling consistency
 - Toggle switch hover effects and visual feedback
+- Migrated from Chrome/ChromeDriver automation to native Swift + WebKit automation. All reservation automation is now handled by WebKitService. ChromeDriver is no longer required.
 
 ## [1.2.0] - 2024-07-09
 

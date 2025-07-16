@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		183F0E2E156DB04F2DEB8013 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F37E32A2DEAB7D80A5148F2 /* Configuration.swift */; };
 		239CAD5FE2D573E91B2CA9F2 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 013C352CF276DF7BEF35BACC /* Constants.swift */; };
+		38B4C58FCF95A17F7FD0F910 /* WebKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D6507655544E5D9BC6CABF /* WebKitService.swift */; };
 		41CB267A86BBFDE6B8D76B14 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6D876275C546C2EDF4733D3E /* Assets.xcassets */; };
 		57B3EC8C77555EE0A1877A88 /* ReservationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC0F2FC1EC5039DF5FCC39B /* ReservationManager.swift */; };
 		682EF0598BC17A8022F81E5B /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504F310E3FF9BD25280A3106 /* StatusBarController.swift */; };
@@ -18,7 +19,6 @@
 		82BF69EBE3B57623F100A29E /* WebDriverStealth.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBCC4A2B64370ACAF412BF87 /* WebDriverStealth.swift */; };
 		87BEA07219CB32EABEA725D0 /* EmailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3419A41E593FC7E578492598 /* EmailService.swift */; };
 		8B1ED020B66221020312C147 /* ReservationConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0EBA9D765D3068E55BA51C /* ReservationConfig.swift */; };
-		9E6D22BDED99426435FB2DC1 /* WebDriverService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17BB4FD5B937C3B916521CE2 /* WebDriverService.swift */; };
 		AF9C5201A1EA357818523371 /* FacilityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D69C877E24F28F08FF142CE1 /* FacilityService.swift */; };
 		C31CF17307DDA59BA42606BC /* ConfigurationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4032FBD046C7A84D2AB708F7 /* ConfigurationDetailView.swift */; };
 		CB04374E216585BE1DBC7BF4 /* ODYSSEYApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D401C9E0BDAD61E6DECC196A /* ODYSSEYApp.swift */; };
@@ -30,12 +30,12 @@
 
 /* Begin PBXFileReference section */
 		013C352CF276DF7BEF35BACC /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
-		17BB4FD5B937C3B916521CE2 /* WebDriverService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebDriverService.swift; sourceTree = "<group>"; };
 		1CA820C244D658473331FE59 /* ODYSSEY.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ODYSSEY.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2DC0F2FC1EC5039DF5FCC39B /* ReservationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationManager.swift; sourceTree = "<group>"; };
 		3419A41E593FC7E578492598 /* EmailService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailService.swift; sourceTree = "<group>"; };
 		34D958E5CB6EBC1B6F06E168 /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		4032FBD046C7A84D2AB708F7 /* ConfigurationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationDetailView.swift; sourceTree = "<group>"; };
+		48D6507655544E5D9BC6CABF /* WebKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitService.swift; sourceTree = "<group>"; };
 		504F310E3FF9BD25280A3106 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		6D876275C546C2EDF4733D3E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		88087B5FF17E55461F2F9181 /* UserSettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettingsManager.swift; sourceTree = "<group>"; };
@@ -96,8 +96,8 @@
 				ADFCFD349132E8D965235BFE /* TelegramService.swift */,
 				88087B5FF17E55461F2F9181 /* UserSettingsManager.swift */,
 				9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */,
-				17BB4FD5B937C3B916521CE2 /* WebDriverService.swift */,
 				DBCC4A2B64370ACAF412BF87 /* WebDriverStealth.swift */,
+				48D6507655544E5D9BC6CABF /* WebKitService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -255,8 +255,8 @@
 				7AB843B692B99A297F71AFA2 /* UserSettings.swift in Sources */,
 				E2CDCC931C7C13AD6F4D8DD4 /* UserSettingsManager.swift in Sources */,
 				DC6BD4AFB504DDB4F2D9BD47 /* WebDriverProtocols.swift in Sources */,
-				9E6D22BDED99426435FB2DC1 /* WebDriverService.swift in Sources */,
 				82BF69EBE3B57623F100A29E /* WebDriverStealth.swift in Sources */,
+				38B4C58FCF95A17F7FD0F910 /* WebKitService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
