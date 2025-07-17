@@ -134,11 +134,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func requestNotificationPermissions() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, error in
-            if let error {
-                self.logger.error("Notification permission error: \(error.localizedDescription)")
-            } else {
-                // self.logger.info("Notification permissions granted: \(granted)") // Removed as per edit hint
+        // Check current status first
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            switch settings.authorizationStatus {
+            case .notDetermined:
+                // First time - request permission
+                self.logger.info("Requesting notification permission for the first time...")
+                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
+                    if let error {
+                        self.logger.error("Notification permission error: \(error.localizedDescription)")
+                    } else if granted {
+                        self.logger.info("Notification permissions granted successfully")
+                    } else {
+                        self.logger.warning("Notification permissions denied by user")
+                    }
+                }
+            case .denied:
+                self.logger.warning("Notification permissions denied - user needs to enable in System Preferences")
+            case .authorized:
+                self.logger.info("Notification permissions already granted")
+            case .provisional:
+                self.logger.info("Notification permissions provisionally granted")
+            case .ephemeral:
+                self.logger.info("Notification permissions ephemerally granted")
+            @unknown default:
+                self.logger.warning("Unknown notification authorization status")
             }
         }
     }

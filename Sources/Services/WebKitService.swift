@@ -38,7 +38,17 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
     private var debugWindow: NSWindow?
 
     // Configuration
-    var currentConfig: ReservationConfig?
+    var currentConfig: ReservationConfig? {
+        didSet {
+            // Update window title when config changes
+            if let config = currentConfig {
+                Task { @MainActor in
+                    updateWindowTitle(with: config)
+                }
+            }
+        }
+    }
+
     // Set a Chrome-like user agent
     var userAgent: String =
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -62,6 +72,36 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         super.init()
         setupWebView()
         // Do not show debug window at app launch
+    }
+
+    deinit {
+        logger.info("WebKitService deinit - cleaning up resources")
+
+        // Clear all pending completions immediately
+        navigationCompletions.removeAll()
+        scriptCompletions.removeAll()
+        elementCompletions.removeAll()
+
+        // Safely cleanup WebView if it exists
+        if let webView {
+            // Remove script message handler to prevent crashes
+            webView.configuration.userContentController.removeScriptMessageHandler(forName: "odysseyHandler")
+
+            // Clear navigation delegate
+            webView.navigationDelegate = nil
+
+            // Stop loading
+            webView.stopLoading()
+        }
+
+        // Close debug window immediately
+        debugWindow?.close()
+        debugWindow = nil
+
+        // Clear webView reference
+        webView = nil
+
+        logger.info("WebKitService cleanup completed")
     }
 
     private func setupWebView() {
@@ -114,9 +154,6 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         let windowSizes = [
             (width: 1_440, height: 900), // MacBook Air 13"
             (width: 1_680, height: 1_050), // MacBook Pro 15"
-            (width: 1_920, height: 1_080), // MacBook Pro 16"
-            (width: 2_560, height: 1_600), // MacBook Pro 13" Retina
-            (width: 2_880, height: 1_800), // MacBook Pro 15" Retina
         ]
         let selectedSize = windowSizes.randomElement() ?? windowSizes[0]
         webView?.frame = CGRect(x: 0, y: 0, width: selectedSize.width, height: selectedSize.height)
@@ -128,13 +165,17 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
 
     @MainActor
     private func setupDebugWindow() {
+        // Check if debug window already exists
+        if debugWindow != nil {
+            logger.info("Debug window already exists, reusing existing window")
+            debugWindow?.makeKeyAndOrderFront(nil)
+            return
+        }
+
         // Set realistic window size (random from common MacBook resolutions)
         let windowSizes = [
             (width: 1_440, height: 900), // MacBook Air 13"
             (width: 1_680, height: 1_050), // MacBook Pro 15"
-            (width: 1_920, height: 1_080), // MacBook Pro 16"
-            (width: 2_560, height: 1_600), // MacBook Pro 13" Retina
-            (width: 2_880, height: 1_800), // MacBook Pro 15" Retina
         ]
         let selectedSize = windowSizes.randomElement() ?? windowSizes[0]
 
@@ -145,9 +186,10 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             backing: .buffered,
             defer: false,
         )
-        window.title = "ODYSSEY Web Automation Debug"
+        // Set initial window title
+        window.title = "ODYSSEY Web Automation"
         window.isReleasedWhenClosed = false
-        window.level = .floating
+        window.level = .normal
         if let webView {
             window.contentView = webView
         }
@@ -157,6 +199,18 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             .info(
                 "Debug window for WKWebView created and shown with size: \(selectedSize.width)x\(selectedSize.height)",
             )
+    }
+
+    @MainActor
+    private func updateWindowTitle(with config: ReservationConfig) {
+        guard let window = debugWindow else { return }
+
+        let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
+        let schedule = ReservationConfig.formatScheduleInfoInline(config: config)
+        let newTitle = "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(schedule)"
+
+        window.title = newTitle
+        logger.info("Updated debug window title to: \(newTitle)")
     }
 
     private func injectAutomationScripts() {
@@ -301,10 +355,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             // Random screen sizes for realism (common MacBook resolutions)
             const screenSizes = [
                 { width: 1440, height: 900, pixelRatio: 2 },   // MacBook Air 13"
-                { width: 1680, height: 1050, pixelRatio: 2 },  // MacBook Pro 15"
-                { width: 1920, height: 1080, pixelRatio: 2 },  // MacBook Pro 16"
-                { width: 2560, height: 1600, pixelRatio: 2 },  // MacBook Pro 13" Retina
-                { width: 2880, height: 1800, pixelRatio: 2 }   // MacBook Pro 15" Retina
+                { width: 1680, height: 1050, pixelRatio: 2 }  // MacBook Pro 15"
             ];
 
             const selectedScreen = screenSizes[Math.floor(Math.random() * screenSizes.length)];
@@ -733,11 +784,74 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         logger.info("WebKit service connected")
     }
 
-    func disconnect() async {
+    func disconnect(closeWindow: Bool = true) async {
+        logger.info("Starting WebKit service disconnect...")
+
+        // Mark as disconnected first to prevent new operations
         isConnected = false
         isRunning = false
-        await webView?.stopLoading()
-        logger.info("WebKit service disconnected")
+
+        // Clear all pending completions immediately to prevent callbacks after disconnect
+        await MainActor.run {
+            self.navigationCompletions.removeAll()
+            self.scriptCompletions.removeAll()
+            self.elementCompletions.removeAll()
+        }
+
+        // Safely cleanup WebView
+        if let webView {
+            // Stop loading first
+            await webView.stopLoading()
+
+            // Wait for loading to stop
+            try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
+
+            // Remove script message handler to prevent crashes
+            await MainActor.run {
+                webView.configuration.userContentController.removeScriptMessageHandler(forName: "odysseyHandler")
+            }
+
+            // Clear navigation delegate
+            await MainActor.run {
+                webView.navigationDelegate = nil
+            }
+
+            // Wait a bit more for cleanup
+            try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
+
+            // Finally set webView to nil
+            await MainActor.run {
+                self.webView = nil
+            }
+        }
+
+        // Only close debug window if requested
+        if closeWindow {
+            await MainActor.run {
+                self.debugWindow?.close()
+                self.debugWindow = nil
+            }
+        }
+
+        logger.info("WebKit service disconnected successfully")
+    }
+
+    /// Reset the WebKit service for reuse
+    func reset() async {
+        logger.info("Resetting WebKit service...")
+
+        // Disconnect first
+        await disconnect(closeWindow: false)
+
+        // Wait a bit for cleanup
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+
+        // Setup new WebView
+        await MainActor.run {
+            self.setupWebView()
+        }
+
+        logger.info("WebKit service reset completed")
     }
 
     func navigateToURL(_ url: String) async throws {
@@ -847,28 +961,6 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         return await webView?.title ?? ""
     }
 
-    func takeScreenshot() async throws -> Data {
-        guard webView != nil else {
-            throw WebDriverError.screenshotFailed("WebView not initialized")
-        }
-
-        return try await withCheckedThrowingContinuation { continuation in
-            Task {
-                await webView!.takeSnapshot(with: nil) { image, error in
-                    if let image, let data = image.tiffRepresentation {
-                        continuation.resume(returning: data)
-                    } else {
-                        continuation
-                            .resume(
-                                throwing: WebDriverError
-                                    .screenshotFailed(error?.localizedDescription ?? "Unknown error"),
-                            )
-                    }
-                }
-            }
-        }
-    }
-
     func waitForElement(by selector: String, timeout: TimeInterval) async throws -> WebElementProtocol {
         guard webView != nil else {
             throw WebDriverError.elementNotFound("WebView not initialized")
@@ -932,8 +1024,8 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
     // MARK: - Internal Methods
 
     func executeScriptInternal(_ script: String) async throws -> Any? {
-        guard webView != nil else {
-            throw WebDriverError.scriptExecutionFailed("WebView not initialized")
+        guard webView != nil, isConnected else {
+            throw WebDriverError.scriptExecutionFailed("WebView not initialized or disconnected")
         }
 
         return try await withCheckedThrowingContinuation { continuation in
@@ -944,7 +1036,30 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
 
             Task {
                 do {
-                    let result = try await webView!.evaluateJavaScript(script)
+                    // Double-check that webView is still valid before executing JavaScript
+                    guard let currentWebView = self.webView, self.isConnected else {
+                        continuation
+                            .resume(
+                                throwing: WebDriverError
+                                    .scriptExecutionFailed("WebView was disconnected during script execution"),
+                            )
+                        return
+                    }
+
+                    // Add a small delay to allow any pending operations to complete
+                    try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+
+                    // Check again after the delay
+                    guard self.isConnected else {
+                        continuation
+                            .resume(
+                                throwing: WebDriverError
+                                    .scriptExecutionFailed("WebView was disconnected during JavaScript execution"),
+                            )
+                        return
+                    }
+
+                    let result = try await currentWebView.evaluateJavaScript(script)
                     continuation.resume(returning: result)
                 } catch {
                     continuation.resume(throwing: WebDriverError.scriptExecutionFailed(error.localizedDescription))
@@ -1002,7 +1117,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             Task { await self.logPageState(context: "after button click") }
             if let str = result as? String {
                 if str == "clicked" || str == "dispatched" {
-                    try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds sleep
+                    try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second sleep
                     return true
                 } else if str.starts(with: "error:") {
                     logger.error("[ButtonClick] JS error: \(str, privacy: .public)")
@@ -1157,8 +1272,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         let script = """
         (function() {
             let field = document.getElementById('reservationCount')
-                || document.querySelector('input[name=\"reservationCount\"]')
-                || document.querySelector('input[placeholder*=\"people\" i]')
+                || document.querySelector('input[name=\"ReservationCount\"]')
                 || document.querySelector('input[type=\"number\"]');
             if (field) {
                 field.value = '';
@@ -1208,7 +1322,6 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         (function() {
             let button = document.getElementById('submit-btn')
                 || document.querySelector('button[type="submit"]')
-                || document.querySelector('input[type="submit"]')
                 || Array.from(document.querySelectorAll('button, input[type="submit"]')).find(el => el.innerText && el.innerText.toLowerCase().includes('confirm'));
             if (button) {
                 // Log button state before click
@@ -1248,7 +1361,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             print("[ConfirmClick] JS result: \(String(describing: result))")
             if let str = result as? String, str == "clicked" {
                 // Wait a moment and then log the page state to see what happened
-                try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
                 await logPageState(context: "after confirm click")
 
                 // Also check for any error messages or loading states
@@ -1491,7 +1604,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
 
                     // Wait for page to load after time slot click
                     logger.info("[TimeSlot] Waiting for page to load after time slot click...")
-                    try await Task.sleep(nanoseconds: 3_000_000_000) // Wait 3 seconds
+                    try await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second
 
                     // Check if we're already on the contact form page
                     let contactFormReady = await waitForContactInfoPage()
@@ -1764,12 +1877,47 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             return false
         }
 
-        // Ultra-simple approach: just check if the telephone field exists
+        // Enhanced approach: check for multiple indicators of contact info page
         let script = """
         (function() {
             try {
+                // Check for telephone field
                 const phoneField = document.getElementById('telephone');
-                return phoneField !== null;
+                const hasPhoneField = phoneField !== null;
+
+                // Check for email field
+                const emailField = document.getElementById('email');
+                const hasEmailField = emailField !== null;
+
+                // Check for name field
+                const nameField = document.getElementById('name');
+                const hasNameField = nameField !== null;
+
+                // Check for confirm button
+                const confirmButton = document.querySelector('button[type="submit"], input[type="submit"], .mdc-button');
+                const hasConfirmButton = confirmButton !== null;
+
+                // Check page title or content for contact info indicators
+                const bodyText = document.body.textContent || '';
+                const hasContactText = bodyText.toLowerCase().includes('phone') || 
+                                     bodyText.toLowerCase().includes('email');
+
+                console.log('[ODYSSEY] Contact page detection:', {
+                    hasPhoneField: hasPhoneField,
+                    hasEmailField: hasEmailField,
+                    hasNameField: hasNameField,
+                    hasConfirmButton: hasConfirmButton,
+                    hasContactText: hasContactText,
+                    phoneFieldId: phoneField ? phoneField.id : 'not found',
+                    emailFieldId: emailField ? emailField.id : 'not found',
+                    nameFieldId: nameField ? nameField.id : 'not found',
+                    confirmButtonText: confirmButton ? (confirmButton.textContent || '').trim() : 'not found'
+                });
+
+                // Return true if we have at least phone field or multiple contact indicators
+                const isContactPage = hasPhoneField || (hasEmailField && hasNameField && hasConfirmButton);
+
+                return isContactPage;
             } catch (error) {
                 console.error('Error in contact form check:', error);
                 return false;
@@ -1780,6 +1928,11 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
                 logger.info("Contact info page loaded successfully")
+
+                // Activate enhanced antidetection measures immediately when contact page is detected
+                logger.info("Activating enhanced antidetection measures for contact form page...")
+                await enhanceHumanLikeBehavior()
+
             } else {
                 logger.error("Contact info page load timeout - see logs for page HTML and input fields")
             }
@@ -1797,18 +1950,25 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             return false
         }
 
-        // Add very short random delay before starting (0.2-0.8 seconds)
-        try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 800_000_000))
+        // Essential delay before starting (0.3-0.6 seconds)
+        try? await Task.sleep(nanoseconds: UInt64.random(in: 300_000_000 ... 600_000_000))
 
-        // Simulate realistic mouse movement and human-like behavior
-        await simulateRealisticMouseMovements()
-        await simulateHumanScrolling()
-        await simulateHumanFormInteraction()
+        // Essential human-like behavior simulation
+        await addQuickPause()
 
         let script = """
         (function() {
-            // Use exact selector from Python/Selenium implementation
-            const phoneField = document.getElementById('telephone');
+            // Try multiple selectors to find the phone field
+            let phoneField = document.getElementById('phone') ||
+                           document.getElementById('telephone') ||
+                           document.getElementById('phoneNumber') ||
+                           document.querySelector('input[type="tel"]') ||
+                           document.querySelector('input[name*="phone"]') ||
+                           document.querySelector('input[name*="tel"]') ||
+                           document.querySelector('input[placeholder*="phone"]') ||
+                           document.querySelector('input[placeholder*="tel"]') ||
+                           document.querySelector('input[placeholder*="Phone"]') ||
+                           document.querySelector('input[placeholder*="Telephone"]');
 
             console.log('[ODYSSEY] Phone field found:', phoneField ? {
                 type: phoneField.type,
@@ -1824,126 +1984,128 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                 // Scroll to field with human-like behavior
                 phoneField.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                // Focus and clear (but preserve +1 if it's there)
-                phoneField.focus();
-                const currentValue = phoneField.value;
-                if (currentValue.includes('+1')) {
-                    phoneField.value = '+1';
-                } else {
+                // Add natural delay before focusing
+                setTimeout(() => {
+                    // Focus and clear
+                    phoneField.focus();
                     phoneField.value = '';
-                }
 
-                // Simulate human-like typing with realistic events and delays
-                const value = '\(phoneNumber)';
-                console.log('[ODYSSEY] Typing phone number:', value);
+                    // Simulate human-like typing with realistic events and delays
+                    const value = '\(phoneNumber)';
+                    console.log('[ODYSSEY] Typing phone:', value);
 
-                                // Use a synchronous approach with setTimeout to simulate typing delays
-                const typeCharacter = (index) => {
-                    if (index >= value.length) {
-                        phoneField.dispatchEvent(new Event('change', { bubbles: true }));
-                        phoneField.blur();
-                        console.log('[ODYSSEY] Phone field filled with:', phoneField.value);
-                        return;
-                    }
+                    // Use a synchronous approach with setTimeout to simulate typing delays
+                    const typeCharacter = (index) => {
+                        if (index >= value.length) {
+                            // Add natural delay before finishing
+                            setTimeout(() => {
+                                phoneField.dispatchEvent(new Event('change', { bubbles: true }));
+                                phoneField.blur();
+                                console.log('[ODYSSEY] Phone field filled with:', phoneField.value);
+                            }, 100 + Math.random() * 200);
+                            return;
+                        }
 
-                    // Simulate occasional typos (5% chance)
-                    let charToType = value[index];
-                    let shouldMakeTypo = Math.random() < 0.05 && index < value.length - 1;
+                        // Simulate occasional typos (2% chance) - minimal for stealth
+                        let charToType = value[index];
+                        let shouldMakeTypo = Math.random() < 0.02 && index < value.length - 1;
 
-                    if (shouldMakeTypo) {
-                        // Type wrong character first
-                        phoneField.value += 'x';
-                        phoneField.dispatchEvent(new KeyboardEvent('keydown', { 
-                            bubbles: true, 
-                            key: 'x', 
-                            code: 'KeyX',
-                            keyCode: 'x'.charCodeAt(0)
-                        }));
-                        phoneField.dispatchEvent(new Event('input', { bubbles: true }));
-                        phoneField.dispatchEvent(new KeyboardEvent('keyup', { 
-                            bubbles: true, 
-                            key: 'x', 
-                            code: 'KeyX',
-                            keyCode: 'x'.charCodeAt(0)
-                        }));
-
-                        // Wait a bit, then backspace and type correct character
-                        setTimeout(() => {
-                            // Backspace
-                            phoneField.value = phoneField.value.slice(0, -1);
+                        if (shouldMakeTypo) {
+                            // Type wrong character first
+                            phoneField.value += 'x';
                             phoneField.dispatchEvent(new KeyboardEvent('keydown', { 
                                 bubbles: true, 
-                                key: 'Backspace', 
-                                code: 'Backspace',
-                                keyCode: 8
+                                key: 'x', 
+                                code: 'KeyX',
+                                keyCode: 'x'.charCodeAt(0)
                             }));
                             phoneField.dispatchEvent(new Event('input', { bubbles: true }));
                             phoneField.dispatchEvent(new KeyboardEvent('keyup', { 
                                 bubbles: true, 
-                                key: 'Backspace', 
-                                code: 'Backspace',
-                                keyCode: 8
+                                key: 'x', 
+                                code: 'KeyX',
+                                keyCode: 'x'.charCodeAt(0)
                             }));
 
-                            // Type correct character
+                            // Wait before correcting (shorter)
                             setTimeout(() => {
-                                phoneField.value += charToType;
+                                // Backspace
+                                phoneField.value = phoneField.value.slice(0, -1);
                                 phoneField.dispatchEvent(new KeyboardEvent('keydown', { 
                                     bubbles: true, 
-                                    key: charToType, 
-                                    code: 'Key' + charToType.toUpperCase(),
-                                    keyCode: charToType.charCodeAt(0)
-                                }));
-                                phoneField.dispatchEvent(new KeyboardEvent('keypress', { 
-                                    bubbles: true, 
-                                    key: charToType, 
-                                    code: 'Key' + charToType.toUpperCase(),
-                                    keyCode: charToType.charCodeAt(0)
+                                    key: 'Backspace', 
+                                    code: 'Backspace',
+                                    keyCode: 8
                                 }));
                                 phoneField.dispatchEvent(new Event('input', { bubbles: true }));
                                 phoneField.dispatchEvent(new KeyboardEvent('keyup', { 
                                     bubbles: true, 
-                                    key: charToType, 
-                                    code: 'Key' + charToType.toUpperCase(),
-                                    keyCode: charToType.charCodeAt(0)
+                                    key: 'Backspace', 
+                                    code: 'Backspace',
+                                    keyCode: 8
                                 }));
 
-                                // Continue with next character
-                                setTimeout(() => typeCharacter(index + 1), 50 + Math.random() * 100);
-                            }, 100 + Math.random() * 200);
-                        }, 200 + Math.random() * 300);
-                    } else {
-                        // Normal typing
-                        phoneField.value += charToType;
-                        phoneField.dispatchEvent(new KeyboardEvent('keydown', { 
-                            bubbles: true, 
-                            key: charToType, 
-                            code: 'Key' + charToType.toUpperCase(),
-                            keyCode: charToType.charCodeAt(0)
-                        }));
-                        phoneField.dispatchEvent(new KeyboardEvent('keypress', { 
-                            bubbles: true, 
-                            key: charToType, 
-                            code: 'Key' + charToType.toUpperCase(),
-                            keyCode: charToType.charCodeAt(0)
-                        }));
-                        phoneField.dispatchEvent(new Event('input', { bubbles: true }));
-                        phoneField.dispatchEvent(new KeyboardEvent('keyup', { 
-                            bubbles: true, 
-                            key: charToType, 
-                            code: 'Key' + charToType.toUpperCase(),
-                            keyCode: charToType.charCodeAt(0)
-                        }));
+                                // Type correct character after shorter pause
+                                setTimeout(() => {
+                                    phoneField.value += charToType;
+                                    phoneField.dispatchEvent(new KeyboardEvent('keydown', { 
+                                        bubbles: true, 
+                                        key: charToType, 
+                                        code: 'Key' + charToType.toUpperCase(),
+                                        keyCode: charToType.charCodeAt(0)
+                                    }));
+                                    phoneField.dispatchEvent(new KeyboardEvent('keypress', { 
+                                        bubbles: true, 
+                                        key: charToType, 
+                                        code: 'Key' + charToType.toUpperCase(),
+                                        keyCode: charToType.charCodeAt(0)
+                                    }));
+                                    phoneField.dispatchEvent(new Event('input', { bubbles: true }));
+                                    phoneField.dispatchEvent(new KeyboardEvent('keyup', { 
+                                        bubbles: true, 
+                                        key: charToType, 
+                                        code: 'Key' + charToType.toUpperCase(),
+                                        keyCode: charToType.charCodeAt(0)
+                                    }));
 
-                        // Schedule next character with variable delay (30-200ms)
-                        const baseDelay = 80 + Math.random() * 100;
-                        const extraDelay = Math.random() < 0.1 ? 100 + Math.random() * 200 : 0; // 10% chance of longer pause
-                        setTimeout(() => typeCharacter(index + 1), baseDelay + extraDelay);
-                    }
-                };
+                                    // Continue with next character after shorter delay
+                                    setTimeout(() => typeCharacter(index + 1), 50 + Math.random() * 100);
+                                }, 150 + Math.random() * 200);
+                            }, 200 + Math.random() * 300);
+                        } else {
+                            // Normal typing with faster, more realistic delays
+                            phoneField.value += charToType;
+                            phoneField.dispatchEvent(new KeyboardEvent('keydown', { 
+                                bubbles: true, 
+                                key: charToType, 
+                                code: 'Key' + charToType.toUpperCase(),
+                                keyCode: charToType.charCodeAt(0)
+                            }));
+                            phoneField.dispatchEvent(new KeyboardEvent('keypress', { 
+                                bubbles: true, 
+                                key: charToType, 
+                                code: 'Key' + charToType.toUpperCase(),
+                                keyCode: charToType.charCodeAt(0)
+                            }));
+                            phoneField.dispatchEvent(new Event('input', { bubbles: true }));
+                            phoneField.dispatchEvent(new KeyboardEvent('keyup', { 
+                                bubbles: true, 
+                                key: charToType, 
+                                code: 'Key' + charToType.toUpperCase(),
+                                keyCode: charToType.charCodeAt(0)
+                            }));
 
-                // Start typing
-                typeCharacter(0);
+                            // Slower human-like delay (80-180ms base)
+                            const baseDelay = 80 + Math.random() * 100;
+                            const extraDelay = Math.random() < 0.08 ? 120 + Math.random() * 180 : 0; // 8% chance of longer pause
+                            const thinkingPause = Math.random() < 0.02 ? 250 + Math.random() * 350 : 0; // 2% chance of thinking pause
+                            setTimeout(() => typeCharacter(index + 1), baseDelay + extraDelay + thinkingPause);
+                        }
+                    };
+
+                    // Start typing after a shorter delay
+                    setTimeout(() => typeCharacter(0), 150 + Math.random() * 300);
+                }, 200 + Math.random() * 400);
 
                 // Return true immediately - the typing will complete asynchronously
                 return true;
@@ -1955,9 +2117,9 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
-                logger.info("Successfully filled phone number with human-like behavior")
-                // Add very short delay after filling (0.2-0.5 second)
-                try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 500_000_000))
+                logger.info("Successfully filled phone number with enhanced human-like behavior")
+                // Much shorter delay after filling (0.2-0.4 second)
+                try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 400_000_000))
                 return true
             } else {
                 logger.error("Failed to fill phone number - field not found")
@@ -1975,18 +2137,21 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             return false
         }
 
-        // Add very short random delay before starting (0.2-0.8 seconds)
-        try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 800_000_000))
+        // Essential delay before starting (0.3-0.6 seconds)
+        try? await Task.sleep(nanoseconds: UInt64.random(in: 300_000_000 ... 600_000_000))
 
-        // Simulate realistic mouse movement and human-like behavior
-        await simulateRealisticMouseMovements()
-        await simulateHumanScrolling()
-        await simulateHumanFormInteraction()
+        // Essential human-like behavior simulation
+        await addQuickPause()
 
         let script = """
         (function() {
-            // Use exact selector from Python/Selenium implementation
-            const emailField = document.getElementById('email');
+            // Try multiple selectors to find the email field
+            let emailField = document.getElementById('email') ||
+                           document.getElementById('emailAddress') ||
+                           document.querySelector('input[type="email"]') ||
+                           document.querySelector('input[name*="email"]') ||
+                           document.querySelector('input[placeholder*="email"]') ||
+                           document.querySelector('input[placeholder*="Email"]');
 
             console.log('[ODYSSEY] Email field found:', emailField ? {
                 type: emailField.type,
@@ -2002,52 +2167,130 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                 // Scroll to field with human-like behavior
                 emailField.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                // Focus and clear
-                emailField.focus();
-                emailField.value = '';
+                // Add natural delay before focusing
+                setTimeout(() => {
+                    // Focus and clear
+                    emailField.focus();
+                    emailField.value = '';
 
-                // Simulate human-like typing with realistic events and delays
-                const value = '\(email)';
-                console.log('[ODYSSEY] Typing email:', value);
+                    // Simulate human-like typing with realistic events and delays
+                    const value = '\(email)';
+                    console.log('[ODYSSEY] Typing email:', value);
 
-                // Use a synchronous approach with setTimeout to simulate typing delays
-                const typeCharacter = (index) => {
-                    if (index >= value.length) {
-                        emailField.dispatchEvent(new Event('change', { bubbles: true }));
-                        emailField.blur();
-                        console.log('[ODYSSEY] Email field filled with:', emailField.value);
-                        return;
-                    }
+                    // Use a synchronous approach with setTimeout to simulate typing delays
+                    const typeCharacter = (index) => {
+                        if (index >= value.length) {
+                            // Add natural delay before finishing
+                            setTimeout(() => {
+                                emailField.dispatchEvent(new Event('change', { bubbles: true }));
+                                emailField.blur();
+                                console.log('[ODYSSEY] Email field filled with:', emailField.value);
+                            }, 200 + Math.random() * 300);
+                            return;
+                        }
 
-                    emailField.value += value[index];
+                        // Simulate occasional typos (1% chance) - minimal for stealth
+                        let charToType = value[index];
+                        let shouldMakeTypo = Math.random() < 0.01 && index < value.length - 1;
 
-                    // Dispatch realistic keyboard events
-                    emailField.dispatchEvent(new KeyboardEvent('keydown', { 
-                        bubbles: true, 
-                        key: value[index], 
-                        code: 'Key' + value[index].toUpperCase(),
-                        keyCode: value[index].charCodeAt(0)
-                    }));
-                    emailField.dispatchEvent(new KeyboardEvent('keypress', { 
-                        bubbles: true, 
-                        key: value[index], 
-                        code: 'Key' + value[index].toUpperCase(),
-                        keyCode: value[index].charCodeAt(0)
-                    }));
-                    emailField.dispatchEvent(new Event('input', { bubbles: true }));
-                    emailField.dispatchEvent(new KeyboardEvent('keyup', { 
-                        bubbles: true, 
-                        key: value[index], 
-                        code: 'Key' + value[index].toUpperCase(),
-                        keyCode: value[index].charCodeAt(0)
-                    }));
+                        if (shouldMakeTypo) {
+                            // Type wrong character first
+                            const wrongChars = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'];
+                            const wrongChar = wrongChars[Math.floor(Math.random() * wrongChars.length)];
+                            emailField.value += wrongChar;
+                            emailField.dispatchEvent(new KeyboardEvent('keydown', { 
+                                bubbles: true, 
+                                key: wrongChar, 
+                                code: 'Key' + wrongChar.toUpperCase(),
+                                keyCode: wrongChar.charCodeAt(0)
+                            }));
+                            emailField.dispatchEvent(new Event('input', { bubbles: true }));
+                            emailField.dispatchEvent(new KeyboardEvent('keyup', { 
+                                bubbles: true, 
+                                key: wrongChar, 
+                                code: 'Key' + wrongChar.toUpperCase(),
+                                keyCode: wrongChar.charCodeAt(0)
+                            }));
 
-                    // Schedule next character with random delay (50-150ms)
-                    setTimeout(() => typeCharacter(index + 1), 50 + Math.random() * 100);
-                };
+                            // Wait before correcting
+                            setTimeout(() => {
+                                // Backspace
+                                emailField.value = emailField.value.slice(0, -1);
+                                emailField.dispatchEvent(new KeyboardEvent('keydown', { 
+                                    bubbles: true, 
+                                    key: 'Backspace', 
+                                    code: 'Backspace',
+                                    keyCode: 8
+                                }));
+                                emailField.dispatchEvent(new Event('input', { bubbles: true }));
+                                emailField.dispatchEvent(new KeyboardEvent('keyup', { 
+                                    bubbles: true, 
+                                    key: 'Backspace', 
+                                    code: 'Backspace',
+                                    keyCode: 8
+                                }));
 
-                // Start typing
-                typeCharacter(0);
+                                // Type correct character
+                                setTimeout(() => {
+                                    emailField.value += charToType;
+                                    emailField.dispatchEvent(new KeyboardEvent('keydown', { 
+                                        bubbles: true, 
+                                        key: charToType, 
+                                        code: 'Key' + charToType.toUpperCase(),
+                                        keyCode: charToType.charCodeAt(0)
+                                    }));
+                                    emailField.dispatchEvent(new KeyboardEvent('keypress', { 
+                                        bubbles: true, 
+                                        key: charToType, 
+                                        code: 'Key' + charToType.toUpperCase(),
+                                        keyCode: charToType.charCodeAt(0)
+                                    }));
+                                    emailField.dispatchEvent(new Event('input', { bubbles: true }));
+                                    emailField.dispatchEvent(new KeyboardEvent('keyup', { 
+                                        bubbles: true, 
+                                        key: charToType, 
+                                        code: 'Key' + charToType.toUpperCase(),
+                                        keyCode: charToType.charCodeAt(0)
+                                    }));
+
+                                    // Continue with next character
+                                    setTimeout(() => typeCharacter(index + 1), 150 + Math.random() * 200);
+                                }, 300 + Math.random() * 400);
+                            }, 400 + Math.random() * 600);
+                        } else {
+                            // Normal typing with much slower, more realistic delays
+                            emailField.value += charToType;
+                            emailField.dispatchEvent(new KeyboardEvent('keydown', { 
+                                bubbles: true, 
+                                key: charToType, 
+                                code: 'Key' + charToType.toUpperCase(),
+                                keyCode: charToType.charCodeAt(0)
+                            }));
+                            emailField.dispatchEvent(new KeyboardEvent('keypress', { 
+                                bubbles: true, 
+                                key: charToType, 
+                                code: 'Key' + charToType.toUpperCase(),
+                                keyCode: charToType.charCodeAt(0)
+                            }));
+                            emailField.dispatchEvent(new Event('input', { bubbles: true }));
+                            emailField.dispatchEvent(new KeyboardEvent('keyup', { 
+                                bubbles: true, 
+                                key: charToType, 
+                                code: 'Key' + charToType.toUpperCase(),
+                                keyCode: charToType.charCodeAt(0)
+                            }));
+
+                            // Slower human-like delay (70-160ms base)
+                            const baseDelay = 70 + Math.random() * 90;
+                            const extraDelay = Math.random() < 0.08 ? 100 + Math.random() * 150 : 0; // 8% chance of longer pause
+                            const thinkingPause = Math.random() < 0.02 ? 200 + Math.random() * 300 : 0; // 2% chance of thinking pause
+                            setTimeout(() => typeCharacter(index + 1), baseDelay + extraDelay + thinkingPause);
+                        }
+                    };
+
+                    // Start typing after a natural delay
+                    setTimeout(() => typeCharacter(0), 300 + Math.random() * 500);
+                }, 500 + Math.random() * 1000);
 
                 // Return true immediately - the typing will complete asynchronously
                 return true;
@@ -2059,9 +2302,9 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
-                logger.info("Successfully filled email with human-like behavior")
-                // Add very short delay after filling (0.2-0.5 second)
-                try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 500_000_000))
+                logger.info("Successfully filled email with enhanced human-like behavior")
+                // Much shorter delay after filling (0.2-0.4 second)
+                try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 400_000_000))
                 return true
             } else {
                 logger.error("Failed to fill email - field not found")
@@ -2079,93 +2322,193 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             return false
         }
 
-        // Add very short random delay before starting (0.2-0.8 seconds)
-        try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 800_000_000))
+        // Check if we're still connected before proceeding
+        guard isConnected else {
+            logger.error("WebKit service is not connected")
+            return false
+        }
 
-        // Simulate realistic mouse movement and human-like behavior
-        await simulateRealisticMouseMovements()
-        await simulateHumanScrolling()
-        await simulateHumanFormInteraction()
+        // Essential delay before starting (0.3-0.6 seconds)
+        try? await Task.sleep(nanoseconds: UInt64.random(in: 300_000_000 ... 600_000_000))
+
+        // Essential human-like behavior simulation
+        await addQuickPause()
 
         let script = """
         (function() {
-            // Use exact selector from Python/Selenium implementation
-            const nameField = document.querySelector('input[id^=\"field\"]');
+            try {
+                // Try multiple selectors to find the name field
+                let nameField = document.querySelector('input[id^=\"field\"]') ||
+                              document.getElementById('name') ||
+                              document.getElementById('fullName') ||
+                              document.getElementById('firstName') ||
+                              document.querySelector('input[name*=\"name\"]') ||
+                              document.querySelector('input[placeholder*=\"name\"]') ||
+                              document.querySelector('input[placeholder*=\"Name\"]') ||
+                              document.querySelector('input[placeholder*=\"Full Name\"]');
 
-            console.log('[ODYSSEY] Name field found:', nameField ? {
-                type: nameField.type,
-                name: nameField.name,
-                id: nameField.id,
-                placeholder: nameField.placeholder,
-                className: nameField.className,
-                value: nameField.value,
-                parentText: nameField.parentElement ? nameField.parentElement.textContent.trim().substring(0, 100) : ''
-            } : 'NOT FOUND');
+                console.log('[ODYSSEY] Name field found:', nameField ? {
+                    type: nameField.type,
+                    name: nameField.name,
+                    id: nameField.id,
+                    placeholder: nameField.placeholder,
+                    className: nameField.className,
+                    value: nameField.value,
+                    parentText: nameField.parentElement ? nameField.parentElement.textContent.trim().substring(0, 100) : ''
+                } : 'NOT FOUND');
 
-            if (nameField) {
-                // Scroll to field with human-like behavior
-                nameField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (nameField) {
+                    // Scroll to field with human-like behavior
+                    nameField.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                // Focus and clear
-                nameField.focus();
-                nameField.value = '';
+                    // Add natural delay before focusing
+                    setTimeout(() => {
+                        // Focus and clear
+                        nameField.focus();
+                        nameField.value = '';
 
-                // Simulate human-like typing with realistic events and delays
-                const value = '\(name)';
-                console.log('[ODYSSEY] Typing name:', value);
+                        // Simulate human-like typing with realistic events and delays
+                        const value = '\(name)';
+                        console.log('[ODYSSEY] Typing name:', value);
 
-                // Use a synchronous approach with setTimeout to simulate typing delays
-                const typeCharacter = (index) => {
-                    if (index >= value.length) {
-                        nameField.dispatchEvent(new Event('change', { bubbles: true }));
-                        nameField.blur();
-                        console.log('[ODYSSEY] Name field filled with:', nameField.value);
-                        return;
-                    }
+                        // Use a synchronous approach with setTimeout to simulate typing delays
+                        const typeCharacter = (index) => {
+                            if (index >= value.length) {
+                                // Add natural delay before finishing
+                                setTimeout(() => {
+                                    nameField.dispatchEvent(new Event('change', { bubbles: true }));
+                                    nameField.blur();
+                                    console.log('[ODYSSEY] Name field filled with:', nameField.value);
+                                }, 200 + Math.random() * 300);
+                                return;
+                            }
 
-                    nameField.value += value[index];
+                            // Simulate occasional typos (1.5% chance) - minimal for stealth
+                            let charToType = value[index];
+                            let shouldMakeTypo = Math.random() < 0.015 && index < value.length - 1;
 
-                    // Dispatch realistic keyboard events
-                    nameField.dispatchEvent(new KeyboardEvent('keydown', { 
-                        bubbles: true, 
-                        key: value[index], 
-                        code: 'Key' + value[index].toUpperCase(),
-                        keyCode: value[index].charCodeAt(0)
-                    }));
-                    nameField.dispatchEvent(new KeyboardEvent('keypress', { 
-                        bubbles: true, 
-                        key: value[index], 
-                        code: 'Key' + value[index].toUpperCase(),
-                        keyCode: value[index].charCodeAt(0)
-                    }));
-                    nameField.dispatchEvent(new Event('input', { bubbles: true }));
-                    nameField.dispatchEvent(new KeyboardEvent('keyup', { 
-                        bubbles: true, 
-                        key: value[index], 
-                        code: 'Key' + value[index].toUpperCase(),
-                        keyCode: value[index].charCodeAt(0)
-                    }));
+                            if (shouldMakeTypo) {
+                                // Type wrong character first
+                                const wrongChars = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'];
+                                const wrongChar = wrongChars[Math.floor(Math.random() * wrongChars.length)];
+                                nameField.value += wrongChar;
+                                nameField.dispatchEvent(new KeyboardEvent('keydown', { 
+                                    bubbles: true, 
+                                    key: wrongChar, 
+                                    code: 'Key' + wrongChar.toUpperCase(),
+                                    keyCode: wrongChar.charCodeAt(0)
+                                }));
+                                nameField.dispatchEvent(new Event('input', { bubbles: true }));
+                                nameField.dispatchEvent(new KeyboardEvent('keyup', { 
+                                    bubbles: true, 
+                                    key: wrongChar, 
+                                    code: 'Key' + wrongChar.toUpperCase(),
+                                    keyCode: wrongChar.charCodeAt(0)
+                                }));
 
-                    // Schedule next character with random delay (50-150ms)
-                    setTimeout(() => typeCharacter(index + 1), 50 + Math.random() * 100);
-                };
+                                // Wait before correcting
+                                setTimeout(() => {
+                                    // Backspace
+                                    nameField.value = nameField.value.slice(0, -1);
+                                    nameField.dispatchEvent(new KeyboardEvent('keydown', { 
+                                        bubbles: true, 
+                                        key: 'Backspace', 
+                                        code: 'Backspace',
+                                        keyCode: 8
+                                    }));
+                                    nameField.dispatchEvent(new Event('input', { bubbles: true }));
+                                    nameField.dispatchEvent(new KeyboardEvent('keyup', { 
+                                        bubbles: true, 
+                                        key: 'Backspace', 
+                                        code: 'Backspace',
+                                        keyCode: 8
+                                    }));
 
-                // Start typing
-                typeCharacter(0);
+                                    // Type correct character
+                                    setTimeout(() => {
+                                        nameField.value += charToType;
+                                        nameField.dispatchEvent(new KeyboardEvent('keydown', { 
+                                            bubbles: true, 
+                                            key: charToType, 
+                                            code: 'Key' + charToType.toUpperCase(),
+                                            keyCode: charToType.charCodeAt(0)
+                                        }));
+                                        nameField.dispatchEvent(new KeyboardEvent('keypress', { 
+                                            bubbles: true, 
+                                            key: charToType, 
+                                            code: 'Key' + charToType.toUpperCase(),
+                                            keyCode: charToType.charCodeAt(0)
+                                        }));
+                                        nameField.dispatchEvent(new Event('input', { bubbles: true }));
+                                        nameField.dispatchEvent(new KeyboardEvent('keyup', { 
+                                            bubbles: true, 
+                                            key: charToType, 
+                                            code: 'Key' + charToType.toUpperCase(),
+                                            keyCode: charToType.charCodeAt(0)
+                                        }));
 
-                // Return true immediately - the typing will complete asynchronously
-                return true;
+                                        // Continue with next character
+                                        setTimeout(() => typeCharacter(index + 1), 150 + Math.random() * 200);
+                                    }, 300 + Math.random() * 400);
+                                }, 400 + Math.random() * 600);
+                            } else {
+                                // Normal typing with much slower, more realistic delays
+                                nameField.value += charToType;
+                                nameField.dispatchEvent(new KeyboardEvent('keydown', { 
+                                    bubbles: true, 
+                                    key: charToType, 
+                                    code: 'Key' + charToType.toUpperCase(),
+                                    keyCode: charToType.charCodeAt(0)
+                                }));
+                                nameField.dispatchEvent(new KeyboardEvent('keypress', { 
+                                    bubbles: true, 
+                                    key: charToType, 
+                                    code: 'Key' + charToType.toUpperCase(),
+                                    keyCode: charToType.charCodeAt(0)
+                                }));
+                                nameField.dispatchEvent(new Event('input', { bubbles: true }));
+                                nameField.dispatchEvent(new KeyboardEvent('keyup', { 
+                                    bubbles: true, 
+                                    key: charToType, 
+                                    code: 'Key' + charToType.toUpperCase(),
+                                    keyCode: charToType.charCodeAt(0)
+                                }));
+
+                                // Slower human-like delay (75-170ms base)
+                                const baseDelay = 75 + Math.random() * 95;
+                                const extraDelay = Math.random() < 0.08 ? 110 + Math.random() * 160 : 0; // 8% chance of longer pause
+                                const thinkingPause = Math.random() < 0.02 ? 220 + Math.random() * 330 : 0; // 2% chance of thinking pause
+                                setTimeout(() => typeCharacter(index + 1), baseDelay + extraDelay + thinkingPause);
+                            }
+                        };
+
+                        // Start typing after a natural delay
+                        setTimeout(() => typeCharacter(0), 300 + Math.random() * 500);
+                    }, 500 + Math.random() * 1000);
+
+                    // Return true immediately - the typing will complete asynchronously
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('[ODYSSEY] Error in fillName script:', error);
+                return false;
             }
-            return false;
         })();
         """
 
         do {
+            // Double-check that we are still connected before executing JavaScript
+            guard isConnected else {
+                logger.error("WebKit service is not connected before JavaScript execution")
+                return false
+            }
+
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
-                logger.info("Successfully filled name with human-like behavior")
-                // Add very short delay after filling (0.2-0.5 second)
-                try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 500_000_000))
+                logger.info("Successfully filled name with enhanced human-like behavior")
+                // Much shorter delay after filling (0.2-0.4 second)
+                try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 400_000_000))
                 return true
             } else {
                 logger.error("Failed to fill name - field not found")
@@ -2229,95 +2572,6 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         await simulateScrolling()
         await moveMouseRandomly()
         await addRandomDelay()
-
-        let script = """
-        // Wait for reCAPTCHA to load and become interactive
-        return new Promise((resolve) => {
-            const checkCaptcha = () => {
-                const recaptcha = document.querySelector('.g-recaptcha, .recaptcha, iframe[src*="recaptcha"]');
-                if (recaptcha) {
-                    console.log('[ODYSSEY] reCAPTCHA found, waiting for user interaction...');
-                    // Scroll to captcha
-                    recaptcha.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    resolve(true);
-                } else {
-                    setTimeout(checkCaptcha, 500);
-                }
-            };
-            checkCaptcha();
-        });
-        """
-
-        do {
-            let result = try await executeScriptInternal(script) as? Bool ?? false
-            if result {
-                logger.info("reCAPTCHA detected and prepared for interaction")
-                // Wait for manual captcha completion
-                return await waitForCaptchaCompletion()
-            } else {
-                logger.error("Failed to detect reCAPTCHA")
-                return false
-            }
-        } catch {
-            logger.error("Error handling captcha: \(error.localizedDescription)")
-            return false
-        }
-    }
-
-    /// Waits for captcha completion by monitoring page changes
-    func waitForCaptchaCompletion() async -> Bool {
-        guard webView != nil else {
-            logger.error("WebView not initialized")
-            return false
-        }
-
-        logger.info("Waiting for manual captcha completion...")
-
-        // Wait up to 2 minutes for captcha completion
-        let startTime = Date()
-        let timeout: TimeInterval = 120 // 2 minutes
-
-        while Date().timeIntervalSince(startTime) < timeout {
-            // Check if captcha is still present
-            let captchaStillPresent = await detectCaptcha()
-
-            if !captchaStillPresent {
-                logger.info("reCAPTCHA appears to be completed")
-                await addRandomDelay()
-                return true
-            }
-
-            // Check for success indicators
-            let successScript = """
-            const successIndicators = document.querySelectorAll('[class*="success"], [class*="verified"], [class*="completed"]');
-            const errorIndicators = document.querySelectorAll('[class*="error"], [class*="failed"], [class*="invalid"]');
-
-            if (errorIndicators.length > 0) {
-                return 'error';
-            } else if (successIndicators.length > 0) {
-                return 'success';
-            }
-            return 'waiting';
-            """
-
-            do {
-                let status = try await executeScriptInternal(successScript) as? String ?? "waiting"
-                if status == "success" {
-                    logger.info("reCAPTCHA completed successfully")
-                    return true
-                } else if status == "error" {
-                    logger.error("reCAPTCHA verification failed")
-                    return false
-                }
-            } catch {
-                logger.error("Error checking captcha status: \(error.localizedDescription)")
-            }
-
-            // Wait before checking again
-            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
-        }
-
-        logger.error("reCAPTCHA completion timeout")
         return false
     }
 
@@ -2327,92 +2581,95 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             return false
         }
 
-        // Add shorter human-like delay before clicking (1-2 seconds)
-        try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000 ... 2_000_000_000))
+        // Essential anti-detection before clicking
+        logger.info("Applying essential anti-detection before confirm button click")
+        await addQuickPause()
 
-        // Simulate realistic mouse movements and human-like behaviors
-        await simulateRealisticMouseMovements()
-        await simulateHumanScrolling()
-        await simulateRandomKeyboardEvents()
+        // Add human-like delay before clicking (1-1.5 seconds)
+        try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000 ... 1_500_000_000))
 
         let script = """
         (function() {
-            // Use exact selector from Python/Selenium implementation
-            const button = document.querySelector('.mdc-button__ripple');
+            try {
+                // Use exact selector from Python/Selenium implementation
+                const button = document.querySelector('.mdc-button__ripple');
 
-            console.log('[ODYSSEY] Confirm button found:', button ? {
-                tagName: button.tagName,
-                className: button.className,
-                textContent: button.textContent.trim(),
-                visible: !!(button.offsetWidth || button.offsetHeight || button.getClientRects().length)
-            } : 'NOT FOUND');
+                console.log('[ODYSSEY] Confirm button found:', button ? {
+                    tagName: button.tagName,
+                    className: button.className,
+                    textContent: (button.textContent || '').trim(),
+                    visible: !!(button.offsetWidth || button.offsetHeight || button.getClientRects().length)
+                } : 'NOT FOUND');
 
-            if (button) {
-                // Scroll to button with human-like behavior
-                button.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (button) {
+                    // Scroll to button with human-like behavior
+                    button.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                                // Simulate realistic mouse movement and hover
-                button.dispatchEvent(new MouseEvent('mouseenter', { 
-                    bubbles: true, 
-                    clientX: button.getBoundingClientRect().left + 10,
-                    clientY: button.getBoundingClientRect().top + 10
-                }));
+                    // Simulate realistic mouse movement and hover
+                    button.dispatchEvent(new MouseEvent('mouseenter', { 
+                        bubbles: true, 
+                        clientX: button.getBoundingClientRect().left + 10,
+                        clientY: button.getBoundingClientRect().top + 10
+                    }));
 
-                button.dispatchEvent(new MouseEvent('mouseover', { 
-                    bubbles: true, 
-                    clientX: button.getBoundingClientRect().left + 15,
-                    clientY: button.getBoundingClientRect().top + 15
-                }));
+                    button.dispatchEvent(new MouseEvent('mouseover', { 
+                        bubbles: true, 
+                        clientX: button.getBoundingClientRect().left + 15,
+                        clientY: button.getBoundingClientRect().top + 15
+                    }));
 
-                // Click with human-like behavior
-                button.dispatchEvent(new MouseEvent('mousedown', { 
-                    bubbles: true, 
-                    button: 0,
-                    clientX: button.getBoundingClientRect().left + 20,
-                    clientY: button.getBoundingClientRect().top + 20
-                }));
+                    // Click with human-like behavior
+                    button.dispatchEvent(new MouseEvent('mousedown', { 
+                        bubbles: true, 
+                        button: 0,
+                        clientX: button.getBoundingClientRect().left + 20,
+                        clientY: button.getBoundingClientRect().top + 20
+                    }));
 
-                button.dispatchEvent(new MouseEvent('mouseup', { 
-                    bubbles: true, 
-                    button: 0,
-                    clientX: button.getBoundingClientRect().left + 20,
-                    clientY: button.getBoundingClientRect().top + 20
-                }));
+                    button.dispatchEvent(new MouseEvent('mouseup', { 
+                        bubbles: true, 
+                        button: 0,
+                        clientX: button.getBoundingClientRect().left + 20,
+                        clientY: button.getBoundingClientRect().top + 20
+                    }));
 
-                button.dispatchEvent(new MouseEvent('click', { 
-                    bubbles: true, 
-                    button: 0,
-                    clientX: button.getBoundingClientRect().left + 20,
-                    clientY: button.getBoundingClientRect().top + 20
-                }));
+                    button.dispatchEvent(new MouseEvent('click', { 
+                        bubbles: true, 
+                        button: 0,
+                        clientX: button.getBoundingClientRect().left + 20,
+                        clientY: button.getBoundingClientRect().top + 20
+                    }));
 
-                console.log('[ODYSSEY] Clicked confirm button with ultra-human-like behavior');
-                return true;
-            }
+                    console.log('[ODYSSEY] Clicked confirm button with ultra-human-like behavior');
+                    return true;
+                }
 
-            // Fallback to other common submit button selectors
-            const fallbackButton = document.querySelector('button[type="submit"]') || 
-                                  document.querySelector('input[type="submit"]') || 
-                                  document.querySelector('button:contains("Submit")') ||
-                                  document.querySelector('button:contains("Confirm")');
+                // Fallback to other common submit button selectors
+                const fallbackButton = document.querySelector('button[type="submit"]') || 
+                                      document.querySelector('input[type="submit"]') || 
+                                      document.querySelector('button:contains("Confirm")');
 
-            if (fallbackButton) {
-                console.log('[ODYSSEY] Using fallback confirm button:', fallbackButton.tagName);
-                fallbackButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (fallbackButton) {
+                    console.log('[ODYSSEY] Using fallback confirm button:', fallbackButton.tagName);
+                    fallbackButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                // Use setTimeout for delays instead of await
-                setTimeout(() => {
-                    fallbackButton.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+                    // Use setTimeout for delays instead of await
                     setTimeout(() => {
-                        fallbackButton.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, button: 0 }));
-                        fallbackButton.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0 }));
-                    }, 50 + Math.random() * 100);
-                }, 300 + Math.random() * 200);
+                        fallbackButton.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+                        setTimeout(() => {
+                            fallbackButton.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, button: 0 }));
+                            fallbackButton.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0 }));
+                        }, 50 + Math.random() * 100);
+                    }, 300 + Math.random() * 200);
 
-                return true;
+                    return true;
+                }
+
+                return false;
+            } catch (error) {
+                console.error('[ODYSSEY] Error in confirm button click:', error);
+                return false;
             }
-
-            return false;
         })();
         """
 
@@ -2437,10 +2694,40 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             return false
         }
 
+        // Wait a bit for the page to load after clicking confirm
+        try? await Task.sleep(nanoseconds: 3_000_000_000) // Wait 3 seconds
+
         let script = """
         (function() {
+            // Check for verification-related elements
             const verificationElements = document.querySelectorAll('[class*="verification"], [id*="verification"], [class*="verify"], [id*="verify"]');
-            return verificationElements.length > 0;
+
+            // Check for verification code input fields
+            const codeInputs = document.querySelectorAll('input[type="text"], input[type="number"], input[name*="verification"], input[name*="code"]');
+
+            // Check for verification-related text in the page
+            const bodyText = document.body.textContent || '';
+            const hasVerificationText = bodyText.toLowerCase().includes('verification') || 
+                                      bodyText.toLowerCase().includes('verify') ||
+                                      bodyText.toLowerCase().includes('code') ||
+                                      bodyText.toLowerCase().includes('enter it below');
+
+            // Check for specific verification patterns
+            const hasVerificationPattern = bodyText.toLowerCase().includes('verification code') ||
+                                         bodyText.toLowerCase().includes('check your email') ||
+                                         bodyText.toLowerCase().includes('receive an email');
+
+            const result = verificationElements.length > 0 || codeInputs.length > 0 || hasVerificationText || hasVerificationPattern;
+
+            console.log('[ODYSSEY] Verification check:', {
+                verificationElements: verificationElements.length,
+                codeInputs: codeInputs.length,
+                hasVerificationText: hasVerificationText,
+                hasVerificationPattern: hasVerificationPattern,
+                result: result
+            });
+
+            return result;
         })();
         """
 
@@ -2458,7 +2745,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         }
     }
 
-    func handleEmailVerification(verificationStart _: Date) async -> Bool {
+    func handleEmailVerification(verificationStart: Date) async -> Bool {
         guard webView != nil else {
             logger.error("WebView not initialized")
             return false
@@ -2466,29 +2753,210 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
 
         logger.info("Handling email verification...")
 
-        // Placeholder implementation - will be fully implemented later
-        let script = """
-        // Placeholder for email verification handling
-        console.log('Handling email verification...');
-        return true;
-        """
-
-        do {
-            let result = try await executeScriptInternal(script) as? Bool ?? false
-            if result {
-                logger.info("Email verification completed successfully")
-                return true
-            } else {
-                logger.error("Email verification failed")
-                return false
-            }
-        } catch {
-            logger.error("Error handling email verification: \(error.localizedDescription)")
+        // Step 1: Wait for verification page to load
+        await updateTask("Waiting for verification page...")
+        let verificationPageReady = await waitForVerificationPage()
+        if !verificationPageReady {
+            logger.error("Verification page failed to load")
             return false
         }
+
+        // Step 2: Fetch verification code from email
+        await updateTask("Fetching verification code from email...")
+        let verificationCode = await fetchVerificationCodeFromEmail(verificationStart: verificationStart)
+        if verificationCode.isEmpty {
+            logger.error("Failed to fetch verification code from email")
+            return false
+        }
+
+        logger.info("Retrieved verification code: \(verificationCode, privacy: .private)")
+
+        // Step 3: Fill verification code into the form
+        await updateTask("Filling verification code...")
+        let codeFilled = await fillVerificationCode(verificationCode)
+        if !codeFilled {
+            logger.error("Failed to fill verification code")
+            return false
+        }
+
+        // Step 3.5: Wait for form to process the input and enable submit button
+        await updateTask("Waiting for form to process verification code...")
+        logger.info("Waiting 2 seconds for form to process verification code...")
+        try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+        logger.info("Finished waiting for form to process verification code")
+
+        // Step 4: Click submit button
+        await updateTask("Submitting verification code...")
+        let submitClicked = await clickVerificationSubmitButton()
+        if !submitClicked {
+            logger.error("Failed to click verification submit button")
+            return false
+        }
+
+        logger.info("Email verification completed successfully")
+        return true
     }
 
-    func checkReservationSuccess() async -> Bool {
+    /// Waits for the verification page to load
+    private func waitForVerificationPage() async -> Bool {
+        guard let webView else {
+            logger.error("WebView not initialized")
+            return false
+        }
+
+        let timeout: TimeInterval = 60 // 60 seconds
+        let pollInterval: TimeInterval = 1.0
+        let start = Date()
+
+        logger.info("Waiting for verification page to load (timeout: \(timeout)s)")
+
+        while Date().timeIntervalSince(start) < timeout {
+            let script = """
+            (function() {
+                // Check for verification code input field
+                const verificationInput = document.querySelector('input[type="text"]') || 
+                                        document.querySelector('input[type="number"]') ||
+                                        document.querySelector('input[name*="verification"]') ||
+                                        document.querySelector('input[name*="code"]') ||
+                                        document.querySelector('input[placeholder*="verification"]') ||
+                                        document.querySelector('input[placeholder*="code"]') ||
+                                        document.querySelector('input[id*="verification"]') ||
+                                        document.querySelector('input[id*="code"]');
+
+                // Check for verification-related text
+                const bodyText = document.body.textContent || '';
+                const hasVerificationText = bodyText.toLowerCase().includes('verification') || 
+                                        bodyText.toLowerCase().includes('verify') ||
+                                        bodyText.toLowerCase().includes('code') ||
+                                        bodyText.toLowerCase().includes('enter it below');
+
+                // Check for specific verification patterns
+                const hasVerificationPattern = bodyText.toLowerCase().includes('verification code') ||
+                                            bodyText.toLowerCase().includes('check your email') ||
+                                            bodyText.toLowerCase().includes('receive an email');
+
+                // Check for loading states
+                const isLoading = bodyText.toLowerCase().includes('loading') ||
+                                bodyText.toLowerCase().includes('please wait') ||
+                                document.querySelector('[class*="loading"], [id*="loading"]');
+
+                const result = {
+                    hasInput: !!verificationInput,
+                    hasText: hasVerificationText,
+                    hasPattern: hasVerificationPattern,
+                    isLoading: !!isLoading,
+                    inputType: verificationInput ? verificationInput.type : null,
+                    inputName: verificationInput ? verificationInput.name : null,
+                    inputPlaceholder: verificationInput ? verificationInput.placeholder : null,
+                    bodyTextPreview: bodyText.substring(0, 200) + '...'
+                };
+
+                console.log('[ODYSSEY] Verification page check:', result);
+                return result;
+            })();
+            """
+
+            do {
+                let result = try await webView.evaluateJavaScript(script)
+                if let dict = result as? [String: Any] {
+                    let hasInput = dict["hasInput"] as? Bool ?? false
+                    let hasText = dict["hasText"] as? Bool ?? false
+                    let hasPattern = dict["hasPattern"] as? Bool ?? false
+                    let isLoading = dict["isLoading"] as? Bool ?? false
+                    let bodyTextPreview = dict["bodyTextPreview"] as? String ?? ""
+
+                    logger
+                        .info(
+                            "Verification page check - Input: \(hasInput), Text: \(hasText), Pattern: \(hasPattern), Loading: \(isLoading)",
+                        )
+                    logger.info("Page content preview: \(bodyTextPreview)")
+
+                    if hasInput || hasText || hasPattern {
+                        logger.info("Verification page detected successfully")
+                        return true
+                    }
+
+                    if isLoading {
+                        logger.info("Page is still loading, waiting...")
+                    }
+                }
+            } catch {
+                logger.error("Error checking verification page: \(error.localizedDescription)")
+            }
+
+            try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
+        }
+
+        logger.error("Verification page load timeout after \(timeout) seconds")
+        return false
+    }
+
+    /// Fetches verification code from email using IMAP
+    private func fetchVerificationCodeFromEmail(verificationStart: Date) async -> String {
+        logger.info("Fetching verification code from email...")
+
+        // Initial wait before checking for the email
+        let initialWait: TimeInterval = 10.0 // 10 seconds
+        let maxTotalWait: TimeInterval = 120.0 // 2 minutes
+        let retryDelay: TimeInterval = 2.0 // 2 seconds
+        let deadline = Date().addingTimeInterval(maxTotalWait)
+        let emailService = await EmailService.shared
+
+        // Wait for the initial period
+        logger.info("Waiting \(initialWait)s before starting email verification checks...")
+        try? await Task.sleep(nanoseconds: UInt64(initialWait * 1_000_000_000))
+
+        while Date() < deadline {
+            // Fetch verification codes using the correct method
+            let codes = await emailService.fetchVerificationCodesForToday(since: verificationStart)
+            if let code = codes.first {
+                logger.info("Found verification email, parsed code: \(code)")
+                return code
+            }
+            logger.info("Verification code not found yet, retrying in \(retryDelay)s...")
+            try? await Task.sleep(nanoseconds: UInt64(retryDelay * 1_000_000_000))
+        }
+        logger.error("Timed out waiting for verification code after \(maxTotalWait)s")
+        return ""
+    }
+
+    /// Parses 4-digit verification code from email body
+    private func parseVerificationCode(from emailBody: String) -> String {
+        // Look for pattern: "Your verification code is: XXXX."
+        let pattern = #"Your verification code is:\s*(\d{4})\s*\."#
+
+        if let regex = try? NSRegularExpression(pattern: pattern, options: []) {
+            let range = NSRange(location: 0, length: emailBody.utf16.count)
+            if let match = regex.firstMatch(in: emailBody, options: [], range: range) {
+                let codeRange = match.range(at: 1)
+                if let range = Range(codeRange, in: emailBody) {
+                    let code = String(emailBody[range])
+                    logger.info("Parsed verification code: \(code, privacy: .private)")
+                    return code
+                }
+            }
+        }
+
+        // Fallback: look for any 4-digit number
+        let fallbackPattern = #"\b(\d{4})\b"#
+        if let regex = try? NSRegularExpression(pattern: fallbackPattern, options: []) {
+            let range = NSRange(location: 0, length: emailBody.utf16.count)
+            if let match = regex.firstMatch(in: emailBody, options: [], range: range) {
+                let codeRange = match.range(at: 1)
+                if let range = Range(codeRange, in: emailBody) {
+                    let code = String(emailBody[range])
+                    logger.info("Parsed verification code (fallback): \(code, privacy: .private)")
+                    return code
+                }
+            }
+        }
+
+        logger.error("Could not parse verification code from email body")
+        return ""
+    }
+
+    /// Fills verification code into the input field
+    private func fillVerificationCode(_ code: String) async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
             return false
@@ -2496,37 +2964,283 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
 
         let script = """
         (function() {
-            const successElements = document.querySelectorAll('[class*="success"], [id*="success"], [class*="confirmed"], [id*="confirmed"]');
-            const errorElements = document.querySelectorAll('[class*="error"], [id*="error"], [class*="failed"], [id*="failed"]');
+            try {
+                // Find verification code input field
+                const verificationInput = document.querySelector('input[type="text"]') || 
+                                        document.querySelector('input[type="number"]') ||
+                                        document.querySelector('input[name*="code"]') ||
+                                        document.querySelector('input[placeholder*="code"]');
 
-            if (errorElements.length > 0) {
+                if (verificationInput) {
+                    // Clear the field first
+                    verificationInput.value = '';
+
+                    // Focus the field
+                    verificationInput.focus();
+
+                    // Fill the code character by character with human-like delays
+                    const code = '\(code)';
+                    for (let i = 0; i < code.length; i++) {
+                        setTimeout(() => {
+                            verificationInput.value += code[i];
+                            // Trigger input event
+                            verificationInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        }, i * 100 + Math.random() * 50);
+                    }
+
+                    // Blur the field after filling
+                    setTimeout(() => {
+                        verificationInput.blur();
+                    }, code.length * 100 + 200);
+
+                    console.log('[ODYSSEY] Filled verification code: \(code)');
+                    return true;
+                } else {
+                    console.log('[ODYSSEY] Verification input field not found');
+                    return false;
+                }
+            } catch (error) {
+                console.error('[ODYSSEY] Error filling verification code:', error);
                 return false;
             }
-
-            if (successElements.length > 0) {
-                return true;
-            }
-
-            // Check for confirmation text
-            const bodyText = document.body.textContent || '';
-            if (bodyText.includes('confirmed') || bodyText.includes('success') || bodyText.includes('booked')) {
-                return true;
-            }
-
-            return false;
         })();
         """
 
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
-                logger.info("Reservation success detected")
+                logger.info("Successfully filled verification code")
+                return true
             } else {
-                logger.info("Reservation success not detected")
+                logger.error("Failed to fill verification code")
+                return false
             }
-            return result
         } catch {
-            logger.error("Error checking reservation success: \(error.localizedDescription)")
+            logger.error("Error filling verification code: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Updates the current task for logging purposes
+    private func updateTask(_ task: String) async {
+        logger.info("Task: \(task)")
+    }
+
+    /// Clicks the submit button for verification
+    private func clickVerificationSubmitButton() async -> Bool {
+        guard let webView else {
+            logger.error("WebView not initialized")
+            return false
+        }
+        do {
+            let script = """
+            (function() {
+                console.log('[ODYSSEY] Starting button detection...');
+
+                // First, log all buttons on the page for debugging
+                const allButtons = document.querySelectorAll('button, input[type="submit"], a');
+                console.log('[ODYSSEY] Found', allButtons.length, 'total buttons/inputs');
+
+                for (let i = 0; i < allButtons.length; i++) {
+                    const btn = allButtons[i];
+                    const text = (btn.textContent || '').trim();
+                    const ariaLabel = btn.getAttribute('aria-label') || '';
+                    const title = btn.getAttribute('title') || '';
+                    const className = btn.className || '';
+                    const id = btn.id || '';
+                    const isVisible = btn.offsetParent !== null;
+                    const isEnabled = !btn.disabled;
+
+                    console.log('[ODYSSEY] Button', i, ':', {
+                        text: text,
+                        ariaLabel: ariaLabel,
+                        title: title,
+                        className: className,
+                        id: id,
+                        visible: isVisible,
+                        enabled: isEnabled,
+                        tagName: btn.tagName
+                    });
+                }
+
+                // Try to find the ripple element
+                const ripple = document.querySelector('.mdc-button__ripple');
+                if (ripple) {
+                    console.log('[ODYSSEY] Found ripple element');
+                    // Try to click the parent button
+                    let parent = ripple.closest('button');
+                    if (parent) {
+                        console.log('[ODYSSEY] Found parent button of ripple element');
+                        // Try MouseEvent first
+                        try {
+                            const rect = parent.getBoundingClientRect();
+                            const event = new MouseEvent('click', {
+                                view: window,
+                                bubbles: true,
+                                cancelable: true,
+                                clientX: rect.left + rect.width / 2,
+                                clientY: rect.top + rect.height / 2
+                            });
+                            parent.dispatchEvent(event);
+                            console.log('[ODYSSEY] Clicked parent button via MouseEvent');
+                            return '[ODYSSEY] Clicked parent button via MouseEvent';
+                        } catch (e) {
+                            console.log('[ODYSSEY] MouseEvent failed, trying .click()');
+                            try {
+                                parent.click();
+                                console.log('[ODYSSEY] Clicked parent button via .click()');
+                                return '[ODYSSEY] Clicked parent button via .click()';
+                            } catch (e2) {
+                                console.log('[ODYSSEY] .click() also failed');
+                            }
+                        }
+                    }
+
+                    // Fallback: try clicking the ripple itself
+                    try {
+                        const rect = ripple.getBoundingClientRect();
+                        const event = new MouseEvent('click', {
+                            view: window,
+                            bubbles: true,
+                            cancelable: true,
+                            clientX: rect.left + rect.width / 2,
+                            clientY: rect.top + rect.height / 2
+                        });
+                        ripple.dispatchEvent(event);
+                        console.log('[ODYSSEY] Clicked ripple element via MouseEvent');
+                        return '[ODYSSEY] Clicked ripple element via MouseEvent';
+                    } catch (e) {
+                        console.log('[ODYSSEY] Ripple click failed');
+                    }
+                } else {
+                    console.log('[ODYSSEY] No ripple element found');
+                }
+
+                // Look for Material Design buttons by class
+                const mdcButtons = document.querySelectorAll('.mdc-button, [class*="mdc-button"]');
+                console.log('[ODYSSEY] Found', mdcButtons.length, 'Material Design buttons');
+
+                for (const btn of mdcButtons) {
+                    if (btn.offsetParent !== null && !btn.disabled) {
+                        const text = (btn.textContent || '').trim().toLowerCase();
+                        console.log('[ODYSSEY] Checking MDC button:', text);
+
+                        if (text.includes('confirm') || text.includes('submit') || text.includes('verify')) {
+                            console.log('[ODYSSEY] Found matching MDC button:', text);
+                            try {
+                                const rect = btn.getBoundingClientRect();
+                                const event = new MouseEvent('click', {
+                                    view: window,
+                                    bubbles: true,
+                                    cancelable: true,
+                                    clientX: rect.left + rect.width / 2,
+                                    clientY: rect.top + rect.height / 2
+                                });
+                                btn.dispatchEvent(event);
+                                console.log('[ODYSSEY] Clicked MDC button via MouseEvent:', text);
+                                return '[ODYSSEY] Clicked MDC button via MouseEvent: ' + text;
+                            } catch (e) {
+                                console.log('[ODYSSEY] MouseEvent failed for MDC button:', text);
+                                try {
+                                    btn.click();
+                                    console.log('[ODYSSEY] Clicked MDC button via .click():', text);
+                                    return '[ODYSSEY] Clicked MDC button via .click(): ' + text;
+                                } catch (e2) {
+                                    console.log('[ODYSSEY] .click() also failed for MDC button:', text);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Fallback: find all visible buttons and look for submit/verify/confirm/continue text
+                const submitKeywords = ['confirm'];
+
+                for (const btn of allButtons) {
+                    if (btn.offsetParent !== null && !btn.disabled) { // visible and enabled
+                        const text = (btn.textContent || '').trim().toLowerCase();
+                        const ariaLabel = (btn.getAttribute('aria-label') || '').toLowerCase();
+                        const title = (btn.getAttribute('title') || '').toLowerCase();
+
+                        console.log('[ODYSSEY] Checking button:', text, 'aria-label:', ariaLabel, 'title:', title);
+
+                        // Check for partial matches with submit keywords in text, aria-label, or title
+                        for (const keyword of submitKeywords) {
+                            if (text.includes(keyword) || ariaLabel.includes(keyword) || title.includes(keyword)) {
+                                console.log('[ODYSSEY] Found matching button with keyword:', keyword);
+                                try {
+                                    const rect = btn.getBoundingClientRect();
+                                    const event = new MouseEvent('click', {
+                                        view: window,
+                                        bubbles: true,
+                                        cancelable: true,
+                                        clientX: rect.left + rect.width / 2,
+                                        clientY: rect.top + rect.height / 2
+                                    });
+                                    btn.dispatchEvent(event);
+                                    console.log('[ODYSSEY] Clicked button via MouseEvent:', text);
+                                    return '[ODYSSEY] Clicked button via MouseEvent: ' + text;
+                                } catch (e) {
+                                    console.log('[ODYSSEY] MouseEvent failed for button:', text);
+                                    try {
+                                        btn.click();
+                                        console.log('[ODYSSEY] Clicked button via .click():', text);
+                                        return '[ODYSSEY] Clicked button via .click(): ' + text;
+                                    } catch (e2) {
+                                        console.log('[ODYSSEY] .click() also failed for button:', text);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Last resort: try clicking the last visible button (often the submit button)
+                const visibleButtons = Array.from(allButtons).filter(btn => 
+                    btn.offsetParent !== null && !btn.disabled
+                );
+
+                if (visibleButtons.length > 0) {
+                    const lastButton = visibleButtons[visibleButtons.length - 1];
+                    const text = (lastButton.textContent || '').trim();
+                    console.log('[ODYSSEY] Trying last visible button:', text);
+
+                    try {
+                        const rect = lastButton.getBoundingClientRect();
+                        const event = new MouseEvent('click', {
+                            view: window,
+                            bubbles: true,
+                            cancelable: true,
+                            clientX: rect.left + rect.width / 2,
+                            clientY: rect.top + rect.height / 2
+                        });
+                        lastButton.dispatchEvent(event);
+                        console.log('[ODYSSEY] Clicked last visible button via MouseEvent:', text);
+                        return '[ODYSSEY] Clicked last visible button via MouseEvent: ' + text;
+                    } catch (e) {
+                        console.log('[ODYSSEY] MouseEvent failed for last button:', text);
+                        try {
+                            lastButton.click();
+                            console.log('[ODYSSEY] Clicked last visible button via .click():', text);
+                            return '[ODYSSEY] Clicked last visible button via .click(): ' + text;
+                        } catch (e2) {
+                            console.log('[ODYSSEY] .click() also failed for last button:', text);
+                        }
+                    }
+                }
+
+                console.log('[ODYSSEY] No suitable button found');
+                return '[ODYSSEY] No suitable button found';
+            })();
+            """
+
+            let result = try await webView
+                .evaluateJavaScript(script) as? String ??
+                "[ODYSSEY] No result from clickVerificationSubmitButton script"
+            logger.debug("[Verification] clickVerificationSubmitButton result: \(result)")
+            return result.contains("Clicked")
+        } catch {
+            logger.error("Error in clickVerificationSubmitButton: \(error.localizedDescription)")
             return false
         }
     }
@@ -2543,12 +3257,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             // Check for "Retry" text in various contexts
             const bodyText = document.body.textContent || '';
             const retryIndicators = [
-                'retry',
-                'try again',
-                'verification failed',
-                'please try again',
-                'captcha failed',
-                'robot verification failed'
+                'Retry',
             ];
 
             const hasRetryText = retryIndicators.some(indicator => 
@@ -2584,299 +3293,169 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
 
         logger.info("Enhancing human-like behavior to avoid reCAPTCHA detection...")
 
-        // Inject enhanced anti-detection scripts
+        // Inject simplified anti-detection scripts (less likely to cause errors)
         let antiDetectionScript = """
         (function() {
-            // Override common bot detection methods
-            Object.defineProperty(navigator, 'webdriver', {
-                get: () => undefined,
-            });
-
-            // Add realistic mouse movement patterns
-            window.odysseyMouseMovements = [];
-            const originalAddEventListener = EventTarget.prototype.addEventListener;
-            EventTarget.prototype.addEventListener = function(type, listener, options) {
-                if (type === 'mousemove') {
-                    const wrappedListener = function(event) {
-                        window.odysseyMouseMovements.push({
-                            x: event.clientX,
-                            y: event.clientY,
-                            timestamp: Date.now()
-                        });
-                        // Keep only last 100 movements
-                        if (window.odysseyMouseMovements.length > 100) {
-                            window.odysseyMouseMovements.shift();
-                        }
-                        return listener.call(this, event);
-                    };
-                    return originalAddEventListener.call(this, type, wrappedListener, options);
+            try {
+                // Simple overrides that are less likely to cause errors
+                if (navigator.webdriver !== undefined) {
+                    Object.defineProperty(navigator, 'webdriver', {
+                        get: () => undefined,
+                        configurable: true
+                    });
                 }
-                return originalAddEventListener.call(this, type, listener, options);
-            };
 
-            // Add realistic scroll patterns
-            let lastScrollTime = 0;
-            const originalScrollTo = window.scrollTo;
-            window.scrollTo = function(x, y) {
-                const now = Date.now();
-                if (now - lastScrollTime > 100) { // Minimum 100ms between scrolls
-                    lastScrollTime = now;
-                    return originalScrollTo.call(this, x, y);
+                // Remove common automation indicators
+                if (window.cdc_adoQpoasnfa76pfcZLmcfl_Array) {
+                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
                 }
-            };
+                if (window.cdc_adoQpoasnfa76pfcZLmcfl_Promise) {
+                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
+                }
+                if (window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol) {
+                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
+                }
 
-            // Add realistic focus/blur patterns
-            const originalFocus = HTMLElement.prototype.focus;
-            HTMLElement.prototype.focus = function() {
-                // Add small random delay before focus
-                setTimeout(() => {
-                    originalFocus.call(this);
-                }, Math.random() * 50);
-            };
+                // Add basic mouse movement tracking
+                if (!window.odysseyMouseMovements) {
+                    window.odysseyMouseMovements = [];
+                }
 
-            console.log('[ODYSSEY] Enhanced anti-detection measures activated');
+                console.log('[ODYSSEY] Basic anti-detection measures applied');
+            } catch (error) {
+                console.error('[ODYSSEY] Error in anti-detection script:', error);
+            }
         })();
         """
 
         do {
-            try await webView.evaluateJavaScript(antiDetectionScript)
-            logger.info("Enhanced anti-detection measures activated")
+            _ = try await webView.evaluateJavaScript(antiDetectionScript)
+            logger.info("Basic anti-detection measures applied successfully")
         } catch {
-            logger.error("Error injecting anti-detection script: \(error.localizedDescription)")
+            logger.error("Failed to apply anti-detection measures: \(error.localizedDescription)")
         }
 
-        // Simulate more realistic human behavior
-        await simulateRealisticScrolling()
-        await simulateRealisticMouseMovements()
-        await addNaturalPauses()
+        // Quick human-like behavior simulation (much faster)
+        await simulateQuickMouseMovements()
+        await simulateQuickScrolling()
+        await addQuickPause()
     }
 
-    /// Simulates realistic scrolling patterns
-    private func simulateRealisticScrolling() async {
+    /// Simulates quick realistic mouse movements
+    func simulateQuickMouseMovements() async {
         guard let webView else { return }
 
-        let scrollScript = """
-        (function() {
-            // Simulate natural scrolling with variable speeds
-            const scrollSteps = [
-                { y: 100, delay: 150 },
-                { y: 200, delay: 200 },
-                { y: 150, delay: 180 },
-                { y: 300, delay: 250 },
-                { y: 100, delay: 120 }
-            ];
+        // Much faster mouse movements (0.1-0.3s total)
+        try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 300_000_000))
 
-            let currentStep = 0;
-            const scrollInterval = setInterval(() => {
-                if (currentStep < scrollSteps.length) {
-                    const step = scrollSteps[currentStep];
-                    window.scrollBy(0, step.y);
-                    currentStep++;
-                } else {
-                    clearInterval(scrollInterval);
-                }
-            }, 100);
+        let script = """
+        (function() {
+            try {
+                // Simulate a quick mouse movement
+                const event = new MouseEvent('mousemove', {
+                    bubbles: true,
+                    cancelable: true,
+                    clientX: 200 + Math.random() * 100,
+                    clientY: 150 + Math.random() * 100
+                });
+                document.dispatchEvent(event);
+            } catch (error) {
+                console.error('[ODYSSEY] Error in mouse movement:', error);
+            }
         })();
         """
 
         do {
-            try await webView.evaluateJavaScript(scrollScript)
+            _ = try await webView.evaluateJavaScript(script)
         } catch {
-            logger.error("Error simulating realistic scrolling: \(error.localizedDescription)")
+            logger.error("Error simulating mouse movement: \(error.localizedDescription)")
         }
     }
 
-    /// Simulates realistic mouse movements
-    private func simulateRealisticMouseMovements() async {
+    /// Simulates quick realistic scrolling
+    func simulateQuickScrolling() async {
         guard let webView else { return }
 
-        let mouseScript = """
+        // Much faster scrolling (0.1-0.2s)
+        try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 200_000_000))
+
+        let script = """
         (function() {
-            // Simulate natural mouse movements with acceleration/deceleration
-            const simulateMouseMove = (startX, startY, endX, endY, duration) => {
-                const steps = 20;
-                const stepDelay = duration / steps;
-                let currentStep = 0;
-
-                const interval = setInterval(() => {
-                    if (currentStep >= steps) {
-                        clearInterval(interval);
-                        return;
-                    }
-
-                    const progress = currentStep / steps;
-                    // Use easing function for natural movement
-                    const easeProgress = 1 - Math.pow(1 - progress, 3);
-
-                    const x = startX + (endX - startX) * easeProgress;
-                    const y = startY + (endY - startY) * easeProgress;
-
-                    // Dispatch mouse move event
-                    document.dispatchEvent(new MouseEvent('mousemove', {
-                        bubbles: true,
-                        clientX: x,
-                        clientY: y
-                    }));
-
-                    currentStep++;
-                }, stepDelay);
-            };
-
-            // Simulate a few mouse movements
-            setTimeout(() => simulateMouseMove(100, 100, 300, 200, 500), 200);
-            setTimeout(() => simulateMouseMove(300, 200, 500, 150, 400), 800);
-            setTimeout(() => simulateMouseMove(500, 150, 200, 300, 600), 1300);
+            try {
+                // Simulate a quick scroll
+                window.scrollBy({
+                    top: Math.random() * 50 - 25,
+                    left: 0,
+                    behavior: 'smooth'
+                });
+            } catch (error) {
+                console.error('[ODYSSEY] Error in scrolling:', error);
+            }
         })();
         """
 
         do {
-            try await webView.evaluateJavaScript(mouseScript)
+            _ = try await webView.evaluateJavaScript(script)
         } catch {
-            logger.error("Error simulating realistic mouse movements: \(error.localizedDescription)")
+            logger.error("Error simulating scrolling: \(error.localizedDescription)")
         }
     }
 
-    /// Adds natural pauses and delays
-    private func addNaturalPauses() async {
-        // Add random pauses to simulate human thinking/reading
-        let pauseDuration = UInt64.random(in: 500_000_000 ... 2_000_000_000) // 0.5-2 seconds
+    /// Adds a quick pause (0.1-0.3s)
+    func addQuickPause() async {
+        try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 300_000_000))
+    }
+
+    /// Adds natural pauses to simulate human thinking/reading
+    func addNaturalPauses() async {
+        // Much shorter pauses (0.2-0.5s)
+        let pauseDuration = UInt64.random(in: 200_000_000 ... 500_000_000)
         try? await Task.sleep(nanoseconds: pauseDuration)
     }
 
-    /// Simulates random mouse clicks on empty areas (like humans do)
-    private func simulateRandomMouseClicks() async {
-        guard let webView else { return }
-
-        // Simulate random mouse clicks on empty areas (like humans do)
-        let randomClicks = Int.random(in: 0 ... 2) // 0-2 random clicks
-
-        for _ in 0 ..< randomClicks {
-            try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 500_000_000))
-
-            // Simulate clicking on empty space
-            let script = """
-                (function() {
-                    // Find a random empty area to click
-                    const body = document.body;
-                    const rect = body.getBoundingClientRect();
-                    const x = Math.random() * (rect.width - 100) + 50;
-                    const y = Math.random() * (rect.height - 100) + 50;
-
-                    // Create and dispatch mouse events
-                    const clickEvent = new MouseEvent('click', {
-                        bubbles: true,
-                        cancelable: true,
-                        view: window,
-                        clientX: x,
-                        clientY: y,
-                        button: 0
-                    });
-
-                                document.elementFromPoint(x, y)?.dispatchEvent(clickEvent);
-                console.log('[ODYSSEY] Random click at:', x, y);
-            })();
-            """
-
-            _ = try? await webView.evaluateJavaScript(script)
-        }
+    /// Simulates realistic mouse movements (alias for enhanced version)
+    func simulateRealisticMouseMovements() async {
+        await simulateQuickMouseMovements()
     }
 
-    /// Simulates human-like scrolling patterns
-    private func simulateHumanScrolling() async {
-        guard let webView else { return }
-
-        // Simulate human-like scrolling patterns
-        let scrollPatterns = [
-            (direction: "down", distance: 100),
-            (direction: "up", distance: 50),
-            (direction: "down", distance: 200),
-            (direction: "up", distance: 75),
-        ]
-
-        for pattern in scrollPatterns {
-            try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 800_000_000))
-
-            let script = """
-                (function() {
-                    const scrollDistance = \(pattern.distance);
-                    window.scrollBy({
-                        top: scrollDistance,
-                        behavior: 'smooth'
-                    });
-                                console.log('[ODYSSEY] Human-like scroll:', '\(pattern.direction)', scrollDistance);
-            })();
-            """
-
-            _ = try? await webView.evaluateJavaScript(script)
-        }
+    /// Simulates human scrolling
+    func simulateHumanScrolling() async {
+        await simulateQuickScrolling()
     }
 
-    /// Simulates random keyboard events (like humans accidentally pressing keys)
-    private func simulateRandomKeyboardEvents() async {
-        guard let webView else { return }
-
-        // Simulate random keyboard events (like humans accidentally pressing keys)
-        let randomEvents = Int.random(in: 0 ... 1) // 0-1 random events
-
-        for _ in 0 ..< randomEvents {
-            try? await Task.sleep(nanoseconds: UInt64.random(in: 300_000_000 ... 1_000_000_000))
-
-            let script = """
-                (function() {
-                    // Random keys that humans might accidentally press
-                    const randomKeys = ['Tab', 'Escape', 'ArrowUp', 'ArrowDown'];
-                    const randomKey = randomKeys[Math.floor(Math.random() * randomKeys.length)];
-
-                    const keyEvent = new KeyboardEvent('keydown', {
-                        bubbles: true,
-                        key: randomKey,
-                        code: randomKey,
-                        keyCode: randomKey.charCodeAt ? randomKey.charCodeAt(0) : 0
-                    });
-
-                    document.activeElement?.dispatchEvent(keyEvent);
-                                console.log('[ODYSSEY] Random keyboard event:', randomKey);
-            })();
-            """
-
-            _ = try? await webView.evaluateJavaScript(script)
-        }
+    /// Simulates human form interaction
+    func simulateHumanFormInteraction() async {
+        await addQuickPause()
     }
 
-    /// Simulates human-like form interaction patterns
-    private func simulateHumanFormInteraction() async {
-        guard let webView else { return }
+    /// Simulates realistic scrolling
+    func simulateRealisticScrolling() async {
+        await simulateQuickScrolling()
+    }
 
-        // Simulate human-like form interaction patterns
-        let script = """
-            (function() {
-                // Simulate random form field focus/blur events
-                const formFields = document.querySelectorAll('input, textarea, select');
-                if (formFields.length > 0) {
-                    const randomField = formFields[Math.floor(Math.random() * formFields.length)];
+    /// Simulates enhanced mouse movements
+    func simulateEnhancedMouseMovements() async {
+        await simulateQuickMouseMovements()
+    }
 
-                    // Random focus/blur
-                    if (Math.random() < 0.3) {
-                        randomField.focus();
-                        setTimeout(() => {
-                            randomField.blur();
-                        }, Math.random() * 1000 + 500);
-                    }
+    /// Simulates random keyboard events
+    func simulateRandomKeyboardEvents() async {
+        await addQuickPause()
+    }
 
-                    // Random hover events
-                    if (Math.random() < 0.2) {
-                        randomField.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
-                        setTimeout(() => {
-                            randomField.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
-                        }, Math.random() * 2000 + 1000);
-                    }
-                }
+    /// Simulates scrolling
+    func simulateScrolling() async {
+        await simulateQuickScrolling()
+    }
 
-                        console.log('[ODYSSEY] Human-like form interaction simulated');
-        })();
-        """
+    /// Moves mouse randomly
+    func moveMouseRandomly() async {
+        await simulateQuickMouseMovements()
+    }
 
-        _ = try? await webView.evaluateJavaScript(script)
+    /// Adds random delay
+    func addRandomDelay() async {
+        await addQuickPause()
     }
 }
 

@@ -17,6 +17,11 @@ struct SettingsFormView: View {
     @State private var showingValidationAlert = false
     @State private var validationMessage = ""
 
+    init() {
+        // Setup notification categories for development builds
+        // Remove setupNotificationCategories function and all notification-related code
+    }
+
     private let logger = Logger(subsystem: "com.odyssey.app", category: "SettingsView")
 
     // Helper function to detect Gmail accounts
@@ -240,7 +245,9 @@ struct SettingsFormView: View {
                     }
                     // Removed Divider after email settings section
                     // Divider().padding(.horizontal, 4)
-                    // Remove all Telegram-related UI
+
+                    // Notification Settings Section
+                    // Removed NotificationSettingsSection
                 }
                 .padding()
             }

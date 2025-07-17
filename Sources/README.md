@@ -57,7 +57,7 @@ Sources/
 - **Configuration.swift** - Settings management and persistence
 - **ReservationManager.swift** - Web automation and reservation booking
 - **FacilityService.swift** - Facility data fetching and sports detection
-- **WebDriverService.swift** - Chrome automation via WebDriver protocol
+- **WebKitService.swift** - Native web automation via WKWebView
 - **EmailService.swift** - IMAP integration and email
 - **TelegramService.swift** - Telegram bot integration and notifications
 
@@ -75,7 +75,7 @@ Sources/
 ### Core Functionality
 
 - **Menu Bar Integration** - Native macOS menu bar app using AppKit
-- **Web Automation** - Chrome automation via WebDriver for reservation booking
+- **Web Automation** - Native web automation via WKWebView for reservation booking
 - **Configuration Management** - Persistent settings and reservation configurations
 - **Scheduling System** - Automated reservation triggering based on time slots
 - **Real-time Status** - Live updates and countdown timers
@@ -84,7 +84,7 @@ Sources/
 
 - **SwiftUI** - Modern, declarative UI framework
 - **Combine** - Reactive programming for state management
-- **WebDriver** - Native WebDriver protocol implementation
+- **WebKit** - Native WKWebView for web automation
 - **UserDefaults** - Persistent configuration storage
 - **os.log** - Structured logging system
 
@@ -132,8 +132,8 @@ xcodegen --spec Config/project.yml
 - **macOS 12.0+** - Minimum deployment target
 - **Swift 5.7+** - Language version
 - **Xcode 14.0+** - Development environment
-- **ChromeDriver** - Web automation dependency
-- **Google Chrome** - Browser for automation
+- **WebKit** - Built-in web automation framework
+- **No External Dependencies** - All automation runs natively
 
 ## Security Considerations
 

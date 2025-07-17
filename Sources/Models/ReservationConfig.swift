@@ -114,6 +114,34 @@ struct ReservationConfig: Codable, Identifiable, Equatable {
         }
         return ""
     }
+
+    /// Formats the schedule info inline for display (e.g., "Mon 8:30 AM, 9:30 AM • Wed 7:00 PM")
+    static func formatScheduleInfoInline(config: ReservationConfig) -> String {
+        let sortedDays = config.dayTimeSlots.keys.sorted { day1, day2 in
+            guard
+                let index1 = Weekday.allCases.firstIndex(of: day1),
+                let index2 = Weekday.allCases.firstIndex(of: day2)
+            else {
+                return false
+            }
+            return index1 < index2
+        }
+        var scheduleInfo: [String] = []
+        for day in sortedDays {
+            if let timeSlots = config.dayTimeSlots[day], !timeSlots.isEmpty {
+                let timeStrings = timeSlots.map { timeSlot in
+                    let formatter = DateFormatter()
+                    formatter.timeStyle = .short
+                    formatter.locale = Locale(identifier: "en_US")
+                    return formatter.string(from: timeSlot.time)
+                }.sorted()
+                let dayShort = day.localizedShortName
+                let timesString = timeStrings.joined(separator: ", ")
+                scheduleInfo.append("\(dayShort) \(timesString)")
+            }
+        }
+        return scheduleInfo.joined(separator: " • ")
+    }
 }
 
 /// Represents a time slot for reservations

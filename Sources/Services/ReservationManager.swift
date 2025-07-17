@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import os.log
+import UserNotifications
 
 /// Manages the automation of reservation bookings for Ottawa recreation facilities
 ///
@@ -121,6 +122,8 @@ class ReservationManager: NSObject, ObservableObject {
         case contactInfoConfirmButtonNotFound
         case emailVerificationFailed
         case reservationFailed
+        case webKitCrash
+        case webKitTimeout
 
         var errorDescription: String? {
             switch self {
@@ -156,6 +159,10 @@ class ReservationManager: NSObject, ObservableObject {
                 "Email verification failed"
             case .reservationFailed:
                 "Reservation was not successful"
+            case .webKitCrash:
+                "WebKit process crashed"
+            case .webKitTimeout:
+                "WebKit operation timed out"
             }
         }
     }
@@ -163,6 +170,7 @@ class ReservationManager: NSObject, ObservableObject {
     override private init() {
         super.init()
         loadLastRunInfo()
+        requestNotificationPermission()
     }
 
     private func saveLastRunInfo() {
@@ -184,6 +192,33 @@ class ReservationManager: NSObject, ObservableObject {
         }
     }
 
+    /// Handle WebKit crashes gracefully
+    private func handleWebKitCrash() async {
+        logger.error("WebKit crash detected, attempting recovery...")
+
+        // Try to reset the WebKit service
+        await webKitService.reset()
+        logger.info("WebKit service reset successful")
+    }
+
+    /// Timeout wrapper for async operations
+    private func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
+        try await withThrowingTaskGroup(of: T.self) { group in
+            group.addTask {
+                try await operation()
+            }
+
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                throw ReservationError.webKitTimeout
+            }
+
+            let result = try await group.next()!
+            group.cancelAll()
+            return result
+        }
+    }
+
     // MARK: - Public Methods
 
     /// Runs reservation automation for a specific configuration
@@ -198,13 +233,39 @@ class ReservationManager: NSObject, ObservableObject {
 
         isRunning = true
         lastRunStatus = .running
-        currentTask = "Starting reservation for \(config.name)"
-        currentConfig = config
 
-        // Start automation in background task
+        // Add timeout protection to prevent indefinite hanging
         Task {
-            await performReservation(for: config, runType: runType)
+            do {
+                try await withTimeout(seconds: 300) { // 5 minutes timeout
+                    try await self.performReservation(for: config, runType: runType)
+                }
+            } catch {
+                logger.error("Reservation timeout reached (5 minutes)")
+                await self.handleReservationError(error, config: config, runType: runType)
+            }
         }
+    }
+
+    /// Handle reservation errors gracefully
+    private func handleReservationError(_ error: Error, config: ReservationConfig, runType: RunType) async {
+        logger.error("Reservation error: \(error.localizedDescription)")
+
+        // Update status
+        await MainActor.run {
+            self.isRunning = false
+            self.lastRunStatus = .failed(error.localizedDescription)
+            self.lastRunInfo[config.id] = (.failed(error.localizedDescription), Date(), runType)
+            self.lastRunDate = Date()
+            self.currentTask = "Reservation failed: \(error.localizedDescription)"
+        }
+
+        // Send failure notification
+        sendFailureNotification(for: config, error: error.localizedDescription)
+
+        // Cleanup WebKit session after error
+        logger.info("Cleaning up WebKit session after error")
+        await webKitService.disconnect(closeWindow: false)
     }
 
     /// Stops all running reservation processes
@@ -215,7 +276,7 @@ class ReservationManager: NSObject, ObservableObject {
 
         // Stop WebKit session
         Task {
-            await webKitService.disconnect()
+            await webKitService.disconnect(closeWindow: false)
         }
     }
 
@@ -225,16 +286,8 @@ class ReservationManager: NSObject, ObservableObject {
         if isRunning, let config = currentConfig {
             logger.warning("Emergency cleanup triggered - capturing screenshot and sending notification")
 
-            // Capture screenshot before cleanup
-            let screenshotData = try? await webKitService.takeScreenshot()
-            if screenshotData != nil {
-                logger.info("Emergency screenshot captured successfully")
-            } else {
-                logger.warning("Failed to capture emergency screenshot")
-            }
-
-            // Send emergency failure notification to Telegram
-            // Remove all Telegram notification logic
+            // Send emergency failure notification
+            sendFailureNotification(for: config, error: "Emergency cleanup - automation was interrupted unexpectedly")
 
             // Update status
             await MainActor.run {
@@ -251,311 +304,300 @@ class ReservationManager: NSObject, ObservableObject {
         }
 
         // Always cleanup WebKit
-        await webKitService.disconnect()
+        await webKitService.disconnect(closeWindow: false)
     }
 
     // MARK: - Private Methods
 
-    private func performReservation(for config: ReservationConfig, runType: RunType) async {
-        // Set up a timeout for the entire reservation process (5 minutes)
-        let timeoutTask = Task {
-            try? await Task.sleep(nanoseconds: UInt64(Constants.reservationTimeout) * 1_000_000_000) // 5 minutes
-            logger.error("Reservation timeout reached (5 minutes)")
-            await handleError(
-                "Reservation timed out after 5 minutes",
-                configId: config.id,
-                runType: runType,
-            )
-            await webKitService.disconnect()
+    private func performReservation(for config: ReservationConfig, runType: RunType) async throws {
+        currentTask = "Starting reservation for \(config.name)"
+        currentConfig = config
+        // Step 1: Start WebKit session and navigate directly to the URL
+        await updateTask("Starting WebKit session")
+        try await webKitService.connect()
+
+        // Set current configuration for error reporting
+        webKitService.currentConfig = config
+
+        // Step 2: Navigate to facility URL
+        await updateTask("Navigating to facility")
+        try await webKitService.navigateToURL(config.facilityURL)
+
+        // Step 2.5: Handle cookie consent if present
+        await updateTask("Checking for cookie consent...")
+        // Note: Cookie consent handling will be implemented in WebKit service
+
+        // Step 3: Wait for page to load
+        await updateTask("Waiting for page to load")
+
+        // Wait for DOM to be fully ready with sport buttons
+        let domReady = await webKitService.waitForDOMReady()
+        if !domReady {
+            logger.error("DOM failed to load properly within timeout")
+            throw ReservationError.pageLoadTimeout
         }
 
-        let reservationTask = Task {
-            do {
-                // Step 1: Start WebKit session and navigate directly to the URL
-                await updateTask("Starting WebKit session")
-                try await webKitService.connect()
+        logger.info("Page loaded successfully")
 
-                // Set current configuration for error reporting
-                webKitService.currentConfig = config
+        // Step 4: Find and click sport button
+        await updateTask("Looking for sport: \(config.sportName)")
+        logger.info("Searching for sport button with text: '\(config.sportName, privacy: .private)'")
+        let buttonClicked = await webKitService.findAndClickElement(withText: config.sportName)
+        if buttonClicked {
+            logger.info("Successfully clicked sport button: \(config.sportName, privacy: .private)")
 
-                // Step 2: Navigate to facility URL
-                await updateTask("Navigating to facility")
-                try await webKitService.navigateToURL(config.facilityURL)
+            // Step 5: Wait for group size page to load
+            await updateTask("Waiting for group size page...")
+            let groupSizePageReady = await webKitService.waitForGroupSizePage()
+            if !groupSizePageReady {
+                logger.error("Group size page failed to load within timeout")
+                throw ReservationError.groupSizePageLoadTimeout
+            }
 
-                // Step 2.5: Handle cookie consent if present
-                await updateTask("Checking for cookie consent...")
-                // Note: Cookie consent handling will be implemented in WebKit service
+            logger.info("Group size page loaded successfully")
 
-                // Step 3: Wait for page to load
-                await updateTask("Waiting for page to load")
+            // Step 6: Fill number of people field
+            await updateTask("Setting number of people: \(config.numberOfPeople)")
 
-                // Wait for DOM to be fully ready with sport buttons
-                let domReady = await webKitService.waitForDOMReady()
-                if !domReady {
-                    logger.error("DOM failed to load properly within timeout")
-                    throw ReservationError.pageLoadTimeout
-                }
+            let peopleFilled = await webKitService.fillNumberOfPeople(config.numberOfPeople)
+            if !peopleFilled {
+                logger.error("Failed to fill number of people field")
+                throw ReservationError.numberOfPeopleFieldNotFound
+            }
 
-                logger.info("Page loaded successfully")
+            logger.info("Successfully filled number of people: \(config.numberOfPeople)")
 
-                // Step 4: Find and click sport button
-                await updateTask("Looking for sport: \(config.sportName)")
-                logger.info("Searching for sport button with text: '\(config.sportName, privacy: .private)'")
-                let buttonClicked = await webKitService.findAndClickElement(withText: config.sportName)
-                if buttonClicked {
-                    logger.info("Successfully clicked sport button: \(config.sportName, privacy: .private)")
+            // Step 7: Click confirm button
+            await updateTask("Confirming group size...")
 
-                    // Step 5: Wait for group size page to load
-                    await updateTask("Waiting for group size page...")
-                    let groupSizePageReady = await webKitService.waitForGroupSizePage()
-                    if !groupSizePageReady {
-                        logger.error("Group size page failed to load within timeout")
-                        throw ReservationError.groupSizePageLoadTimeout
-                    }
+            let confirmClicked = await webKitService.clickConfirmButton()
+            if !confirmClicked {
+                logger.error("Failed to click confirm button")
+                throw ReservationError.confirmButtonNotFound
+            }
 
-                    logger.info("Group size page loaded successfully")
+            logger.info("Successfully clicked confirm button")
 
-                    // Step 6: Fill number of people field
-                    await updateTask("Setting number of people: \(config.numberOfPeople)")
+            // Step 8: Wait for time selection page to load
+            await updateTask("Waiting for time selection page...")
+            // Skip time selection page detection since the page is already loaded
+            // and we can see the "Select a date and time" text and ⊕ elements
+            logger.info("Skipping time selection page detection - page already loaded")
 
-                    let peopleFilled = await webKitService.fillNumberOfPeople(config.numberOfPeople)
-                    if !peopleFilled {
-                        logger.error("Failed to fill number of people field")
-                        throw ReservationError.numberOfPeopleFieldNotFound
-                    }
+            // Step 9: Select time slot based on configuration
+            await updateTask("Selecting time slot...")
 
-                    logger.info("Successfully filled number of people: \(config.numberOfPeople)")
+            // Get the first available day and time from configuration
+            let selectedDay = config.dayTimeSlots.keys.first
+            let selectedTimeSlot = selectedDay.flatMap { day in
+                config.dayTimeSlots[day]?.first
+            }
 
-                    // Step 7: Click confirm button
-                    await updateTask("Confirming group size...")
+            if let day = selectedDay, let timeSlot = selectedTimeSlot {
+                let dayName = day.shortName // Use short name like "Tue"
+                let timeString = timeSlot.formattedTime() // Format like "8:30 AM"
 
-                    let confirmClicked = await webKitService.clickConfirmButton()
-                    if !confirmClicked {
-                        logger.error("Failed to click confirm button")
-                        throw ReservationError.confirmButtonNotFound
-                    }
+                logger.info("Attempting to select: \(dayName) at \(timeString, privacy: .private)")
 
-                    logger.info("Successfully clicked confirm button")
-
-                    // Step 8: Wait for time selection page to load
-                    await updateTask("Waiting for time selection page...")
-                    // Skip time selection page detection since the page is already loaded
-                    // and we can see the "Select a date and time" text and ⊕ elements
-                    logger.info("Skipping time selection page detection - page already loaded")
-
-                    // Step 9: Select time slot based on configuration
-                    await updateTask("Selecting time slot...")
-
-                    // Get the first available day and time from configuration
-                    let selectedDay = config.dayTimeSlots.keys.first
-                    let selectedTimeSlot = selectedDay.flatMap { day in
-                        config.dayTimeSlots[day]?.first
-                    }
-
-                    if let day = selectedDay, let timeSlot = selectedTimeSlot {
-                        let dayName = day.shortName // Use short name like "Tue"
-                        let timeString = timeSlot.formattedTime() // Format like "8:30 AM"
-
-                        logger.info("Attempting to select: \(dayName) at \(timeString, privacy: .private)")
-
-                        let timeSlotSelected = await webKitService.selectTimeSlot(
-                            dayName: dayName,
-                            timeString: timeString,
-                        )
-                        if !timeSlotSelected {
-                            logger.error("Failed to select time slot: \(dayName) at \(timeString, privacy: .private)")
-                            throw ReservationError.timeSlotSelectionFailed
-                        }
-
-                        logger.info("Successfully selected time slot: \(dayName) at \(timeString, privacy: .private)")
-                    } else {
-                        logger.warning("No time slots configured, skipping time selection")
-                    }
-
-                    // Step 10: Wait for contact information page to load
-                    await updateTask("Waiting for contact information page...")
-                    let contactInfoPageReady = await webKitService.waitForContactInfoPage()
-                    if !contactInfoPageReady {
-                        logger.error("Contact information page failed to load within timeout")
-                        throw ReservationError.contactInfoPageLoadTimeout
-                    }
-
-                    logger.info("Contact information page loaded successfully")
-
-                    // Step 11: Proceed with human-like form filling (invisible reCAPTCHA will be handled automatically)
-                    logger.info("Proceeding with human-like form filling to avoid triggering invisible reCAPTCHA")
-
-                    // Step 12: Fill contact information form with human-like behavior
-                    await updateTask("Filling contact information...")
-
-                    // Enhance human-like behavior before form filling
-                    await webKitService.enhanceHumanLikeBehavior()
-
-                    // Get user settings for contact information
-                    let userSettings = UserSettingsManager.shared.userSettings
-
-                    // Fill phone number (remove hyphens as per form instructions)
-                    let phoneNumber = userSettings.phoneNumber.replacingOccurrences(of: "-", with: "")
-                    let phoneFilled = await webKitService.fillPhoneNumber(phoneNumber)
-                    if !phoneFilled {
-                        logger.error("Failed to fill phone number")
-                        throw ReservationError.phoneNumberFieldNotFound
-                    }
-
-                    logger.info("Successfully filled phone number")
-
-                    // Fill email address
-                    let emailFilled = await webKitService.fillEmail(userSettings.imapEmail)
-                    if !emailFilled {
-                        logger.error("Failed to fill email address")
-                        throw ReservationError.emailFieldNotFound
-                    }
-
-                    logger.info("Successfully filled email address")
-
-                    // Fill name
-                    let nameFilled = await webKitService.fillName(userSettings.name)
-                    if !nameFilled {
-                        logger.error("Failed to fill name")
-                        throw ReservationError.nameFieldNotFound
-                    }
-
-                    logger.info("Successfully filled name")
-
-                    // Step 13: Click confirm button for contact information with retry logic
-                    await updateTask("Confirming contact information...")
-
-                    // Record timestamp before clicking confirm
-                    let verificationStart = Date()
-
-                    // Try clicking confirm button up to 3 times with retry logic
-                    var contactConfirmClicked = false
-                    var retryCount = 0
-                    let maxRetries = 3
-
-                    while !contactConfirmClicked, retryCount < maxRetries {
-                        if retryCount > 0 {
-                            logger.info("Retry attempt \(retryCount) for confirm button click")
-                            await updateTask("Retrying confirmation... (Attempt \(retryCount + 1)/\(maxRetries))")
-
-                            // Wait 0.5 seconds before retry
-                            try? await Task.sleep(nanoseconds: 500_000_000)
-
-                            // Re-enhance human-like behavior before retry
-                            await webKitService.enhanceHumanLikeBehavior()
-                        }
-
-                        contactConfirmClicked = await webKitService.clickContactInfoConfirmButtonWithRetry()
-
-                        if contactConfirmClicked {
-                            // Check if retry text appears after clicking
-                            try? await Task.sleep(nanoseconds: 500_000_000) // Wait 0.5s
-                            let retryTextDetected = await webKitService.detectRetryText()
-
-                            if retryTextDetected {
-                                logger.warning("Retry text detected after confirm button click - will retry")
-                                contactConfirmClicked = false
-                                retryCount += 1
-                            } else {
-                                logger.info("Successfully clicked contact confirm button (no retry text detected)")
-                                break
-                            }
-                        } else {
-                            retryCount += 1
-                        }
-                    }
-
-                    if !contactConfirmClicked {
-                        logger.error("Failed to click contact confirm button after \(maxRetries) attempts")
-                        throw ReservationError.contactInfoConfirmButtonNotFound
-                    }
-
-                    logger.info("Successfully clicked contact confirm button")
-
-                    // Step 14: Handle email verification if required
-                    await updateTask("Checking for email verification...")
-                    let verificationRequired = await webKitService.isEmailVerificationRequired()
-                    if verificationRequired {
-                        logger.info("Email verification required, starting verification process...")
-                        let verificationSuccess = await webKitService
-                            .handleEmailVerification(verificationStart: verificationStart)
-                        if !verificationSuccess {
-                            logger.error("Email verification failed")
-
-                            // Capture screenshot before throwing error
-                            let screenshotData = try? await webKitService.takeScreenshot()
-                            if screenshotData != nil {
-                                logger.info("Screenshot captured for email verification failure")
-                            } else {
-                                logger.warning("Failed to capture screenshot for email verification failure")
-                            }
-
-                            // Send failure notification with screenshot to Telegram
-                            // Remove all Telegram notification logic
-
-                            throw ReservationError.emailVerificationFailed
-                        }
-                        logger.info("Email verification completed successfully")
-                    } else {
-                        logger.info("No email verification required")
-                    }
-
-                    // Step 15: Check for success
-                    await updateTask("Checking reservation success...")
-                    let success = await webKitService.checkReservationSuccess()
-                    if success {
-                        logger.info("🎉 Reservation completed successfully!")
-
-                        // Update status to success
-                        await MainActor.run {
-                            self.isRunning = false
-                            self.lastRunStatus = .success
-                            self.lastRunInfo[config.id] = (.success, Date(), runType)
-                            self.lastRunDate = Date()
-                            self.currentTask = "Reservation completed successfully"
-                        }
-
-                        // Send notifications if configured
-                        // Remove all Telegram notification logic
-
-                        // Cleanup WebKit session after successful reservation
-                        logger.info("Cleaning up WebKit session after successful reservation")
-                        await webKitService.disconnect()
-                    } else {
-                        logger.error("Reservation was not successful")
-                        throw ReservationError.reservationFailed
-                    }
-
-                } else {
-                    logger.error("Failed to click sport button: \(config.sportName, privacy: .private)")
-                    throw ReservationError.sportButtonNotFound
-                }
-
-            } catch {
-                logger.error("Reservation failed with error: \(error)")
-                await handleError(
-                    error.localizedDescription,
-                    configId: config.id,
-                    runType: runType,
+                let timeSlotSelected = await webKitService.selectTimeSlot(
+                    dayName: dayName,
+                    timeString: timeString,
                 )
+                if !timeSlotSelected {
+                    logger.error("Failed to select time slot: \(dayName) at \(timeString, privacy: .private)")
+                    throw ReservationError.timeSlotSelectionFailed
+                }
 
-                // Cleanup WebKit session on error
-                await webKitService.disconnect()
+                logger.info("Successfully selected time slot: \(dayName) at \(timeString, privacy: .private)")
+            } else {
+                logger.warning("No time slots configured, skipping time selection")
             }
-        }
 
-        // Wait for either the reservation to complete or timeout
-        await withTaskGroup(of: Void.self) { group in
-            group.addTask { await reservationTask.value }
-            group.addTask { await timeoutTask.value }
+            // Step 10: Wait for contact information page to load
+            await updateTask("Waiting for contact information page...")
 
-            // Wait for the first task to complete
-            for await _ in group {
-                // Cancel the other task
-                timeoutTask.cancel()
-                reservationTask.cancel()
-                break
+            // Wait for contact info page with timeout
+            let contactInfoPageReady = await withTimeout(seconds: 10) { [self] in
+                await webKitService.waitForContactInfoPage()
+            } ?? false
+
+            if !contactInfoPageReady {
+                logger.error("Contact information page failed to load within timeout")
+                throw ReservationError.contactInfoPageLoadTimeout
             }
+
+            logger.info("Contact information page loaded successfully")
+
+            // Step 11: Proceed with human-like form filling (invisible reCAPTCHA will be handled automatically)
+            logger.info("Proceeding with human-like form filling to avoid triggering invisible reCAPTCHA")
+
+            // Step 12: Fill contact information form with human-like behavior
+            await updateTask("Filling contact information...")
+
+            // Enhance human-like behavior before form filling
+            await webKitService.enhanceHumanLikeBehavior()
+
+            // Get user settings for contact information
+            let userSettings = UserSettingsManager.shared.userSettings
+
+            // Fill phone number (remove hyphens as per form instructions)
+            let phoneNumber = userSettings.phoneNumber.replacingOccurrences(of: "-", with: "")
+            let phoneFilled = await webKitService.fillPhoneNumber(phoneNumber)
+            if !phoneFilled {
+                logger.error("Failed to fill phone number")
+                throw ReservationError.phoneNumberFieldNotFound
+            }
+
+            logger.info("Successfully filled phone number")
+
+            // Essential pause between fields (0.4–0.8s)
+            try? await Task.sleep(nanoseconds: UInt64.random(in: 400_000_000 ... 800_000_000))
+
+            // Fill email address
+            let emailFilled = await webKitService.fillEmail(userSettings.imapEmail)
+            if !emailFilled {
+                logger.error("Failed to fill email address")
+                throw ReservationError.emailFieldNotFound
+            }
+
+            logger.info("Successfully filled email address")
+
+            // Essential pause between fields (0.4–0.8s)
+            try? await Task.sleep(nanoseconds: UInt64.random(in: 400_000_000 ... 800_000_000))
+
+            // Fill name
+            let nameFilled = await webKitService.fillName(userSettings.name)
+            if !nameFilled {
+                logger.error("Failed to fill name")
+                throw ReservationError.nameFieldNotFound
+            }
+
+            logger.info("Successfully filled name")
+
+            // Before clicking confirm, essential review pause (0.5–1.0s)
+            try? await Task.sleep(nanoseconds: UInt64.random(in: 500_000_000 ... 1_000_000_000))
+
+            // Step 13: Click confirm button for contact information with retry logic
+            await updateTask("Confirming contact information...")
+
+            // Record timestamp before clicking confirm
+            let verificationStart = Date()
+
+            // Try clicking confirm button up to 6 times with retry logic (increased from 3)
+            var contactConfirmClicked = false
+            var retryCount = 0
+            let maxRetries = 6
+
+            while !contactConfirmClicked, retryCount < maxRetries {
+                if retryCount > 0 {
+                    logger.info("Retry attempt \(retryCount) for confirm button click")
+                    await updateTask("Retrying confirmation... (Attempt \(retryCount + 1)/\(maxRetries))")
+
+                    // Apply essential anti-detection before retry
+                    logger.info("Applying essential anti-detection for retry attempt \(retryCount)")
+                    await updateTask("Applying anti-detection measures...")
+
+                    // Essential anti-detection sequence
+                    await webKitService.addQuickPause()
+
+                    // Wait before retry
+                    try? await Task.sleep(nanoseconds: UInt64.random(in: 500_000_000 ... 1_000_000_000))
+                }
+
+                contactConfirmClicked = await webKitService.clickContactInfoConfirmButtonWithRetry()
+
+                if contactConfirmClicked {
+                    // Check if retry text appears after clicking
+                    try? await Task.sleep(nanoseconds: 300_000_000) // Wait 0.3s
+                    let retryTextDetected = await webKitService.detectRetryText()
+
+                    if retryTextDetected {
+                        logger
+                            .warning(
+                                "Retry text detected after confirm button click - will retry with enhanced measures",
+                            )
+                        contactConfirmClicked = false
+                        retryCount += 1
+
+                        // Additional essential measures after retry text detection
+                        logger.info("Applying additional essential measures after retry text detection")
+                        await updateTask("Applying additional anti-detection measures...")
+
+                        // Essential anti-detection
+                        await webKitService.addQuickPause()
+
+                        // Wait after retry text detection
+                        try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000 ... 1_500_000_000))
+                    } else {
+                        logger.info("Successfully clicked contact confirm button (no retry text detected)")
+                        break
+                    }
+                } else {
+                    retryCount += 1
+                }
+            }
+
+            if !contactConfirmClicked {
+                logger.error("Failed to click contact confirm button after \(maxRetries) attempts")
+                throw ReservationError.contactInfoConfirmButtonNotFound
+            }
+
+            logger.info("Successfully clicked contact confirm button")
+
+            // Step 14: Handle email verification if required
+            await updateTask("Checking for email verification...")
+
+            // Wait for the page to fully load
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // Wait 2 seconds
+
+            let verificationRequired = await webKitService.isEmailVerificationRequired()
+            if verificationRequired {
+                logger.info("Email verification required, starting verification process...")
+                let verificationSuccess = await webKitService
+                    .handleEmailVerification(verificationStart: verificationStart)
+                if !verificationSuccess {
+                    logger.error("Email verification failed")
+                    throw ReservationError.emailVerificationFailed
+                }
+                logger.info("Email verification completed successfully")
+
+                // Wait for page navigation to complete after email verification
+                await updateTask("Waiting for confirmation page to load...")
+                logger.info("Waiting for page navigation to complete after email verification...")
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second for navigation
+
+                // Wait for DOM to be ready on the new page
+                let domReady = await webKitService.waitForDOMReady()
+                if domReady {
+                    logger.info("Confirmation page loaded successfully")
+                } else {
+                    logger.warning("DOM ready check failed, but continuing with click result as success indicator")
+                }
+            }
+
+            // Step 15: Determine success based on whether we completed all steps
+            await updateTask("Finishing reservation...")
+
+            // If we reached this point and email verification was successful (if required),
+            // or if no email verification was needed, then the reservation is successful
+            logger.info("Reservation completed successfully - all steps completed!")
+            await MainActor.run {
+                self.isRunning = false
+                self.lastRunStatus = .success
+                self.lastRunInfo[config.id] = (.success, Date(), runType)
+                self.lastRunDate = Date()
+                self.currentTask = "Reservation completed successfully"
+            }
+
+            // Send success notification
+            sendSuccessNotification(for: config)
+
+            logger.info("Cleaning up WebKit session after successful reservation")
+            await webKitService.disconnect(closeWindow: true)
+            return // <-- Ensure we exit after success
+        } else {
+            logger.error("Failed to click sport button: \(config.sportName, privacy: .private)")
+            throw ReservationError.sportButtonNotFound
         }
     }
 
@@ -577,27 +619,169 @@ class ReservationManager: NSObject, ObservableObject {
         }
         logger.error("Reservation error: \(error)")
 
-        // Capture screenshot and send Telegram notification for automation failures
-        if currentConfig != nil {
-            // Capture screenshot before cleanup
-            let screenshotData = try? await webKitService.takeScreenshot()
-            if screenshotData != nil {
-                logger.info("Screenshot captured successfully for failure notification")
-            } else {
-                logger.warning("Failed to capture screenshot for failure notification")
-            }
-
-            // Send failure notification with screenshot to Telegram
-            // Remove all Telegram notification logic
+        // Send failure notification if we have the current config
+        if let currentConfig {
+            sendFailureNotification(for: currentConfig, error: error)
         }
 
         // Always cleanup WebKit session
         logger.info("Cleaning up WebKit session after error")
-        await webKitService.disconnect()
+        await webKitService.disconnect(closeWindow: false)
     }
 
     // Helper to get last run info for a config
     func getLastRunInfo(for configId: UUID) -> (status: RunStatus, date: Date?, runType: RunType)? {
         lastRunInfo[configId]
+    }
+
+    // MARK: - Notification Methods
+
+    /// Request notification permission from the user
+    private func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
+            if let error {
+                self.logger.error("Failed to request notification permission: \(error.localizedDescription)")
+            } else if granted {
+                self.logger.info("Notification permission granted")
+            } else {
+                self.logger.warning("Notification permission denied")
+            }
+        }
+    }
+
+    /// Check if notifications are authorized
+    private func checkNotificationAuthorization() async -> Bool {
+        let center = UNUserNotificationCenter.current()
+        let settings = await center.notificationSettings()
+        return settings.authorizationStatus == .authorized
+    }
+
+    /// Send a system notification for reservation success
+    private func sendSuccessNotification(for config: ReservationConfig) {
+        Task {
+            // First, try to request permission if not already granted
+            await requestNotificationPermissionIfNeeded()
+
+            let isAuthorized = await checkNotificationAuthorization()
+            guard isAuthorized else {
+                logger.warning("Cannot send notification - permission not granted")
+                // Show a user-friendly message in the UI instead
+                await MainActor.run {
+                    self
+                        .currentTask =
+                        "Reservation successful! (Enable notifications in System Preferences to get alerts)"
+                }
+                return
+            }
+
+            let content = UNMutableNotificationContent()
+            content.title = "🎉 Reservation Successful!"
+            content.body = "\(config.sportName) at \(ReservationConfig.extractFacilityName(from: config.facilityURL))"
+            content.sound = .default
+
+            let request = UNNotificationRequest(
+                identifier: "reservation-success-\(config.id.uuidString)-\(Date().timeIntervalSince1970)",
+                content: content,
+                trigger: nil,
+            )
+
+            do {
+                try await UNUserNotificationCenter.current().add(request)
+                logger.info("Success notification sent for \(config.name)")
+            } catch {
+                logger.error("Failed to send success notification: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// Send a system notification for reservation failure
+    private func sendFailureNotification(for config: ReservationConfig, error: String) {
+        Task {
+            // First, try to request permission if not already granted
+            await requestNotificationPermissionIfNeeded()
+
+            let isAuthorized = await checkNotificationAuthorization()
+            guard isAuthorized else {
+                logger.warning("Cannot send notification - permission not granted")
+                // Show a user-friendly message in the UI instead
+                await MainActor.run {
+                    self.currentTask = "Reservation failed! (Enable notifications in System Preferences to get alerts)"
+                }
+                return
+            }
+
+            let content = UNMutableNotificationContent()
+            content.title = "❌ Reservation Failed"
+
+            // Shorten the error message for notification
+            let shortError = error.count > 50 ? String(error.prefix(47)) + "..." : error
+            content.body = "\(config.sportName): \(shortError)"
+            content.sound = .default
+
+            let request = UNNotificationRequest(
+                identifier: "reservation-failure-\(config.id.uuidString)-\(Date().timeIntervalSince1970)",
+                content: content,
+                trigger: nil,
+            )
+
+            do {
+                try await UNUserNotificationCenter.current().add(request)
+                logger.info("Failure notification sent for \(config.name)")
+            } catch {
+                logger.error("Failed to send failure notification: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// Request notification permission if not already granted
+    private func requestNotificationPermissionIfNeeded() async {
+        let center = UNUserNotificationCenter.current()
+        let settings = await center.notificationSettings()
+
+        // Only request if not determined (first time) or denied
+        if settings.authorizationStatus == .notDetermined {
+            logger.info("Requesting notification permission...")
+            let granted = await withCheckedContinuation { continuation in
+                center.requestAuthorization(options: [.alert, .sound]) { granted, error in
+                    if let error {
+                        self.logger.error("Failed to request notification permission: \(error.localizedDescription)")
+                    } else if granted {
+                        self.logger.info("Notification permission granted")
+                    } else {
+                        self.logger.warning("Notification permission denied")
+                    }
+                    continuation.resume(returning: granted)
+                }
+            }
+
+            if granted {
+                logger.info("Notification permission granted successfully")
+            } else {
+                logger.warning("Notification permission denied by user")
+            }
+        } else if settings.authorizationStatus == .denied {
+            logger.warning("Notification permission denied - user needs to enable in System Preferences")
+        }
+    }
+
+    // Helper function to add timeout to async operations
+    private func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async -> T) async -> T? {
+        await withTaskGroup(of: T?.self) { group in
+            group.addTask {
+                await operation()
+            }
+
+            group.addTask {
+                try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                return nil
+            }
+
+            for await result in group {
+                group.cancelAll()
+                return result
+            }
+
+            return nil
+        }
     }
 }

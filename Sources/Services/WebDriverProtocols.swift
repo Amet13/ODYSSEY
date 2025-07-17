@@ -11,12 +11,11 @@ public protocol WebAutomationServiceProtocol: ObservableObject {
     var pageTitle: String? { get }
 
     func connect() async throws
-    func disconnect() async
+    func disconnect(closeWindow: Bool) async
     func navigateToURL(_ url: String) async throws
     func getPageSource() async throws -> String
     func getCurrentURL() async throws -> String
     func getTitle() async throws -> String
-    func takeScreenshot() async throws -> Data
 }
 
 // MARK: - Web Element Protocol
@@ -49,7 +48,6 @@ public enum WebDriverError: Error, LocalizedError {
     case clickFailed(String)
     case typeFailed(String)
     case scriptExecutionFailed(String)
-    case screenshotFailed(String)
     case timeout(String)
     case connectionFailed(String)
     case invalidSelector(String)
@@ -67,8 +65,6 @@ public enum WebDriverError: Error, LocalizedError {
             return "Type failed: \(message)"
         case let .scriptExecutionFailed(message):
             return "Script execution failed: \(message)"
-        case let .screenshotFailed(message):
-            return "Screenshot failed: \(message)"
         case let .timeout(message):
             return "Timeout: \(message)"
         case let .connectionFailed(message):

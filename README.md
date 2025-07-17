@@ -66,8 +66,61 @@ xcodegen
 
 ## 🛡️ Permissions
 
-- **Full Disk Access:** ODYSSEY may require Full Disk Access for automation to work on macOS. Grant access in **System Settings > Privacy & Security > Full Disk Access**.
-- **Automation/Accessibility:** For advanced automation features, you may need to enable Automation or Accessibility permissions for ODYSSEY.
+ODYSSEY uses minimal permissions for privacy and security:
+
+- **Network Access:** Required for web automation (standard app capability)
+- **Notifications:** Optional - for success/failure alerts (user-granted)
+- **Standard App Sandbox:** For configuration storage and logging (built-in)
+
+**No special permissions required!** ODYSSEY runs with standard macOS app permissions and doesn't need Full Disk Access, Automation, or Accessibility permissions.
+
+## 🔔 Notifications
+
+ODYSSEY can send system notifications to alert you when reservations succeed or fail. Here's how to enable them:
+
+### Enabling Notifications
+
+1. **First Launch:** When you first run ODYSSEY, it will automatically request notification permissions
+2. **System Preferences:** If you missed the initial request or want to change settings:
+   - Open **System Preferences** (or **System Settings** on macOS 13+)
+   - Go to **Notifications & Focus** (or **Notifications** on older versions)
+   - Find **ODYSSEY** in the list of apps
+   - Enable **Allow Notifications**
+   - Choose your preferred notification style (Banner, Alert, or None)
+
+### Notification Types
+
+- **🎉 Success Notifications:** Sent when a reservation is completed successfully
+- **❌ Failure Notifications:** Sent when a reservation fails (with error details)
+
+### Troubleshooting Notifications
+
+If you're not receiving notifications:
+
+1. **Check System Preferences:**
+
+   - Ensure ODYSSEY has notification permissions enabled
+   - Verify notification style is set to "Banner" or "Alert" (not "None")
+
+2. **Check Focus Mode:**
+
+   - Make sure Focus mode isn't blocking notifications from ODYSSEY
+   - Add ODYSSEY to allowed apps in Focus settings if needed
+
+3. **Restart the App:**
+
+   - Quit and relaunch ODYSSEY to re-request permissions
+
+4. **Check Logs:**
+   - Use `./Scripts/logs.sh` to see if notification permission errors are logged
+   - Look for messages like "Notification permission denied" or "Cannot send notification - permission not granted"
+
+### Notification Content
+
+- **Success:** "🎉 Reservation Successful! [Sport] at [Facility]"
+- **Failure:** "❌ Reservation Failed [Sport]: [Error Message]"
+
+Notifications are sent immediately when reservations complete, helping you stay informed about your booking status.
 
 ## 📝 Documentation
 

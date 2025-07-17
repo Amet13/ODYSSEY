@@ -304,14 +304,19 @@ struct ConfigurationRowView: View {
             .fixedSize(horizontal: false, vertical: true)
             VStack(alignment: .leading, spacing: 2) {
                 if let next = nextAutorunInfo {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 2) {
                         Image(systemName: "clock")
                             .font(.caption)
                             .foregroundColor(.accentColor)
-                        Text(nextAutorunText(for: next))
+                        Text("Next autorun:")
                             .font(.caption)
                             .foregroundColor(.accentColor)
-                            .fixedSize(horizontal: false, vertical: true)
+                        Text(formatCountdown(next.date))
+                            .font(.caption)
+                            .foregroundColor(.accentColor)
+                        Text("(\(next.weekday.localizedShortName) \(formatTime(next.date)))")
+                            .font(.caption)
+                            .foregroundColor(.accentColor)
                     }
                 }
                 lastRunStatusView(for: config)
@@ -387,14 +392,17 @@ struct ConfigurationRowView: View {
         return scheduleInfo.joined(separator: " • ")
     }
 
-    private func nextAutorunText(for next: NextAutorunInfo) -> String {
+    private func formatTime(_ date: Date) -> String {
         let timeFormatter = DateFormatter()
         timeFormatter.timeStyle = .short
         timeFormatter.locale = userSettingsManager.userSettings.locale
-        let autorunTimeString = timeFormatter.string(from: next.date)
+        return timeFormatter.string(from: date)
+    }
+
+    private func nextAutorunText(for next: NextAutorunInfo) -> String {
         let autorunText = "Next autorun:"
         let countdownText = formatCountdown(next.date)
-        let scheduleText = "(\(next.weekday.localizedShortName) \(autorunTimeString))"
+        let scheduleText = "(\(next.weekday.localizedShortName) \(formatTime(next.date)))"
         return "\(autorunText) \(countdownText) \(scheduleText)"
     }
 
@@ -427,14 +435,14 @@ struct ConfigurationRowView: View {
             case .automatic: " (auto)"
             }
             return AnyView(
-                HStack(spacing: 6) {
+                HStack(spacing: 2) {
                     Image(systemName: statusInfo.iconName)
                         .foregroundColor(statusInfo.statusColor)
                         .font(.caption)
-                    let lastRunText = "Last run:"
-                    let statusText = statusInfo.statusKey
-                    let runTypeText = runTypeKey
-                    Text("\(lastRunText) \(statusText) \(runTypeText)")
+                    Text("Last run:")
+                        .font(.caption)
+                        .foregroundColor(statusInfo.statusColor)
+                    Text(statusInfo.statusKey + runTypeKey)
                         .font(.caption)
                         .foregroundColor(statusInfo.statusColor)
                     if let date = lastRun.date {

@@ -3,14 +3,6 @@ import Foundation
 import WebKit
 
 extension WebKitService {
-    /// Adds a random delay to mimic human-like timing
-    func addRandomDelay() async {
-        let isFastMode = UserDefaults.standard.bool(forKey: "WebKitFastMode")
-        let delayRange = isFastMode ? (0.3 ... 0.8) : (0.5 ... 1.5)
-        let delay = Double.random(in: delayRange)
-        try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-    }
-
     /// Simulates mouse movement to an element (cosmetic, but helps with some anti-bot scripts)
     func simulateMouseMovement(to _: String) async {
         // Simulate mouse movement by scrolling to the element and waiting
@@ -51,35 +43,6 @@ extension WebKitService {
             """
             _ = try? await executeScriptInternal(blurScript)
         }
-    }
-
-    /// Simulates random scrolling on the page
-    func simulateScrolling() async {
-        let script = """
-        const scrollY = Math.floor(Math.random() * (window.innerHeight / 2));
-        window.scrollBy({ top: scrollY, left: 0, behavior: 'smooth' });
-        """
-        _ = try? await executeScriptInternal(script)
-        let delay = Double.random(in: 0.2 ... 0.7)
-        try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-    }
-
-    /// Simulates random mouse movement on the page
-    func moveMouseRandomly() async {
-        let script = """
-        const pointerX = Math.floor(Math.random() * window.innerWidth);
-        const pointerY = Math.floor(Math.random() * window.innerHeight);
-        const evt = new MouseEvent('mousemove', {
-            bubbles: true,
-            cancelable: true,
-            clientX: pointerX,
-            clientY: pointerY
-        });
-        document.dispatchEvent(evt);
-        """
-        _ = try? await executeScriptInternal(script)
-        let delay = Double.random(in: 0.1 ... 0.4)
-        try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
     }
 
     /// Injects JavaScript to remove automation signatures and set navigator properties

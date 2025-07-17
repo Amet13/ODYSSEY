@@ -80,6 +80,15 @@ class EmailService: ObservableObject {
         case gmail
     }
 
+    /// Represents an email message
+    struct EmailMessage {
+        let id: String
+        let from: String
+        let subject: String
+        let body: String
+        let date: Date
+    }
+
     private init() { }
 
     // Add a static variable to track last connection attempt time
@@ -146,8 +155,6 @@ class EmailService: ObservableObject {
     /// Extracts verification code from email
     /// - Returns: The verification code if found, nil otherwise
     func extractVerificationCode() async -> String? {
-        let settings = userSettingsManager.userSettings
-
         logger.info("Checking for verification email from noreply@frontdesksuite.com")
 
         // For now, we'll use a simple approach to check for the verification email
@@ -155,9 +162,9 @@ class EmailService: ObservableObject {
 
         // Check if we have the email settings needed
         guard
-            !settings.imapEmail.isEmpty,
-            !settings.imapPassword.isEmpty,
-            !settings.imapServer.isEmpty
+            !userSettingsManager.userSettings.imapEmail.isEmpty,
+            !userSettingsManager.userSettings.imapPassword.isEmpty,
+            !userSettingsManager.userSettings.imapServer.isEmpty
         else {
             logger.error("Incomplete email settings")
             return nil
@@ -168,6 +175,74 @@ class EmailService: ObservableObject {
         // This will be implemented when we add full IMAP email checking functionality
 
         logger.warning("Email verification code extraction not yet implemented")
+        return nil
+    }
+
+    /// Connects to IMAP server and searches for verification email
+    /// - Parameters:
+    ///   - server: IMAP server address
+    ///   - port: IMAP server port
+    ///   - username: Email username
+    ///   - password: Email password
+    /// - Throws: IMAPError if connection fails
+    func connect(
+        server: String,
+        port: UInt16,
+        username: String,
+        password: String,
+    ) async throws {
+        logger.info("Connecting to IMAP server: \(server):\(port)")
+
+        // Test the connection first
+        let testResult = await testIMAPConnection(
+            email: username,
+            password: password,
+            server: server,
+        )
+
+        if case let .failure(error, provider: _) = testResult {
+            throw IMAPError.connectionFailed(error)
+        }
+
+        logger.info("IMAP connection successful")
+    }
+
+    /// Connects to IMAP server and searches for verification email
+    /// - Parameters:
+    ///   - server: IMAP server address
+    ///   - port: IMAP server port
+    ///   - username: Email username
+    ///   - password: Email password
+    /// - Returns: Email with verification code if found
+    func searchVerificationEmail(from: String, subject: String) async throws -> EmailMessage? {
+        logger.info("Searching for verification email from: \(from) with subject: \(subject)")
+
+        // For now, we'll use the existing fetchVerificationCodesForToday method
+        // and look for the most recent email that matches our criteria
+        let codes = await fetchVerificationCodesForToday(since: Date().addingTimeInterval(-300)) // Last 5 minutes
+
+        if let latestCode = codes.last {
+            // Create a mock email message with the verification code
+            let emailBody = """
+            Your verification code is:
+            \(latestCode).
+
+            The code must be entered on the booking page to confirm your booking.
+
+            You can also confirm your email or phone number at the link below:
+            https://ca.fdesk.click/r/L1s5K
+            """
+
+            return EmailMessage(
+                id: UUID().uuidString,
+                from: from,
+                subject: subject,
+                body: emailBody,
+                date: Date(),
+            )
+        }
+
+        logger.warning("No verification email found")
         return nil
     }
 
@@ -197,16 +272,14 @@ class EmailService: ObservableObject {
 
         // Log the credentials being used (with masked password)
         let maskedPassword = String(settings.imapPassword.prefix(2)) + "***" + String(settings.imapPassword.suffix(2))
-        logger
-            .info(
-                "🔐 EmailService: Test connection using - Email: \(settings.imapEmail), Server: \(settings.currentServer), Password: \(maskedPassword)",
-            )
+        logger.info(
+            "🔐 EmailService: Test connection using - Email: \(settings.imapEmail), Server: \(settings.currentServer), Password: \(maskedPassword)",
+        )
 
         // Add raw credential logging for debugging
-        logger
-            .info(
-                "🔍 EmailService: Raw credentials - Email length: \(settings.imapEmail.count), Password length: \(settings.imapPassword.count), Server: \(settings.currentServer)",
-            )
+        logger.info(
+            "🔍 EmailService: Raw credentials - Email length: \(settings.imapEmail.count), Password length: \(settings.imapPassword.count), Server: \(settings.currentServer)",
+        )
 
         // Check if it's a Gmail account and validate accordingly
         // let isGmail = settings.isGmailAccount(settings.imapEmail) // removed unused
@@ -216,10 +289,9 @@ class EmailService: ObservableObject {
         // Log the credentials being used (with masked password)
         let maskedPasswordForLog = String(settings.imapPassword.prefix(2)) + "***" +
             String(settings.imapPassword.suffix(2))
-        logger
-            .info(
-                "🔐 EmailService: Reservation flow using - Email: \(settings.imapEmail), Server: \(settings.currentServer), Password: \(maskedPasswordForLog)",
-            )
+        logger.info(
+            "🔐 EmailService: Reservation flow using - Email: \(settings.imapEmail), Server: \(settings.currentServer), Password: \(maskedPasswordForLog)",
+        )
 
         // Use the same NWConnection-based implementation that works for the test
         // This replaces the old InputStream/OutputStream implementation
@@ -339,10 +411,11 @@ class EmailService: ObservableObject {
         dateFormatter.dateFormat = "dd-MMM-yyyy"
         let sinceDateStr = dateFormatter.string(from: since)
 
-        // Search for emails from noreply@frontdesksuite.com since the given date
-        let searchCommand = "a001 SEARCH SINCE \(sinceDateStr) FROM \"noreply@frontdesksuite.com\"\r\n"
+        // First try: Search for emails with specific subject
+        let specificSearchCommand =
+            "a001 SEARCH SINCE \(sinceDateStr) FROM \"noreply@frontdesksuite.com\" SUBJECT \"Verify your email\"\r\n"
 
-        await sendIMAPCommand(connection: connection, command: searchCommand) { [weak self] result in
+        await sendIMAPCommand(connection: connection, command: specificSearchCommand) { [weak self] result in
             guard let self else {
                 continuation.resume(returning: [])
                 return
@@ -350,7 +423,7 @@ class EmailService: ObservableObject {
 
             switch result {
             case let .success(searchResponse):
-                self.logger.info("📧 EmailService: Search response: \(searchResponse)")
+                self.logger.info("📧 EmailService: Specific subject search response: \(searchResponse)")
 
                 // Parse message IDs from search response
                 let lines = searchResponse.components(separatedBy: .newlines)
@@ -358,54 +431,97 @@ class EmailService: ObservableObject {
                 let parts = searchLine.components(separatedBy: " ")
                 let ids = parts.dropFirst().compactMap { Int($0) }
 
-                if ids.isEmpty {
-                    self.logger.info("📧 EmailService: No verification emails found")
-                    continuation.resume(returning: [])
+                if !ids.isEmpty {
+                    self.logger.info("📧 EmailService: Found \(ids.count) emails with specific subject")
+                    self.fetchAndExtractCodes(connection: connection, ids: ids, continuation: continuation)
                     return
                 }
 
-                self.logger.info("📧 EmailService: Found \(ids.count) verification emails")
+                // Fallback: Search for any emails from the sender
+                self.logger.info("📧 EmailService: No emails with specific subject found, trying fallback search")
+                let fallbackSearchCommand = "a002 SEARCH SINCE \(sinceDateStr) FROM \"noreply@frontdesksuite.com\"\r\n"
 
-                // Fetch the latest email content
-                if let lastId = ids.last {
-                    let fetchCommand = "a002 FETCH \(lastId) BODY[TEXT]\r\n"
-                    Task {
-                        await self
-                            .sendIMAPCommand(connection: connection, command: fetchCommand) { [weak self] result in
-                                guard let self else {
-                                    continuation.resume(returning: [])
-                                    return
-                                }
-
-                                switch result {
-                                case let .success(fetchResponse):
-                                    self.logger.info("📧 EmailService: Fetch response received")
-
-                                    // Extract verification codes from email body
-                                    Task {
-                                        let codes = await self.extractVerificationCodes(from: fetchResponse)
-                                        self.logger
-                                            .info(
-                                                "📧 EmailService: Extracted \(codes.count) verification codes: \(codes)",
-                                            )
-
-                                        continuation.resume(returning: codes)
-                                    }
-
-                                case let .failure(error):
-                                    self.logger.error("❌ EmailService: Fetch failed: \(error)")
-                                    continuation.resume(returning: [])
-                                }
+                Task {
+                    await self
+                        .sendIMAPCommand(connection: connection, command: fallbackSearchCommand) { [weak self] result in
+                            guard let self else {
+                                continuation.resume(returning: [])
+                                return
                             }
-                    }
-                } else {
-                    continuation.resume(returning: [])
+
+                            switch result {
+                            case let .success(fallbackResponse):
+                                self.logger.info("📧 EmailService: Fallback search response: \(fallbackResponse)")
+
+                                let fallbackLines = fallbackResponse.components(separatedBy: .newlines)
+                                let fallbackSearchLine = fallbackLines.first(where: { $0.contains("SEARCH") }) ?? ""
+                                let fallbackParts = fallbackSearchLine.components(separatedBy: " ")
+                                let fallbackIds = fallbackParts.dropFirst().compactMap { Int($0) }
+
+                                if !fallbackIds.isEmpty {
+                                    self.logger
+                                        .info(
+                                            "📧 EmailService: Found \(fallbackIds.count) emails from sender (fallback)",
+                                        )
+                                    self.fetchAndExtractCodes(
+                                        connection: connection,
+                                        ids: fallbackIds,
+                                        continuation: continuation,
+                                    )
+                                } else {
+                                    self.logger.info("📧 EmailService: No verification emails found in fallback search")
+                                    continuation.resume(returning: [])
+                                }
+
+                            case let .failure(error):
+                                self.logger.error("❌ EmailService: Fallback search failed: \(error)")
+                                continuation.resume(returning: [])
+                            }
+                        }
                 }
 
             case let .failure(error):
-                self.logger.error("❌ EmailService: Search failed: \(error)")
+                self.logger.error("❌ EmailService: Specific subject search failed: \(error)")
                 continuation.resume(returning: [])
             }
+        }
+    }
+
+    /// Helper method to fetch and extract codes from email IDs
+    private func fetchAndExtractCodes(
+        connection: NWConnection,
+        ids: [Int],
+        continuation: CheckedContinuation<[String], Never>,
+    ) {
+        // Fetch the latest email content
+        if let lastId = ids.last {
+            let fetchCommand = "a003 FETCH \(lastId) BODY[TEXT]\r\n"
+            Task {
+                await self.sendIMAPCommand(connection: connection, command: fetchCommand) { [weak self] result in
+                    guard let self else {
+                        continuation.resume(returning: [])
+                        return
+                    }
+
+                    switch result {
+                    case let .success(fetchResponse):
+                        self.logger.info("📧 EmailService: Fetch response received")
+
+                        // Extract verification codes from email body
+                        Task {
+                            let codes = await self.extractVerificationCodes(from: fetchResponse)
+                            self.logger.info("📧 EmailService: Extracted \(codes.count) verification codes: \(codes)")
+                            continuation.resume(returning: codes)
+                        }
+
+                    case let .failure(error):
+                        self.logger.error("❌ EmailService: Fetch failed: \(error)")
+                        continuation.resume(returning: [])
+                    }
+                }
+            }
+        } else {
+            continuation.resume(returning: [])
         }
     }
 
@@ -1260,10 +1376,9 @@ class EmailService: ObservableObject {
             }
 
             if inputStream.streamStatus != .open || outputStream.streamStatus != .open {
-                logger
-                    .error(
-                        "Failed to open IMAP streams - status: input=\(inputStream.streamStatus.rawValue), output=\(outputStream.streamStatus.rawValue)",
-                    )
+                logger.error(
+                    "Failed to open IMAP streams - status: input=\(inputStream.streamStatus.rawValue), output=\(outputStream.streamStatus.rawValue)",
+                )
                 return []
             }
 
@@ -1620,10 +1735,9 @@ class EmailService: ObservableObject {
             // For now, just log the success
             // In a full implementation, this would send an actual email
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
-            self.logger
-                .info(
-                    "Success notification would be sent for \(config.name, privacy: .private) at \(facilityName, privacy: .private) to \(self.userSettingsManager.userSettings.imapEmail, privacy: .private)",
-                )
+            self.logger.info(
+                "Success notification would be sent for \(config.name, privacy: .private) at \(facilityName, privacy: .private) to \(self.userSettingsManager.userSettings.imapEmail, privacy: .private)",
+            )
         }
     }
 }

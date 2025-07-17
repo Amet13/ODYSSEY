@@ -256,6 +256,7 @@ struct ConfigurationDetailView: View {
                 .padding(.bottom, 4)
             Text("Name: \(name.isEmpty ? "Not set" : name)")
             Text("Sport: \(sportName.isEmpty ? "Not set" : sportName)")
+            Text("People: \(numberOfPeople)")
             if !dayTimeSlots.isEmpty {
                 let weekdayOrder: [ReservationConfig.Weekday] = [
                     .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday,

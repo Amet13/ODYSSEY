@@ -5,6 +5,37 @@ All notable changes to ODYSSEY will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2025-01-27
+
+### Added
+
+- **Enhanced Notification System**: Comprehensive macOS system notifications for reservation success and failure
+- **Permission Management**: Automatic notification permission requests with proper error handling
+- **Async Notification Handling**: Improved notification delivery using async/await for better performance
+- **Notification Documentation**: Complete setup and troubleshooting guide for notifications
+
+### Changed
+
+- **Notification Implementation**: Replaced callback-based notifications with modern async/await approach
+- **Permission Checking**: Added `checkNotificationAuthorization()` method to verify permissions before sending
+- **Error Handling**: Graceful fallback when notification permissions are denied
+- **Documentation**: Updated README and DEVELOPMENT.md with comprehensive notification instructions
+
+### Fixed
+
+- **Notification Reliability**: Fixed issues where notifications weren't being sent due to permission problems
+- **Error Messages**: Improved notification error logging and debugging information
+- **Permission Requests**: Better handling of notification permission requests and user responses
+
+### Technical Improvements
+
+- **Code Quality**: Improved notification system with proper async/await patterns
+- **User Experience**: Clear notification content with emojis and concise error messages
+- **Debugging**: Enhanced logging for notification permission status and send attempts
+- **Documentation**: Comprehensive guides for enabling and troubleshooting notifications
+
+---
+
 ## [3.1.0] - 2025-01-27
 
 ### Added
