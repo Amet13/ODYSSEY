@@ -62,7 +62,6 @@ class UserSettingsManager: ObservableObject {
             "phone": userSettings.getFormattedPhoneNumber(),
             "email": userSettings.imapEmail,
             "server": userSettings.imapServer,
-            "hasTelegram": userSettings.hasTelegramConfigured ? "Yes" : "No",
         ]
     }
 
@@ -86,8 +85,8 @@ class UserSettingsManager: ObservableObject {
 
     func restoreGmailConfigIfAvailable() {
         if let config = lastSuccessfulGmailConfig {
-            userSettings.gmailEmail = config.email
-            userSettings.gmailAppPassword = config.appPassword
+            userSettings.imapEmail = config.email
+            userSettings.imapPassword = config.appPassword
         }
     }
 

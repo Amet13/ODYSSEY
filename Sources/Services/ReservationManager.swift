@@ -125,41 +125,37 @@ class ReservationManager: NSObject, ObservableObject {
         var errorDescription: String? {
             switch self {
             case .webDriverNotInitialized:
-                UserSettingsManager.shared.userSettings.localized("WebDriver not initialized")
+                "WebDriver not initialized"
             case .navigationFailed:
-                UserSettingsManager.shared.userSettings.localized("Failed to navigate to reservation page")
+                "Failed to navigate to reservation page"
             case .sportButtonNotFound:
-                UserSettingsManager.shared.userSettings.localized("Sport button not found on page")
+                "Sport button not found on page"
             case .pageLoadTimeout:
-                UserSettingsManager.shared.userSettings.localized("Page failed to load completely within timeout")
+                "Page failed to load completely within timeout"
             case .groupSizePageLoadTimeout:
-                UserSettingsManager.shared.userSettings.localized("Group size page failed to load within timeout")
+                "Group size page failed to load within timeout"
             case .numberOfPeopleFieldNotFound:
-                UserSettingsManager.shared.userSettings.localized("Number of people field not found on page")
+                "Number of people field not found on page"
             case .confirmButtonNotFound:
-                UserSettingsManager.shared.userSettings.localized("Confirm button not found on page")
+                "Confirm button not found on page"
             case .timeSelectionPageLoadTimeout:
-                UserSettingsManager.shared.userSettings.localized("Time selection page failed to load within timeout")
+                "Time selection page failed to load within timeout"
             case .timeSlotSelectionFailed:
-                UserSettingsManager.shared.userSettings.localized("Failed to select time slot")
+                "Failed to select time slot"
             case .contactInfoPageLoadTimeout:
-                UserSettingsManager.shared.userSettings
-                    .localized("Contact information page failed to load within timeout")
+                "Contact information page failed to load within timeout"
             case .phoneNumberFieldNotFound:
-                UserSettingsManager.shared.userSettings.localized("Phone number field not found on page")
+                "Phone number field not found on page"
             case .emailFieldNotFound:
-                UserSettingsManager.shared.userSettings.localized("Email field not found on page")
+                "Email field not found on page"
             case .nameFieldNotFound:
-                UserSettingsManager.shared.userSettings.localized("Name field not found on page")
+                "Name field not found on page"
             case .contactInfoConfirmButtonNotFound:
-                UserSettingsManager.shared.userSettings
-                    .localized("Contact information confirm button not found on page")
+                "Contact information confirm button not found on page"
             case .emailVerificationFailed:
-                UserSettingsManager.shared.userSettings
-                    .localized("Email verification failed")
+                "Email verification failed"
             case .reservationFailed:
-                UserSettingsManager.shared.userSettings
-                    .localized("Reservation was not successful")
+                "Reservation was not successful"
             }
         }
     }
@@ -238,13 +234,7 @@ class ReservationManager: NSObject, ObservableObject {
             }
 
             // Send emergency failure notification to Telegram
-            if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
-                await TelegramService.shared.sendFailureNotification(
-                    for: config,
-                    error: "Emergency cleanup - automation was interrupted unexpectedly",
-                    screenshotData: screenshotData,
-                )
-            }
+            // Remove all Telegram notification logic
 
             // Update status
             await MainActor.run {
@@ -272,7 +262,7 @@ class ReservationManager: NSObject, ObservableObject {
             try? await Task.sleep(nanoseconds: UInt64(Constants.reservationTimeout) * 1_000_000_000) // 5 minutes
             logger.error("Reservation timeout reached (5 minutes)")
             await handleError(
-                UserSettingsManager.shared.userSettings.localized("Reservation timed out after 5 minutes"),
+                "Reservation timed out after 5 minutes",
                 configId: config.id,
                 runType: runType,
             )
@@ -501,13 +491,7 @@ class ReservationManager: NSObject, ObservableObject {
                             }
 
                             // Send failure notification with screenshot to Telegram
-                            if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
-                                await TelegramService.shared.sendFailureNotification(
-                                    for: config,
-                                    error: "Email verification failed",
-                                    screenshotData: screenshotData,
-                                )
-                            }
+                            // Remove all Telegram notification logic
 
                             throw ReservationError.emailVerificationFailed
                         }
@@ -528,22 +512,11 @@ class ReservationManager: NSObject, ObservableObject {
                             self.lastRunStatus = .success
                             self.lastRunInfo[config.id] = (.success, Date(), runType)
                             self.lastRunDate = Date()
-                            self.currentTask = UserSettingsManager.shared.userSettings
-                                .localized("Reservation completed successfully")
+                            self.currentTask = "Reservation completed successfully"
                         }
 
                         // Send notifications if configured
-                        if UserSettingsManager.shared.userSettings.hasEmailConfigured {
-                            await EmailService.shared.sendSuccessNotification(for: config)
-                        }
-
-                        if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
-                            let screenshotData = try? await webKitService.takeScreenshot()
-                            await TelegramService.shared.sendSuccessNotification(
-                                for: config,
-                                screenshotData: screenshotData,
-                            )
-                        }
+                        // Remove all Telegram notification logic
 
                         // Cleanup WebKit session after successful reservation
                         logger.info("Cleaning up WebKit session after successful reservation")
@@ -605,7 +578,7 @@ class ReservationManager: NSObject, ObservableObject {
         logger.error("Reservation error: \(error)")
 
         // Capture screenshot and send Telegram notification for automation failures
-        if let config = currentConfig {
+        if currentConfig != nil {
             // Capture screenshot before cleanup
             let screenshotData = try? await webKitService.takeScreenshot()
             if screenshotData != nil {
@@ -615,13 +588,7 @@ class ReservationManager: NSObject, ObservableObject {
             }
 
             // Send failure notification with screenshot to Telegram
-            if UserSettingsManager.shared.userSettings.hasTelegramConfigured {
-                await TelegramService.shared.sendFailureNotification(
-                    for: config,
-                    error: error,
-                    screenshotData: screenshotData,
-                )
-            }
+            // Remove all Telegram notification logic
         }
 
         // Always cleanup WebKit session

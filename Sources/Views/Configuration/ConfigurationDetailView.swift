@@ -44,12 +44,10 @@ struct ConfigurationDetailView: View {
         }
         .frame(width: 440, height: 560)
         .navigationTitle(
-            config == nil ? userSettingsManager.userSettings
-                .localized("Add Reservation Configuration") : userSettingsManager.userSettings
-                .localized("Edit Reservation Configuration"),
+            config == nil ? "Add Reservation Configuration" : "Edit Reservation Configuration",
         )
-        .alert(userSettingsManager.userSettings.localized("Validation Error"), isPresented: $showingValidationAlert) {
-            Button(userSettingsManager.userSettings.localized("OK")) { }
+        .alert("Validation Error", isPresented: $showingValidationAlert) {
+            Button("OK") { }
         } message: {
             Text(validationMessage)
         }
@@ -69,18 +67,18 @@ struct ConfigurationDetailView: View {
 
     private var basicSettingsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(userSettingsManager.userSettings.localized("Facility URL"))
+            Text("Facility URL")
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
-            TextField(userSettingsManager.userSettings.localized("Enter facility URL"), text: $facilityURL)
+            TextField("Enter facility URL", text: $facilityURL)
                 .onChange(of: facilityURL) { _ in updateConfigurationName() }
             if !facilityURL.isEmpty, !isValidFacilityURL(facilityURL) {
-                Text(userSettingsManager.userSettings.localized("Please enter a valid Ottawa Recreation URL."))
+                Text("Please enter a valid Ottawa Recreation URL.")
                     .font(.caption)
                     .foregroundColor(.red)
                 Link(
-                    userSettingsManager.userSettings.localized("View Ottawa Facilities"),
+                    "View Ottawa Facilities",
                     destination: URL(string: "https://ottawa.ca/en/recreation-and-parks/recreation-facilities") ??
                         URL(string: "https://ottawa.ca")!,
                 )
@@ -92,14 +90,14 @@ struct ConfigurationDetailView: View {
 
     private var sportPickerSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(userSettingsManager.userSettings.localized("Sport Name"))
+            Text("Sport Name")
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
             HStack {
                 Menu {
                     if availableSports.isEmpty {
-                        Text(userSettingsManager.userSettings.localized("No sports available"))
+                        Text("No sports available")
                             .foregroundColor(.secondary)
                     } else {
                         ForEach(availableSports, id: \.self) { sport in
@@ -119,7 +117,7 @@ struct ConfigurationDetailView: View {
                     }
                 } label: {
                     HStack {
-                        Text(sportName.isEmpty ? userSettingsManager.userSettings.localized("Select Sport") : sportName)
+                        Text(sportName.isEmpty ? "Select Sport" : sportName)
                             .foregroundColor(sportName.isEmpty ? .secondary : .primary)
                         Spacer()
                         Image(systemName: "chevron.down").foregroundColor(.secondary).font(.caption)
@@ -137,12 +135,12 @@ struct ConfigurationDetailView: View {
             if isFetchingSports {
                 HStack {
                     ProgressView().scaleEffect(0.8)
-                    Text(userSettingsManager.userSettings.localized("Fetching available sports...")).font(.caption)
+                    Text("Fetching available sports...").font(.caption)
                         .foregroundColor(.secondary)
                 }
             }
             if !availableSports.isEmpty {
-                Text("\(availableSports.count) \(userSettingsManager.userSettings.localized("sports found"))")
+                Text("\(availableSports.count) sports found")
                     .font(.caption).foregroundColor(.secondary)
             }
         }
@@ -151,7 +149,7 @@ struct ConfigurationDetailView: View {
 
     private var numberOfPeopleSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(userSettingsManager.userSettings.localized("Number of People"))
+            Text("Number of People")
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
@@ -163,7 +161,7 @@ struct ConfigurationDetailView: View {
                     HStack {
                         Image(systemName: numberOfPeople == 1 ? "largecircle.fill.circle" : "circle")
                             .foregroundColor(numberOfPeople == 1 ? .accentColor : .secondary)
-                        Text(userSettingsManager.userSettings.localized("1 Person")).foregroundColor(.primary)
+                        Text("1 Person").foregroundColor(.primary)
                     }
                 }.buttonStyle(.bordered)
                     .controlSize(.regular)
@@ -174,7 +172,7 @@ struct ConfigurationDetailView: View {
                     HStack {
                         Image(systemName: numberOfPeople == 2 ? "largecircle.fill.circle" : "circle")
                             .foregroundColor(numberOfPeople == 2 ? .accentColor : .secondary)
-                        Text(userSettingsManager.userSettings.localized("2 People")).foregroundColor(.primary)
+                        Text("2 People").foregroundColor(.primary)
                     }
                 }.buttonStyle(.bordered)
                     .controlSize(.regular)
@@ -185,11 +183,11 @@ struct ConfigurationDetailView: View {
 
     private var configNameSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(userSettingsManager.userSettings.localized("Configuration Name"))
+            Text("Configuration Name")
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
-            TextField(userSettingsManager.userSettings.localized("Configuration Name"), text: $name)
+            TextField("Configuration Name", text: $name)
         }
         .padding(.bottom, 20)
     }
@@ -197,26 +195,25 @@ struct ConfigurationDetailView: View {
     private var schedulingSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text(userSettingsManager.userSettings.localized("Time Slots"))
+                Text("Time Slot")
                     .font(.headline)
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
                 Spacer()
-                Button(userSettingsManager.userSettings.localized("Add Day")) { showDayPicker = true }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
+                if dayTimeSlots.isEmpty {
+                    Button("Add Day") { showDayPicker = true }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                }
             }
-            Text(userSettingsManager.userSettings.localized("Maximum 2 time slots per day (no duplicates)"))
+            Text("Select one day and one time slot for your reservation")
                 .font(.caption)
                 .foregroundColor(.secondary)
             if dayTimeSlots.isEmpty {
-                Text(
-                    userSettingsManager.userSettings
-                        .localized("No days selected. Click 'Add Day' to start scheduling."),
-                )
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .padding(.vertical, 8)
+                Text("No day selected. Click 'Add Day' to start scheduling.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.vertical, 8)
             } else {
                 let weekdayOrder: [ReservationConfig.Weekday] = [
                     .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday,
@@ -253,17 +250,12 @@ struct ConfigurationDetailView: View {
 
     private var previewSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(userSettingsManager.userSettings.localized("Preview"))
+            Text("Preview")
                 .font(.headline)
                 .fontWeight(.semibold)
                 .padding(.bottom, 4)
-            Text(
-                "\(userSettingsManager.userSettings.localized("Name:")) \(name.isEmpty ? userSettingsManager.userSettings.localized("Not set") : name)",
-            )
-            Text(
-                "\(userSettingsManager.userSettings.localized("Sport:")) \(sportName.isEmpty ? userSettingsManager.userSettings.localized("Not set") : sportName)",
-            )
-            Text("\(userSettingsManager.userSettings.localized("People:")) \(numberOfPeople)")
+            Text("Name: \(name.isEmpty ? "Not set" : name)")
+            Text("Sport: \(sportName.isEmpty ? "Not set" : sportName)")
             if !dayTimeSlots.isEmpty {
                 let weekdayOrder: [ReservationConfig.Weekday] = [
                     .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday,
@@ -292,15 +284,14 @@ struct ConfigurationDetailView: View {
     private var footerButtonsSection: some View {
         HStack {
             Spacer()
-            Button(userSettingsManager.userSettings.localized("Cancel")) { dismiss() }
+            Button("Cancel") { dismiss() }
                 .buttonStyle(.bordered)
                 .controlSize(.regular)
-            Button(userSettingsManager.userSettings.localized("Save")) {
+            Button("Save") {
                 if isValidConfiguration {
                     saveConfiguration()
                 } else {
-                    validationMessage = userSettingsManager.userSettings
-                        .localized("Please fill in all required fields with valid data.")
+                    validationMessage = "Please fill in all required fields with valid data."
                     showingValidationAlert = true
                 }
             }
@@ -382,8 +373,7 @@ struct ConfigurationDetailView: View {
         // This preserves custom names when editing existing configurations
         if !isEditingExistingConfig || name.isEmpty {
             let facilityName = extractFacilityName(from: facilityURL)
-            let peopleText = "\(numberOfPeople)pp"
-            name = "\(facilityName) - \(sportName) (\(peopleText))"
+            name = "\(facilityName) - \(sportName)"
         }
     }
 
@@ -405,11 +395,8 @@ struct ConfigurationDetailView: View {
         if dayTimeSlots[day] == nil {
             let defaultTime = Self.normalizeTime(hour: 18, minute: 0)
             dayTimeSlots[day] = [defaultTime]
-        } else if (dayTimeSlots[day]?.count ?? 0) < 2 {
-            if let availableTime = findAvailableTime(for: day) {
-                dayTimeSlots[day]?.append(availableTime)
-            }
         }
+        // Only allow one timeslot per day - no additional timeslots
     }
 
     private func findAvailableTime(for day: ReservationConfig.Weekday) -> Date? {
@@ -466,35 +453,47 @@ struct DayPickerView: View {
     @StateObject private var userSettingsManager = UserSettingsManager.shared
 
     var availableDays: [ReservationConfig.Weekday] {
-        ReservationConfig.Weekday.allCases.filter { !selectedDays.contains($0) }
+        // Only show days if no day is currently selected (restrict to one day)
+        if selectedDays.isEmpty {
+            return ReservationConfig.Weekday.allCases
+        } else {
+            return []
+        }
     }
 
     var body: some View {
         VStack {
-            Text(userSettingsManager.userSettings.localized("Add Day"))
+            Text("Add Day")
                 .font(.headline)
                 .padding()
 
-            List(availableDays, id: \.self) { day in
-                Button(action: {
-                    onAdd(day)
-                    dismiss()
-                }) {
-                    HStack {
-                        Text(day.localizedShortName)
-                            .foregroundColor(.primary)
-                        Spacer()
-                        Image(systemName: "plus.circle")
-                            .foregroundColor(.accentColor)
+            if availableDays.isEmpty {
+                Text("A day is already selected. Remove the current day to select a different one.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding()
+            } else {
+                List(availableDays, id: \.self) { day in
+                    Button(action: {
+                        onAdd(day)
+                        dismiss()
+                    }) {
+                        HStack {
+                            Text(day.localizedShortName)
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "plus.circle")
+                                .foregroundColor(.accentColor)
+                        }
                     }
+                    .buttonStyle(.bordered)
+                    .controlSize(.regular)
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
             }
 
             HStack {
                 Spacer()
-                Button(userSettingsManager.userSettings.localized("Cancel")) {
+                Button("Cancel") {
                     dismiss()
                 }
                 .buttonStyle(.bordered)
@@ -510,70 +509,26 @@ struct DayPickerView: View {
 
 struct TimeSlotPickerView: View {
     @Binding var slots: [Date]
-    let maxSlots = 2
+    let maxSlots = 1
 
     var body: some View {
         VStack(alignment: .leading) {
             ForEach(slots.indices, id: \.self) { idx in
                 HStack {
                     DatePicker(
-                        "Time Slot \(idx + 1)",
+                        "Time Slot",
                         selection: Binding(
                             get: { slots[idx] },
                             set: { newValue in
-                                if
-                                    !slots.enumerated().contains(where: { $0.offset != idx && isSameTime(
-                                        $0.element,
-                                        newValue,
-                                    ) })
-                                {
-                                    slots[idx] = newValue
-                                }
+                                slots[idx] = newValue
                             },
                         ),
                         displayedComponents: .hourAndMinute,
                     )
                     .labelsHidden()
-                    Button(action: {
-                        slots.remove(at: idx)
-                    }) {
-                        Image(systemName: "minus.circle.fill")
-                            .foregroundColor(.red)
-                    }
-                    .disabled(slots.count <= 1)
-                }
-            }
-            if slots.count < maxSlots {
-                Button(action: {
-                    let calendar = Calendar.current
-                    let base = slots.first ?? Date()
-                    let newHour = slots.count == 1
-                        ? ((calendar.component(.hour, from: base) + 1) % 24)
-                        : 18
-                    let newSlot = calendar.date(
-                        bySettingHour: newHour,
-                        minute: 0,
-                        second: 0,
-                        of: Date(),
-                    ) ?? Date()
-                    if !slots.contains(where: { isSameTime($0, newSlot) }) {
-                        slots.append(newSlot)
-                    }
-                }) {
-                    Label(
-                        UserSettingsManager.shared.userSettings.localized("Add Time"),
-                        systemImage: "plus.circle.fill",
-                    )
                 }
             }
         }
-    }
-
-    private func isSameTime(_ firstTime: Date, _ secondTime: Date) -> Bool {
-        let cal = Calendar.current
-        let firstComp = cal.dateComponents([.hour, .minute], from: firstTime)
-        let secondComp = cal.dateComponents([.hour, .minute], from: secondTime)
-        return firstComp.hour == secondComp.hour && firstComp.minute == secondComp.minute
     }
 }
 

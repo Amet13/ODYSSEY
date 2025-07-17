@@ -42,20 +42,13 @@ class EmailService: ObservableObject {
 
         var localizedDescription: String {
             switch self {
-            case let .connectionFailed(message): UserSettingsManager.shared.userSettings
-                .localized("Connection failed:") + " \(message)"
-            case let .authenticationFailed(message): UserSettingsManager.shared.userSettings
-                .localized("Authentication failed:") + " \(message)"
-            case let .commandFailed(message): UserSettingsManager.shared.userSettings
-                .localized("Command failed:") + " \(message)"
-            case let .invalidResponse(message): UserSettingsManager.shared.userSettings
-                .localized("Invalid response:") + " \(message)"
-            case let .timeout(message): UserSettingsManager.shared.userSettings
-                .localized("Connection timeout:") + " \(message)"
-            case let .unsupportedServer(message): UserSettingsManager.shared.userSettings
-                .localized("Unsupported server:") + " \(message)"
-            case let .gmailAppPasswordRequired(message): UserSettingsManager.shared.userSettings
-                .localized("Gmail App Password required:") + " \(message)"
+            case let .connectionFailed(message): "Connection failed: \(message)"
+            case let .authenticationFailed(message): "Authentication failed: \(message)"
+            case let .commandFailed(message): "Command failed: \(message)"
+            case let .invalidResponse(message): "Invalid response: \(message)"
+            case let .timeout(message): "Connection timeout: \(message)"
+            case let .unsupportedServer(message): "Unsupported server: \(message)"
+            case let .gmailAppPasswordRequired(message): "Gmail App Password required: \(message)"
             }
         }
     }
@@ -69,9 +62,7 @@ class EmailService: ObservableObject {
             case let .success(message):
                 return message
             case let .failure(error, provider):
-                let prefix = provider == .gmail ?
-                    UserSettingsManager.shared.userSettings.localized("Gmail test failed:") :
-                    UserSettingsManager.shared.userSettings.localized("IMAP test failed:")
+                let prefix = provider == .gmail ? "Gmail test failed:" : "IMAP test failed:"
                 return prefix + " \(error)"
             }
         }
@@ -445,13 +436,13 @@ class EmailService: ObservableObject {
         isTesting = true
         defer { isTesting = false }
         guard !email.isEmpty else {
-            return .failure(userSettingsManager.userSettings.localized("Email address is empty"), provider: provider)
+            return .failure("Email address is empty", provider: provider)
         }
         guard !password.isEmpty else {
-            return .failure(userSettingsManager.userSettings.localized("Password is empty"), provider: provider)
+            return .failure("Password is empty", provider: provider)
         }
         guard !server.isEmpty else {
-            return .failure(userSettingsManager.userSettings.localized("IMAP server is empty"), provider: provider)
+            return .failure("IMAP server is empty", provider: provider)
         }
 
         // Validate Gmail settings if applicable
@@ -463,7 +454,7 @@ class EmailService: ObservableObject {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         guard emailPredicate.evaluate(with: email) else {
-            return .failure(userSettingsManager.userSettings.localized("Invalid email format"), provider: provider)
+            return .failure("Invalid email format", provider: provider)
         }
 
         // For Gmail, only try port 993 with SSL/TLS
@@ -494,7 +485,7 @@ class EmailService: ObservableObject {
             }
         }
         return .failure(
-            userSettingsManager.userSettings.localized("All IMAP connection attempts failed"),
+            "All IMAP connection attempts failed",
             provider: provider,
         )
     }
@@ -707,7 +698,7 @@ class EmailService: ObservableObject {
                 if greeting.contains("NO"), greeting.lowercased().contains("login") {
                     logger.error("[IMAP] Authentication failed in greeting: \(greeting)")
                     completion(.failure(
-                        userSettingsManager.userSettings.localized("Authentication failed: Invalid email or password"),
+                        "Authentication failed: Invalid email or password",
                         provider: provider,
                     ))
                     return
@@ -716,7 +707,7 @@ class EmailService: ObservableObject {
                 if greeting.contains("BAD") {
                     logger.error("[IMAP] Server rejected connection: \(greeting)")
                     completion(.failure(
-                        userSettingsManager.userSettings.localized("Server rejected connection: \(greeting)"),
+                        "Server rejected connection: \(greeting)",
                         provider: provider,
                     ))
                     return
@@ -765,10 +756,7 @@ class EmailService: ObservableObject {
                 // Provide more specific error messages
                 if error.localizedDescription.contains("timeout") {
                     completion(.failure(
-                        userSettingsManager.userSettings
-                            .localized(
-                                "Server did not respond with IMAP greeting. Check if IMAP is enabled on port \(useTLS ? "993" : "143")",
-                            ),
+                        "Server did not respond with IMAP greeting. Check if IMAP is enabled on port \(useTLS ? "993" : "143")",
                         provider: provider,
                     ))
                 } else {
@@ -898,12 +886,8 @@ class EmailService: ObservableObject {
                                                                                         .parseEmailSubject(
                                                                                             from: fetchResponse,
                                                                                         )
-                                                                                    let baseMessage = self
-                                                                                        .userSettingsManager
-                                                                                        .userSettings
-                                                                                        .localized(
-                                                                                            "IMAP connection successful!",
-                                                                                        )
+                                                                                    let baseMessage =
+                                                                                        "IMAP connection successful!"
                                                                                     let fullMessage = subject
                                                                                         .isEmpty ? baseMessage :
                                                                                         "\(baseMessage) Latest email: \(subject)"
@@ -914,11 +898,7 @@ class EmailService: ObservableObject {
                                                                                             "[IMAP] FETCH failed: \(error.localizedDescription)",
                                                                                         )
                                                                                     completion(.failure(
-                                                                                        self.userSettingsManager
-                                                                                            .userSettings
-                                                                                            .localized(
-                                                                                                "Failed to fetch email: ",
-                                                                                            ) +
+                                                                                        "Failed to fetch email: " +
                                                                                             error.localizedDescription,
                                                                                         provider: provider,
                                                                                     ))
@@ -928,11 +908,7 @@ class EmailService: ObservableObject {
                                                                     } else {
                                                                         // No emails found
                                                                         completion(.success(
-                                                                            self.userSettingsManager
-                                                                                .userSettings
-                                                                                .localized(
-                                                                                    "IMAP connection successful!",
-                                                                                ),
+                                                                            "IMAP connection successful!",
                                                                         ))
                                                                     }
                                                                 case let .failure(error):
@@ -941,8 +917,7 @@ class EmailService: ObservableObject {
                                                                             "[IMAP] SEARCH failed: \(error.localizedDescription)",
                                                                         )
                                                                     completion(.failure(
-                                                                        self.userSettingsManager.userSettings
-                                                                            .localized("Failed to search mailbox: ") +
+                                                                        "Failed to search mailbox: " +
                                                                             error.localizedDescription,
                                                                         provider: provider,
                                                                     ))
@@ -955,8 +930,7 @@ class EmailService: ObservableObject {
                                                                 "[IMAP] SELECT INBOX failed: \(error.localizedDescription)",
                                                             )
                                                         completion(.failure(
-                                                            self.userSettingsManager.userSettings
-                                                                .localized("Mailbox selection failed: ") + error
+                                                            "Mailbox selection failed: " + error
                                                                 .localizedDescription,
                                                             provider: provider,
                                                         ))
@@ -966,37 +940,32 @@ class EmailService: ObservableObject {
                                     } else if result.contains("NO") || result.lowercased().contains("login") {
                                         self.logger.error("[IMAP] Authentication failed: \(result)")
                                         completion(.failure(
-                                            self.userSettingsManager.userSettings
-                                                .localized("Authentication failed: Invalid email or password"),
+                                            "Authentication failed: Invalid email or password",
                                             provider: provider,
                                         ))
                                     } else if result.contains("BAD") {
                                         self.logger.error("[IMAP] Authentication error: \(result)")
                                         completion(.failure(
-                                            self.userSettingsManager.userSettings
-                                                .localized("Authentication error: ") + result,
+                                            "Authentication error: " + result,
                                             provider: provider,
                                         ))
                                     } else {
                                         self.logger.error("[IMAP] Unknown authentication result: \(result)")
                                         completion(.failure(
-                                            self.userSettingsManager.userSettings
-                                                .localized("Authentication failed: Unknown response"),
+                                            "Authentication failed: Unknown response",
                                             provider: provider,
                                         ))
                                     }
                                 } else {
                                     self.logger.error("[IMAP] No authentication result found in response")
                                     completion(.failure(
-                                        self.userSettingsManager.userSettings
-                                            .localized("Authentication failed: No response from server"),
+                                        "Authentication failed: No response from server",
                                         provider: provider,
                                     ))
                                 }
                             case let .failure(error):
                                 completion(.failure(
-                                    userSettingsManager.userSettings
-                                        .localized("Authentication failed:") + " \(error.localizedDescription)",
+                                    "Authentication failed: \(error.localizedDescription)",
                                     provider: provider,
                                 ))
                             }
@@ -1006,8 +975,7 @@ class EmailService: ObservableObject {
                 let errorMessage = "IMAP capability command failed: \(error.localizedDescription)"
                 self.logger.error("❌ \(errorMessage)")
                 completion(.failure(
-                    userSettingsManager.userSettings
-                        .localized("IMAP command failed:") + " \(error.localizedDescription)",
+                    "IMAP command failed: \(error.localizedDescription)",
                     provider: provider,
                 ))
             }
@@ -1089,9 +1057,9 @@ class EmailService: ObservableObject {
 
     private func parseEmailHeaders(_ response: String) -> String {
         let lines = response.components(separatedBy: .newlines)
-        var from = userSettingsManager.userSettings.localized("Unknown")
-        var subject = userSettingsManager.userSettings.localized("No Subject")
-        var date = userSettingsManager.userSettings.localized("Unknown Date")
+        var from = "Unknown"
+        var subject = "No Subject"
+        var date = "Unknown Date"
         for line in lines {
             if line.hasPrefix("From:") {
                 from = String(line.dropFirst(6)).trimmingCharacters(in: .whitespaces)
@@ -1101,9 +1069,7 @@ class EmailService: ObservableObject {
                 date = String(line.dropFirst(6)).trimmingCharacters(in: .whitespaces)
             }
         }
-        return "\(userSettingsManager.userSettings.localized("From:")) \(from) - " +
-            "\(userSettingsManager.userSettings.localized("Subject:")) \(subject) - " +
-            "\(userSettingsManager.userSettings.localized("Date:")) \(date)"
+        return "From: \(from) - Subject: \(subject) - Date: \(date)"
     }
 
     /// Extracts the email body from IMAP FETCH response

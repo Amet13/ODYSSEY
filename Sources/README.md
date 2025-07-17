@@ -90,9 +90,7 @@ Sources/
 
 ### Integration Features
 
-- **Telegram Integration** - Bot-based notifications
 - **IMAP Integration** - Email service validation
-- **Multi-language Support** - English and French localization
 
 ## Development Guidelines
 
@@ -140,7 +138,7 @@ xcodegen --spec Config/project.yml
 ## Security Considerations
 
 - All automation runs locally on user's machine
-- No data is transmitted to external servers (except Telegram/IMAP when configured)
+- No data is transmitted to external servers (except IMAP when configured)
 - User consent required for all permissions
 - Secure network connections with App Transport Security
 - Input validation and sanitization throughout

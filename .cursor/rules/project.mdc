@@ -126,7 +126,6 @@ ODYSSEY is a native macOS application that:
 - All linter violations must be fixed or explicitly justified in code review
 - Do not push or release code with unresolved SwiftLint errors or warnings
 - Keep the repository clean by removing duplicate information
-- After changing any text in the UI always update French translation
 
 ### Setup
 
@@ -206,6 +205,10 @@ xcodegen
 - **User Consent:** Require explicit permission for automation
 - **Community Benefit:** Focus on positive community impact
 - **Transparency:** Be clear about automation capabilities and limitations
+
+---
+
+**Remember:** ODYSSEY is designed to help the Ottawa sports community by automating routine reservation tasks. Always prioritize user privacy, security, and ethical automation practices.
 
 ---
 

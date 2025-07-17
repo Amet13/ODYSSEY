@@ -77,7 +77,7 @@ struct ReservationConfig: Codable, Identifiable, Equatable {
 
         /// Localized three-letter abbreviation
         var localizedShortName: String {
-            let localizedName = UserSettingsManager.shared.userSettings.localized(rawValue)
+            let localizedName = rawValue
             return String(localizedName.prefix(3))
         }
 

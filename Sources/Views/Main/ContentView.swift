@@ -44,13 +44,11 @@ private extension ContentView {
             Image(systemName: "sportscourt.fill")
                 .font(.title2)
                 .foregroundColor(.accentColor)
-            Text(userSettingsManager.userSettings.localized(
-                "ODYSSEY – Ottawa Drop-in Your Sports & Schedule Easily Yourself",
-            ))
-            .font(.title3)
-            .fontWeight(.semibold)
-            .lineLimit(2)
-            .fixedSize(horizontal: false, vertical: true)
+            Text("ODYSSEY – Ottawa Drop-in Your Sports & Schedule Easily Yourself")
+                .font(.title3)
+                .fontWeight(.semibold)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
             Spacer()
             Button(action: { showingAddConfig = true }) {
                 Image(systemName: "plus")
@@ -58,7 +56,7 @@ private extension ContentView {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.regular)
-            .help(userSettingsManager.userSettings.localized("Add new configuration"))
+            .help("Add new configuration")
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
@@ -103,18 +101,17 @@ private extension ContentView {
             Image(systemName: "sportscourt")
                 .font(.system(size: 60))
                 .foregroundColor(.secondary)
-            Text(userSettingsManager.userSettings.localized("No Reservations Configured"))
+            Text("No Reservations Configured")
                 .font(.title3)
                 .fontWeight(.medium)
             Text(
-                userSettingsManager.userSettings
-                    .localized("Add your first reservation configuration to get started with automated booking."),
+                "Add your first reservation configuration to get started with automated booking.",
             )
             .font(.body)
             .foregroundColor(.secondary)
             .multilineTextAlignment(.center)
             .padding(.horizontal)
-            Button(userSettingsManager.userSettings.localized("Add Configuration")) {
+            Button("Add Configuration") {
                 showingAddConfig = true
             }
             .buttonStyle(.borderedProminent)
@@ -127,33 +124,33 @@ private extension ContentView {
     var footerView: some View {
         VStack(spacing: 8) {
             HStack {
-                Button(userSettingsManager.userSettings.localized("Settings")) {
+                Button("Settings") {
                     showingSettings = true
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.blue)
                 .controlSize(.regular)
-                .help(userSettingsManager.userSettings.localized("Configure user settings and integrations"))
+                .help("Configure user settings and integrations")
 
                 Spacer()
 
                 Link(
-                    userSettingsManager.userSettings.localized("GitHub"),
+                    "GitHub",
                     destination: URL(string: "https://github.com/Amet13/ODYSSEY") ?? URL(string: "https://github.com")!,
                 )
                 .font(.footnote)
                 .foregroundColor(.blue)
-                .help(userSettingsManager.userSettings.localized("View ODYSSEY on GitHub"))
+                .help("View ODYSSEY on GitHub")
 
                 Spacer()
 
-                Button(userSettingsManager.userSettings.localized("Quit")) {
+                Button("Quit") {
                     NSApp.terminate(nil)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.red)
                 .controlSize(.regular)
-                .help(userSettingsManager.userSettings.localized("Quit ODYSSEY"))
+                .help("Quit ODYSSEY")
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 16)
@@ -215,21 +212,21 @@ private extension ContentView {
         let now = Date()
         let timeInterval = targetDate.timeIntervalSince(now)
         if timeInterval <= 0 {
-            return userSettingsManager.userSettings.localized("now")
+            return "now"
         }
         let days = Int(timeInterval / 86_400)
         let hours = Int((timeInterval.truncatingRemainder(dividingBy: 86_400)) / 3_600)
         let minutes = Int((timeInterval.truncatingRemainder(dividingBy: 3_600)) / 60)
         if days > 0 {
-            let daysText = userSettingsManager.userSettings.localized(days == 1 ? "day" : "days")
-            let hoursText = userSettingsManager.userSettings.localized(hours == 1 ? "hour" : "hours")
+            let daysText = days == 1 ? "day" : "days"
+            let hoursText = hours == 1 ? "hour" : "hours"
             return "\(days) \(daysText), \(hours) \(hoursText)"
         } else if hours > 0 {
-            let hoursText = userSettingsManager.userSettings.localized(hours == 1 ? "hour" : "hours")
-            let minutesText = userSettingsManager.userSettings.localized(minutes == 1 ? "minute" : "minutes")
+            let hoursText = hours == 1 ? "hour" : "hours"
+            let minutesText = minutes == 1 ? "minute" : "minutes"
             return "\(hours) \(hoursText), \(minutes) \(minutesText)"
         } else {
-            let minutesText = userSettingsManager.userSettings.localized(minutes == 1 ? "minute" : "minutes")
+            let minutesText = minutes == 1 ? "minute" : "minutes"
             return "\(minutes) \(minutesText)"
         }
     }
@@ -278,40 +275,34 @@ struct ConfigurationRowView: View {
                         .foregroundColor(.blue)
                 }
                 .buttonStyle(.bordered)
-                .help(userSettingsManager.userSettings.localized("Run now"))
+                .help("Run now")
                 Toggle("", isOn: Binding(
                     get: { config.isEnabled },
                     set: { _ in onToggle() },
                 ))
                 .toggleStyle(.switch)
                 .labelsHidden()
-                .help(userSettingsManager.userSettings.localized("Enable or disable configuration"))
+                .help("Enable or disable configuration")
                 Button(action: onEdit) {
                     Image(systemName: "pencil")
                 }
                 .buttonStyle(.bordered)
-                .help(userSettingsManager.userSettings.localized("Edit configuration"))
+                .help("Edit configuration")
                 Button(action: { showingDeleteConfirmation = true }) {
                     Image(systemName: "trash")
                         .foregroundColor(.red)
                 }
                 .buttonStyle(.bordered)
-                .help(userSettingsManager.userSettings.localized("Delete configuration"))
+                .help("Delete configuration")
             }
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
             Text(
-                "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)\(userSettingsManager.userSettings.localized("pp"))",
+                "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(formatScheduleInfoInline())",
             )
             .font(.subheadline)
             .foregroundColor(.secondary)
             .fixedSize(horizontal: false, vertical: true)
             VStack(alignment: .leading, spacing: 2) {
-                if !config.dayTimeSlots.isEmpty {
-                    Text(formatScheduleInfo())
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
                 if let next = nextAutorunInfo {
                     HStack(spacing: 6) {
                         Image(systemName: "clock")
@@ -328,16 +319,16 @@ struct ConfigurationRowView: View {
         }
         .padding(.vertical, 6)
         .alert(
-            userSettingsManager.userSettings.localized("Delete Configuration"),
+            "Delete Configuration",
             isPresented: $showingDeleteConfirmation,
         ) {
-            Button(userSettingsManager.userSettings.localized("Cancel"), role: .cancel) { }
-            Button(userSettingsManager.userSettings.localized("Delete"), role: .destructive) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
                 onDelete()
             }
         } message: {
-            let deleteMessage = userSettingsManager.userSettings.localized("Are you sure you want to delete '")
-            let undoMessage = userSettingsManager.userSettings.localized("'? This action cannot be undone.")
+            let deleteMessage = "Are you sure you want to delete '"
+            let undoMessage = "'? This action cannot be undone."
             Text(deleteMessage + config.name + undoMessage)
         }
     }
@@ -369,14 +360,41 @@ struct ConfigurationRowView: View {
         return scheduleInfo.joined(separator: " • ")
     }
 
+    private func formatScheduleInfoInline() -> String {
+        let sortedDays = config.dayTimeSlots.keys.sorted { day1, day2 in
+            guard
+                let index1 = ReservationConfig.Weekday.allCases.firstIndex(of: day1),
+                let index2 = ReservationConfig.Weekday.allCases.firstIndex(of: day2)
+            else {
+                return false
+            }
+            return index1 < index2
+        }
+        var scheduleInfo: [String] = []
+        for day in sortedDays {
+            if let timeSlots = config.dayTimeSlots[day], !timeSlots.isEmpty {
+                let timeStrings = timeSlots.map { timeSlot in
+                    let formatter = DateFormatter()
+                    formatter.timeStyle = .short
+                    formatter.locale = userSettingsManager.userSettings.locale
+                    return formatter.string(from: timeSlot.time)
+                }.sorted()
+                let dayShort = day.localizedShortName
+                let timesString = timeStrings.joined(separator: ", ")
+                scheduleInfo.append("\(dayShort) \(timesString)")
+            }
+        }
+        return scheduleInfo.joined(separator: " • ")
+    }
+
     private func nextAutorunText(for next: NextAutorunInfo) -> String {
         let timeFormatter = DateFormatter()
         timeFormatter.timeStyle = .short
         timeFormatter.locale = userSettingsManager.userSettings.locale
         let autorunTimeString = timeFormatter.string(from: next.date)
-        let autorunText = userSettingsManager.userSettings.localized("Next autorun:")
+        let autorunText = "Next autorun:"
         let countdownText = formatCountdown(next.date)
-        let scheduleText = "(" + next.weekday.localizedShortName + " " + autorunTimeString + ")"
+        let scheduleText = "(\(next.weekday.localizedShortName) \(autorunTimeString))"
         return "\(autorunText) \(countdownText) \(scheduleText)"
     }
 
@@ -387,35 +405,35 @@ struct ConfigurationRowView: View {
                 LastRunStatusInfo(statusKey: "success", statusColor: .green, iconName: "checkmark.circle.fill")
             case .failed:
                 LastRunStatusInfo(
-                    statusKey: userSettingsManager.userSettings.localized("fail"),
+                    statusKey: "fail",
                     statusColor: .red,
                     iconName: "xmark.octagon.fill",
                 )
             case .running:
                 LastRunStatusInfo(
-                    statusKey: userSettingsManager.userSettings.localized("Running..."),
+                    statusKey: "Running...",
                     statusColor: .orange,
                     iconName: "hourglass",
                 )
             case .idle:
                 LastRunStatusInfo(
-                    statusKey: userSettingsManager.userSettings.localized("never"),
+                    statusKey: "never",
                     statusColor: .gray,
                     iconName: "questionmark.circle",
                 )
             }
             let runTypeKey = switch lastRun.runType {
-            case .manual: userSettingsManager.userSettings.localized("(manual)")
-            case .automatic: userSettingsManager.userSettings.localized("(auto)")
+            case .manual: " (manual)"
+            case .automatic: " (auto)"
             }
             return AnyView(
                 HStack(spacing: 6) {
                     Image(systemName: statusInfo.iconName)
                         .foregroundColor(statusInfo.statusColor)
                         .font(.caption)
-                    let lastRunText = userSettingsManager.userSettings.localized("Last run:")
-                    let statusText = userSettingsManager.userSettings.localized(statusInfo.statusKey)
-                    let runTypeText = userSettingsManager.userSettings.localized(runTypeKey)
+                    let lastRunText = "Last run:"
+                    let statusText = statusInfo.statusKey
+                    let runTypeText = runTypeKey
                     Text("\(lastRunText) \(statusText) \(runTypeText)")
                         .font(.caption)
                         .foregroundColor(statusInfo.statusColor)
@@ -437,8 +455,7 @@ struct ConfigurationRowView: View {
                         .foregroundColor(.gray)
                         .font(.caption)
                     Text(
-                        userSettingsManager.userSettings.localized("Last run:") + " " + userSettingsManager
-                            .userSettings.localized("never"),
+                        "Last run: " + "never",
                     )
                     .font(.caption)
                     .foregroundColor(.gray)
@@ -460,22 +477,22 @@ struct DeleteConfirmationModal: View {
                 .frame(width: 64, height: 64)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.top, 24)
-            Text(userSettingsManager.userSettings.localized("Delete Configuration"))
+            Text("Delete Configuration")
                 .font(.title3)
                 .fontWeight(.semibold)
-            let deleteMessage = userSettingsManager.userSettings.localized("Are you sure you want to delete '")
-            let undoMessage = userSettingsManager.userSettings.localized("'? This action cannot be undone.")
+            let deleteMessage = "Are you sure you want to delete '"
+            let undoMessage = "'? This action cannot be undone."
             Text(deleteMessage + configName + undoMessage)
                 .multilineTextAlignment(.center)
                 .font(.body)
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
             HStack(spacing: 20) {
-                Button(userSettingsManager.userSettings.localized("Cancel")) {
+                Button("Cancel") {
                     onCancel()
                 }
                 .buttonStyle(.bordered)
-                Button(userSettingsManager.userSettings.localized("Delete")) {
+                Button("Delete") {
                     onDelete()
                 }
                 .buttonStyle(.borderedProminent)

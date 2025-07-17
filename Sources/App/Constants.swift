@@ -65,6 +65,5 @@ enum Constants {
 
     static let supportedLanguages = [
         "en": "English",
-        "fr": "Français",
     ]
 }
