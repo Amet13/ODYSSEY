@@ -353,7 +353,9 @@ struct ConfigurationDetailView: View {
                 isFetchingSports = false
                 availableSports = sports
             }
+
         }
+
     }
 
     private func addTimeSlot(for day: ReservationConfig.Weekday) {

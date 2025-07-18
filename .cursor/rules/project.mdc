@@ -121,31 +121,6 @@ ODYSSEY is a native macOS application that:
 - **Validation**: Use centralized validation for consistency
 - **Constants**: Use centralized constants for maintainability
 
-### Setup
-
-```bash
-# Clone repository
-git clone https://github.com/Amet13/ODYSSEY.git
-cd ODYSSEY
-
-# Install dependencies
-brew install xcodegen
-brew install swiftlint
-
-# Generate Xcode project
-xcodegen
-
-# Build and run
-./Scripts/build.sh
-```
-
-### Testing
-
-- **Unit Tests:** Test all business logic and services
-- **UI Tests:** Validate user interface functionality
-- **Integration Tests:** Test automation workflows
-- **Performance Tests:** Monitor memory usage and responsiveness
-
 ### Debugging
 
 - **Logging:** Use `os.log` with appropriate categories
