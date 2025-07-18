@@ -1,6 +1,5 @@
 import os.log
 import SwiftUI
-import UserNotifications
 
 /// Main application entry point for ODYSSEY
 ///
@@ -22,6 +21,7 @@ struct ODYSSEYApp: App {
 ///
 /// Manages the application lifecycle, status bar integration, and automated scheduling.
 /// Handles background timer setup for reservation automation and notification permissions.
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusBarController: StatusBarController?
     private var timer: Timer?
@@ -37,8 +37,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Set up scheduling timer
         setupSchedulingTimer()
 
-        // Request notification permissions
-        requestNotificationPermissions()
+        // Initialize complete
     }
 
     func applicationWillTerminate(_: Notification) {
@@ -57,7 +56,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupSchedulingTimer() {
         // Check every minute for scheduled reservations
         timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
-            self.checkScheduledReservations()
+            Task { @MainActor in
+                self.checkScheduledReservations()
+            }
         }
     }
 
@@ -131,35 +132,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         return false
-    }
-
-    private func requestNotificationPermissions() {
-        // Check current status first
-        UNUserNotificationCenter.current().getNotificationSettings { settings in
-            switch settings.authorizationStatus {
-            case .notDetermined:
-                // First time - request permission
-                self.logger.info("Requesting notification permission for the first time...")
-                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
-                    if let error {
-                        self.logger.error("Notification permission error: \(error.localizedDescription)")
-                    } else if granted {
-                        self.logger.info("Notification permissions granted successfully")
-                    } else {
-                        self.logger.warning("Notification permissions denied by user")
-                    }
-                }
-            case .denied:
-                self.logger.warning("Notification permissions denied - user needs to enable in System Preferences")
-            case .authorized:
-                self.logger.info("Notification permissions already granted")
-            case .provisional:
-                self.logger.info("Notification permissions provisionally granted")
-            case .ephemeral:
-                self.logger.info("Notification permissions ephemerally granted")
-            @unknown default:
-                self.logger.warning("Unknown notification authorization status")
-            }
-        }
     }
 }

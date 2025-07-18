@@ -14,19 +14,28 @@ Sources/
 │   └── Info.plist         # App configuration
 ├── Views/                  # SwiftUI views
 │   ├── Main/              # Main application views
-│   │   └── ContentView.swift
+│   │   ├── ContentView.swift
+│   │   └── AboutView.swift
 │   ├── Configuration/     # Configuration-related views
 │   │   └── ConfigurationDetailView.swift
-│   └── Components/        # Reusable UI components
+│   └── Settings/          # Settings views
+│       └── SettingsView.swift
 ├── Models/                 # Data models
-│   └── ReservationConfig.swift
+│   ├── ReservationConfig.swift
+│   └── UserSettings.swift
 ├── Services/              # Business logic and services
 │   ├── Configuration.swift
 │   ├── ReservationManager.swift
 │   ├── FacilityService.swift
-│   ├── WebDriverService.swift
+│   ├── WebKitService.swift
 │   ├── EmailService.swift
-│   └── TelegramService.swift
+│   └── UserSettingsManager.swift
+├── Utils/                 # Utilities, extensions, and protocols
+│   ├── AppConstants.swift # Centralized constants
+│   ├── Extensions.swift   # Reusable Swift extensions
+│   ├── Protocols.swift    # Protocol definitions
+│   ├── ValidationService.swift # Validation logic
+│   └── README.md          # Utils documentation
 ├── Controllers/           # AppKit controllers
 │   └── StatusBarController.swift
 └── Resources/             # App resources
@@ -58,8 +67,15 @@ Sources/
 - **ReservationManager.swift** - Web automation and reservation booking
 - **FacilityService.swift** - Facility data fetching and sports detection
 - **WebKitService.swift** - Native web automation via WKWebView
-- **EmailService.swift** - IMAP integration and email
-- **TelegramService.swift** - Telegram bot integration and notifications
+- **EmailService.swift** - IMAP integration and email verification
+- **UserSettingsManager.swift** - User configuration and settings management
+
+### Utils Layer
+
+- **AppConstants.swift** - Centralized application constants
+- **Extensions.swift** - Reusable Swift extensions
+- **Protocols.swift** - Protocol definitions for better architecture
+- **ValidationService.swift** - Centralized validation logic
 
 ### Controllers Layer
 
@@ -87,6 +103,9 @@ Sources/
 - **WebKit** - Native WKWebView for web automation
 - **UserDefaults** - Persistent configuration storage
 - **os.log** - Structured logging system
+- **Protocol-Oriented Design** - Clear interfaces and testability
+- **Centralized Validation** - Consistent validation across the app
+- **Reusable Extensions** - Code organization and maintainability
 
 ### Integration Features
 
@@ -129,9 +148,9 @@ xcodegen --spec Config/project.yml
 
 ## Dependencies
 
-- **macOS 12.0+** - Minimum deployment target
-- **Swift 5.7+** - Language version
-- **Xcode 14.0+** - Development environment
+- **macOS 15.0+** - Minimum deployment target
+- **Swift 6.0+** - Language version
+- **Xcode 16.0+** - Development environment
 - **WebKit** - Built-in web automation framework
 - **No External Dependencies** - All automation runs natively
 

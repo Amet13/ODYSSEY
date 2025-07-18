@@ -1,28 +1,31 @@
 import Foundation
 
 /// Application-wide constants
+///
+/// @deprecated Use AppConstants from Sources/Utils/AppConstants.swift instead
+/// This file is kept for backward compatibility and will be removed in a future version
 enum Constants {
     // MARK: - App Information
 
-    static let appName = "ODYSSEY"
-    static let appVersion = "0.1.0"
-    static let bundleIdentifier = "com.odyssey.app"
+    static let appName = AppConstants.appName
+    static let appVersion = AppConstants.appVersion
+    static let bundleIdentifier = AppConstants.appBundleId
 
     // MARK: - URLs
 
-    static let ottawaFacilitiesURL = "https://ottawa.ca/en/recreation-and-parks/recreation-facilities"
+    static let ottawaFacilitiesURL = AppConstants.ottawaFacilitiesURL
     static let reservationBaseURL = "https://reservation.frontdesksuite.ca/rcfs/"
 
     // MARK: - Timeouts
 
-    static let webViewTimeout: TimeInterval = 30
-    static let sportsDetectionTimeout: TimeInterval = 15
-    static let reservationTimeout: TimeInterval = 300 // 5 minutes
+    static let webViewTimeout: TimeInterval = AppConstants.defaultTimeout
+    static let sportsDetectionTimeout: TimeInterval = AppConstants.pageLoadTimeout
+    static let reservationTimeout: TimeInterval = AppConstants.verificationCodeTimeout
 
     // MARK: - UI Constants
 
     static let popoverWidth: CGFloat = 400
-    static let popoverHeight: CGFloat = 600
+    static let popoverHeight: CGFloat = 500
     static let statusBarIconSize: CGFloat = 18
 
     // MARK: - Scheduling
@@ -32,7 +35,7 @@ enum Constants {
 
     // MARK: - Logging
 
-    static let logSubsystem = "com.odyssey.app"
+    static let logSubsystem = AppConstants.loggingSubsystem
 
     // MARK: - UserDefaults Keys
 
@@ -50,20 +53,7 @@ enum Constants {
 
     // MARK: - Sports Keywords
 
-    static let sportsKeywords = [
-        "basketball",
-        "volleyball",
-        "badminton",
-        "tennis",
-        "soccer",
-        "hockey",
-        "swimming",
-        "fitness",
-        "gym",
-        "sport",
-    ]
+    static let sportsKeywords = AppConstants.sportsKeywords
 
-    static let supportedLanguages = [
-        "en": "English",
-    ]
+    static let supportedLanguages = AppConstants.supportedLanguages
 }

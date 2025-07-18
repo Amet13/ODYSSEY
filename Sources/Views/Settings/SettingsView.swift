@@ -54,7 +54,7 @@ struct SettingsFormView: View {
                     settingsSection(
                         title: "Contact Information",
                         icon: "person.circle",
-                    ) {
+                        ) {
                         VStack(spacing: 16) {
                             settingsField(
                                 title: "Full Name",
@@ -62,7 +62,7 @@ struct SettingsFormView: View {
                                 placeholder: "John Doe",
                                 icon: "person",
                                 maxLength: 30,
-                            )
+                                )
 
                             settingsField(
                                 title: "Phone Number",
@@ -70,12 +70,11 @@ struct SettingsFormView: View {
                                 placeholder: "234567890",
                                 icon: "phone",
                                 maxLength: 10,
-                            )
+                                )
 
                             if
                                 !userSettingsManager.userSettings.phoneNumber.isEmpty,
-                                !userSettingsManager.userSettings.isPhoneNumberValid
-                            {
+                                !userSettingsManager.userSettings.isPhoneNumberValid {
                                 HStack {
                                     Image(systemName: "exclamationmark.triangle.fill")
                                         .foregroundColor(.orange)
@@ -92,7 +91,7 @@ struct SettingsFormView: View {
                     settingsSection(
                         title: "Email Settings",
                         icon: "envelope.circle",
-                    ) {
+                        ) {
                         VStack(spacing: 16) {
                             // Email Address Field
                             settingsField(
@@ -100,8 +99,8 @@ struct SettingsFormView: View {
                                 value: $userSettingsManager.userSettings.imapEmail,
                                 placeholder: "your-email@domain.com",
                                 icon: "envelope",
-                            )
-                            .onChange(of: userSettingsManager.userSettings.imapEmail) { newEmail in
+                                )
+                            .onChange(of: userSettingsManager.userSettings.imapEmail) { _, newEmail in
                                 // Auto-set IMAP server for Gmail accounts
                                 if isGmailAccount(newEmail) {
                                     userSettingsManager.userSettings.imapServer = "imap.gmail.com"
@@ -110,8 +109,7 @@ struct SettingsFormView: View {
 
                             if
                                 !userSettingsManager.userSettings.imapEmail.isEmpty,
-                                !userSettingsManager.userSettings.isEmailValid
-                            {
+                                !userSettingsManager.userSettings.isEmailValid {
                                 HStack {
                                     Image(systemName: "exclamationmark.triangle.fill")
                                         .foregroundColor(.orange)
@@ -129,7 +127,7 @@ struct SettingsFormView: View {
                                 placeholder: "mail.myserver.com",
                                 icon: "server.rack",
                                 isReadOnly: isGmailAccount(userSettingsManager.userSettings.imapEmail),
-                            )
+                                )
 
                             // Password/App Password Field
                             settingsField(
@@ -141,20 +139,20 @@ struct SettingsFormView: View {
                                     "16-character app password" : "my-password",
                                 icon: "lock",
                                 isSecure: true,
-                            )
+                                )
 
                             // Gmail App Password validation and help
                             if isGmailAccount(userSettingsManager.userSettings.imapEmail) {
                                 if
                                     !userSettingsManager.userSettings.imapPassword.isEmpty,
-                                    !userSettingsManager.userSettings.isGmailAppPasswordValid
-                                {
+                                    !userSettingsManager.userSettings.isGmailAppPasswordValid {
                                     HStack {
                                         Image(systemName: "exclamationmark.triangle.fill")
                                             .foregroundColor(.orange)
                                         Text(
-                                            "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 lowercase letters with spaces every 4 characters)",
-                                        )
+                                            "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' " +
+                                                "(16 lowercase letters with spaces every 4 characters)",
+                                            )
                                         .font(.caption)
                                         .foregroundColor(.orange)
                                         Spacer()
@@ -163,10 +161,7 @@ struct SettingsFormView: View {
 
                                 HStack {
                                     Button("How to create Gmail App Password") {
-                                        if
-                                            let url =
-                                            URL(string: "https://support.google.com/accounts/answer/185833")
-                                        {
+                                        if let url = URL(string: "https://support.google.com/accounts/answer/185833") {
                                             NSWorkspace.shared.open(url)
                                         }
                                     }
@@ -189,7 +184,7 @@ struct SettingsFormView: View {
                                             server: userSettingsManager.userSettings.imapServer,
                                             provider: isGmailAccount(userSettingsManager.userSettings.imapEmail) ?
                                                 .gmail : .imap,
-                                        )
+                                            )
                                         await MainActor.run {
                                             emailService.lastTestResult = result
                                             if result.isSuccess {
@@ -197,13 +192,13 @@ struct SettingsFormView: View {
                                                     userSettingsManager.saveLastSuccessfulGmailConfig(
                                                         email: userSettingsManager.userSettings.imapEmail,
                                                         appPassword: userSettingsManager.userSettings.imapPassword,
-                                                    )
+                                                        )
                                                 } else {
                                                     userSettingsManager.saveLastSuccessfulIMAPConfig(
                                                         email: userSettingsManager.userSettings.imapEmail,
                                                         password: userSettingsManager.userSettings.imapPassword,
                                                         server: userSettingsManager.userSettings.imapServer,
-                                                    )
+                                                        )
                                                 }
                                             }
                                         }
@@ -221,7 +216,7 @@ struct SettingsFormView: View {
                                         .scaleEffect(0.8)
                                     Text(
                                         "Testing email connection...",
-                                    )
+                                        )
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     Spacer()
@@ -232,7 +227,7 @@ struct SettingsFormView: View {
                                     Image(
                                         systemName: result
                                             .isSuccess ? "checkmark.circle.fill" : "xmark.circle.fill",
-                                    )
+                                        )
                                     .foregroundColor(result.isSuccess ? .green : .red)
                                     Text(result.description)
                                         .font(.caption)
@@ -314,7 +309,7 @@ struct SettingsFormView: View {
         isSecure: Bool = false,
         maxLength: Int? = nil,
         isReadOnly: Bool = false,
-    ) -> some View {
+        ) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Image(systemName: icon)
@@ -335,7 +330,7 @@ struct SettingsFormView: View {
                 if isSecure {
                     SecureField(placeholder, text: value)
                         .textFieldStyle(.roundedBorder)
-                        .onChange(of: value.wrappedValue) { newValue in
+                        .onChange(of: value.wrappedValue) { _, newValue in
                             if let maxLength, newValue.count > maxLength {
                                 value.wrappedValue = String(newValue.prefix(maxLength))
                             }
@@ -343,7 +338,7 @@ struct SettingsFormView: View {
                 } else {
                     TextField(placeholder, text: value)
                         .textFieldStyle(.roundedBorder)
-                        .onChange(of: value.wrappedValue) { newValue in
+                        .onChange(of: value.wrappedValue) { _, newValue in
                             if let maxLength, newValue.count > maxLength {
                                 value.wrappedValue = String(newValue.prefix(maxLength))
                             }

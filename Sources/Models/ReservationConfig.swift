@@ -84,13 +84,13 @@ struct ReservationConfig: Codable, Identifiable, Equatable {
         /// Calendar weekday number (1 = Sunday, 2 = Monday, etc.)
         var calendarWeekday: Int {
             switch self {
-            case .sunday: 1
-            case .monday: 2
-            case .tuesday: 3
-            case .wednesday: 4
-            case .thursday: 5
-            case .friday: 6
-            case .saturday: 7
+            case .sunday: return 1
+            case .monday: return 2
+            case .tuesday: return 3
+            case .wednesday: return 4
+            case .thursday: return 5
+            case .friday: return 6
+            case .saturday: return 7
             }
         }
     }
@@ -106,8 +106,7 @@ struct ReservationConfig: Codable, Identifiable, Equatable {
             let nsrange = NSRange(url.startIndex ..< url.endIndex, in: url)
             if
                 let match = regex.firstMatch(in: url, options: [], range: nsrange),
-                let facilityRange = Range(match.range(at: 1), in: url)
-            {
+                let facilityRange = Range(match.range(at: 1), in: url) {
                 let facilityName = String(url[facilityRange])
                 return facilityName.capitalized
             }
@@ -178,7 +177,6 @@ struct TimeSlot: Codable, Identifiable, Hashable {
 struct AppSettings: Codable {
     var configurations: [ReservationConfig] = []
     var globalEnabled: Bool = true
-    var notificationsEnabled: Bool = true
     var autoStart: Bool = false
     var logLevel: LogLevel = .info
 

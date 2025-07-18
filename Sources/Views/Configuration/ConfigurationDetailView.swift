@@ -33,8 +33,6 @@ struct ConfigurationDetailView: View {
                     configNameSection
                     Divider().padding(.vertical, 8)
                     schedulingSection
-                    Divider().padding(.vertical, 8)
-                    previewSection
                 }
                 .padding(.horizontal, 32)
                 .padding(.vertical, 24)
@@ -42,10 +40,10 @@ struct ConfigurationDetailView: View {
             Divider()
             footerButtonsSection
         }
-        .frame(width: 440, height: 560)
+        .frame(width: 440, height: 580)
         .navigationTitle(
             config == nil ? "Add Reservation Configuration" : "Edit Reservation Configuration",
-        )
+            )
         .alert("Validation Error", isPresented: $showingValidationAlert) {
             Button("OK") { }
         } message: {
@@ -72,7 +70,7 @@ struct ConfigurationDetailView: View {
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
             TextField("Enter facility URL", text: $facilityURL)
-                .onChange(of: facilityURL) { _ in updateConfigurationName() }
+                .onChange(of: facilityURL) { _, _ in updateConfigurationName() }
             if !facilityURL.isEmpty, !isValidFacilityURL(facilityURL) {
                 Text("Please enter a valid Ottawa Recreation URL.")
                     .font(.caption)
@@ -81,7 +79,7 @@ struct ConfigurationDetailView: View {
                     "View Ottawa Facilities",
                     destination: URL(string: "https://ottawa.ca/en/recreation-and-parks/recreation-facilities") ??
                         URL(string: "https://ottawa.ca")!,
-                )
+                    )
                 .font(.caption)
             }
         }
@@ -106,6 +104,7 @@ struct ConfigurationDetailView: View {
                                 updateConfigurationName()
                             }) {
                                 HStack {
+                                    SportIconView(symbolName: SportIconMapper.iconForSport(sport))
                                     Text(sport)
                                     if sportName == sport {
                                         Spacer()
@@ -164,7 +163,7 @@ struct ConfigurationDetailView: View {
                         Text("1 Person").foregroundColor(.primary)
                     }
                 }.buttonStyle(.bordered)
-                    .controlSize(.regular)
+                .controlSize(.regular)
                 Button(action: {
                     numberOfPeople = 2
                     updateConfigurationName()
@@ -175,7 +174,7 @@ struct ConfigurationDetailView: View {
                         Text("2 People").foregroundColor(.primary)
                     }
                 }.buttonStyle(.bordered)
-                    .controlSize(.regular)
+                .controlSize(.regular)
             }
         }
         .padding(.bottom, 20)
@@ -216,7 +215,7 @@ struct ConfigurationDetailView: View {
                     .padding(.vertical, 8)
             } else {
                 let weekdayOrder: [ReservationConfig.Weekday] = [
-                    .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday,
+                    .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday
                 ]
                 ForEach(Array(dayTimeSlots.keys.sorted { lhs, rhs in
                     guard
@@ -239,47 +238,13 @@ struct ConfigurationDetailView: View {
                         TimeSlotPickerView(slots: Binding(
                             get: { dayTimeSlots[day] ?? [defaultTime()] },
                             set: { newValue in dayTimeSlots[day] = newValue },
-                        ))
+                            ))
                     }
                     .padding(.vertical, 4)
                 }
             }
         }
         .padding(.bottom, 20)
-    }
-
-    private var previewSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Preview")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .padding(.bottom, 4)
-            Text("Name: \(name.isEmpty ? "Not set" : name)")
-            Text("Sport: \(sportName.isEmpty ? "Not set" : sportName)")
-            Text("People: \(numberOfPeople)")
-            if !dayTimeSlots.isEmpty {
-                let weekdayOrder: [ReservationConfig.Weekday] = [
-                    .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday,
-                ]
-                let sortedDays = dayTimeSlots.keys.sorted { lhs, rhs in
-                    guard
-                        let lhsIndex = weekdayOrder.firstIndex(of: lhs),
-                        let rhsIndex = weekdayOrder.firstIndex(of: rhs) else { return false }
-                    return lhsIndex < rhsIndex
-                }
-                ForEach(sortedDays, id: \.self) { day in
-                    let slots = dayTimeSlots[day] ?? []
-                    let sortedTimes = slots.sorted { $0 < $1 }
-                        .map { $0.formatted(date: .omitted, time: .shortened) }
-                        .joined(separator: ", ")
-                    if !sortedTimes.isEmpty {
-                        Text("\(day.localizedShortName): \(sortedTimes)")
-                    }
-                }
-            }
-        }
-        .padding(.top, 8)
-        .padding(.bottom, 8)
     }
 
     private var footerButtonsSection: some View {
@@ -336,7 +301,7 @@ struct ConfigurationDetailView: View {
             numberOfPeople: numberOfPeople,
             isEnabled: isEnabled,
             dayTimeSlots: convertedSlots,
-        )
+            )
 
         onSave(newConfig)
         dismiss()
@@ -360,8 +325,7 @@ struct ConfigurationDetailView: View {
             let nsrange = NSRange(url.startIndex ..< url.endIndex, in: url)
             if
                 let match = regex.firstMatch(in: url, options: [], range: nsrange),
-                let facilityRange = Range(match.range(at: 1), in: url)
-            {
+                let facilityRange = Range(match.range(at: 1), in: url) {
                 let facilityName = String(url[facilityRange])
                 return facilityName.capitalized
             }
@@ -523,36 +487,12 @@ struct TimeSlotPickerView: View {
                             set: { newValue in
                                 slots[idx] = newValue
                             },
-                        ),
+                            ),
                         displayedComponents: .hourAndMinute,
-                    )
+                        )
                     .labelsHidden()
                 }
             }
         }
     }
-}
-
-#Preview {
-    let now = Date()
-    let calendar = Calendar.current
-    let roundedMinute = (calendar.component(.minute, from: now) / 30) * 30
-    let roundedNow = calendar.date(from: DateComponents(
-        hour: calendar.component(.hour, from: now),
-        minute: roundedMinute,
-    )) ?? now
-    let slot1 = TimeSlot(time: roundedNow)
-    let slot2 = TimeSlot(time: calendar.date(byAdding: .hour, value: 1, to: roundedNow) ?? roundedNow)
-    let previewConfig = ReservationConfig(
-        name: "Preview Config",
-        facilityURL: "https://reservation.frontdesksuite.ca/rcfs/preview",
-        sportName: "Soccer",
-        numberOfPeople: 2,
-        isEnabled: true,
-        dayTimeSlots: [
-            .monday: [slot1, slot2],
-            .wednesday: [slot1],
-        ],
-    )
-    return ConfigurationDetailView(config: previewConfig) { _ in }
 }

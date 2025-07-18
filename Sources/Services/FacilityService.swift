@@ -5,6 +5,7 @@ import WebKit
 
 /// Service for fetching available sports/activities from facility pages
 /// Handles web scraping and sports detection from Ottawa recreation facilities
+@MainActor
 class FacilityService: NSObject, ObservableObject {
     static let shared = FacilityService()
 
@@ -166,7 +167,7 @@ extension FacilityService: WKUIDelegate {
         createWebViewWith _: WKWebViewConfiguration,
         for _: WKNavigationAction,
         windowFeatures _: WKWindowFeatures,
-    ) -> WKWebView? {
+        ) -> WKWebView? {
         nil
     }
 }

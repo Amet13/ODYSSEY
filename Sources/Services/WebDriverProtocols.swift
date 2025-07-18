@@ -4,6 +4,7 @@ import Foundation
 // MARK: - Web Automation Protocols (WebKit)
 
 /// Protocol for web automation service functionality (WebKit-based)
+@preconcurrency
 public protocol WebAutomationServiceProtocol: ObservableObject {
     var isConnected: Bool { get }
     var isRunning: Bool { get }
@@ -21,6 +22,7 @@ public protocol WebAutomationServiceProtocol: ObservableObject {
 // MARK: - Web Element Protocol
 
 /// Protocol for web elements in WebKit-based automation
+@preconcurrency
 public protocol WebElementProtocol {
     var id: String { get }
     var tagName: String { get }

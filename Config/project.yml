@@ -3,7 +3,7 @@ options:
   bundleIdPrefix: com.odyssey
   deploymentTarget:
     macOS: "15.0"
-  xcodeVersion: "16.0"
+  xcodeVersion: "16.2"
   groupSortPosition: top
   generateEmptyDirectories: true
   fileTypes:
@@ -123,8 +123,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.odyssey.app
         PRODUCT_NAME: ODYSSEY
-        MARKETING_VERSION: 3.1.0
-        CURRENT_PROJECT_VERSION: 10
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 11
         INFOPLIST_FILE: ../Sources/App/Info.plist
         INFOPLIST_KEY_CFBundleDisplayName: ODYSSEY
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
@@ -132,8 +132,8 @@ targets:
         INFOPLIST_KEY_LSUIElement: true
         ENABLE_HARDENED_RUNTIME: NO
         ENABLE_APP_SANDBOX: NO
-        SWIFT_VERSION: 5.0
-        MACOSX_DEPLOYMENT_TARGET: 12.0
+        SWIFT_VERSION: 6.0
+        MACOSX_DEPLOYMENT_TARGET: 15.0
         ENABLE_PREVIEWS: YES
     dependencies: []
 

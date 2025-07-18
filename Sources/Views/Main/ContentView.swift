@@ -9,6 +9,7 @@ struct ContentView: View {
     @State private var showingAddConfig = false
     @State private var selectedConfig: ReservationConfig?
     @State private var showingSettings = false
+    @State private var showingAbout = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -32,6 +33,12 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
+        }
+        .sheet(isPresented: $showingAbout) {
+            AboutView()
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.hidden)
+                .presentationBackground(.clear)
         }
     }
 }
@@ -72,7 +79,7 @@ private extension ContentView {
                     ForEach(
                         Array(configManager.settings.configurations.enumerated()),
                         id: \.element.id,
-                    ) { index, config in
+                        ) { index, config in
                         ConfigurationRowView(
                             config: config,
                             nextAutorunInfo: getNextCronRunTime(for: config),
@@ -81,7 +88,7 @@ private extension ContentView {
                             onDelete: { configManager.removeConfiguration(config) },
                             onToggle: { configManager.toggleConfiguration(at: index) },
                             onRun: { reservationManager.runReservation(for: config, runType: .manual) },
-                        )
+                            )
                     }
                     .onDelete(perform: { indices in
                         for index in indices {
@@ -91,7 +98,7 @@ private extension ContentView {
                     })
                 }
                 .listStyle(.inset),
-            )
+                )
         }
     }
 
@@ -106,7 +113,7 @@ private extension ContentView {
                 .fontWeight(.medium)
             Text(
                 "Add your first reservation configuration to get started with automated booking.",
-            )
+                )
             .font(.body)
             .foregroundColor(.secondary)
             .multilineTextAlignment(.center)
@@ -134,13 +141,12 @@ private extension ContentView {
 
                 Spacer()
 
-                Link(
-                    "GitHub",
-                    destination: URL(string: "https://github.com/Amet13/ODYSSEY") ?? URL(string: "https://github.com")!,
-                )
-                .font(.footnote)
-                .foregroundColor(.blue)
-                .help("View ODYSSEY on GitHub")
+                Button("About") {
+                    showingAbout = true
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.regular)
+                .help("About ODYSSEY")
 
                 Spacer()
 
@@ -279,10 +285,10 @@ struct ConfigurationRowView: View {
                 Toggle("", isOn: Binding(
                     get: { config.isEnabled },
                     set: { _ in onToggle() },
-                ))
+                    ))
                 .toggleStyle(.switch)
                 .labelsHidden()
-                .help("Enable or disable configuration")
+                .help("Enable or disable autorun")
                 Button(action: onEdit) {
                     Image(systemName: "pencil")
                 }
@@ -296,12 +302,17 @@ struct ConfigurationRowView: View {
                 .help("Delete configuration")
             }
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
-            Text(
-                "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(formatScheduleInfoInline())",
-            )
-            .font(.subheadline)
-            .foregroundColor(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 4) {
+                Image(systemName: SportIconMapper.iconForSport(config.sportName))
+                    .foregroundColor(.accentColor)
+                    .font(.caption)
+                Text(
+                    "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(formatScheduleInfoInline())",
+                    )
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            }
             VStack(alignment: .leading, spacing: 2) {
                 if let next = nextAutorunInfo {
                     HStack(spacing: 2) {
@@ -326,7 +337,7 @@ struct ConfigurationRowView: View {
         .alert(
             "Delete Configuration",
             isPresented: $showingDeleteConfirmation,
-        ) {
+            ) {
             Button("Cancel", role: .cancel) { }
             Button("Delete", role: .destructive) {
                 onDelete()
@@ -416,19 +427,19 @@ struct ConfigurationRowView: View {
                     statusKey: "fail",
                     statusColor: .red,
                     iconName: "xmark.octagon.fill",
-                )
+                    )
             case .running:
                 LastRunStatusInfo(
                     statusKey: "Running...",
                     statusColor: .orange,
                     iconName: "hourglass",
-                )
+                    )
             case .idle:
                 LastRunStatusInfo(
                     statusKey: "never",
                     statusColor: .gray,
                     iconName: "questionmark.circle",
-                )
+                    )
             }
             let runTypeKey = switch lastRun.runType {
             case .manual: " (manual)"
@@ -454,7 +465,7 @@ struct ConfigurationRowView: View {
                             .foregroundColor(statusInfo.statusColor)
                     }
                 },
-            )
+                )
         } else {
             // Configuration has never been run - show in grey
             return AnyView(
@@ -464,11 +475,11 @@ struct ConfigurationRowView: View {
                         .font(.caption)
                     Text(
                         "Last run: " + "never",
-                    )
+                        )
                     .font(.caption)
                     .foregroundColor(.gray)
                 },
-            )
+                )
         }
     }
 }
@@ -513,13 +524,7 @@ struct DeleteConfirmationModal: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(NSColor.windowBackgroundColor))
                 .shadow(radius: 20),
-        )
+            )
         .padding()
     }
-}
-
-// MARK: - Preview
-
-#Preview {
-    ContentView()
 }

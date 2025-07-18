@@ -1,7 +1,6 @@
 import Combine
 import Foundation
 import os.log
-import UserNotifications
 
 /// Manages the automation of reservation bookings for Ottawa recreation facilities
 ///
@@ -14,6 +13,7 @@ import UserNotifications
 ///
 /// The manager uses WebDriver for Chrome automation and provides real-time status updates
 /// through ObservableObject protocol for SwiftUI integration.
+@MainActor
 class ReservationManager: NSObject, ObservableObject {
     static let shared = ReservationManager()
 
@@ -50,6 +50,7 @@ class ReservationManager: NSObject, ObservableObject {
         }
     }
 
+    // Remove the in-memory LastRunInfo struct
     @Published private(set) var lastRunInfo: [UUID: (status: RunStatus, date: Date?, runType: RunType)] = [:] {
         didSet { saveLastRunInfo() }
     }
@@ -170,7 +171,6 @@ class ReservationManager: NSObject, ObservableObject {
     override private init() {
         super.init()
         loadLastRunInfo()
-        requestNotificationPermission()
     }
 
     private func saveLastRunInfo() {
@@ -202,7 +202,10 @@ class ReservationManager: NSObject, ObservableObject {
     }
 
     /// Timeout wrapper for async operations
-    private func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
+    private func withTimeout<T: Sendable>(
+        seconds: TimeInterval,
+        operation: @escaping @Sendable () async throws -> T
+    ) async throws -> T {
         try await withThrowingTaskGroup(of: T.self) { group in
             group.addTask {
                 try await operation()
@@ -213,7 +216,9 @@ class ReservationManager: NSObject, ObservableObject {
                 throw ReservationError.webKitTimeout
             }
 
-            let result = try await group.next()!
+            guard let result = try await group.next() else {
+                throw ReservationError.webKitTimeout
+            }
             group.cancelAll()
             return result
         }
@@ -255,13 +260,13 @@ class ReservationManager: NSObject, ObservableObject {
         await MainActor.run {
             self.isRunning = false
             self.lastRunStatus = .failed(error.localizedDescription)
-            self.lastRunInfo[config.id] = (.failed(error.localizedDescription), Date(), runType)
+            self.lastRunInfo[config.id] = (status: .failed(error.localizedDescription), date: Date(), runType: runType)
             self.lastRunDate = Date()
             self.currentTask = "Reservation failed: \(error.localizedDescription)"
         }
 
-        // Send failure notification
-        sendFailureNotification(for: config, error: error.localizedDescription)
+        // Log failure
+        logger.error("Reservation failed for \(config.name): \(error.localizedDescription)")
 
         // Cleanup WebKit session after error
         logger.info("Cleaning up WebKit session after error")
@@ -286,8 +291,8 @@ class ReservationManager: NSObject, ObservableObject {
         if isRunning, let config = currentConfig {
             logger.warning("Emergency cleanup triggered - capturing screenshot and sending notification")
 
-            // Send emergency failure notification
-            sendFailureNotification(for: config, error: "Emergency cleanup - automation was interrupted unexpectedly")
+            // Log emergency failure
+            logger.error("Emergency cleanup triggered for \(config.name): automation was interrupted unexpectedly")
 
             // Update status
             await MainActor.run {
@@ -296,10 +301,10 @@ class ReservationManager: NSObject, ObservableObject {
                 self.currentTask = "Emergency cleanup completed"
                 self.lastRunDate = Date()
                 self.lastRunInfo[config.id] = (
-                    .failed("Emergency cleanup - automation was interrupted unexpectedly"),
-                    Date(),
-                    .automatic,
-                )
+                    status: .failed("Emergency cleanup - automation was interrupted unexpectedly"),
+                    date: Date(),
+                    runType: .automatic,
+                    )
             }
         }
 
@@ -307,12 +312,54 @@ class ReservationManager: NSObject, ObservableObject {
         await webKitService.disconnect(closeWindow: false)
     }
 
+    /// Handle manual window closure by user
+    func handleManualWindowClosure() async {
+        logger.info("Manual window closure detected - resetting reservation state")
+
+        // Update status to reflect manual closure
+        await MainActor.run {
+            if self.isRunning {
+                self.isRunning = false
+                self.lastRunStatus = .failed("Reservation cancelled - window was closed manually")
+                self.currentTask = "Reservation cancelled by user"
+                self.lastRunDate = Date()
+
+                // Update last run info if we have a current config
+                if let config = self.currentConfig {
+                    self.lastRunInfo[config.id] = (
+                        status: .failed("Reservation cancelled - window was closed manually"),
+                        date: Date(),
+                        runType: .manual,
+                        )
+                }
+            }
+        }
+
+        // Force reset WebKit service
+        await webKitService.forceReset()
+    }
+
     // MARK: - Private Methods
 
     private func performReservation(for config: ReservationConfig, runType: RunType) async throws {
         currentTask = "Starting reservation for \(config.name)"
         currentConfig = config
-        // Step 1: Start WebKit session and navigate directly to the URL
+
+        // Step 1: Check if WebKit service is in valid state
+        await updateTask("Checking WebKit service state")
+        if !webKitService.isServiceValid() {
+            logger.info("WebKit service not in valid state, resetting...")
+            await webKitService.reset()
+        }
+
+        // Set up window closure callback
+        webKitService.onWindowClosed = { [weak self] in
+            Task {
+                await self?.handleManualWindowClosure()
+            }
+        }
+
+        // Step 2: Start WebKit session and navigate directly to the URL
         await updateTask("Starting WebKit session")
         try await webKitService.connect()
 
@@ -402,7 +449,7 @@ class ReservationManager: NSObject, ObservableObject {
                 let timeSlotSelected = await webKitService.selectTimeSlot(
                     dayName: dayName,
                     timeString: timeString,
-                )
+                    )
                 if !timeSlotSelected {
                     logger.error("Failed to select time slot: \(dayName) at \(timeString, privacy: .private)")
                     throw ReservationError.timeSlotSelectionFailed
@@ -450,8 +497,8 @@ class ReservationManager: NSObject, ObservableObject {
 
             logger.info("Successfully filled phone number")
 
-            // Essential pause between fields (0.4–0.8s)
-            try? await Task.sleep(nanoseconds: UInt64.random(in: 400_000_000 ... 800_000_000))
+            // Optimized pause between fields to avoid reCAPTCHA (0.8–1.4s)
+            try? await Task.sleep(nanoseconds: UInt64.random(in: 800_000_000 ... 1_400_000_000))
 
             // Fill email address
             let emailFilled = await webKitService.fillEmail(userSettings.imapEmail)
@@ -462,8 +509,8 @@ class ReservationManager: NSObject, ObservableObject {
 
             logger.info("Successfully filled email address")
 
-            // Essential pause between fields (0.4–0.8s)
-            try? await Task.sleep(nanoseconds: UInt64.random(in: 400_000_000 ... 800_000_000))
+            // Optimized pause between fields to avoid reCAPTCHA (0.8–1.4s)
+            try? await Task.sleep(nanoseconds: UInt64.random(in: 800_000_000 ... 1_400_000_000))
 
             // Fill name
             let nameFilled = await webKitService.fillName(userSettings.name)
@@ -474,8 +521,8 @@ class ReservationManager: NSObject, ObservableObject {
 
             logger.info("Successfully filled name")
 
-            // Before clicking confirm, essential review pause (0.5–1.0s)
-            try? await Task.sleep(nanoseconds: UInt64.random(in: 500_000_000 ... 1_000_000_000))
+            // Before clicking confirm, optimized review pause (1.0–1.8s)
+            try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000 ... 1_800_000_000))
 
             // Step 13: Click confirm button for contact information with retry logic
             await updateTask("Confirming contact information...")
@@ -500,8 +547,8 @@ class ReservationManager: NSObject, ObservableObject {
                     // Essential anti-detection sequence
                     await webKitService.addQuickPause()
 
-                    // Wait before retry
-                    try? await Task.sleep(nanoseconds: UInt64.random(in: 500_000_000 ... 1_000_000_000))
+                    // Optimized wait before retry to avoid reCAPTCHA (1.0-1.8s)
+                    try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000 ... 1_800_000_000))
                 }
 
                 contactConfirmClicked = await webKitService.clickContactInfoConfirmButtonWithRetry()
@@ -515,7 +562,7 @@ class ReservationManager: NSObject, ObservableObject {
                         logger
                             .warning(
                                 "Retry text detected after confirm button click - will retry with enhanced measures",
-                            )
+                                )
                         contactConfirmClicked = false
                         retryCount += 1
 
@@ -526,8 +573,8 @@ class ReservationManager: NSObject, ObservableObject {
                         // Essential anti-detection
                         await webKitService.addQuickPause()
 
-                        // Wait after retry text detection
-                        try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000 ... 1_500_000_000))
+                        // Optimized wait after retry text detection to avoid reCAPTCHA (1.5-2.2s)
+                        try? await Task.sleep(nanoseconds: UInt64.random(in: 1_500_000_000 ... 2_200_000_000))
                     } else {
                         logger.info("Successfully clicked contact confirm button (no retry text detected)")
                         break
@@ -584,13 +631,13 @@ class ReservationManager: NSObject, ObservableObject {
             await MainActor.run {
                 self.isRunning = false
                 self.lastRunStatus = .success
-                self.lastRunInfo[config.id] = (.success, Date(), runType)
+                self.lastRunInfo[config.id] = (status: .success, date: Date(), runType: runType)
                 self.lastRunDate = Date()
                 self.currentTask = "Reservation completed successfully"
             }
 
-            // Send success notification
-            sendSuccessNotification(for: config)
+            // Log success
+            logger.info("Reservation completed successfully for \(config.name)")
 
             logger.info("Cleaning up WebKit session after successful reservation")
             await webKitService.disconnect(closeWindow: true)
@@ -614,14 +661,14 @@ class ReservationManager: NSObject, ObservableObject {
             self.currentTask = "Error: \(error)"
             self.lastRunDate = Date()
             if let configId {
-                self.lastRunInfo[configId] = (.failed(error), Date(), runType)
+                self.lastRunInfo[configId] = (status: .failed(error), date: Date(), runType: runType)
             }
         }
         logger.error("Reservation error: \(error)")
 
-        // Send failure notification if we have the current config
+        // Log failure if we have the current config
         if let currentConfig {
-            sendFailureNotification(for: currentConfig, error: error)
+            logger.error("Reservation failed for \(currentConfig.name): \(error)")
         }
 
         // Always cleanup WebKit session
@@ -634,138 +681,11 @@ class ReservationManager: NSObject, ObservableObject {
         lastRunInfo[configId]
     }
 
-    // MARK: - Notification Methods
-
-    /// Request notification permission from the user
-    private func requestNotificationPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
-            if let error {
-                self.logger.error("Failed to request notification permission: \(error.localizedDescription)")
-            } else if granted {
-                self.logger.info("Notification permission granted")
-            } else {
-                self.logger.warning("Notification permission denied")
-            }
-        }
-    }
-
-    /// Check if notifications are authorized
-    private func checkNotificationAuthorization() async -> Bool {
-        let center = UNUserNotificationCenter.current()
-        let settings = await center.notificationSettings()
-        return settings.authorizationStatus == .authorized
-    }
-
-    /// Send a system notification for reservation success
-    private func sendSuccessNotification(for config: ReservationConfig) {
-        Task {
-            // First, try to request permission if not already granted
-            await requestNotificationPermissionIfNeeded()
-
-            let isAuthorized = await checkNotificationAuthorization()
-            guard isAuthorized else {
-                logger.warning("Cannot send notification - permission not granted")
-                // Show a user-friendly message in the UI instead
-                await MainActor.run {
-                    self
-                        .currentTask =
-                        "Reservation successful! (Enable notifications in System Preferences to get alerts)"
-                }
-                return
-            }
-
-            let content = UNMutableNotificationContent()
-            content.title = "🎉 Reservation Successful!"
-            content.body = "\(config.sportName) at \(ReservationConfig.extractFacilityName(from: config.facilityURL))"
-            content.sound = .default
-
-            let request = UNNotificationRequest(
-                identifier: "reservation-success-\(config.id.uuidString)-\(Date().timeIntervalSince1970)",
-                content: content,
-                trigger: nil,
-            )
-
-            do {
-                try await UNUserNotificationCenter.current().add(request)
-                logger.info("Success notification sent for \(config.name)")
-            } catch {
-                logger.error("Failed to send success notification: \(error.localizedDescription)")
-            }
-        }
-    }
-
-    /// Send a system notification for reservation failure
-    private func sendFailureNotification(for config: ReservationConfig, error: String) {
-        Task {
-            // First, try to request permission if not already granted
-            await requestNotificationPermissionIfNeeded()
-
-            let isAuthorized = await checkNotificationAuthorization()
-            guard isAuthorized else {
-                logger.warning("Cannot send notification - permission not granted")
-                // Show a user-friendly message in the UI instead
-                await MainActor.run {
-                    self.currentTask = "Reservation failed! (Enable notifications in System Preferences to get alerts)"
-                }
-                return
-            }
-
-            let content = UNMutableNotificationContent()
-            content.title = "❌ Reservation Failed"
-
-            // Shorten the error message for notification
-            let shortError = error.count > 50 ? String(error.prefix(47)) + "..." : error
-            content.body = "\(config.sportName): \(shortError)"
-            content.sound = .default
-
-            let request = UNNotificationRequest(
-                identifier: "reservation-failure-\(config.id.uuidString)-\(Date().timeIntervalSince1970)",
-                content: content,
-                trigger: nil,
-            )
-
-            do {
-                try await UNUserNotificationCenter.current().add(request)
-                logger.info("Failure notification sent for \(config.name)")
-            } catch {
-                logger.error("Failed to send failure notification: \(error.localizedDescription)")
-            }
-        }
-    }
-
-    /// Request notification permission if not already granted
-    private func requestNotificationPermissionIfNeeded() async {
-        let center = UNUserNotificationCenter.current()
-        let settings = await center.notificationSettings()
-
-        // Only request if not determined (first time) or denied
-        if settings.authorizationStatus == .notDetermined {
-            logger.info("Requesting notification permission...")
-            let granted = await withCheckedContinuation { continuation in
-                center.requestAuthorization(options: [.alert, .sound]) { granted, error in
-                    if let error {
-                        self.logger.error("Failed to request notification permission: \(error.localizedDescription)")
-                    } else if granted {
-                        self.logger.info("Notification permission granted")
-                    } else {
-                        self.logger.warning("Notification permission denied")
-                    }
-                    continuation.resume(returning: granted)
-                }
-            }
-
-            if granted {
-                logger.info("Notification permission granted successfully")
-            } else {
-                logger.warning("Notification permission denied by user")
-            }
-        } else if settings.authorizationStatus == .denied {
-            logger.warning("Notification permission denied - user needs to enable in System Preferences")
-        }
-    }
-
     // Helper function to add timeout to async operations
-    private func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async -> T) async -> T? {
+    private func withTimeout<T: Sendable>(
+        seconds: TimeInterval,
+        operation: @escaping @Sendable () async -> T
+    ) async -> T? {
         await withTaskGroup(of: T?.self) { group in
             group.addTask {
                 await operation()

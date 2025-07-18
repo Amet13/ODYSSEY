@@ -92,7 +92,7 @@ class EmailService: ObservableObject {
     private init() { }
 
     // Add a static variable to track last connection attempt time
-    private static var lastIMAPConnectionTimestamp: Date? = nil
+    private static var lastIMAPConnectionTimestamp: Date?
 
     // MARK: - Gmail Support
 
@@ -132,8 +132,8 @@ class EmailService: ObservableObject {
                 return .failure(
                     .gmailAppPasswordRequired(
                         "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 alphanumeric characters with spaces every 4 characters).",
-                    ),
-                )
+                        ),
+                    )
             }
         } else {
             // Fallback validation if regex fails
@@ -142,8 +142,8 @@ class EmailService: ObservableObject {
                 return .failure(
                     .gmailAppPasswordRequired(
                         "Gmail App Password must be 16 alphanumeric characters in format: 'xxxx xxxx xxxx xxxx'.",
-                    ),
-                )
+                        ),
+                    )
             }
         }
 
@@ -157,9 +157,6 @@ class EmailService: ObservableObject {
     func extractVerificationCode() async -> String? {
         logger.info("Checking for verification email from noreply@frontdesksuite.com")
 
-        // For now, we'll use a simple approach to check for the verification email
-        // In a full implementation, this would connect to IMAP and search for the email
-
         // Check if we have the email settings needed
         guard
             !userSettingsManager.userSettings.imapEmail.isEmpty,
@@ -170,11 +167,15 @@ class EmailService: ObservableObject {
             return nil
         }
 
-        // TODO: Implement actual IMAP connection to check for verification email
-        // For now, return nil to indicate no verification code found
-        // This will be implemented when we add full IMAP email checking functionality
+        // Use the existing IMAP connection to fetch verification codes
+        let codes = await fetchVerificationCodesForToday(since: Date().addingTimeInterval(-300)) // Last 5 minutes
 
-        logger.warning("Email verification code extraction not yet implemented")
+        if let latestCode = codes.last {
+            logger.info("Found verification code: \(latestCode)")
+            return latestCode
+        }
+
+        logger.info("No verification code found in recent emails")
         return nil
     }
 
@@ -190,7 +191,7 @@ class EmailService: ObservableObject {
         port: UInt16,
         username: String,
         password: String,
-    ) async throws {
+        ) async throws {
         logger.info("Connecting to IMAP server: \(server):\(port)")
 
         // Test the connection first
@@ -198,7 +199,7 @@ class EmailService: ObservableObject {
             email: username,
             password: password,
             server: server,
-        )
+            )
 
         if case let .failure(error, provider: _) = testResult {
             throw IMAPError.connectionFailed(error)
@@ -239,7 +240,7 @@ class EmailService: ObservableObject {
                 subject: subject,
                 body: emailBody,
                 date: Date(),
-            )
+                )
         }
 
         logger.warning("No verification email found")
@@ -274,12 +275,12 @@ class EmailService: ObservableObject {
         let maskedPassword = String(settings.imapPassword.prefix(2)) + "***" + String(settings.imapPassword.suffix(2))
         logger.info(
             "🔐 EmailService: Test connection using - Email: \(settings.imapEmail), Server: \(settings.currentServer), Password: \(maskedPassword)",
-        )
+            )
 
         // Add raw credential logging for debugging
         logger.info(
             "🔍 EmailService: Raw credentials - Email length: \(settings.imapEmail.count), Password length: \(settings.imapPassword.count), Server: \(settings.currentServer)",
-        )
+            )
 
         // Check if it's a Gmail account and validate accordingly
         // let isGmail = settings.isGmailAccount(settings.imapEmail) // removed unused
@@ -291,7 +292,7 @@ class EmailService: ObservableObject {
             String(settings.imapPassword.suffix(2))
         logger.info(
             "🔐 EmailService: Reservation flow using - Email: \(settings.imapEmail), Server: \(settings.currentServer), Password: \(maskedPasswordForLog)",
-        )
+            )
 
         // Use the same NWConnection-based implementation that works for the test
         // This replaces the old InputStream/OutputStream implementation
@@ -329,7 +330,7 @@ class EmailService: ObservableObject {
             host: NWEndpoint.Host(server),
             port: NWEndpoint.Port(integerLiteral: port),
             using: parameters,
-        )
+            )
 
         return await withCheckedContinuation { (continuation: CheckedContinuation<[String], Never>) in
             connection.stateUpdateHandler = { [weak self] (state: NWConnection.State) in
@@ -341,7 +342,7 @@ class EmailService: ObservableObject {
                             connection: connection,
                             since: since,
                             continuation: continuation,
-                        )
+                            )
                     }
                 case let .failed(error):
                     self.logger.error("❌ EmailService: Connection failed: \(error)")
@@ -362,7 +363,7 @@ class EmailService: ObservableObject {
         connection: NWConnection,
         since: Date,
         continuation: CheckedContinuation<[String], Never>,
-    ) async {
+        ) async {
         let settings = userSettingsManager.userSettings
         let isGmail = settings.isGmailAccount(settings.imapEmail)
         let provider: EmailProvider = isGmail ? .gmail : .imap
@@ -378,7 +379,7 @@ class EmailService: ObservableObject {
             useTLS: useTLS,
             isGmail: isGmail,
             provider: provider,
-        ) { [weak self] result in
+            ) { [weak self] result in
             guard let self else {
                 continuation.resume(returning: [])
                 return
@@ -392,7 +393,7 @@ class EmailService: ObservableObject {
                         connection: connection,
                         since: since,
                         continuation: continuation,
-                    )
+                        )
                 }
             case let .failure(error, _):
                 self.logger.error("❌ EmailService: Authentication failed: \(error)")
@@ -406,7 +407,7 @@ class EmailService: ObservableObject {
         connection: NWConnection,
         since: Date,
         continuation: CheckedContinuation<[String], Never>,
-    ) async {
+        ) async {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd-MMM-yyyy"
         let sinceDateStr = dateFormatter.string(from: since)
@@ -462,12 +463,12 @@ class EmailService: ObservableObject {
                                     self.logger
                                         .info(
                                             "📧 EmailService: Found \(fallbackIds.count) emails from sender (fallback)",
-                                        )
+                                            )
                                     self.fetchAndExtractCodes(
                                         connection: connection,
                                         ids: fallbackIds,
                                         continuation: continuation,
-                                    )
+                                        )
                                 } else {
                                     self.logger.info("📧 EmailService: No verification emails found in fallback search")
                                     continuation.resume(returning: [])
@@ -488,11 +489,11 @@ class EmailService: ObservableObject {
     }
 
     /// Helper method to fetch and extract codes from email IDs
-    private func fetchAndExtractCodes(
+    private nonisolated func fetchAndExtractCodes(
         connection: NWConnection,
         ids: [Int],
         continuation: CheckedContinuation<[String], Never>,
-    ) {
+        ) {
         // Fetch the latest email content
         if let lastId = ids.last {
             let fetchCommand = "a003 FETCH \(lastId) BODY[TEXT]\r\n"
@@ -539,7 +540,7 @@ class EmailService: ObservableObject {
             server: "imap.gmail.com",
             isGmail: true,
             provider: .gmail,
-        )
+            )
     }
 
     func testIMAPConnection(
@@ -548,7 +549,7 @@ class EmailService: ObservableObject {
         server: String,
         isGmail _: Bool = false,
         provider: EmailProvider = .imap,
-    ) async -> TestResult {
+        ) async -> TestResult {
         isTesting = true
         defer { isTesting = false }
         guard !email.isEmpty else {
@@ -576,13 +577,13 @@ class EmailService: ObservableObject {
         // For Gmail, only try port 993 with SSL/TLS
         let portConfigurations: [(port: UInt16, useTLS: Bool, description: String)] = if server == "imap.gmail.com" {
             [
-                (port: UInt16(993), useTLS: true, description: "SSL/TLS (Gmail)"),
+                (port: UInt16(993), useTLS: true, description: "SSL/TLS (Gmail)")
             ]
         } else {
             [
                 (port: UInt16(993), useTLS: true, description: "SSL/TLS"),
                 (port: UInt16(143), useTLS: false, description: "Plain"),
-                (port: UInt16(143), useTLS: true, description: "STARTTLS"),
+                (port: UInt16(143), useTLS: true, description: "STARTTLS")
             ]
         }
 
@@ -594,7 +595,7 @@ class EmailService: ObservableObject {
                 useTLS: config.useTLS,
                 email: email,
                 password: password,
-            )
+                )
             if case .success = result { return result }
             if case let .failure(error, _) = result {
                 logger.warning("IMAP connection failed on \(server):\(config.port): \(error)")
@@ -603,7 +604,7 @@ class EmailService: ObservableObject {
         return .failure(
             "All IMAP connection attempts failed",
             provider: provider,
-        )
+            )
     }
 
     /// Connects to IMAP server and performs authentication
@@ -620,7 +621,7 @@ class EmailService: ObservableObject {
         useTLS: Bool,
         email: String,
         password: String,
-    ) async -> TestResult {
+        ) async -> TestResult {
         return await withCheckedContinuation { (continuation: CheckedContinuation<TestResult, Never>) in
             self.startIMAPConnection(
                 continuation: continuation,
@@ -629,7 +630,7 @@ class EmailService: ObservableObject {
                 useTLS: useTLS,
                 email: email,
                 password: password,
-            )
+                )
         }
     }
 
@@ -640,7 +641,7 @@ class EmailService: ObservableObject {
         useTLS: Bool,
         email: String,
         password: String,
-    ) {
+        ) {
         let connectionID = UUID().uuidString
         let now = Date()
         let lastAttempt = EmailService.lastIMAPConnectionTimestamp
@@ -658,13 +659,13 @@ class EmailService: ObservableObject {
         logger
             .info(
                 "[IMAP] Attempting connection to \(server):\(port) TLS=\(useTLS) for provider \(String(describing: provider))",
-            )
+                )
 
         let connection = NWConnection(
             host: NWEndpoint.Host(server),
             port: NWEndpoint.Port(integerLiteral: port),
             using: .tls,
-        )
+            )
 
         let state = IMAPConnectionState()
 
@@ -680,7 +681,7 @@ class EmailService: ObservableObject {
                 password: password,
                 continuation: continuation,
                 stateObj: state,
-            )
+                )
         }
 
         connection.start(queue: .global())
@@ -691,14 +692,14 @@ class EmailService: ObservableObject {
                 logger
                     .error(
                         "[IMAP][\(connectionID)] Connection to \(server):\(port) timed out after 30 seconds (TLS=\(useTLS))",
-                    )
+                        )
                 connection.cancel()
                 let provider: EmailProvider = server == "imap.gmail.com" ? .gmail : .imap
                 state.didResume = true
                 continuation.resume(returning: .failure(
                     "Connection timed out after 30 seconds",
                     provider: provider,
-                ))
+                    ))
             }
         }
 
@@ -711,7 +712,7 @@ class EmailService: ObservableObject {
                 continuation.resume(returning: .failure(
                     "IMAP connection did not complete or resume in time (internal fallback)",
                     provider: provider,
-                ))
+                    ))
             }
         }
     }
@@ -727,7 +728,7 @@ class EmailService: ObservableObject {
         password: String,
         continuation: CheckedContinuation<TestResult, Never>,
         stateObj: IMAPConnectionState,
-    ) {
+        ) {
         let staticLogger = Logger(subsystem: "ODYSSEY", category: "IMAP")
         stateObj.connectionState = "\(state)"
         let stateMsg = "[IMAP][\(connectionID)] Connection state for \(server):\(port) is \(state) (TLS=\(useTLS))"
@@ -750,7 +751,7 @@ class EmailService: ObservableObject {
                         useTLS: useTLS,
                         isGmail: server == "imap.gmail.com",
                         provider: provider,
-                    ) { result in
+                        ) { result in
                         stateObj.authenticationCompleted = true
                         if !stateObj.didResume {
                             stateObj.didResume = true
@@ -768,7 +769,7 @@ class EmailService: ObservableObject {
                 continuation.resume(returning: .failure(
                     "Connection failed: \(error.localizedDescription)",
                     provider: provider,
-                ))
+                    ))
             }
         case .cancelled:
             if stateObj.authenticationCompleted {
@@ -785,7 +786,7 @@ class EmailService: ObservableObject {
                     continuation.resume(returning: .failure(
                         "Connection cancelled before authentication",
                         provider: provider,
-                    ))
+                        ))
                 }
             }
         default:
@@ -800,8 +801,8 @@ class EmailService: ObservableObject {
         useTLS: Bool,
         isGmail: Bool,
         provider: EmailProvider,
-        completion: @escaping (TestResult) -> Void,
-    ) async {
+        completion: @escaping @Sendable (TestResult) -> Void,
+        ) async {
         logger.info("[IMAP] Starting handshake for \(provider == .gmail ? "Gmail" : "IMAP") connection (TLS=\(useTLS))")
 
         await receiveIMAPResponse(connection: connection) { [weak self] (result: Result<String, IMAPError>) in
@@ -816,7 +817,7 @@ class EmailService: ObservableObject {
                     completion(.failure(
                         "Authentication failed: Invalid email or password",
                         provider: provider,
-                    ))
+                        ))
                     return
                 }
 
@@ -825,7 +826,7 @@ class EmailService: ObservableObject {
                     completion(.failure(
                         "Server rejected connection: \(greeting)",
                         provider: provider,
-                    ))
+                        ))
                     return
                 }
 
@@ -837,7 +838,7 @@ class EmailService: ObservableObject {
                                 connection: connection,
                                 isGmail: isGmail,
                                 provider: provider,
-                            ) { tlsResult in
+                                ) { tlsResult in
                                 switch tlsResult {
                                 case .success:
                                     Task { await self.continueIMAPHandshake(
@@ -847,7 +848,7 @@ class EmailService: ObservableObject {
                                         isGmail: isGmail,
                                         provider: provider,
                                         completion: completion,
-                                    )
+                                        )
                                     }
                                 case let .failure(error):
                                     completion(.failure(error.localizedDescription, provider: provider))
@@ -863,7 +864,7 @@ class EmailService: ObservableObject {
                         isGmail: isGmail,
                         provider: provider,
                         completion: completion,
-                    )
+                        )
                     }
                 }
             case let .failure(error):
@@ -874,7 +875,7 @@ class EmailService: ObservableObject {
                     completion(.failure(
                         "Server did not respond with IMAP greeting. Check if IMAP is enabled on port \(useTLS ? "993" : "143")",
                         provider: provider,
-                    ))
+                        ))
                 } else {
                     completion(.failure(error.localizedDescription, provider: provider))
                 }
@@ -888,12 +889,12 @@ class EmailService: ObservableObject {
         password: String,
         isGmail _: Bool,
         provider: EmailProvider,
-        completion: @escaping (TestResult) -> Void,
-    ) async {
+        completion: @escaping @Sendable (TestResult) -> Void,
+        ) async {
         await sendIMAPCommand(
             connection: connection,
             command: "a001 CAPABILITY\r\n",
-        ) { [weak self] (result: Result<String, IMAPError>) in
+            ) { [weak self] (result: Result<String, IMAPError>) in
             guard let self else { return }
             switch result {
             case .success:
@@ -930,8 +931,7 @@ class EmailService: ObservableObject {
                                         let trimmedLine = line.trimmingCharacters(in: .whitespaces)
                                         if
                                             trimmedLine.contains("OK") || trimmedLine.contains("NO") || trimmedLine
-                                                .contains("BAD")
-                                        {
+                                                .contains("BAD") {
                                             authenticationResult = trimmedLine
                                             self.logger.info("[IMAP] Found auth result line: '\(trimmedLine)'")
                                             break
@@ -949,7 +949,7 @@ class EmailService: ObservableObject {
                                                 .sendIMAPCommand(
                                                     connection: connection,
                                                     command: selectCommand,
-                                                ) { [weak self] (result: Result<
+                                                    ) { [weak self] (result: Result<
                                                     String,
                                                     IMAPError
                                                 >) in
@@ -964,14 +964,14 @@ class EmailService: ObservableObject {
                                                             await self.sendIMAPCommand(
                                                                 connection: connection,
                                                                 command: searchCommand,
-                                                            ) { [weak self] (result: Result<String, IMAPError>) in
+                                                                ) { [weak self] (result: Result<String, IMAPError>) in
                                                                 guard let self else { return }
                                                                 switch result {
                                                                 case let .success(searchResponse):
                                                                     self.logger
                                                                         .info(
                                                                             "[IMAP] SEARCH response: \(searchResponse)",
-                                                                        )
+                                                                            )
                                                                     // Parse the search response for message IDs
                                                                     let lines = searchResponse
                                                                         .components(separatedBy: .newlines)
@@ -986,7 +986,7 @@ class EmailService: ObservableObject {
                                                                             await self.sendIMAPCommand(
                                                                                 connection: connection,
                                                                                 command: fetchCommand,
-                                                                            ) { [weak self] (result: Result<
+                                                                                ) { [weak self] (result: Result<
                                                                                 String,
                                                                                 IMAPError
                                                                             >) in
@@ -996,12 +996,12 @@ class EmailService: ObservableObject {
                                                                                     self.logger
                                                                                         .info(
                                                                                             "[IMAP] FETCH response: \(fetchResponse)",
-                                                                                        )
+                                                                                            )
                                                                                     // Extract subject
                                                                                     let subject = self
                                                                                         .parseEmailSubject(
                                                                                             from: fetchResponse,
-                                                                                        )
+                                                                                            )
                                                                                     let baseMessage =
                                                                                         "IMAP connection successful!"
                                                                                     let fullMessage = subject
@@ -1012,12 +1012,12 @@ class EmailService: ObservableObject {
                                                                                     self.logger
                                                                                         .error(
                                                                                             "[IMAP] FETCH failed: \(error.localizedDescription)",
-                                                                                        )
+                                                                                            )
                                                                                     completion(.failure(
                                                                                         "Failed to fetch email: " +
                                                                                             error.localizedDescription,
                                                                                         provider: provider,
-                                                                                    ))
+                                                                                        ))
                                                                                 }
                                                                             }
                                                                         }
@@ -1025,18 +1025,18 @@ class EmailService: ObservableObject {
                                                                         // No emails found
                                                                         completion(.success(
                                                                             "IMAP connection successful!",
-                                                                        ))
+                                                                            ))
                                                                     }
                                                                 case let .failure(error):
                                                                     self.logger
                                                                         .error(
                                                                             "[IMAP] SEARCH failed: \(error.localizedDescription)",
-                                                                        )
+                                                                            )
                                                                     completion(.failure(
                                                                         "Failed to search mailbox: " +
                                                                             error.localizedDescription,
                                                                         provider: provider,
-                                                                    ))
+                                                                        ))
                                                                 }
                                                             }
                                                         }
@@ -1044,12 +1044,12 @@ class EmailService: ObservableObject {
                                                         self.logger
                                                             .error(
                                                                 "[IMAP] SELECT INBOX failed: \(error.localizedDescription)",
-                                                            )
+                                                                )
                                                         completion(.failure(
                                                             "Mailbox selection failed: " + error
                                                                 .localizedDescription,
                                                             provider: provider,
-                                                        ))
+                                                            ))
                                                     }
                                                 }
                                         }
@@ -1058,32 +1058,32 @@ class EmailService: ObservableObject {
                                         completion(.failure(
                                             "Authentication failed: Invalid email or password",
                                             provider: provider,
-                                        ))
+                                            ))
                                     } else if result.contains("BAD") {
                                         self.logger.error("[IMAP] Authentication error: \(result)")
                                         completion(.failure(
                                             "Authentication error: " + result,
                                             provider: provider,
-                                        ))
+                                            ))
                                     } else {
                                         self.logger.error("[IMAP] Unknown authentication result: \(result)")
                                         completion(.failure(
                                             "Authentication failed: Unknown response",
                                             provider: provider,
-                                        ))
+                                            ))
                                     }
                                 } else {
                                     self.logger.error("[IMAP] No authentication result found in response")
                                     completion(.failure(
                                         "Authentication failed: No response from server",
                                         provider: provider,
-                                    ))
+                                        ))
                                 }
                             case let .failure(error):
                                 completion(.failure(
                                     "Authentication failed: \(error.localizedDescription)",
                                     provider: provider,
-                                ))
+                                    ))
                             }
                         }
                 }
@@ -1093,7 +1093,7 @@ class EmailService: ObservableObject {
                 completion(.failure(
                     "IMAP command failed: \(error.localizedDescription)",
                     provider: provider,
-                ))
+                    ))
             }
         }
     }
@@ -1102,12 +1102,12 @@ class EmailService: ObservableObject {
         connection: NWConnection,
         isGmail _: Bool,
         provider _: EmailProvider,
-        completion: @escaping (Result<Void, IMAPError>) -> Void,
-    ) async {
+        completion: @escaping @Sendable (Result<Void, IMAPError>) -> Void,
+        ) async {
         await sendIMAPCommand(
             connection: connection,
             command: "a001 STARTTLS\r\n",
-        ) { (result: Result<String, IMAPError>) in
+            ) { (result: Result<String, IMAPError>) in
             switch result {
             case .success:
                 DispatchQueue.global().asyncAfter(deadline: .now() + 1.0) {
@@ -1122,8 +1122,8 @@ class EmailService: ObservableObject {
     private func sendIMAPCommand(
         connection: NWConnection,
         command: String,
-        completion: @escaping (Result<String, IMAPError>) -> Void,
-    ) async {
+        completion: @escaping @Sendable (Result<String, IMAPError>) -> Void,
+        ) async {
         let data = Data(command.utf8)
         logger.info("📤 IMAP Command: \(command.trimmingCharacters(in: .whitespacesAndNewlines))")
 
@@ -1140,8 +1140,8 @@ class EmailService: ObservableObject {
 
     private func receiveIMAPResponse(
         connection: NWConnection,
-        completion: @escaping (Result<String, IMAPError>) -> Void,
-    ) async {
+        completion: @escaping @Sendable (Result<String, IMAPError>) -> Void,
+        ) async {
         connection.receive(minimumIncompleteLength: 1, maximumLength: 65_536) { [self] data, _, _, error in
             if let error {
                 logger.error("❌ [IMAP] Receive error: \(error.localizedDescription)")
@@ -1158,7 +1158,7 @@ class EmailService: ObservableObject {
         }
     }
 
-    private func parseEmailSubject(from response: String) -> String {
+    private nonisolated func parseEmailSubject(from response: String) -> String {
         let lines = response.components(separatedBy: .newlines)
         for line in lines {
             if line.lowercased().hasPrefix("subject:") {
@@ -1237,7 +1237,7 @@ class EmailService: ObservableObject {
             "([0-9]{4})[\\s]*is your verification code", // "1234 is your verification code"
             "your code is[\\s:]*([0-9]{4})", // "your code is 1234"
             "enter[\\s:]*([0-9]{4})", // "enter 1234"
-            "use[\\s:]*([0-9]{4})", // "use 1234"
+            "use[\\s:]*([0-9]{4})" // "use 1234"
         ]
 
         var codes: Set<String> = []
@@ -1347,7 +1347,7 @@ class EmailService: ObservableObject {
                 port: Int(port),
                 inputStream: &inputStream,
                 outputStream: &outputStream,
-            )
+                )
             if port == 993 {
                 inputStream?.setProperty(StreamSocketSecurityLevel.tlSv1, forKey: .socketSecurityLevelKey)
                 outputStream?.setProperty(StreamSocketSecurityLevel.tlSv1, forKey: .socketSecurityLevelKey)
@@ -1370,15 +1370,14 @@ class EmailService: ObservableObject {
             let startTime = Date()
             while
                 (inputStream.streamStatus != .open || outputStream.streamStatus != .open) &&
-                Date().timeIntervalSince(startTime) < 10
-            {
+                    Date().timeIntervalSince(startTime) < 10 {
                 try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
             }
 
             if inputStream.streamStatus != .open || outputStream.streamStatus != .open {
                 logger.error(
                     "Failed to open IMAP streams - status: input=\(inputStream.streamStatus.rawValue), output=\(outputStream.streamStatus.rawValue)",
-                )
+                    )
                 return []
             }
 
@@ -1423,8 +1422,7 @@ class EmailService: ObservableObject {
                     // Check if we have a complete response
                     if
                         response.contains("\(tag) OK") || response.contains("\(tag) BAD") || response
-                            .contains("\(tag) NO")
-                    {
+                            .contains("\(tag) NO") {
                         logger.debug("✅ IMAP response complete for tag \(tag)")
                         return response
                     }
@@ -1539,7 +1537,7 @@ class EmailService: ObservableObject {
                 logger
                     .warning(
                         "⚠️ No email IDs found in any search strategy. Listing all emails since provided timestamp for debug...",
-                    )
+                        )
                 // Search for all emails since the provided timestamp
                 sendCommand("a8 SEARCH SINCE \(sinceDateStr)")
                 let searchRespAll = await expect("a8")
@@ -1588,7 +1586,7 @@ class EmailService: ObservableObject {
                         separator: ":",
                         maxSplits: 1,
                         omittingEmptySubsequences: false,
-                    ).last?.trimmingCharacters(in: .whitespacesAndNewlines)
+                        ).last?.trimmingCharacters(in: .whitespacesAndNewlines)
                 else {
                     logger.info("📅 Skipping email ID \(id): Could not find date header")
                     continue
@@ -1665,7 +1663,7 @@ class EmailService: ObservableObject {
                 email: settings.imapEmail,
                 password: settings.imapPassword,
                 server: settings.imapServer,
-            )
+                )
 
             if case let .failure(error) = gmailValidation {
                 diagnostic += "❌ Gmail configuration error: \(error.localizedDescription)\n\n"
@@ -1682,7 +1680,7 @@ class EmailService: ObservableObject {
             server: settings.imapServer,
             isGmail: isGmail,
             provider: isGmail ? .gmail : .imap,
-        )
+            )
 
         switch testResult {
         case let .success(message):
@@ -1737,7 +1735,7 @@ class EmailService: ObservableObject {
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
             self.logger.info(
                 "Success notification would be sent for \(config.name, privacy: .private) at \(facilityName, privacy: .private) to \(self.userSettingsManager.userSettings.imapEmail, privacy: .private)",
-            )
+                )
         }
     }
 }
@@ -1750,7 +1748,7 @@ private final class IMAPConnectionState: @unchecked Sendable {
 }
 
 /// Helper function to add timeout to async operations
-func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async -> T) async -> T {
+func withTimeout<T: Sendable>(seconds: TimeInterval, operation: @escaping @Sendable () async -> T) async -> T {
     await withTaskGroup(of: T.self) { group in
         group.addTask {
             await operation()

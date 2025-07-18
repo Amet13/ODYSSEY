@@ -7,12 +7,12 @@
 //  IMPORTANT: WebKit Native Approach
 //  ===================================
 //  This service implements a native Swift WebKit approach for web automation
-//  that replaces the Chrome/ChromeDriver dependency. This provides:
-//  - No external dependencies (ChromeDriver, Chrome)
+//  that provides:
+//  - No external dependencies
 //  - Native macOS integration
 //  - Better performance and reliability
 //  - Smaller app footprint
-//  - No permission issues with ChromeDriver
+//  - No permission issues
 //
 
 import AppKit
@@ -21,15 +21,29 @@ import Foundation
 import os.log
 import WebKit
 
+// Wrapper to make JavaScript evaluation results sendable
+struct JavaScriptResult: @unchecked Sendable {
+    let value: Any?
+
+    init(_ value: Any?) {
+        self.value = value
+    }
+}
+
 /// WebKit service for native web automation
 /// Handles web navigation and automation using WKWebView
-class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
+@MainActor
+@preconcurrency
+class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationServiceProtocol, NSWindowDelegate {
     static let shared = WebKitService()
 
     @Published var isConnected = false
     @Published var isRunning: Bool = false
     @Published var currentURL: String?
     @Published var pageTitle: String?
+
+    // Callback for window closure
+    var onWindowClosed: (() -> Void)?
 
     let logger = Logger(subsystem: "com.odyssey.app", category: "WebKitService")
     var webView: WKWebView?
@@ -54,19 +68,10 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     private var language: String = "en-US,en"
 
-    // Toggle for instant fill mode
-    static var instantFillEnabled: Bool = false
-
-    // Toggle for fast mode
-    static var fastModeEnabled: Bool {
-        get { UserDefaults.standard.bool(forKey: "WebKitFastMode") }
-        set { UserDefaults.standard.set(newValue, forKey: "WebKitFastMode") }
-    }
-
     // Completion handlers for async operations
-    var navigationCompletions: [String: (Bool) -> Void] = [:]
-    private var scriptCompletions: [String: (Any?) -> Void] = [:]
-    private var elementCompletions: [String: (String?) -> Void] = [:]
+    var navigationCompletions: [String: @Sendable (Bool) -> Void] = [:]
+    private var scriptCompletions: [String: @Sendable (Any?) -> Void] = [:]
+    private var elementCompletions: [String: @Sendable (String?) -> Void] = [:]
 
     override private init() {
         super.init()
@@ -76,35 +81,16 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
 
     deinit {
         logger.info("WebKitService deinit - cleaning up resources")
-
-        // Clear all pending completions immediately
+        // Only synchronous cleanup here
         navigationCompletions.removeAll()
         scriptCompletions.removeAll()
         elementCompletions.removeAll()
-
-        // Safely cleanup WebView if it exists
-        if let webView {
-            // Remove script message handler to prevent crashes
-            webView.configuration.userContentController.removeScriptMessageHandler(forName: "odysseyHandler")
-
-            // Clear navigation delegate
-            webView.navigationDelegate = nil
-
-            // Stop loading
-            webView.stopLoading()
-        }
-
-        // Close debug window immediately
-        debugWindow?.close()
-        debugWindow = nil
-
-        // Clear webView reference
         webView = nil
-
         logger.info("WebKitService cleanup completed")
     }
 
     private func setupWebView() {
+        logger.info("Setting up new WebView...")
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = WKUserContentController()
 
@@ -133,6 +119,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
 
         // Create web view
         webView = WKWebView(frame: .zero, configuration: configuration)
+        logger.info("WebView created successfully")
 
         // Set realistic user agent (random from common browsers)
         let userAgents = [
@@ -140,7 +127,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
         ]
         let selectedUserAgent = userAgents.randomElement() ?? userAgents[0]
         webView?.customUserAgent = selectedUserAgent
@@ -153,7 +140,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         // Set realistic window size (random from common MacBook resolutions)
         let windowSizes = [
             (width: 1_440, height: 900), // MacBook Air 13"
-            (width: 1_680, height: 1_050), // MacBook Pro 15"
+            (width: 1_680, height: 1_050) // MacBook Pro 15"
         ]
         let selectedSize = windowSizes.randomElement() ?? windowSizes[0]
         webView?.frame = CGRect(x: 0, y: 0, width: selectedSize.width, height: selectedSize.height)
@@ -161,6 +148,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         // Inject custom JavaScript for automation and anti-detection
         injectAutomationScripts()
         injectAntiDetectionScripts()
+        logger.info("WebView setup completed successfully")
     }
 
     @MainActor
@@ -171,25 +159,23 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             debugWindow?.makeKeyAndOrderFront(nil)
             return
         }
-
         // Set realistic window size (random from common MacBook resolutions)
         let windowSizes = [
             (width: 1_440, height: 900), // MacBook Air 13"
-            (width: 1_680, height: 1_050), // MacBook Pro 15"
+            (width: 1_680, height: 1_050) // MacBook Pro 15"
         ]
         let selectedSize = windowSizes.randomElement() ?? windowSizes[0]
-
         // Create a visible window for debugging
         let window = NSWindow(
             contentRect: NSRect(x: 200, y: 200, width: selectedSize.width, height: selectedSize.height),
             styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
             defer: false,
-        )
-        // Set initial window title
+            )
         window.title = "ODYSSEY Web Automation"
         window.isReleasedWhenClosed = false
         window.level = .normal
+        window.delegate = self // Set window delegate to monitor closure
         if let webView {
             window.contentView = webView
         }
@@ -198,17 +184,15 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         logger
             .info(
                 "Debug window for WKWebView created and shown with size: \(selectedSize.width)x\(selectedSize.height)",
-            )
+                )
     }
 
     @MainActor
     private func updateWindowTitle(with config: ReservationConfig) {
         guard let window = debugWindow else { return }
-
         let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
         let schedule = ReservationConfig.formatScheduleInfoInline(config: config)
         let newTitle = "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(schedule)"
-
         window.title = newTitle
         logger.info("Updated debug window title to: \(newTitle)")
     }
@@ -736,10 +720,18 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         let script = """
         (function() {
             let html = document.documentElement.outerHTML.substring(0, 5000);
-            let inputs = Array.from(document.querySelectorAll('input')).map(el => `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [placeholder='${el.placeholder}'] [type='${el.type}']`);
-            let buttons = Array.from(document.querySelectorAll('button')).map(el => `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [text='${el.innerText || ''}']`);
-            let links = Array.from(document.querySelectorAll('a')).map(el => `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [href='${el.href}'] [text='${el.innerText || ''}']`);
-            let divs = Array.from(document.querySelectorAll('div')).map(el => `[id='${el.id}'] [class='${el.className}'] [text='${el.innerText || ''}']`);
+            let inputs = Array.from(document.querySelectorAll('input')).map(el =>
+                `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [placeholder='${el.placeholder}'] [type='${el.type}']`
+            );
+            let buttons = Array.from(document.querySelectorAll('button')).map(el =>
+                `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [text='${el.innerText || ''}']`
+            );
+            let links = Array.from(document.querySelectorAll('a')).map(el =>
+                `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [href='${el.href}'] [text='${el.innerText || ''}']`
+            );
+            let divs = Array.from(document.querySelectorAll('div')).map(el =>
+                `[id='${el.id}'] [class='${el.className}'] [text='${el.innerText || ''}']`
+            );
             return { html, inputs, buttons, links, divs };
         })();
         """
@@ -776,7 +768,23 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
     // MARK: - WebDriverServiceProtocol Implementation
 
     func connect() async throws {
+        // Ensure WebView is properly initialized before connecting
         await MainActor.run {
+            // Check if window was manually closed and reset state if needed
+            if self.debugWindow == nil, self.isConnected {
+                logger.info("Window was manually closed, resetting service state")
+                self.isConnected = false
+                self.isRunning = false
+                self.navigationCompletions.removeAll()
+                self.scriptCompletions.removeAll()
+                self.elementCompletions.removeAll()
+                self.webView = nil
+            }
+
+            if self.webView == nil {
+                logger.info("WebView is nil, setting up new WebView")
+                self.setupWebView()
+            }
             self.setupDebugWindow()
         }
         isConnected = true
@@ -786,45 +794,17 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
 
     func disconnect(closeWindow: Bool = true) async {
         logger.info("Starting WebKit service disconnect...")
-
         // Mark as disconnected first to prevent new operations
         isConnected = false
         isRunning = false
-
         // Clear all pending completions immediately to prevent callbacks after disconnect
         await MainActor.run {
             self.navigationCompletions.removeAll()
             self.scriptCompletions.removeAll()
             self.elementCompletions.removeAll()
         }
-
-        // Safely cleanup WebView
-        if let webView {
-            // Stop loading first
-            await webView.stopLoading()
-
-            // Wait for loading to stop
-            try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 seconds
-
-            // Remove script message handler to prevent crashes
-            await MainActor.run {
-                webView.configuration.userContentController.removeScriptMessageHandler(forName: "odysseyHandler")
-            }
-
-            // Clear navigation delegate
-            await MainActor.run {
-                webView.navigationDelegate = nil
-            }
-
-            // Wait a bit more for cleanup
-            try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
-
-            // Finally set webView to nil
-            await MainActor.run {
-                self.webView = nil
-            }
-        }
-
+        // Use the new async cleanup function
+        await cleanupWebView()
         // Only close debug window if requested
         if closeWindow {
             await MainActor.run {
@@ -832,7 +812,11 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                 self.debugWindow = nil
             }
         }
-
+        // Ensure WebView is properly cleaned up for next run
+        await MainActor.run {
+            self.webView = nil
+            logger.info("WebView reference cleared for next run")
+        }
         logger.info("WebKit service disconnected successfully")
     }
 
@@ -854,9 +838,68 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         logger.info("WebKit service reset completed")
     }
 
-    func navigateToURL(_ url: String) async throws {
+    /// Force reset the WebKit service (for troubleshooting)
+    func forceReset() async {
+        logger.info("Force resetting WebKit service...")
+
+        // Mark as disconnected
+        isConnected = false
+        isRunning = false
+
+        // Clear all completions
         await MainActor.run {
-            self.setupDebugWindow()
+            self.navigationCompletions.removeAll()
+            self.scriptCompletions.removeAll()
+            self.elementCompletions.removeAll()
+        }
+
+        // Force cleanup
+        await cleanupWebView()
+
+        // Close debug window
+        await MainActor.run {
+            self.debugWindow?.close()
+            self.debugWindow = nil
+            self.webView = nil
+        }
+
+        // Wait for cleanup
+        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+
+        // Setup fresh WebView
+        await MainActor.run {
+            self.setupWebView()
+        }
+
+        logger.info("WebKit service force reset completed")
+    }
+
+    /// Check if the service is in a valid state for operations
+    func isServiceValid() -> Bool {
+        return isConnected && webView != nil && debugWindow != nil
+    }
+
+    /// Get current service state for debugging
+    func getServiceState() -> String {
+        return """
+        Service State:
+        - isConnected: \(isConnected)
+        - isRunning: \(isRunning)
+        - webView exists: \(webView != nil)
+        - debugWindow exists: \(debugWindow != nil)
+        - navigationCompletions: \(navigationCompletions.count)
+        - scriptCompletions: \(scriptCompletions.count)
+        - elementCompletions: \(elementCompletions.count)
+        """
+    }
+
+    func navigateToURL(_ url: String) async throws {
+        // Check if service is in valid state
+        await MainActor.run {
+            if !self.isConnected || self.webView == nil {
+                logger.warning("Service not in valid state, attempting to reconnect")
+                self.setupDebugWindow()
+            }
         }
         guard webView != nil else {
             logger.error("navigateToURL: WebView not initialized")
@@ -870,9 +913,9 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                     self.logger.info("Navigation to \(url, privacy: .private) succeeded")
                     Task { await self.logPageState(context: "after navigation") }
                     // Log document.readyState and page source for diagnosis
-                    Task {
+                    Task { @MainActor in
                         do {
-                            let readyState = try await self.executeScriptInternal("return document.readyState;")
+                            let readyState = try await self.executeScriptInternal("return document.readyState;")?.value
                             self.logger.info("document.readyState after navigation: \(String(describing: readyState))")
                             let pageSource = try await self.getPageSource()
                             self.logger
@@ -900,19 +943,20 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                 return
             }
             let request = URLRequest(url: url)
-            Task {
-                await webView?.load(request)
+            Task { @MainActor in
+                webView?.load(request)
             }
         }
     }
 
+    @MainActor
     func findElement(by selector: String) async throws -> WebElementProtocol {
         guard webView != nil else {
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
 
         let script = "return document.querySelector('\(selector)');"
-        let result = try await executeScriptInternal(script)
+        let result = try await executeScriptInternal(script)?.value
 
         if let elementId = result as? String, !elementId.isEmpty {
             return WebKitElement(id: elementId, webView: webView!, service: self)
@@ -921,6 +965,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         }
     }
 
+    @MainActor
     func findElements(by selector: String) async throws -> [WebElementProtocol] {
         guard webView != nil else {
             throw WebDriverError.elementNotFound("WebView not initialized")
@@ -931,17 +976,18 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         return Array.from(elements).map((el, index) => 'element_' + index);
         """
 
-        let result = try await executeScriptInternal(script)
+        let result = try await executeScriptInternal(script)?.value
         let elementIds = result as? [String] ?? []
         return elementIds.map { WebKitElement(id: $0, webView: webView!, service: self) }
     }
 
+    @MainActor
     func getPageSource() async throws -> String {
         guard webView != nil else {
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
 
-        let result = try await executeScriptInternal("return document.documentElement.outerHTML;")
+        let result = try await executeScriptInternal("return document.documentElement.outerHTML;")?.value
         return result as? String ?? ""
     }
 
@@ -950,7 +996,9 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
 
-        return await webView?.url?.absoluteString ?? ""
+        return await MainActor.run {
+            webView?.url?.absoluteString ?? ""
+        }
     }
 
     func getTitle() async throws -> String {
@@ -958,9 +1006,12 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
 
-        return await webView?.title ?? ""
+        return await MainActor.run {
+            webView?.title ?? ""
+        }
     }
 
+    @MainActor
     func waitForElement(by selector: String, timeout: TimeInterval) async throws -> WebElementProtocol {
         guard webView != nil else {
             throw WebDriverError.elementNotFound("WebView not initialized")
@@ -987,6 +1038,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         return try await findElement(by: selector)
     }
 
+    @MainActor
     func waitForElementToDisappear(by selector: String, timeout: TimeInterval) async throws {
         guard webView != nil else {
             throw WebDriverError.elementNotFound("WebView not initialized")
@@ -1012,18 +1064,19 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         _ = try await executeScriptInternal(script)
     }
 
+    @MainActor
     func executeScript(_ script: String) async throws -> String {
         guard webView != nil else {
             throw WebDriverError.scriptExecutionFailed("WebView not initialized")
         }
 
-        let result = try await executeScriptInternal(script)
+        let result = try await executeScriptInternal(script)?.value
         return String(describing: result)
     }
 
     // MARK: - Internal Methods
 
-    func executeScriptInternal(_ script: String) async throws -> Any? {
+    func executeScriptInternal(_ script: String) async throws -> JavaScriptResult? {
         guard webView != nil, isConnected else {
             throw WebDriverError.scriptExecutionFailed("WebView not initialized or disconnected")
         }
@@ -1031,10 +1084,10 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         return try await withCheckedThrowingContinuation { continuation in
             let requestId = UUID().uuidString
             scriptCompletions[requestId] = { result in
-                continuation.resume(returning: result)
+                continuation.resume(returning: JavaScriptResult(result))
             }
 
-            Task {
+            Task { @MainActor in
                 do {
                     // Double-check that webView is still valid before executing JavaScript
                     guard let currentWebView = self.webView, self.isConnected else {
@@ -1042,7 +1095,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                             .resume(
                                 throwing: WebDriverError
                                     .scriptExecutionFailed("WebView was disconnected during script execution"),
-                            )
+                                )
                         return
                     }
 
@@ -1055,12 +1108,14 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                             .resume(
                                 throwing: WebDriverError
                                     .scriptExecutionFailed("WebView was disconnected during JavaScript execution"),
-                            )
+                                )
                         return
                     }
 
                     let result = try await currentWebView.evaluateJavaScript(script)
-                    continuation.resume(returning: result)
+                    // JavaScript evaluation results are safe to pass across actor boundaries
+                    // The result contains primitive types (String, Number, Boolean, Array, Object) that are sendable
+                    continuation.resume(returning: JavaScriptResult(result))
                 } catch {
                     continuation.resume(throwing: WebDriverError.scriptExecutionFailed(error.localizedDescription))
                 }
@@ -1111,7 +1166,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         logger.info("[ButtonClick] Executing JS: \(script, privacy: .public)")
         print("[ButtonClick] Executing JS: \n\(script)")
         do {
-            let result = try await executeScriptInternal(script)
+            let result = try await executeScriptInternal(script)?.value
             logger.info("[ButtonClick] JS result: \(String(describing: result), privacy: .public)")
             print("[ButtonClick] JS result: \(String(describing: result))")
             Task { await self.logPageState(context: "after button click") }
@@ -1128,7 +1183,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                     logger
                         .error(
                             "Sport button not found: '\(text, privacy: .private)' | JS result: \(str, privacy: .public)",
-                        )
+                            )
                     print("Sport button not found: '\(text)' | JS result: \(str)")
                     Task { await self.logPageState(context: "error") }
                     return false
@@ -1166,7 +1221,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         """
         do {
             logger.info("Executing enhanced DOM ready/button check script...")
-            let result = try await executeScriptInternal(buttonCheckScript)
+            let result = try await executeScriptInternal(buttonCheckScript)?.value
             logger.info("DOM/button check result: \(String(describing: result))")
             if let dict = result as? [String: Any] {
                 let readyState = dict["readyState"] as? String ?? ""
@@ -1220,7 +1275,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                 logger
                     .error(
                         "waitForDOMReadyAndButton JS error: \(error.localizedDescription, privacy: .public) | error: \(String(describing: error), privacy: .public)",
-                    )
+                        )
                 print("waitForDOMReadyAndButton JS error: \(error.localizedDescription) | error: \(error)")
             }
             try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
@@ -1243,13 +1298,17 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         let logScript = """
         (function() {
             let html = document.documentElement.outerHTML.substring(0, 5000);
-            let inputs = Array.from(document.querySelectorAll('input')).map(el => `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [placeholder='${el.placeholder}'] [type='${el.type}']`);
-            let buttons = Array.from(document.querySelectorAll('button')).map(el => `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [text='${el.innerText || ''}']`);
+            let inputs = Array.from(document.querySelectorAll('input')).map(el =>
+                `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [placeholder='${el.placeholder}'] [type='${el.type}']`
+            );
+            let buttons = Array.from(document.querySelectorAll('button')).map(el =>
+                `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [text='${el.innerText || ''}']`
+            );
             return { html, inputs, buttons };
         })();
         """
         do {
-            let logResult = try await executeScriptInternal(logScript)
+            let logResult = try await executeScriptInternal(logScript)?.value
             if let dict = logResult as? [String: Any] {
                 if let html = dict["html"] as? String {
                     logger.info("[PeopleFill] PAGE HTML: \(html.prefix(5_000), privacy: .public)")
@@ -1283,7 +1342,9 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                 return 'filled';
             } else {
                 let inputs = Array.from(document.querySelectorAll('input'));
-                let details = inputs.map(el => `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [placeholder='${el.placeholder}'] [type='${el.type}']`);
+                let details = inputs.map(el =>
+                    `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [placeholder='${el.placeholder}'] [type='${el.type}']`
+                );
                 return 'not found: ' + details.join(' | ');
             }
         })();
@@ -1291,7 +1352,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         logger.info("[PeopleFill] Executing JS: \(script, privacy: .public)")
         print("[PeopleFill] Executing JS: \n\(script)")
         do {
-            let result = try await executeScriptInternal(script)
+            let result = try await executeScriptInternal(script)?.value
             logger.info("[PeopleFill] JS result: \(String(describing: result), privacy: .public)")
             print("[PeopleFill] JS result: \(String(describing: result))")
             Task { await self.logPageState(context: "after fill number of people") }
@@ -1322,7 +1383,8 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         (function() {
             let button = document.getElementById('submit-btn')
                 || document.querySelector('button[type="submit"]')
-                || Array.from(document.querySelectorAll('button, input[type="submit"]')).find(el => el.innerText && el.innerText.toLowerCase().includes('confirm'));
+                || Array.from(document.querySelectorAll('button, input[type="submit"]'))
+                    .find(el => el.innerText && el.innerText.toLowerCase().includes('confirm'));
             if (button) {
                 // Log button state before click
                 console.log('Button before click:', {
@@ -1347,7 +1409,9 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                 return 'clicked';
             } else {
                 let btns = Array.from(document.querySelectorAll('button, input[type="submit"]'));
-                let details = btns.map(el => `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [text='${el.innerText || el.value || ''}']`);
+                let details = btns.map(el =>
+                    `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [text='${el.innerText || el.value || ''}']`
+                );
                 return 'not found: ' + details.join(' | ');
             }
         })();
@@ -1359,7 +1423,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             let result = try await executeScriptInternal(script)
             logger.info("[ConfirmClick] JS result: \(String(describing: result), privacy: .public)")
             print("[ConfirmClick] JS result: \(String(describing: result))")
-            if let str = result as? String, str == "clicked" {
+            if let str = result?.value as? String, str == "clicked" {
                 // Wait a moment and then log the page state to see what happened
                 try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
                 await logPageState(context: "after confirm click")
@@ -1411,12 +1475,19 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             let script = """
             (function() {
                 let html = document.documentElement.outerHTML.substring(0, 5000);
-                let inputs = Array.from(document.querySelectorAll('input')).map(el => `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [placeholder='${el.placeholder}'] [type='${el.type}'] [value='${el.value}'] [visible='${!!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)}']`);
-                let buttons = Array.from(document.querySelectorAll('button')).map(el => `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [text='${el.innerText || ''}'] [visible='${!!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)}']`);
-                let divs = Array.from(document.querySelectorAll('div')).map(el => `[id='${el.id}'] [class='${el.className}'] [text='${el.innerText || ''}'] [visible='${!!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)}']`);
+                let inputs = Array.from(document.querySelectorAll('input')).map(el =>
+                    `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [placeholder='${el.placeholder}'] [type='${el.type}'] [value='${el.value}'] [visible='${!!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)}']`
+                );
+                let buttons = Array.from(document.querySelectorAll('button')).map(el =>
+                    `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [text='${el.innerText || ''}'] [visible='${!!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)}']`
+                );
+                let divs = Array.from(document.querySelectorAll('div')).map(el =>
+                    `[id='${el.id}'] [class='${el.className}'] [text='${el.innerText || ''}'] [visible='${!!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)}']`
+                );
                 let found = document.getElementById('reservationCount')
                     || document.querySelector('input[name=\"reservationCount\"]')
-                    || Array.from(document.querySelectorAll('input')).find(el => (el.placeholder||'').toLowerCase().includes('people') || el.type === 'number');
+                    || Array.from(document.querySelectorAll('input'))
+                        .find(el => (el.placeholder||'').toLowerCase().includes('people') || el.type === 'number');
                 return { html, inputs, buttons, divs, found: !!found };
             })();
             """
@@ -1431,10 +1502,10 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                     logger
                         .info(
                             "[GroupSizePoll][poll \(pollCount)] found=\(found)\nINPUTS: \(inputs.joined(separator: ", "))\nBUTTONS: \(buttons.joined(separator: ", "))\nDIVS: \(divs.prefix(5).joined(separator: ", "))\nHTML: \(html.prefix(5_000))",
-                        )
+                            )
                     print(
                         "[GroupSizePoll][poll \(pollCount)] found=\(found)\nINPUTS: \(inputs.joined(separator: ", "))\nBUTTONS: \(buttons.joined(separator: ", "))\nDIVS: \(divs.prefix(5).joined(separator: ", "))\nHTML: \(html.prefix(5_000))",
-                    )
+                        )
                     if found {
                         logger.info("Group size input found on poll #\(pollCount)")
                         return true
@@ -1491,7 +1562,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         """
 
         do {
-            let result = try await executeScriptInternal(script) as? Bool ?? false
+            let result = try await executeScriptInternal(script)?.value as? Bool ?? false
 
             logger.info("[TimeSelection] JavaScript result: \(result)")
             print("[TimeSelection] JavaScript result: \(result)")
@@ -1548,17 +1619,50 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                     const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
                     console.log(`[ODYSSEY] header-text[${idx}]: text="${text}", visible=${visible}`);
                 });
-                // Click the last visible header-text element
+
+                // Find and click the SPECIFIC day that matches our target day
                 let clicked = false;
-                for (let i = headerElements.length - 1; i >= 0; i--) {
+                const targetDayName = '\(dayName)'.trim().toLowerCase();
+                console.log('[ODYSSEY] Looking for day section matching:', targetDayName);
+
+                for (let i = 0; i < headerElements.length; i++) {
                     const el = headerElements[i];
+                    const headerText = el.textContent.trim().toLowerCase();
                     const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-                    if (visible) {
+
+                    console.log(`[ODYSSEY] Checking header-text[${i}]: text="${el.textContent.trim()}", matches target: ${headerText.includes(targetDayName)}`);
+
+                    // Check if this header contains our target day name
+                    if (headerText.includes(targetDayName) && visible) {
                         el.scrollIntoView({behavior: 'smooth', block: 'center'});
                         el.click();
                         clicked = true;
-                        console.log(`[ODYSSEY] Clicked header-text[${i}]: text="${el.textContent.trim()}"`);
+                        console.log(`[ODYSSEY] Clicked matching day header[${i}]: text="${el.textContent.trim()}"`);
                         break;
+                    }
+                }
+
+                // If no exact match found, try partial matching
+                if (!clicked) {
+                    console.log('[ODYSSEY] No exact match found, trying partial matching...');
+                    const dayParts = targetDayName.split(/\\s+/).filter(Boolean);
+
+                    for (let i = 0; i < headerElements.length; i++) {
+                        const el = headerElements[i];
+                        const headerText = el.textContent.trim().toLowerCase();
+                        const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+
+                        // Check if any part of the target day name matches
+                        const hasMatch = dayParts.some(part => part && headerText.includes(part));
+                        console.log(`[ODYSSEY] Partial check header-text[${i}]: text="${el.textContent.trim()}", has match: ${hasMatch}`);
+
+                        if (hasMatch && visible) {
+                            el.scrollIntoView({behavior: 'smooth', block: 'center'});
+                            el.click();
+                            clicked = true;
+                            console.log(`[ODYSSEY] Clicked partial match header[${i}]: text="${el.textContent.trim()}"`);
+                            break;
+                        }
                     }
                 }
                 // After expanding, find and click the time slot by aria-label
@@ -1612,7 +1716,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                         logger
                             .info(
                                 "Contact form page already loaded after time slot selection - skipping continue button check",
-                            )
+                                )
                     } else {
                         // Check for continue button after time slot selection
                         let continueClicked = await checkAndClickContinueButton()
@@ -1649,7 +1753,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                     logger
                         .error(
                             "[TimeSlot][DaySection] Page analysis - Symbols: [\(symbolLog)], Days: [\(dayLog)], Elements with symbols: \(elementsWithSymbols)",
-                        )
+                            )
                 }
 
                 // Log candidates as simple strings to avoid privacy redaction
@@ -1663,12 +1767,12 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                     logger
                         .error(
                             "[TimeSlot][DaySection] Failed to expand day section. Found \(candidates.count) candidates: \(candidateStrings.joined(separator: ", "))",
-                        )
+                            )
                 } else {
                     logger
                         .error(
                             "[TimeSlot][DaySection] Failed to expand day section. No candidates found or result format error.",
-                        )
+                            )
                 }
                 return false
             }
@@ -1866,7 +1970,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             logger
                 .error(
                     "[ContinueButton] Error clicking continue button after time slot selection: \(error, privacy: .private)",
-                )
+                    )
             return false
         }
     }
@@ -1899,7 +2003,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
 
                 // Check page title or content for contact info indicators
                 const bodyText = document.body.textContent || '';
-                const hasContactText = bodyText.toLowerCase().includes('phone') || 
+                const hasContactText = bodyText.toLowerCase().includes('phone') ||
                                      bodyText.toLowerCase().includes('email');
 
                 console.log('[ODYSSEY] Contact page detection:', {
@@ -1950,8 +2054,8 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             return false
         }
 
-        // Essential delay before starting (0.3-0.6 seconds)
-        try? await Task.sleep(nanoseconds: UInt64.random(in: 300_000_000 ... 600_000_000))
+        // Optimized delay before starting to avoid reCAPTCHA (0.5-0.9 seconds)
+        try? await Task.sleep(nanoseconds: UInt64.random(in: 500_000_000 ... 900_000_000))
 
         // Essential human-like behavior simulation
         await addQuickPause()
@@ -1984,133 +2088,131 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                 // Scroll to field with human-like behavior
                 phoneField.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                // Add natural delay before focusing
-                setTimeout(() => {
-                    // Focus and clear
-                    phoneField.focus();
-                    phoneField.value = '';
+                // Focus and clear
+                phoneField.focus();
+                phoneField.value = '';
 
-                    // Simulate human-like typing with realistic events and delays
-                    const value = '\(phoneNumber)';
-                    console.log('[ODYSSEY] Typing phone:', value);
+                // Simulate human-like typing with realistic events and delays
+                const value = '\(phoneNumber)';
+                console.log('[ODYSSEY] Typing phone:', value);
 
-                    // Use a synchronous approach with setTimeout to simulate typing delays
-                    const typeCharacter = (index) => {
-                        if (index >= value.length) {
-                            // Add natural delay before finishing
-                            setTimeout(() => {
-                                phoneField.dispatchEvent(new Event('change', { bubbles: true }));
-                                phoneField.blur();
-                                console.log('[ODYSSEY] Phone field filled with:', phoneField.value);
-                            }, 100 + Math.random() * 200);
-                            return;
-                        }
+                // Use a synchronous approach with setTimeout to simulate typing delays
+                const typeCharacter = (index) => {
+                    if (index >= value.length) {
+                        // Add natural delay before finishing
+                        setTimeout(() => {
+                            phoneField.dispatchEvent(new Event('change', { bubbles: true }));
+                            phoneField.blur();
+                            console.log('[ODYSSEY] Phone field filled with:', phoneField.value);
+                        }, 100 + Math.random() * 200);
+                        return;
+                    }
 
-                        // Simulate occasional typos (2% chance) - minimal for stealth
-                        let charToType = value[index];
-                        let shouldMakeTypo = Math.random() < 0.02 && index < value.length - 1;
+                    // Simulate occasional typos (2% chance) - minimal for stealth
+                    let charToType = value[index];
+                    let shouldMakeTypo = Math.random() < 0.02 && index < value.length - 1;
 
-                        if (shouldMakeTypo) {
-                            // Type wrong character first
-                            phoneField.value += 'x';
-                            phoneField.dispatchEvent(new KeyboardEvent('keydown', { 
-                                bubbles: true, 
-                                key: 'x', 
-                                code: 'KeyX',
-                                keyCode: 'x'.charCodeAt(0)
+                    if (shouldMakeTypo) {
+                        // Type wrong character first
+                        phoneField.value += 'x';
+                        phoneField.dispatchEvent(new KeyboardEvent('keydown', {
+                            bubbles: true,
+                            key: 'x',
+                            code: 'KeyX',
+                            keyCode: 'x'.charCodeAt(0)
+                        }));
+                        phoneField.dispatchEvent(new Event('input', { bubbles: true }));
+                        phoneField.dispatchEvent(new KeyboardEvent('keyup', {
+                            bubbles: true,
+                            key: 'x',
+                            code: 'KeyX',
+                            keyCode: 'x'.charCodeAt(0)
+                        }));
+
+                        // Wait before correcting (shorter)
+                        setTimeout(() => {
+                            // Backspace
+                            phoneField.value = phoneField.value.slice(0, -1);
+                            phoneField.dispatchEvent(new KeyboardEvent('keydown', {
+                                bubbles: true,
+                                key: 'Backspace',
+                                code: 'Backspace',
+                                keyCode: 8
                             }));
                             phoneField.dispatchEvent(new Event('input', { bubbles: true }));
-                            phoneField.dispatchEvent(new KeyboardEvent('keyup', { 
-                                bubbles: true, 
-                                key: 'x', 
-                                code: 'KeyX',
-                                keyCode: 'x'.charCodeAt(0)
+                            phoneField.dispatchEvent(new KeyboardEvent('keyup', {
+                                bubbles: true,
+                                key: 'Backspace',
+                                code: 'Backspace',
+                                keyCode: 8
                             }));
 
-                            // Wait before correcting (shorter)
+                            // Type correct character after shorter pause
                             setTimeout(() => {
-                                // Backspace
-                                phoneField.value = phoneField.value.slice(0, -1);
-                                phoneField.dispatchEvent(new KeyboardEvent('keydown', { 
-                                    bubbles: true, 
-                                    key: 'Backspace', 
-                                    code: 'Backspace',
-                                    keyCode: 8
+                                phoneField.value += charToType;
+                                phoneField.dispatchEvent(new KeyboardEvent('keydown', {
+                                    bubbles: true,
+                                    key: charToType,
+                                    code: 'Key' + charToType.toUpperCase(),
+                                    keyCode: charToType.charCodeAt(0)
+                                }));
+                                phoneField.dispatchEvent(new KeyboardEvent('keypress', {
+                                    bubbles: true,
+                                    key: charToType,
+                                    code: 'Key' + charToType.toUpperCase(),
+                                    keyCode: charToType.charCodeAt(0)
                                 }));
                                 phoneField.dispatchEvent(new Event('input', { bubbles: true }));
-                                phoneField.dispatchEvent(new KeyboardEvent('keyup', { 
-                                    bubbles: true, 
-                                    key: 'Backspace', 
-                                    code: 'Backspace',
-                                    keyCode: 8
+                                phoneField.dispatchEvent(new KeyboardEvent('keyup', {
+                                    bubbles: true,
+                                    key: charToType,
+                                    code: 'Key' + charToType.toUpperCase(),
+                                    keyCode: charToType.charCodeAt(0)
                                 }));
 
-                                // Type correct character after shorter pause
-                                setTimeout(() => {
-                                    phoneField.value += charToType;
-                                    phoneField.dispatchEvent(new KeyboardEvent('keydown', { 
-                                        bubbles: true, 
-                                        key: charToType, 
-                                        code: 'Key' + charToType.toUpperCase(),
-                                        keyCode: charToType.charCodeAt(0)
-                                    }));
-                                    phoneField.dispatchEvent(new KeyboardEvent('keypress', { 
-                                        bubbles: true, 
-                                        key: charToType, 
-                                        code: 'Key' + charToType.toUpperCase(),
-                                        keyCode: charToType.charCodeAt(0)
-                                    }));
-                                    phoneField.dispatchEvent(new Event('input', { bubbles: true }));
-                                    phoneField.dispatchEvent(new KeyboardEvent('keyup', { 
-                                        bubbles: true, 
-                                        key: charToType, 
-                                        code: 'Key' + charToType.toUpperCase(),
-                                        keyCode: charToType.charCodeAt(0)
-                                    }));
+                                // Continue with next character after shorter delay
+                                setTimeout(() => typeCharacter(index + 1), 50 + Math.random() * 100);
+                            }, 150 + Math.random() * 200);
+                        }, 200 + Math.random() * 300);
+                    } else {
+                        // Normal typing with faster, more realistic delays
+                        phoneField.value += charToType;
+                        phoneField.dispatchEvent(new KeyboardEvent('keydown', {
+                            bubbles: true,
+                            key: charToType,
+                            code: 'Key' + charToType.toUpperCase(),
+                            keyCode: charToType.charCodeAt(0)
+                        }));
+                        phoneField.dispatchEvent(new KeyboardEvent('keypress', {
+                            bubbles: true,
+                            key: charToType,
+                            code: 'Key' + charToType.toUpperCase(),
+                            keyCode: charToType.charCodeAt(0)
+                        }));
+                        phoneField.dispatchEvent(new Event('input', { bubbles: true }));
+                        phoneField.dispatchEvent(new KeyboardEvent('keyup', {
+                            bubbles: true,
+                            key: charToType,
+                            code: 'Key' + charToType.toUpperCase(),
+                            keyCode: charToType.charCodeAt(0)
+                        }));
 
-                                    // Continue with next character after shorter delay
-                                    setTimeout(() => typeCharacter(index + 1), 50 + Math.random() * 100);
-                                }, 150 + Math.random() * 200);
-                            }, 200 + Math.random() * 300);
-                        } else {
-                            // Normal typing with faster, more realistic delays
-                            phoneField.value += charToType;
-                            phoneField.dispatchEvent(new KeyboardEvent('keydown', { 
-                                bubbles: true, 
-                                key: charToType, 
-                                code: 'Key' + charToType.toUpperCase(),
-                                keyCode: charToType.charCodeAt(0)
-                            }));
-                            phoneField.dispatchEvent(new KeyboardEvent('keypress', { 
-                                bubbles: true, 
-                                key: charToType, 
-                                code: 'Key' + charToType.toUpperCase(),
-                                keyCode: charToType.charCodeAt(0)
-                            }));
-                            phoneField.dispatchEvent(new Event('input', { bubbles: true }));
-                            phoneField.dispatchEvent(new KeyboardEvent('keyup', { 
-                                bubbles: true, 
-                                key: charToType, 
-                                code: 'Key' + charToType.toUpperCase(),
-                                keyCode: charToType.charCodeAt(0)
-                            }));
+                        // Optimized human-like delay to avoid reCAPTCHA (100-200ms base)
+                        const baseDelay = 100 + Math.random() * 100;
+                        const extraDelay = Math.random() < 0.10 ? 150 + Math.random() * 250 : 0; // 10% chance of longer pause
+                        const thinkingPause = Math.random() < 0.025 ? 300 + Math.random() * 400 : 0; // 2.5% chance of thinking pause
+                        setTimeout(() => typeCharacter(index + 1), baseDelay + extraDelay + thinkingPause);
+                    }
+                };
 
-                            // Slower human-like delay (80-180ms base)
-                            const baseDelay = 80 + Math.random() * 100;
-                            const extraDelay = Math.random() < 0.08 ? 120 + Math.random() * 180 : 0; // 8% chance of longer pause
-                            const thinkingPause = Math.random() < 0.02 ? 250 + Math.random() * 350 : 0; // 2% chance of thinking pause
-                            setTimeout(() => typeCharacter(index + 1), baseDelay + extraDelay + thinkingPause);
-                        }
-                    };
+                // Start typing after a shorter delay
+                setTimeout(() => typeCharacter(0), 150 + Math.random() * 300);
 
-                    // Start typing after a shorter delay
-                    setTimeout(() => typeCharacter(0), 150 + Math.random() * 300);
-                }, 200 + Math.random() * 400);
-
-                // Return true immediately - the typing will complete asynchronously
                 return true;
+            } else {
+                console.error('[ODYSSEY] Phone field not found');
+                return false;
             }
-            return false;
         })();
         """
 
@@ -2118,8 +2220,8 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
                 logger.info("Successfully filled phone number with enhanced human-like behavior")
-                // Much shorter delay after filling (0.2-0.4 second)
-                try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 400_000_000))
+                // Optimized delay after filling to avoid reCAPTCHA (0.4-0.7 second)
+                try? await Task.sleep(nanoseconds: UInt64.random(in: 400_000_000 ... 700_000_000))
                 return true
             } else {
                 logger.error("Failed to fill phone number - field not found")
@@ -2137,8 +2239,8 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             return false
         }
 
-        // Essential delay before starting (0.3-0.6 seconds)
-        try? await Task.sleep(nanoseconds: UInt64.random(in: 300_000_000 ... 600_000_000))
+        // Optimized delay before starting to avoid reCAPTCHA (0.5-0.9 seconds)
+        try? await Task.sleep(nanoseconds: UInt64.random(in: 500_000_000 ... 900_000_000))
 
         // Essential human-like behavior simulation
         await addQuickPause()
@@ -2167,135 +2269,133 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                 // Scroll to field with human-like behavior
                 emailField.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                // Add natural delay before focusing
-                setTimeout(() => {
-                    // Focus and clear
-                    emailField.focus();
-                    emailField.value = '';
+                // Focus and clear
+                emailField.focus();
+                emailField.value = '';
 
-                    // Simulate human-like typing with realistic events and delays
-                    const value = '\(email)';
-                    console.log('[ODYSSEY] Typing email:', value);
+                // Simulate human-like typing with realistic events and delays
+                const value = '\(email)';
+                console.log('[ODYSSEY] Typing email:', value);
 
-                    // Use a synchronous approach with setTimeout to simulate typing delays
-                    const typeCharacter = (index) => {
-                        if (index >= value.length) {
-                            // Add natural delay before finishing
-                            setTimeout(() => {
-                                emailField.dispatchEvent(new Event('change', { bubbles: true }));
-                                emailField.blur();
-                                console.log('[ODYSSEY] Email field filled with:', emailField.value);
-                            }, 200 + Math.random() * 300);
-                            return;
-                        }
+                // Use a synchronous approach with setTimeout to simulate typing delays
+                const typeCharacter = (index) => {
+                    if (index >= value.length) {
+                        // Add natural delay before finishing
+                        setTimeout(() => {
+                            emailField.dispatchEvent(new Event('change', { bubbles: true }));
+                            emailField.blur();
+                            console.log('[ODYSSEY] Email field filled with:', emailField.value);
+                        }, 200 + Math.random() * 300);
+                        return;
+                    }
 
-                        // Simulate occasional typos (1% chance) - minimal for stealth
-                        let charToType = value[index];
-                        let shouldMakeTypo = Math.random() < 0.01 && index < value.length - 1;
+                    // Simulate occasional typos (1% chance) - minimal for stealth
+                    let charToType = value[index];
+                    let shouldMakeTypo = Math.random() < 0.01 && index < value.length - 1;
 
-                        if (shouldMakeTypo) {
-                            // Type wrong character first
-                            const wrongChars = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'];
-                            const wrongChar = wrongChars[Math.floor(Math.random() * wrongChars.length)];
-                            emailField.value += wrongChar;
-                            emailField.dispatchEvent(new KeyboardEvent('keydown', { 
-                                bubbles: true, 
-                                key: wrongChar, 
-                                code: 'Key' + wrongChar.toUpperCase(),
-                                keyCode: wrongChar.charCodeAt(0)
+                    if (shouldMakeTypo) {
+                        // Type wrong character first
+                        const wrongChars = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'];
+                        const wrongChar = wrongChars[Math.floor(Math.random() * wrongChars.length)];
+                        emailField.value += wrongChar;
+                        emailField.dispatchEvent(new KeyboardEvent('keydown', {
+                            bubbles: true,
+                            key: wrongChar,
+                            code: 'Key' + wrongChar.toUpperCase(),
+                            keyCode: wrongChar.charCodeAt(0)
+                        }));
+                        emailField.dispatchEvent(new Event('input', { bubbles: true }));
+                        emailField.dispatchEvent(new KeyboardEvent('keyup', {
+                            bubbles: true,
+                            key: wrongChar,
+                            code: 'Key' + wrongChar.toUpperCase(),
+                            keyCode: wrongChar.charCodeAt(0)
+                        }));
+
+                        // Wait before correcting
+                        setTimeout(() => {
+                            // Backspace
+                            emailField.value = emailField.value.slice(0, -1);
+                            emailField.dispatchEvent(new KeyboardEvent('keydown', {
+                                bubbles: true,
+                                key: 'Backspace',
+                                code: 'Backspace',
+                                keyCode: 8
                             }));
                             emailField.dispatchEvent(new Event('input', { bubbles: true }));
-                            emailField.dispatchEvent(new KeyboardEvent('keyup', { 
-                                bubbles: true, 
-                                key: wrongChar, 
-                                code: 'Key' + wrongChar.toUpperCase(),
-                                keyCode: wrongChar.charCodeAt(0)
+                            emailField.dispatchEvent(new KeyboardEvent('keyup', {
+                                bubbles: true,
+                                key: 'Backspace',
+                                code: 'Backspace',
+                                keyCode: 8
                             }));
 
-                            // Wait before correcting
+                            // Type correct character
                             setTimeout(() => {
-                                // Backspace
-                                emailField.value = emailField.value.slice(0, -1);
-                                emailField.dispatchEvent(new KeyboardEvent('keydown', { 
-                                    bubbles: true, 
-                                    key: 'Backspace', 
-                                    code: 'Backspace',
-                                    keyCode: 8
+                                emailField.value += charToType;
+                                emailField.dispatchEvent(new KeyboardEvent('keydown', {
+                                    bubbles: true,
+                                    key: charToType,
+                                    code: 'Key' + charToType.toUpperCase(),
+                                    keyCode: charToType.charCodeAt(0)
+                                }));
+                                emailField.dispatchEvent(new KeyboardEvent('keypress', {
+                                    bubbles: true,
+                                    key: charToType,
+                                    code: 'Key' + charToType.toUpperCase(),
+                                    keyCode: charToType.charCodeAt(0)
                                 }));
                                 emailField.dispatchEvent(new Event('input', { bubbles: true }));
-                                emailField.dispatchEvent(new KeyboardEvent('keyup', { 
-                                    bubbles: true, 
-                                    key: 'Backspace', 
-                                    code: 'Backspace',
-                                    keyCode: 8
+                                emailField.dispatchEvent(new KeyboardEvent('keyup', {
+                                    bubbles: true,
+                                    key: charToType,
+                                    code: 'Key' + charToType.toUpperCase(),
+                                    keyCode: charToType.charCodeAt(0)
                                 }));
 
-                                // Type correct character
-                                setTimeout(() => {
-                                    emailField.value += charToType;
-                                    emailField.dispatchEvent(new KeyboardEvent('keydown', { 
-                                        bubbles: true, 
-                                        key: charToType, 
-                                        code: 'Key' + charToType.toUpperCase(),
-                                        keyCode: charToType.charCodeAt(0)
-                                    }));
-                                    emailField.dispatchEvent(new KeyboardEvent('keypress', { 
-                                        bubbles: true, 
-                                        key: charToType, 
-                                        code: 'Key' + charToType.toUpperCase(),
-                                        keyCode: charToType.charCodeAt(0)
-                                    }));
-                                    emailField.dispatchEvent(new Event('input', { bubbles: true }));
-                                    emailField.dispatchEvent(new KeyboardEvent('keyup', { 
-                                        bubbles: true, 
-                                        key: charToType, 
-                                        code: 'Key' + charToType.toUpperCase(),
-                                        keyCode: charToType.charCodeAt(0)
-                                    }));
+                                // Continue with next character
+                                setTimeout(() => typeCharacter(index + 1), 150 + Math.random() * 200);
+                            }, 300 + Math.random() * 400);
+                        }, 400 + Math.random() * 600);
+                    } else {
+                        // Normal typing with enhanced delays to avoid reCAPTCHA
+                        emailField.value += charToType;
+                        emailField.dispatchEvent(new KeyboardEvent('keydown', {
+                            bubbles: true,
+                            key: charToType,
+                            code: 'Key' + charToType.toUpperCase(),
+                            keyCode: charToType.charCodeAt(0)
+                        }));
+                        emailField.dispatchEvent(new KeyboardEvent('keypress', {
+                            bubbles: true,
+                            key: charToType,
+                            code: 'Key' + charToType.toUpperCase(),
+                            keyCode: charToType.charCodeAt(0)
+                        }));
+                        emailField.dispatchEvent(new Event('input', { bubbles: true }));
+                        emailField.dispatchEvent(new KeyboardEvent('keyup', {
+                            bubbles: true,
+                            key: charToType,
+                            code: 'Key' + charToType.toUpperCase(),
+                            keyCode: charToType.charCodeAt(0)
+                        }));
 
-                                    // Continue with next character
-                                    setTimeout(() => typeCharacter(index + 1), 150 + Math.random() * 200);
-                                }, 300 + Math.random() * 400);
-                            }, 400 + Math.random() * 600);
-                        } else {
-                            // Normal typing with much slower, more realistic delays
-                            emailField.value += charToType;
-                            emailField.dispatchEvent(new KeyboardEvent('keydown', { 
-                                bubbles: true, 
-                                key: charToType, 
-                                code: 'Key' + charToType.toUpperCase(),
-                                keyCode: charToType.charCodeAt(0)
-                            }));
-                            emailField.dispatchEvent(new KeyboardEvent('keypress', { 
-                                bubbles: true, 
-                                key: charToType, 
-                                code: 'Key' + charToType.toUpperCase(),
-                                keyCode: charToType.charCodeAt(0)
-                            }));
-                            emailField.dispatchEvent(new Event('input', { bubbles: true }));
-                            emailField.dispatchEvent(new KeyboardEvent('keyup', { 
-                                bubbles: true, 
-                                key: charToType, 
-                                code: 'Key' + charToType.toUpperCase(),
-                                keyCode: charToType.charCodeAt(0)
-                            }));
+                        // Optimized human-like delay to avoid reCAPTCHA (90-180ms base)
+                        const baseDelay = 90 + Math.random() * 90;
+                        const extraDelay = Math.random() < 0.10 ? 140 + Math.random() * 200 : 0; // 10% chance of longer pause
+                        const thinkingPause = Math.random() < 0.025 ? 250 + Math.random() * 350 : 0; // 2.5% chance of thinking pause
+                        setTimeout(() => typeCharacter(index + 1), baseDelay + extraDelay + thinkingPause);
+                    }
+                };
 
-                            // Slower human-like delay (70-160ms base)
-                            const baseDelay = 70 + Math.random() * 90;
-                            const extraDelay = Math.random() < 0.08 ? 100 + Math.random() * 150 : 0; // 8% chance of longer pause
-                            const thinkingPause = Math.random() < 0.02 ? 200 + Math.random() * 300 : 0; // 2% chance of thinking pause
-                            setTimeout(() => typeCharacter(index + 1), baseDelay + extraDelay + thinkingPause);
-                        }
-                    };
+                // Start typing after a natural delay
+                setTimeout(() => typeCharacter(0), 300 + Math.random() * 500);
 
-                    // Start typing after a natural delay
-                    setTimeout(() => typeCharacter(0), 300 + Math.random() * 500);
-                }, 500 + Math.random() * 1000);
-
-                // Return true immediately - the typing will complete asynchronously
                 return true;
+            } else {
+                console.error('[ODYSSEY] Email field not found');
+                return false;
             }
-            return false;
         })();
         """
 
@@ -2303,8 +2403,8 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
                 logger.info("Successfully filled email with enhanced human-like behavior")
-                // Much shorter delay after filling (0.2-0.4 second)
-                try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 400_000_000))
+                // Optimized delay after filling to avoid reCAPTCHA (0.4-0.7 second)
+                try? await Task.sleep(nanoseconds: UInt64.random(in: 400_000_000 ... 700_000_000))
                 return true
             } else {
                 logger.error("Failed to fill email - field not found")
@@ -2328,8 +2428,8 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             return false
         }
 
-        // Essential delay before starting (0.3-0.6 seconds)
-        try? await Task.sleep(nanoseconds: UInt64.random(in: 300_000_000 ... 600_000_000))
+        // Optimized delay before starting to avoid reCAPTCHA (0.5-0.9 seconds)
+        try? await Task.sleep(nanoseconds: UInt64.random(in: 500_000_000 ... 900_000_000))
 
         // Essential human-like behavior simulation
         await addQuickPause()
@@ -2361,135 +2461,133 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                     // Scroll to field with human-like behavior
                     nameField.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                    // Add natural delay before focusing
-                    setTimeout(() => {
-                        // Focus and clear
-                        nameField.focus();
-                        nameField.value = '';
+                    // Focus and clear
+                    nameField.focus();
+                    nameField.value = '';
 
-                        // Simulate human-like typing with realistic events and delays
-                        const value = '\(name)';
-                        console.log('[ODYSSEY] Typing name:', value);
+                    // Simulate human-like typing with realistic events and delays
+                    const value = '\(name)';
+                    console.log('[ODYSSEY] Typing name:', value);
 
-                        // Use a synchronous approach with setTimeout to simulate typing delays
-                        const typeCharacter = (index) => {
-                            if (index >= value.length) {
-                                // Add natural delay before finishing
-                                setTimeout(() => {
-                                    nameField.dispatchEvent(new Event('change', { bubbles: true }));
-                                    nameField.blur();
-                                    console.log('[ODYSSEY] Name field filled with:', nameField.value);
-                                }, 200 + Math.random() * 300);
-                                return;
-                            }
+                    // Use a synchronous approach with setTimeout to simulate typing delays
+                    const typeCharacter = (index) => {
+                        if (index >= value.length) {
+                            // Add natural delay before finishing
+                            setTimeout(() => {
+                                nameField.dispatchEvent(new Event('change', { bubbles: true }));
+                                nameField.blur();
+                                console.log('[ODYSSEY] Name field filled with:', nameField.value);
+                            }, 200 + Math.random() * 300);
+                            return;
+                        }
 
-                            // Simulate occasional typos (1.5% chance) - minimal for stealth
-                            let charToType = value[index];
-                            let shouldMakeTypo = Math.random() < 0.015 && index < value.length - 1;
+                        // Simulate occasional typos (1.5% chance) - minimal for stealth
+                        let charToType = value[index];
+                        let shouldMakeTypo = Math.random() < 0.015 && index < value.length - 1;
 
-                            if (shouldMakeTypo) {
-                                // Type wrong character first
-                                const wrongChars = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'];
-                                const wrongChar = wrongChars[Math.floor(Math.random() * wrongChars.length)];
-                                nameField.value += wrongChar;
-                                nameField.dispatchEvent(new KeyboardEvent('keydown', { 
-                                    bubbles: true, 
-                                    key: wrongChar, 
-                                    code: 'Key' + wrongChar.toUpperCase(),
-                                    keyCode: wrongChar.charCodeAt(0)
+                        if (shouldMakeTypo) {
+                            // Type wrong character first
+                            const wrongChars = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'];
+                            const wrongChar = wrongChars[Math.floor(Math.random() * wrongChars.length)];
+                            nameField.value += wrongChar;
+                            nameField.dispatchEvent(new KeyboardEvent('keydown', {
+                                bubbles: true,
+                                key: wrongChar,
+                                code: 'Key' + wrongChar.toUpperCase(),
+                                keyCode: wrongChar.charCodeAt(0)
+                            }));
+                            nameField.dispatchEvent(new Event('input', { bubbles: true }));
+                            nameField.dispatchEvent(new KeyboardEvent('keyup', {
+                                bubbles: true,
+                                key: wrongChar,
+                                code: 'Key' + wrongChar.toUpperCase(),
+                                keyCode: wrongChar.charCodeAt(0)
+                            }));
+
+                            // Wait before correcting
+                            setTimeout(() => {
+                                // Backspace
+                                nameField.value = nameField.value.slice(0, -1);
+                                nameField.dispatchEvent(new KeyboardEvent('keydown', {
+                                    bubbles: true,
+                                    key: 'Backspace',
+                                    code: 'Backspace',
+                                    keyCode: 8
                                 }));
                                 nameField.dispatchEvent(new Event('input', { bubbles: true }));
-                                nameField.dispatchEvent(new KeyboardEvent('keyup', { 
-                                    bubbles: true, 
-                                    key: wrongChar, 
-                                    code: 'Key' + wrongChar.toUpperCase(),
-                                    keyCode: wrongChar.charCodeAt(0)
+                                nameField.dispatchEvent(new KeyboardEvent('keyup', {
+                                    bubbles: true,
+                                    key: 'Backspace',
+                                    code: 'Backspace',
+                                    keyCode: 8
                                 }));
 
-                                // Wait before correcting
+                                // Type correct character
                                 setTimeout(() => {
-                                    // Backspace
-                                    nameField.value = nameField.value.slice(0, -1);
-                                    nameField.dispatchEvent(new KeyboardEvent('keydown', { 
-                                        bubbles: true, 
-                                        key: 'Backspace', 
-                                        code: 'Backspace',
-                                        keyCode: 8
+                                    nameField.value += charToType;
+                                    nameField.dispatchEvent(new KeyboardEvent('keydown', {
+                                        bubbles: true,
+                                        key: charToType,
+                                        code: 'Key' + charToType.toUpperCase(),
+                                        keyCode: charToType.charCodeAt(0)
+                                    }));
+                                    nameField.dispatchEvent(new KeyboardEvent('keypress', {
+                                        bubbles: true,
+                                        key: charToType,
+                                        code: 'Key' + charToType.toUpperCase(),
+                                        keyCode: charToType.charCodeAt(0)
                                     }));
                                     nameField.dispatchEvent(new Event('input', { bubbles: true }));
-                                    nameField.dispatchEvent(new KeyboardEvent('keyup', { 
-                                        bubbles: true, 
-                                        key: 'Backspace', 
-                                        code: 'Backspace',
-                                        keyCode: 8
+                                    nameField.dispatchEvent(new KeyboardEvent('keyup', {
+                                        bubbles: true,
+                                        key: charToType,
+                                        code: 'Key' + charToType.toUpperCase(),
+                                        keyCode: charToType.charCodeAt(0)
                                     }));
 
-                                    // Type correct character
-                                    setTimeout(() => {
-                                        nameField.value += charToType;
-                                        nameField.dispatchEvent(new KeyboardEvent('keydown', { 
-                                            bubbles: true, 
-                                            key: charToType, 
-                                            code: 'Key' + charToType.toUpperCase(),
-                                            keyCode: charToType.charCodeAt(0)
-                                        }));
-                                        nameField.dispatchEvent(new KeyboardEvent('keypress', { 
-                                            bubbles: true, 
-                                            key: charToType, 
-                                            code: 'Key' + charToType.toUpperCase(),
-                                            keyCode: charToType.charCodeAt(0)
-                                        }));
-                                        nameField.dispatchEvent(new Event('input', { bubbles: true }));
-                                        nameField.dispatchEvent(new KeyboardEvent('keyup', { 
-                                            bubbles: true, 
-                                            key: charToType, 
-                                            code: 'Key' + charToType.toUpperCase(),
-                                            keyCode: charToType.charCodeAt(0)
-                                        }));
+                                    // Continue with next character
+                                    setTimeout(() => typeCharacter(index + 1), 150 + Math.random() * 200);
+                                }, 300 + Math.random() * 400);
+                            }, 400 + Math.random() * 600);
+                        } else {
+                            // Normal typing with enhanced delays to avoid reCAPTCHA
+                            nameField.value += charToType;
+                            nameField.dispatchEvent(new KeyboardEvent('keydown', {
+                                bubbles: true,
+                                key: charToType,
+                                code: 'Key' + charToType.toUpperCase(),
+                                keyCode: charToType.charCodeAt(0)
+                            }));
+                            nameField.dispatchEvent(new KeyboardEvent('keypress', {
+                                bubbles: true,
+                                key: charToType,
+                                code: 'Key' + charToType.toUpperCase(),
+                                keyCode: charToType.charCodeAt(0)
+                            }));
+                            nameField.dispatchEvent(new Event('input', { bubbles: true }));
+                            nameField.dispatchEvent(new KeyboardEvent('keyup', {
+                                bubbles: true,
+                                key: charToType,
+                                code: 'Key' + charToType.toUpperCase(),
+                                keyCode: charToType.charCodeAt(0)
+                            }));
 
-                                        // Continue with next character
-                                        setTimeout(() => typeCharacter(index + 1), 150 + Math.random() * 200);
-                                    }, 300 + Math.random() * 400);
-                                }, 400 + Math.random() * 600);
-                            } else {
-                                // Normal typing with much slower, more realistic delays
-                                nameField.value += charToType;
-                                nameField.dispatchEvent(new KeyboardEvent('keydown', { 
-                                    bubbles: true, 
-                                    key: charToType, 
-                                    code: 'Key' + charToType.toUpperCase(),
-                                    keyCode: charToType.charCodeAt(0)
-                                }));
-                                nameField.dispatchEvent(new KeyboardEvent('keypress', { 
-                                    bubbles: true, 
-                                    key: charToType, 
-                                    code: 'Key' + charToType.toUpperCase(),
-                                    keyCode: charToType.charCodeAt(0)
-                                }));
-                                nameField.dispatchEvent(new Event('input', { bubbles: true }));
-                                nameField.dispatchEvent(new KeyboardEvent('keyup', { 
-                                    bubbles: true, 
-                                    key: charToType, 
-                                    code: 'Key' + charToType.toUpperCase(),
-                                    keyCode: charToType.charCodeAt(0)
-                                }));
+                            // Optimized human-like delay to avoid reCAPTCHA (95-190ms base)
+                            const baseDelay = 95 + Math.random() * 95;
+                            const extraDelay = Math.random() < 0.10 ? 160 + Math.random() * 220 : 0; // 10% chance of longer pause
+                            const thinkingPause = Math.random() < 0.025 ? 280 + Math.random() * 380 : 0; // 2.5% chance of thinking pause
+                            setTimeout(() => typeCharacter(index + 1), baseDelay + extraDelay + thinkingPause);
+                        }
+                    };
 
-                                // Slower human-like delay (75-170ms base)
-                                const baseDelay = 75 + Math.random() * 95;
-                                const extraDelay = Math.random() < 0.08 ? 110 + Math.random() * 160 : 0; // 8% chance of longer pause
-                                const thinkingPause = Math.random() < 0.02 ? 220 + Math.random() * 330 : 0; // 2% chance of thinking pause
-                                setTimeout(() => typeCharacter(index + 1), baseDelay + extraDelay + thinkingPause);
-                            }
-                        };
+                    // Start typing after a natural delay
+                    setTimeout(() => typeCharacter(0), 300 + Math.random() * 500);
 
-                        // Start typing after a natural delay
-                        setTimeout(() => typeCharacter(0), 300 + Math.random() * 500);
-                    }, 500 + Math.random() * 1000);
-
-                    // Return true immediately - the typing will complete asynchronously
                     return true;
+                } else {
+                    console.error('[ODYSSEY] Name field not found');
+                    return false;
                 }
-                return false;
             } catch (error) {
                 console.error('[ODYSSEY] Error in fillName script:', error);
                 return false;
@@ -2507,8 +2605,8 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
                 logger.info("Successfully filled name with enhanced human-like behavior")
-                // Much shorter delay after filling (0.2-0.4 second)
-                try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 400_000_000))
+                // Optimized delay after filling to avoid reCAPTCHA (0.4-0.7 second)
+                try? await Task.sleep(nanoseconds: UInt64.random(in: 400_000_000 ... 700_000_000))
                 return true
             } else {
                 logger.error("Failed to fill name - field not found")
@@ -2543,7 +2641,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         """
 
         do {
-            let result = try await executeScriptInternal(script) as? Bool ?? false
+            let result = try await executeScriptInternal(script)?.value as? Bool ?? false
             if result {
                 logger.warning("Google reCAPTCHA detected on page")
             } else {
@@ -2606,35 +2704,35 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                     button.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
                     // Simulate realistic mouse movement and hover
-                    button.dispatchEvent(new MouseEvent('mouseenter', { 
-                        bubbles: true, 
+                    button.dispatchEvent(new MouseEvent('mouseenter', {
+                        bubbles: true,
                         clientX: button.getBoundingClientRect().left + 10,
                         clientY: button.getBoundingClientRect().top + 10
                     }));
 
-                    button.dispatchEvent(new MouseEvent('mouseover', { 
-                        bubbles: true, 
+                    button.dispatchEvent(new MouseEvent('mouseover', {
+                        bubbles: true,
                         clientX: button.getBoundingClientRect().left + 15,
                         clientY: button.getBoundingClientRect().top + 15
                     }));
 
                     // Click with human-like behavior
-                    button.dispatchEvent(new MouseEvent('mousedown', { 
-                        bubbles: true, 
+                    button.dispatchEvent(new MouseEvent('mousedown', {
+                        bubbles: true,
                         button: 0,
                         clientX: button.getBoundingClientRect().left + 20,
                         clientY: button.getBoundingClientRect().top + 20
                     }));
 
-                    button.dispatchEvent(new MouseEvent('mouseup', { 
-                        bubbles: true, 
+                    button.dispatchEvent(new MouseEvent('mouseup', {
+                        bubbles: true,
                         button: 0,
                         clientX: button.getBoundingClientRect().left + 20,
                         clientY: button.getBoundingClientRect().top + 20
                     }));
 
-                    button.dispatchEvent(new MouseEvent('click', { 
-                        bubbles: true, 
+                    button.dispatchEvent(new MouseEvent('click', {
+                        bubbles: true,
                         button: 0,
                         clientX: button.getBoundingClientRect().left + 20,
                         clientY: button.getBoundingClientRect().top + 20
@@ -2645,8 +2743,8 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                 }
 
                 // Fallback to other common submit button selectors
-                const fallbackButton = document.querySelector('button[type="submit"]') || 
-                                      document.querySelector('input[type="submit"]') || 
+                const fallbackButton = document.querySelector('button[type="submit"]') ||
+                                      document.querySelector('input[type="submit"]') ||
                                       document.querySelector('button:contains("Confirm")');
 
                 if (fallbackButton) {
@@ -2707,7 +2805,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
 
             // Check for verification-related text in the page
             const bodyText = document.body.textContent || '';
-            const hasVerificationText = bodyText.toLowerCase().includes('verification') || 
+            const hasVerificationText = bodyText.toLowerCase().includes('verification') ||
                                       bodyText.toLowerCase().includes('verify') ||
                                       bodyText.toLowerCase().includes('code') ||
                                       bodyText.toLowerCase().includes('enter it below');
@@ -2814,7 +2912,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
             let script = """
             (function() {
                 // Check for verification code input field
-                const verificationInput = document.querySelector('input[type="text"]') || 
+                const verificationInput = document.querySelector('input[type="text"]') ||
                                         document.querySelector('input[type="number"]') ||
                                         document.querySelector('input[name*="verification"]') ||
                                         document.querySelector('input[name*="code"]') ||
@@ -2825,7 +2923,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
 
                 // Check for verification-related text
                 const bodyText = document.body.textContent || '';
-                const hasVerificationText = bodyText.toLowerCase().includes('verification') || 
+                const hasVerificationText = bodyText.toLowerCase().includes('verification') ||
                                         bodyText.toLowerCase().includes('verify') ||
                                         bodyText.toLowerCase().includes('code') ||
                                         bodyText.toLowerCase().includes('enter it below');
@@ -2868,7 +2966,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                     logger
                         .info(
                             "Verification page check - Input: \(hasInput), Text: \(hasText), Pattern: \(hasPattern), Loading: \(isLoading)",
-                        )
+                            )
                     logger.info("Page content preview: \(bodyTextPreview)")
 
                     if hasInput || hasText || hasPattern {
@@ -2900,7 +2998,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         let maxTotalWait: TimeInterval = 120.0 // 2 minutes
         let retryDelay: TimeInterval = 2.0 // 2 seconds
         let deadline = Date().addingTimeInterval(maxTotalWait)
-        let emailService = await EmailService.shared
+        let emailService = EmailService.shared
 
         // Wait for the initial period
         logger.info("Waiting \(initialWait)s before starting email verification checks...")
@@ -2966,7 +3064,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
         (function() {
             try {
                 // Find verification code input field
-                const verificationInput = document.querySelector('input[type="text"]') || 
+                const verificationInput = document.querySelector('input[type="text"]') ||
                                         document.querySelector('input[type="number"]') ||
                                         document.querySelector('input[name*="code"]') ||
                                         document.querySelector('input[placeholder*="code"]');
@@ -2980,20 +3078,49 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
 
                     // Fill the code character by character with human-like delays
                     const code = '\(code)';
-                    for (let i = 0; i < code.length; i++) {
-                        setTimeout(() => {
-                            verificationInput.value += code[i];
-                            // Trigger input event
-                            verificationInput.dispatchEvent(new Event('input', { bubbles: true }));
-                        }, i * 100 + Math.random() * 50);
-                    }
+                    console.log('[ODYSSEY] Typing verification code:', code);
 
-                    // Blur the field after filling
-                    setTimeout(() => {
-                        verificationInput.blur();
-                    }, code.length * 100 + 200);
+                    const typeCharacter = (index) => {
+                        if (index >= code.length) {
+                            // Add natural delay before finishing
+                            setTimeout(() => {
+                                verificationInput.dispatchEvent(new Event('change', { bubbles: true }));
+                                verificationInput.blur();
+                                console.log('[ODYSSEY] Verification code filled with:', verificationInput.value);
+                            }, 200 + Math.random() * 300);
+                            return;
+                        }
 
-                    console.log('[ODYSSEY] Filled verification code: \(code)');
+                        // Type character with realistic events
+                        verificationInput.value += code[index];
+                        verificationInput.dispatchEvent(new KeyboardEvent('keydown', {
+                            bubbles: true,
+                            key: code[index],
+                            code: 'Key' + code[index].toUpperCase(),
+                            keyCode: code[index].charCodeAt(0)
+                        }));
+                        verificationInput.dispatchEvent(new KeyboardEvent('keypress', {
+                            bubbles: true,
+                            key: code[index],
+                            code: 'Key' + code[index].toUpperCase(),
+                            keyCode: code[index].charCodeAt(0)
+                        }));
+                        verificationInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        verificationInput.dispatchEvent(new KeyboardEvent('keyup', {
+                            bubbles: true,
+                            key: code[index],
+                            code: 'Key' + code[index].toUpperCase(),
+                            keyCode: code[index].charCodeAt(0)
+                        }));
+
+                        // Human-like delay between characters (80-150ms)
+                        const delay = 80 + Math.random() * 70;
+                        setTimeout(() => typeCharacter(index + 1), delay);
+                    };
+
+                    // Start typing after a short delay
+                    setTimeout(() => typeCharacter(0), 200 + Math.random() * 300);
+
                     return true;
                 } else {
                     console.log('[ODYSSEY] Verification input field not found');
@@ -3196,7 +3323,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                 }
 
                 // Last resort: try clicking the last visible button (often the submit button)
-                const visibleButtons = Array.from(allButtons).filter(btn => 
+                const visibleButtons = Array.from(allButtons).filter(btn =>
                     btn.offsetParent !== null && !btn.disabled
                 );
 
@@ -3260,7 +3387,7 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
                 'Retry',
             ];
 
-            const hasRetryText = retryIndicators.some(indicator => 
+            const hasRetryText = retryIndicators.some(indicator =>
                 bodyText.toLowerCase().includes(indicator.toLowerCase())
             );
 
@@ -3457,6 +3584,65 @@ class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol {
     func addRandomDelay() async {
         await addQuickPause()
     }
+
+    private func cleanupWebView() async {
+        logger.info("Starting WebView cleanup...")
+        scriptCompletions.removeAll()
+        elementCompletions.removeAll()
+        // Safely cleanup WebView if it exists
+        if let webView {
+            logger.info("Cleaning up existing WebView...")
+            await MainActor.run {
+                webView.configuration.userContentController.removeScriptMessageHandler(forName: "odysseyHandler")
+                webView.navigationDelegate = nil
+                webView.stopLoading()
+            }
+        } else {
+            logger.info("No WebView to cleanup")
+        }
+        // Clear webView reference
+        await MainActor.run {
+            self.webView = nil
+        }
+        logger.info("WebKitService cleanup completed")
+    }
+
+    // MARK: - NSWindowDelegate
+
+    func windowWillClose(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow, window === debugWindow else {
+            return
+        }
+
+        logger.info("Debug window is being closed by user - resetting WebKit service state")
+
+        // Reset service state when window is manually closed
+        Task {
+            await MainActor.run {
+                // Mark as disconnected
+                self.isConnected = false
+                self.isRunning = false
+
+                // Clear all completions
+                self.navigationCompletions.removeAll()
+                self.scriptCompletions.removeAll()
+                self.elementCompletions.removeAll()
+
+                // Clear window reference
+                self.debugWindow = nil
+
+                // Clear WebView reference
+                self.webView = nil
+
+                logger.info("WebKit service state reset after manual window closure")
+            }
+
+            // Notify ReservationManager about window closure
+            if let onWindowClosed = self.onWindowClosed {
+                onWindowClosed()
+            }
+        }
+    }
 }
 
 // MARK: - Navigation Delegate
@@ -3505,8 +3691,8 @@ class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
     func webView(
         _: WKWebView,
         decidePolicyFor navigationAction: WKNavigationAction,
-        decisionHandler: @escaping (WKNavigationActionPolicy) -> Void,
-    ) {
+        decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void,
+        ) {
         delegate?.logger
             .info("[Navigation] Policy decision for: \(navigationAction.request.url?.absoluteString ?? "unknown")")
         print("[Navigation] Policy decision for: \(navigationAction.request.url?.absoluteString ?? "unknown")")
@@ -3528,15 +3714,13 @@ class WebKitScriptMessageHandler: NSObject, WKScriptMessageHandler {
                 case "contactFormCheckError":
                     if
                         let data = body["data"] as? [String: Any], let msg = data["message"] as? String,
-                        let stack = data["stack"] as? String
-                    {
+                        let stack = data["stack"] as? String {
                         delegate?.logger.error("[ContactForm][JS] Error: \(msg)\nStack: \(stack)")
                     }
                 case "contactFormTimeout":
                     if
                         let data = body["data"] as? [String: Any], let html = data["html"] as? String,
-                        let allInputs = data["allInputs"]
-                    {
+                        let allInputs = data["allInputs"] {
                         let allInputsStr = String(describing: allInputs)
                         delegate?.logger
                             .error("[ContactForm][JS] Timeout. HTML: \(html.prefix(1_000))\nInputs: \(allInputsStr)")
@@ -3544,8 +3728,7 @@ class WebKitScriptMessageHandler: NSObject, WKScriptMessageHandler {
                 case "contactFormTimeoutError":
                     if
                         let data = body["data"] as? [String: Any], let msg = data["message"] as? String,
-                        let stack = data["stack"] as? String
-                    {
+                        let stack = data["stack"] as? String {
                         delegate?.logger.error("[ContactForm][JS] Timeout error: \(msg)\nStack: \(stack)")
                     }
                 default:
@@ -3558,7 +3741,9 @@ class WebKitScriptMessageHandler: NSObject, WKScriptMessageHandler {
 
 // MARK: - WebKit Element Implementation
 
-class WebKitElement: WebElementProtocol {
+@MainActor
+@preconcurrency
+class WebKitElement: @preconcurrency WebElementProtocol {
     let id: String
     let tagName: String
     let type: String?
@@ -3594,7 +3779,7 @@ class WebKitElement: WebElementProtocol {
         return false;
         """
 
-        let result = try await service.executeScriptInternal(script) as? Bool ?? false
+        let result = try await service.executeScriptInternal(script)?.value as? Bool ?? false
         if !result {
             throw WebDriverError.clickFailed("Element not found or click failed")
         }
@@ -3612,7 +3797,7 @@ class WebKitElement: WebElementProtocol {
         return false;
         """
 
-        let result = try await service.executeScriptInternal(script) as? Bool ?? false
+        let result = try await service.executeScriptInternal(script)?.value as? Bool ?? false
         if !result {
             throw WebDriverError.typeFailed("Element not found or type failed")
         }
@@ -3632,7 +3817,7 @@ class WebKitElement: WebElementProtocol {
         return false;
         """
 
-        let result = try await service.executeScriptInternal(script) as? Bool ?? false
+        let result = try await service.executeScriptInternal(script)?.value as? Bool ?? false
         if !result {
             throw WebDriverError.typeFailed("Element not found or clear failed")
         }
@@ -3646,7 +3831,7 @@ class WebKitElement: WebElementProtocol {
         return element ? element.getAttribute('\(name)') : null;
         """
 
-        return try await service.executeScriptInternal(script) as? String
+        return try await service.executeScriptInternal(script)?.value as? String
     }
 
     func getText() async throws -> String {
@@ -3655,7 +3840,7 @@ class WebKitElement: WebElementProtocol {
         return element ? element.textContent || '' : '';
         """
 
-        return try await service.executeScriptInternal(script) as? String ?? ""
+        return try await service.executeScriptInternal(script)?.value as? String ?? ""
     }
 
     func isDisplayed() async throws -> Bool {
@@ -3664,7 +3849,7 @@ class WebKitElement: WebElementProtocol {
         return element ? element.offsetParent !== null : false;
         """
 
-        let result = try await service.executeScriptInternal(script)
+        let result = try await service.executeScriptInternal(script)?.value
         return result as? Bool ?? false
     }
 
@@ -3674,7 +3859,7 @@ class WebKitElement: WebElementProtocol {
         return element ? !element.disabled : false;
         """
 
-        let result = try await service.executeScriptInternal(script)
+        let result = try await service.executeScriptInternal(script)?.value
         return result as? Bool ?? false
     }
 
@@ -3684,6 +3869,6 @@ class WebKitElement: WebElementProtocol {
         return element ? element.selected : false;
         """
 
-        return try await service.executeScriptInternal(script) as? Bool ?? false
+        return try await service.executeScriptInternal(script)?.value as? Bool ?? false
     }
 }

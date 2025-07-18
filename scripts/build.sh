@@ -104,7 +104,7 @@ fi
 # Lint Swift code
 if command_exists swiftlint; then
     print_status "info" "Linting Swift code with SwiftLint..."
-    if swiftlint lint --config .swiftlint.yml --quiet; then
+    if swiftlint lint --config .swiftlint.yml --quiet --fix --format; then
         print_status "success" "Code linting passed"
     else
         print_status "warning" "Code linting issues found (non-blocking)"

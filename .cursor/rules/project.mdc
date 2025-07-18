@@ -12,7 +12,7 @@ ODYSSEY is a native macOS application that:
 
 - Runs quietly in the menu bar (not dock) using `LSUIElement = true`
 - Automates web-based reservation booking for Ottawa Recreation facilities
-- Uses **Swift WebDriver + ChromeDriver** for robust web automation
+- Uses **Swift WebKit (WKWebView)** for robust, native web automation
 - Provides a modern SwiftUI interface for configuration management
 - Schedules automatic runs based on configured time slots
 - Supports multiple configurations for different sports and facilities
@@ -24,8 +24,7 @@ ODYSSEY is a native macOS application that:
 
 - **SwiftUI** - Modern, declarative UI framework for macOS
 - **AppKit** - Native macOS menu bar integration via `StatusBarController`
-- **Swift WebDriver** - Native WebDriver protocol implementation for Chrome automation
-- **ChromeDriver** - WebDriver server for Chrome browser automation
+- **WebKit (WKWebView)** - Native web automation engine for browser automation
 - **Combine** - Reactive programming for async operations and state management
 - **UserDefaults** - Persistent configuration storage via `ConfigurationManager`
 - **Timer** - Automated scheduling system for reservation automation
@@ -37,20 +36,14 @@ ODYSSEY is a native macOS application that:
 2. **StatusBarController** - Menu bar integration and UI management
 3. **ConfigurationManager** - Settings and data persistence (singleton)
 4. **ReservationManager** - Web automation orchestration
-5. **WebDriverService** - Chrome automation engine (singleton)
+5. **WebKitService** - Native web automation engine (singleton)
 6. **FacilityService** - Web scraping and facility data management
 7. **EmailService** - IMAP integration and email testing
-8. **TelegramService** - Telegram bot integration and notifications
+8. **UserSettingsManager** - User configuration and settings management
+9. **ValidationService** - Centralized validation logic (singleton)
+10. **AppConstants** - Centralized application constants
 
 ## 🎯 Development Guidelines
-
-### Custom commands
-
-- re - rebuild app
-- lo - tail logs in background for debug purposes
-- fo - format the code and fix linting issues
-- cl - cleanup codebasefo
-- cp - commit and push
 
 ### Code Style & Standards
 
@@ -62,11 +55,14 @@ ODYSSEY is a native macOS application that:
 
 ### Architecture Principles
 
+- **Protocol-Oriented Design**: Clear interfaces defined in `Sources/Utils/Protocols.swift`
 - **Separation of Concerns**: Each service has a single responsibility
 - **Dependency Injection**: Use singletons for shared services
 - **Reactive Programming**: Use Combine for state management and async operations
 - **Error Recovery**: Implement graceful error handling throughout
 - **Performance**: Optimize for memory usage and responsiveness
+- **Validation**: Centralized validation in `ValidationService`
+- **Constants**: Centralized constants in `AppConstants`
 
 ### Security & Privacy
 
@@ -76,26 +72,20 @@ ODYSSEY is a native macOS application that:
 - **Secure Connections**: Use HTTPS and App Transport Security
 - **Input Validation**: Validate and sanitize all user inputs
 
-### ChromeDriver Integration
+### WebKit Integration
 
-- **Installation Requirements:**
-  - **Homebrew Installation:** `brew install chromedriver`
-  - **Expected Path:** `/opt/homebrew/bin/chromedriver`
-  - **Version Compatibility:** Must match Chrome browser version
-
-### Permission Requirements
-
-- **Full Disk Access:** ChromeDriver needs this to launch Chrome
-- **Automation:** ODYSSEY needs this to control Chrome
-- **System Events:** For browser automation capabilities
-- **Accessibility:** Optional, provides additional features
+- **Native Approach**: Uses WKWebView for web automation
+- **No External Dependencies**: No ChromeDriver or Chrome required
+- **Better Performance**: Native macOS integration
+- **Smaller Footprint**: No additional browser dependencies
+- **No Permission Issues**: Standard app sandbox permissions only
 
 ### Error Handling
 
-- **Check Installation:** Verify ChromeDriver is installed and accessible
-- **Permission Validation:** Ensure all required permissions are granted
-- **Process Management:** Handle ChromeDriver startup/shutdown gracefully
-- **Fallback Strategies:** Provide clear error messages for missing dependencies
+- **WebKit Management**: Handle WebKit crashes and timeouts gracefully
+- **Network Issues**: Implement retry logic for network failures
+- **Process Management**: Handle WebKit startup/shutdown gracefully
+- **Fallback Strategies**: Provide clear error messages for automation failures
 
 ## 🔧 Development Workflow
 
@@ -122,10 +112,14 @@ ODYSSEY is a native macOS application that:
 
 ### Code Quality
 
-- **All code must pass SwiftLint with zero errors and no new warnings before pushing or releasing**
+- **All code must pass SwiftLint with zero errors and minimal warnings before pushing or releasing**
 - All linter violations must be fixed or explicitly justified in code review
-- Do not push or release code with unresolved SwiftLint errors or warnings
+- Do not push or release code with unresolved SwiftLint errors
 - Keep the repository clean by removing duplicate information
+- **Protocol-Oriented Design**: Use protocols for better testability and maintainability
+- **Extensions**: Use Swift extensions for code organization and reusability
+- **Validation**: Use centralized validation for consistency
+- **Constants**: Use centralized constants for maintainability
 
 ### Setup
 
@@ -156,7 +150,7 @@ xcodegen
 
 - **Logging:** Use `os.log` with appropriate categories
 - **Console:** Check Console app for detailed logs
-- **ChromeDriver:** Test automation manually with ChromeDriver
+- **WebKit:** Test automation manually with WebKit debugging
 - **Network:** Monitor network requests and responses
 
 ## 📚 Documentation Standards
@@ -205,10 +199,6 @@ xcodegen
 - **User Consent:** Require explicit permission for automation
 - **Community Benefit:** Focus on positive community impact
 - **Transparency:** Be clear about automation capabilities and limitations
-
----
-
-**Remember:** ODYSSEY is designed to help the Ottawa sports community by automating routine reservation tasks. Always prioritize user privacy, security, and ethical automation practices.
 
 ---
 

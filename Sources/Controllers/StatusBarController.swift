@@ -4,14 +4,15 @@ import os.log
 import SwiftUI
 
 /// Manages the status bar (tray) menu for the macOS app
+@MainActor
 class StatusBarController: NSObject {
     private var statusBar: NSStatusBar
     private var statusItem: NSStatusItem
     private var popover: NSPopover
     private var eventMonitor: EventMonitor?
 
-    private let configurationManager = ConfigurationManager.shared
-    private let reservationManager = ReservationManager.shared
+    @MainActor private let configurationManager = ConfigurationManager.shared
+    @MainActor private let reservationManager = ReservationManager.shared
     private var cancellables = Set<AnyCancellable>()
     private let logger = Logger(subsystem: "com.odyssey.app", category: "StatusBarController")
 

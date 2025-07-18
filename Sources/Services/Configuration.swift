@@ -3,6 +3,7 @@ import Foundation
 import os.log
 
 /// Manages application configuration and settings persistence
+@MainActor
 class ConfigurationManager: ObservableObject {
     static let shared = ConfigurationManager()
 

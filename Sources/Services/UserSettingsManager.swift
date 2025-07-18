@@ -5,6 +5,7 @@ import os.log
 ///
 /// Provides centralized access to user information including contact details,
 /// email settings, and optional Telegram integration settings.
+@MainActor
 class UserSettingsManager: ObservableObject {
     static let shared = UserSettingsManager()
 
@@ -15,8 +16,19 @@ class UserSettingsManager: ObservableObject {
     }
 
     // Store last successful configs
-    private var lastSuccessfulIMAPConfig: (email: String, password: String, server: String)?
-    private var lastSuccessfulGmailConfig: (email: String, appPassword: String)?
+    private var lastSuccessfulIMAPConfig: IMAPConfig?
+    private var lastSuccessfulGmailConfig: GmailConfig?
+
+    private struct IMAPConfig {
+        let email: String
+        let password: String
+        let server: String
+    }
+
+    private struct GmailConfig {
+        let email: String
+        let appPassword: String
+    }
 
     private let userDefaults = UserDefaults.standard
     private let settingsKey = "ODYSSEY_UserSettings"
@@ -61,18 +73,18 @@ class UserSettingsManager: ObservableObject {
             "name": userSettings.name,
             "phone": userSettings.getFormattedPhoneNumber(),
             "email": userSettings.imapEmail,
-            "server": userSettings.imapServer,
+            "server": userSettings.imapServer
         ]
     }
 
     // MARK: - Last Successful Config Management
 
     func saveLastSuccessfulIMAPConfig(email: String, password: String, server: String) {
-        lastSuccessfulIMAPConfig = (email, password, server)
+        lastSuccessfulIMAPConfig = IMAPConfig(email: email, password: password, server: server)
     }
 
     func saveLastSuccessfulGmailConfig(email: String, appPassword: String) {
-        lastSuccessfulGmailConfig = (email, appPassword)
+        lastSuccessfulGmailConfig = GmailConfig(email: email, appPassword: appPassword)
     }
 
     func restoreIMAPConfigIfAvailable() {
