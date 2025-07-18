@@ -131,8 +131,13 @@ private extension ContentView {
     var footerView: some View {
         VStack(spacing: 8) {
             HStack {
-                Button("Settings") {
-                    showingSettings = true
+                Button(action: { showingSettings = true }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 14))
+                        Text("Settings")
+                            .font(.system(size: 13))
+                    }
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.blue)
@@ -141,8 +146,13 @@ private extension ContentView {
 
                 Spacer()
 
-                Button("About") {
-                    showingAbout = true
+                Button(action: { showingAbout = true }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "info.circle.fill")
+                            .font(.system(size: 14))
+                        Text("About")
+                            .font(.system(size: 13))
+                    }
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.regular)
@@ -150,8 +160,13 @@ private extension ContentView {
 
                 Spacer()
 
-                Button("Quit") {
-                    NSApp.terminate(nil)
+                Button(action: { NSApp.terminate(nil) }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "power")
+                            .font(.system(size: 14))
+                        Text("Quit")
+                            .font(.system(size: 13))
+                    }
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.red)

@@ -175,7 +175,7 @@ struct SettingsFormView: View {
 
                             // Test Email Connection Button
                             if userSettingsManager.userSettings.hasEmailConfigured {
-                                Button("Test Email") {
+                                Button(action: {
                                     emailService.lastTestResult = nil
                                     Task {
                                         let result = await emailService.testIMAPConnection(
@@ -202,6 +202,13 @@ struct SettingsFormView: View {
                                                 }
                                             }
                                         }
+                                    }
+                                }) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "envelope.badge")
+                                            .font(.system(size: 14))
+                                        Text("Test Email")
+                                            .font(.system(size: 13))
                                     }
                                 }
                                 .buttonStyle(.bordered)
