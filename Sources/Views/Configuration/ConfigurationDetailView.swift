@@ -72,15 +72,27 @@ struct ConfigurationDetailView: View {
             TextField("Enter facility URL", text: $facilityURL)
                 .onChange(of: facilityURL) { _, _ in updateConfigurationName() }
             if !facilityURL.isEmpty, !isValidFacilityURL(facilityURL) {
-                Text("Please enter a valid Ottawa Recreation URL.")
-                    .font(.caption)
-                    .foregroundColor(.red)
-                Link(
-                    "View Ottawa Facilities",
-                    destination: URL(string: "https://ottawa.ca/en/recreation-and-parks/recreation-facilities") ??
-                        URL(string: "https://ottawa.ca")!,
-                    )
-                .font(.caption)
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    HStack(spacing: 0) {
+                        Text("Please enter a ")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                        Button("valid") {
+                            if let url = URL(string: AppConstants.ottawaFacilitiesURL) {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundColor(.blue)
+                        .font(.caption)
+                        Text(" Ottawa Recreation URL")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                    }
+                    Spacer()
+                }
             }
         }
         .padding(.bottom, 20)
@@ -187,6 +199,11 @@ struct ConfigurationDetailView: View {
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
             TextField("Configuration Name", text: $name)
+                .onChange(of: name) { _, newValue in
+                    if newValue.count > 60 {
+                        name = String(newValue.prefix(60))
+                    }
+                }
         }
         .padding(.bottom, 20)
     }
@@ -353,9 +370,7 @@ struct ConfigurationDetailView: View {
                 isFetchingSports = false
                 availableSports = sports
             }
-
         }
-
     }
 
     private func addTimeSlot(for day: ReservationConfig.Weekday) {

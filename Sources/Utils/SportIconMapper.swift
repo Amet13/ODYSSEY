@@ -40,25 +40,11 @@ enum SportIconMapper {
             return "volleyball.fill"
         }
 
-        // MARK: - Badminton
-
-        // Badminton variations (including age-specific)
-        if lowercasedSport.contains("badminton") {
-            return "badminton.racket"
-        }
-
         // MARK: - Soccer
 
         // Soccer variations (including age-specific)
         if lowercasedSport.contains("soccer") || lowercasedSport.contains("football") {
             return "soccerball"
-        }
-
-        // MARK: - Pickleball
-
-        // Pickleball variations (including age and skill levels)
-        if lowercasedSport.contains("pickleball") {
-            return "pickleball.racket"
         }
 
         // MARK: - Gym & Fitness Activities
@@ -179,33 +165,6 @@ enum SportIconMapper {
             return "figure.mind.and.body"
         }
 
-        // MARK: - Age-Specific Activities
-
-        // 50+ activities
-        if lowercasedSport.contains("50+") || lowercasedSport.contains("older adult") {
-            return "figure.mind.and.body"
-        }
-
-        // Family activities
-        if lowercasedSport.contains("family") {
-            return "figure.2.and.child.holdinghands"
-        }
-
-        // Youth activities
-        if lowercasedSport.contains("youth") {
-            return "figure.2.and.child.holdinghands"
-        }
-
-        // Adult activities
-        if lowercasedSport.contains("adult") {
-            return "person.fill"
-        }
-
-        // All ages activities
-        if lowercasedSport.contains("all ages") {
-            return "person.3.fill"
-        }
-
         // MARK: - Curling
 
         // Curling variations (including sheet-specific and age-specific)
@@ -222,8 +181,10 @@ enum SportIconMapper {
 
         // MARK: - Legacy Sports (keeping existing mappings)
 
-        // Tennis
-        if lowercasedSport.contains("tennis") {
+        // Tennis and Badminton and Pickleball
+        if
+            lowercasedSport.contains("tennis") || lowercasedSport.contains("badminton") || lowercasedSport
+                .contains("pickleball") {
             return "tennis.racket"
         }
 
@@ -291,49 +252,9 @@ enum SportIconMapper {
             return "racquetball.racket"
         }
 
-        // Handball
-        if lowercasedSport.contains("handball") {
-            return "handball"
-        }
-
-        // Rugby
-        if lowercasedSport.contains("rugby") {
-            return "rugby.ball"
-        }
-
         // American Football
         if lowercasedSport.contains("american football") || lowercasedSport.contains("football") {
             return "football.fill"
-        }
-
-        // Lacrosse
-        if lowercasedSport.contains("lacrosse") {
-            return "lacrosse.stick"
-        }
-
-        // Curling
-        if lowercasedSport.contains("curling") {
-            return "curling.stone"
-        }
-
-        // Bowling
-        if lowercasedSport.contains("bowling") {
-            return "bowling.ball"
-        }
-
-        // Golf
-        if lowercasedSport.contains("golf") {
-            return "golf.club"
-        }
-
-        // Archery
-        if lowercasedSport.contains("archery") {
-            return "bow.and.arrow"
-        }
-
-        // Fencing
-        if lowercasedSport.contains("fencing") {
-            return "fencing.sword"
         }
 
         // Boxing
@@ -341,91 +262,9 @@ enum SportIconMapper {
             return "figure.boxing"
         }
 
-        // Wrestling
-        if lowercasedSport.contains("wrestling") || lowercasedSport.contains("wrestle") {
-            return "figure.wrestling"
-        }
-
-        // Gymnastics
-        if lowercasedSport.contains("gymnastics") || lowercasedSport.contains("gymnastic") {
-            return "figure.gymnastics"
-        }
-
-        // Track and Field
-        if
-            lowercasedSport.contains("track") || lowercasedSport.contains("field") || lowercasedSport
-                .contains("athletics") {
-            return "figure.track.and.field"
-        }
-
-        // Cross Country
-        if lowercasedSport.contains("cross country") || lowercasedSport.contains("crosscountry") {
-            return "figure.cross.country"
-        }
-
-        // Triathlon
-        if lowercasedSport.contains("triathlon") {
-            return "figure.triathlon"
-        }
-
-        // Water Polo
-        if lowercasedSport.contains("water polo") || lowercasedSport.contains("waterpolo") {
-            return "water.polo"
-        }
-
-        // Synchronized Swimming
-        if lowercasedSport.contains("synchronized swimming") || lowercasedSport.contains("synchro") {
-            return "figure.synchronized.swimming"
-        }
-
-        // Diving
-        if lowercasedSport.contains("diving") || lowercasedSport.contains("dive") {
-            return "figure.diving"
-        }
-
-        // Canoe/Kayak
-        if lowercasedSport.contains("canoe") || lowercasedSport.contains("kayak") {
-            return "canoe"
-        }
-
-        // Rowing
-        if lowercasedSport.contains("rowing") || lowercasedSport.contains("row") {
-            return "rowing"
-        }
-
-        // Sailing
-        if lowercasedSport.contains("sailing") || lowercasedSport.contains("sail") {
-            return "sailboat"
-        }
-
-        // Surfing
-        if lowercasedSport.contains("surfing") || lowercasedSport.contains("surf") {
-            return "surfboard"
-        }
-
-        // Snowboarding
-        if lowercasedSport.contains("snowboarding") || lowercasedSport.contains("snowboard") {
-            return "snowboard"
-        }
-
         // Ice Hockey
         if lowercasedSport.contains("ice hockey") || lowercasedSport.contains("icehockey") {
             return "hockey.puck"
-        }
-
-        // Field Hockey
-        if lowercasedSport.contains("field hockey") || lowercasedSport.contains("fieldhockey") {
-            return "field.hockey.stick"
-        }
-
-        // Ultimate Frisbee
-        if lowercasedSport.contains("ultimate") || lowercasedSport.contains("frisbee") {
-            return "frisbee"
-        }
-
-        // Disc Golf
-        if lowercasedSport.contains("disc golf") || lowercasedSport.contains("discgolf") {
-            return "disc.golf"
         }
 
         // Rock Climbing
@@ -433,96 +272,9 @@ enum SportIconMapper {
             return "figure.climbing"
         }
 
-        // Bouldering
-        if lowercasedSport.contains("bouldering") || lowercasedSport.contains("boulder") {
-            return "figure.climbing"
-        }
-
-        // Parkour
-        if lowercasedSport.contains("parkour") {
-            return "figure.parkour"
-        }
-
-        // Breakdancing
-        if
-            lowercasedSport.contains("breakdancing") || lowercasedSport.contains("break dance") || lowercasedSport
-                .contains("breakdance") {
-            return "figure.dance"
-        }
-
-        // Hip Hop Dance
-        if lowercasedSport.contains("hip hop") || lowercasedSport.contains("hiphop") {
-            return "figure.dance"
-        }
-
-        // Ballet
-        if lowercasedSport.contains("ballet") {
-            return "figure.dance"
-        }
-
-        // Jazz Dance
-        if lowercasedSport.contains("jazz dance") || lowercasedSport.contains("jazzdance") {
-            return "figure.dance"
-        }
-
-        // Tap Dance
-        if lowercasedSport.contains("tap dance") || lowercasedSport.contains("tapdance") {
-            return "figure.dance"
-        }
-
-        // Contemporary Dance
-        if lowercasedSport.contains("contemporary dance") || lowercasedSport.contains("contemporarydance") {
-            return "figure.dance"
-        }
-
-        // Tai Chi
-        if lowercasedSport.contains("tai chi") || lowercasedSport.contains("taichi") {
-            return "figure.mind.and.body"
-        }
-
         // Meditation
         if lowercasedSport.contains("meditation") || lowercasedSport.contains("meditate") {
             return "figure.mind.and.body"
-        }
-
-        // Kickboxing
-        if lowercasedSport.contains("kickboxing") || lowercasedSport.contains("kickbox") {
-            return "figure.martial.arts"
-        }
-
-        // Muay Thai
-        if lowercasedSport.contains("muay thai") || lowercasedSport.contains("muaythai") {
-            return "figure.martial.arts"
-        }
-
-        // Jiu-Jitsu
-        if lowercasedSport.contains("jiu-jitsu") || lowercasedSport.contains("jiujitsu") {
-            return "figure.martial.arts"
-        }
-
-        // Judo
-        if lowercasedSport.contains("judo") {
-            return "figure.martial.arts"
-        }
-
-        // Aikido
-        if lowercasedSport.contains("aikido") {
-            return "figure.martial.arts"
-        }
-
-        // Kendo
-        if lowercasedSport.contains("kendo") {
-            return "figure.martial.arts"
-        }
-
-        // Capoeira
-        if lowercasedSport.contains("capoeira") {
-            return "figure.martial.arts"
-        }
-
-        // Krav Maga
-        if lowercasedSport.contains("krav maga") || lowercasedSport.contains("kravmaga") {
-            return "figure.martial.arts"
         }
 
         // Default fallback for any sport not specifically mapped

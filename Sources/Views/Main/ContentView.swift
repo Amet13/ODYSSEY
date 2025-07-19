@@ -318,9 +318,11 @@ struct ConfigurationRowView: View {
             }
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
             HStack(spacing: 4) {
-                Image(systemName: SportIconMapper.iconForSport(config.sportName))
-                    .foregroundColor(.accentColor)
-                    .font(.caption)
+                SportIconView(
+                    symbolName: SportIconMapper.iconForSport(config.sportName),
+                    color: .accentColor,
+                    size: 12,
+                    )
                 Text(
                     "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(formatScheduleInfoInline())",
                     )
@@ -484,15 +486,16 @@ struct ConfigurationRowView: View {
         } else {
             // Configuration has never been run - show in grey
             return AnyView(
-                HStack(spacing: 6) {
+                HStack(spacing: 2) {
                     Image(systemName: "questionmark.circle")
                         .foregroundColor(.gray)
                         .font(.caption)
-                    Text(
-                        "Last run: " + "never",
-                        )
-                    .font(.caption)
-                    .foregroundColor(.gray)
+                    Text("Last run:")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                    Text("never")
+                        .font(.caption)
+                        .foregroundColor(.gray)
                 },
                 )
         }

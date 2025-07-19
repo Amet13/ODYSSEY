@@ -131,7 +131,7 @@ class EmailService: ObservableObject {
             if regex.firstMatch(in: trimmedPassword, range: range) == nil {
                 return .failure(
                     .gmailAppPasswordRequired(
-                        "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' (16 alphanumeric characters with spaces every 4 characters).",
+                        "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx'",
                         ),
                     )
             }
@@ -141,7 +141,7 @@ class EmailService: ObservableObject {
             if cleanedPassword.count != 16 || !cleanedPassword.allSatisfy({ $0.isLetter || $0.isNumber }) {
                 return .failure(
                     .gmailAppPasswordRequired(
-                        "Gmail App Password must be 16 alphanumeric characters in format: 'xxxx xxxx xxxx xxxx'.",
+                        "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx'",
                         ),
                     )
             }
@@ -1694,7 +1694,7 @@ class EmailService: ObservableObject {
                 if isGmail {
                     diagnostic += "- Make sure you're using an App Password, not your regular Gmail password\n"
                     diagnostic += "- Generate a new App Password: Google Account → Security → App passwords\n"
-                    diagnostic += "- App Password format: xxxx xxxx xxxx xxxx (16 lowercase letters)\n"
+                    diagnostic += "- App Password format: xxxx xxxx xxxx xxxx\n"
                 } else {
                     diagnostic += "- Check your email and password\n"
                     diagnostic += "- Make sure your email provider allows IMAP access\n"

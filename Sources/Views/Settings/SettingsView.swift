@@ -16,6 +16,7 @@ struct SettingsFormView: View {
     @State private var showingSaveConfirmation = false
     @State private var showingValidationAlert = false
     @State private var validationMessage = ""
+    @State private var shouldClearTestResult = false
 
     init() {
         // Setup notification categories for development builds
@@ -63,6 +64,11 @@ struct SettingsFormView: View {
                                 icon: "person",
                                 maxLength: 30,
                                 )
+                            .onChange(of: userSettingsManager.userSettings.name) { _, _ in
+                                if emailService.lastTestResult != nil {
+                                    emailService.lastTestResult = nil
+                                }
+                            }
 
                             settingsField(
                                 title: "Phone Number",
@@ -71,6 +77,11 @@ struct SettingsFormView: View {
                                 icon: "phone",
                                 maxLength: 10,
                                 )
+                            .onChange(of: userSettingsManager.userSettings.phoneNumber) { _, _ in
+                                if emailService.lastTestResult != nil {
+                                    emailService.lastTestResult = nil
+                                }
+                            }
 
                             if
                                 !userSettingsManager.userSettings.phoneNumber.isEmpty,
@@ -105,6 +116,10 @@ struct SettingsFormView: View {
                                 if isGmailAccount(newEmail) {
                                     userSettingsManager.userSettings.imapServer = "imap.gmail.com"
                                 }
+                                // Clear test result when email changes
+                                if emailService.lastTestResult != nil {
+                                    emailService.lastTestResult = nil
+                                }
                             }
 
                             if
@@ -128,6 +143,11 @@ struct SettingsFormView: View {
                                 icon: "server.rack",
                                 isReadOnly: isGmailAccount(userSettingsManager.userSettings.imapEmail),
                                 )
+                            .onChange(of: userSettingsManager.userSettings.imapServer) { _, _ in
+                                if emailService.lastTestResult != nil {
+                                    emailService.lastTestResult = nil
+                                }
+                            }
 
                             // Password/App Password Field
                             settingsField(
@@ -140,6 +160,11 @@ struct SettingsFormView: View {
                                 icon: "lock",
                                 isSecure: true,
                                 )
+                            .onChange(of: userSettingsManager.userSettings.imapPassword) { _, _ in
+                                if emailService.lastTestResult != nil {
+                                    emailService.lastTestResult = nil
+                                }
+                            }
 
                             // Gmail App Password validation and help
                             if isGmailAccount(userSettingsManager.userSettings.imapEmail) {
@@ -149,27 +174,24 @@ struct SettingsFormView: View {
                                     HStack {
                                         Image(systemName: "exclamationmark.triangle.fill")
                                             .foregroundColor(.orange)
-                                        Text(
-                                            "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx' " +
-                                                "(16 lowercase letters with spaces every 4 characters)",
-                                            )
-                                        .font(.caption)
-                                        .foregroundColor(.orange)
+                                        HStack(spacing: 0) {
+                                            Text("Gmail App Password must be in ")
+                                                .font(.caption)
+                                                .foregroundColor(.orange)
+                                            Button("format") {
+                                                if let url = URL(string: AppConstants.gmailAppPasswordURL) {
+                                                    NSWorkspace.shared.open(url)
+                                                }
+                                            }
+                                            .buttonStyle(.plain)
+                                            .foregroundColor(.blue)
+                                            .font(.caption)
+                                            Text(": 'xxxx xxxx xxxx xxxx'")
+                                                .font(.caption)
+                                                .foregroundColor(.orange)
+                                        }
                                         Spacer()
                                     }
-                                }
-
-                                HStack {
-                                    Button("How to create Gmail App Password") {
-                                        if let url = URL(string: "https://support.google.com/accounts/answer/185833") {
-                                            NSWorkspace.shared.open(url)
-                                        }
-                                    }
-                                    .buttonStyle(.plain)
-                                    .foregroundColor(.blue)
-                                    .font(.caption)
-                                    .help("Opens Google's guide to creating app passwords")
-                                    Spacer()
                                 }
                             }
 
@@ -242,6 +264,9 @@ struct SettingsFormView: View {
                                     Spacer()
                                 }
                                 .padding(.top, 4)
+                                .onTapGesture {
+                                    emailService.lastTestResult = nil
+                                }
                             }
                         }
                     }
@@ -251,6 +276,12 @@ struct SettingsFormView: View {
                     // Notification Settings Section
                     // Removed NotificationSettingsSection
                 }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if emailService.lastTestResult != nil {
+                        emailService.lastTestResult = nil
+                    }
+                }
                 .padding()
             }
 
@@ -259,12 +290,14 @@ struct SettingsFormView: View {
             HStack {
                 Spacer()
                 Button("Cancel") {
+                    emailService.lastTestResult = nil
                     dismiss()
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.regular)
                 Button("Save") {
                     saveSettings()
+                    emailService.lastTestResult = nil
                     dismiss()
                 }
                 .buttonStyle(.borderedProminent)
@@ -286,6 +319,9 @@ struct SettingsFormView: View {
             Button("OK") { }
         } message: {
             Text(validationMessage)
+        }
+        .onDisappear {
+            emailService.lastTestResult = nil
         }
     }
 
