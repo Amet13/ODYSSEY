@@ -245,7 +245,7 @@ class ODYSSEYUITests: XCTestCase {
         urlField.tap()
         urlField.typeText("https://test.com")
 
-        // Continue with other form fields...
+        // Continue with other form fields as needed
     }
 }
 ```
@@ -312,9 +312,9 @@ Clear and concise description of the bug
 
 ## Steps to Reproduce
 
-1. Go to '...'
-2. Click on '...'
-3. Scroll down to '...'
+1. Go to the settings page
+2. Click on the configuration button
+3. Scroll down to the form section
 4. See error
 
 ## Expected Behavior
