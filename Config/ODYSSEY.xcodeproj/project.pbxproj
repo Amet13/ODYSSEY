@@ -28,7 +28,6 @@
 		C31CF17307DDA59BA42606BC /* ConfigurationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4032FBD046C7A84D2AB708F7 /* ConfigurationDetailView.swift */; };
 		CB04374E216585BE1DBC7BF4 /* ODYSSEYApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D401C9E0BDAD61E6DECC196A /* ODYSSEYApp.swift */; };
 		CD28D84649639DDF5D9281B7 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23E39878914FA1362DBDFB3 /* SettingsView.swift */; };
-		DBC63C80096923364F4D34FA /* WebKitService.swift.backup in Resources */ = {isa = PBXBuildFile; fileRef = 2FEE12E1187BB1AE10B9E0B9 /* WebKitService.swift.backup */; };
 		DC6BD4AFB504DDB4F2D9BD47 /* WebDriverProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */; };
 		E2CDCC931C7C13AD6F4D8DD4 /* UserSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88087B5FF17E55461F2F9181 /* UserSettingsManager.swift */; };
 		FA8FDED3BB6BF7B43C24F5B5 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9F32A0A5C6C800FBB7769711 /* AppIcon.icns */; };
@@ -40,7 +39,6 @@
 		293C6FA2694660A932F8CC5A /* Protocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Protocols.swift; sourceTree = "<group>"; };
 		2D2446632770BD464AB6F9FF /* SportIconMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportIconMapper.swift; sourceTree = "<group>"; };
 		2DC0F2FC1EC5039DF5FCC39B /* ReservationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationManager.swift; sourceTree = "<group>"; };
-		2FEE12E1187BB1AE10B9E0B9 /* WebKitService.swift.backup */ = {isa = PBXFileReference; path = WebKitService.swift.backup; sourceTree = "<group>"; };
 		3419A41E593FC7E578492598 /* EmailService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailService.swift; sourceTree = "<group>"; };
 		34D958E5CB6EBC1B6F06E168 /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		4032FBD046C7A84D2AB708F7 /* ConfigurationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationDetailView.swift; sourceTree = "<group>"; };
@@ -110,7 +108,6 @@
 				9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */,
 				DBCC4A2B64370ACAF412BF87 /* WebDriverStealth.swift */,
 				48D6507655544E5D9BC6CABF /* WebKitService.swift */,
-				2FEE12E1187BB1AE10B9E0B9 /* WebKitService.swift.backup */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -256,7 +253,6 @@
 			files = (
 				FA8FDED3BB6BF7B43C24F5B5 /* AppIcon.icns in Resources */,
 				41CB267A86BBFDE6B8D76B14 /* Assets.xcassets in Resources */,
-				DBC63C80096923364F4D34FA /* WebKitService.swift.backup in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

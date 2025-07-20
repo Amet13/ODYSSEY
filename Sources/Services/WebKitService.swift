@@ -287,6 +287,32 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                 return true;
             },
 
+            // Fill form field with browser autofill behavior (less likely to trigger captchas)
+            fillFieldWithAutofill: function(selector, value) {
+                const field = document.querySelector(selector);
+                if (!field) return false;
+
+                // Browser autofill behavior: scroll into view
+                field.scrollIntoView({ behavior: 'auto', block: 'center' });
+
+                // Focus and clear
+                field.focus();
+                field.value = '';
+
+                // Autofill-style: set value instantly
+                field.value = value;
+
+                // Dispatch autofill events
+                field.dispatchEvent(new Event('input', { bubbles: true }));
+                field.dispatchEvent(new Event('change', { bubbles: true }));
+                field.dispatchEvent(new Event('autocomplete', { bubbles: true }));
+
+                // Blur (browser autofill behavior)
+                field.blur();
+
+                return true;
+            },
+
             // Wait for element to appear
             waitForElement: function(selector, timeout = 10000) {
                 return new Promise((resolve, reject) => {
@@ -3053,7 +3079,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         return ""
     }
 
-    /// Fills verification code into the input field
+    /// Fills verification code into the input field using browser autofill behavior
     private func fillVerificationCode(_ code: String) async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
@@ -3070,64 +3096,32 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                                         document.querySelector('input[placeholder*="code"]');
 
                 if (verificationInput) {
-                    // Clear the field first
+                    // Browser autofill behavior: scroll into view
+                    verificationInput.scrollIntoView({ behavior: 'auto', block: 'center' });
+
+                    // Focus and clear
+                    verificationInput.focus();
                     verificationInput.value = '';
 
-                    // Focus the field
-                    verificationInput.focus();
+                    // Autofill-style: set value instantly
+                    verificationInput.value = '\(code)';
 
-                    // Fill the code character by character with human-like delays
-                    const code = '\(code)';
-                    console.log('[ODYSSEY] Typing verification code:', code);
+                    // Dispatch autofill events
+                    verificationInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    verificationInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    verificationInput.dispatchEvent(new Event('autocomplete', { bubbles: true }));
 
-                    const typeCharacter = (index) => {
-                        if (index >= code.length) {
-                            // Add natural delay before finishing
-                            setTimeout(() => {
-                                verificationInput.dispatchEvent(new Event('change', { bubbles: true }));
-                                verificationInput.blur();
-                                console.log('[ODYSSEY] Verification code filled with:', verificationInput.value);
-                            }, 200 + Math.random() * 300);
-                            return;
-                        }
+                    // Blur (browser autofill behavior)
+                    verificationInput.blur();
 
-                        // Type character with realistic events
-                        verificationInput.value += code[index];
-                        verificationInput.dispatchEvent(new KeyboardEvent('keydown', {
-                            bubbles: true,
-                            key: code[index],
-                            code: 'Key' + code[index].toUpperCase(),
-                            keyCode: code[index].charCodeAt(0)
-                        }));
-                        verificationInput.dispatchEvent(new KeyboardEvent('keypress', {
-                            bubbles: true,
-                            key: code[index],
-                            code: 'Key' + code[index].toUpperCase(),
-                            keyCode: code[index].charCodeAt(0)
-                        }));
-                        verificationInput.dispatchEvent(new Event('input', { bubbles: true }));
-                        verificationInput.dispatchEvent(new KeyboardEvent('keyup', {
-                            bubbles: true,
-                            key: code[index],
-                            code: 'Key' + code[index].toUpperCase(),
-                            keyCode: code[index].charCodeAt(0)
-                        }));
-
-                        // Human-like delay between characters (80-150ms)
-                        const delay = 80 + Math.random() * 70;
-                        setTimeout(() => typeCharacter(index + 1), delay);
-                    };
-
-                    // Start typing after a short delay
-                    setTimeout(() => typeCharacter(0), 200 + Math.random() * 300);
-
+                    console.log('[ODYSSEY] Verification code autofill completed with:', verificationInput.value);
                     return true;
                 } else {
                     console.log('[ODYSSEY] Verification input field not found');
                     return false;
                 }
             } catch (error) {
-                console.error('[ODYSSEY] Error filling verification code:', error);
+                console.error('[ODYSSEY] Error filling verification code with autofill:', error);
                 return false;
             }
         })();
@@ -3136,14 +3130,16 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
-                logger.info("Successfully filled verification code")
+                logger.info("Successfully filled verification code with autofill behavior")
+                // Minimal delay after autofill
+                try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 300_000_000))
                 return true
             } else {
-                logger.error("Failed to fill verification code")
+                logger.error("Failed to fill verification code with autofill")
                 return false
             }
         } catch {
-            logger.error("Error filling verification code: \(error.localizedDescription)")
+            logger.error("Error filling verification code with autofill: \(error.localizedDescription)")
             return false
         }
     }
@@ -3641,6 +3637,303 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             if let onWindowClosed = self.onWindowClosed {
                 onWindowClosed()
             }
+        }
+    }
+
+    // MARK: - Browser Autofill Methods (Less Likely to Trigger Captchas)
+
+    /// Fills form fields using browser autofill behavior instead of human typing
+    /// This mimics how browsers fill forms when users click autofill suggestions
+    func fillFieldWithAutofill(selector: String, value: String) async -> Bool {
+        guard let webView else {
+            logger.error("WebView not initialized")
+            return false
+        }
+
+        let script = """
+        (function() {
+            try {
+                const field = document.querySelector('\(selector)');
+                if (!field) {
+                    console.log('[ODYSSEY] Field not found for selector: \(selector)');
+                    return false;
+                }
+
+                // Scroll field into view (browser autofill behavior)
+                field.scrollIntoView({ behavior: 'auto', block: 'center' });
+
+                // Focus the field (browser autofill behavior)
+                field.focus();
+
+                // Clear existing value
+                field.value = '';
+
+                // Simulate browser autofill: set value instantly and dispatch events
+                // This mimics how browsers fill forms when users click autofill suggestions
+                field.value = '\(value)';
+
+                // Dispatch events that browsers trigger during autofill
+                field.dispatchEvent(new Event('input', { bubbles: true }));
+                field.dispatchEvent(new Event('change', { bubbles: true }));
+
+                // Trigger autocomplete event (common in autofill scenarios)
+                field.dispatchEvent(new Event('autocomplete', { bubbles: true }));
+
+                // Blur the field (browser autofill behavior)
+                field.blur();
+
+                console.log('[ODYSSEY] Autofill-style field filling completed for: \(selector)');
+                return true;
+
+            } catch (error) {
+                console.error('[ODYSSEY] Error in autofill field filling:', error);
+                return false;
+            }
+        })();
+        """
+
+        do {
+            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
+            if result {
+                logger.info("Successfully filled field with autofill behavior: \(selector)")
+                // Minimal delay after autofill (browsers don't wait long after autofill)
+                try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 300_000_000))
+                return true
+            } else {
+                logger.error("Failed to fill field with autofill behavior: \(selector)")
+                return false
+            }
+        } catch {
+            logger.error("Error filling field with autofill behavior: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Fills phone number using browser autofill behavior
+    func fillPhoneNumberWithAutofill(_ phoneNumber: String) async -> Bool {
+        guard let webView else {
+            logger.error("WebView not initialized")
+            return false
+        }
+
+        let script = """
+        (function() {
+            try {
+                // Try multiple selectors to find the phone field
+                let phoneField = document.getElementById('phone') ||
+                               document.getElementById('telephone') ||
+                               document.getElementById('phoneNumber') ||
+                               document.querySelector('input[type="tel"]') ||
+                               document.querySelector('input[name*="phone"]') ||
+                               document.querySelector('input[name*="tel"]') ||
+                               document.querySelector('input[placeholder*="phone"]') ||
+                               document.querySelector('input[placeholder*="tel"]') ||
+                               document.querySelector('input[placeholder*="Phone"]') ||
+                               document.querySelector('input[placeholder*="Telephone"]');
+
+                console.log('[ODYSSEY] Phone field found for autofill:', phoneField ? {
+                    type: phoneField.type,
+                    name: phoneField.name,
+                    id: phoneField.id,
+                    placeholder: phoneField.placeholder
+                } : 'NOT FOUND');
+
+                if (phoneField) {
+                    // Browser autofill behavior: scroll into view
+                    phoneField.scrollIntoView({ behavior: 'auto', block: 'center' });
+
+                    // Focus and clear
+                    phoneField.focus();
+                    phoneField.value = '';
+
+                    // Autofill-style: set value instantly
+                    phoneField.value = '\(phoneNumber)';
+
+                    // Dispatch autofill events
+                    phoneField.dispatchEvent(new Event('input', { bubbles: true }));
+                    phoneField.dispatchEvent(new Event('change', { bubbles: true }));
+                    phoneField.dispatchEvent(new Event('autocomplete', { bubbles: true }));
+
+                    // Blur (browser autofill behavior)
+                    phoneField.blur();
+
+                    console.log('[ODYSSEY] Phone autofill completed with:', phoneField.value);
+                    return true;
+                } else {
+                    console.error('[ODYSSEY] Phone field not found for autofill');
+                    return false;
+                }
+            } catch (error) {
+                console.error('[ODYSSEY] Error in phone autofill:', error);
+                return false;
+            }
+        })();
+        """
+
+        do {
+            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
+            if result {
+                logger.info("Successfully filled phone number with autofill behavior")
+                // Minimal delay after autofill
+                try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 300_000_000))
+                return true
+            } else {
+                logger.error("Failed to fill phone number with autofill - field not found")
+                return false
+            }
+        } catch {
+            logger.error("Error filling phone number with autofill: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Fills email using browser autofill behavior
+    func fillEmailWithAutofill(_ email: String) async -> Bool {
+        guard let webView else {
+            logger.error("WebView not initialized")
+            return false
+        }
+
+        let script = """
+        (function() {
+            try {
+                // Try multiple selectors to find the email field
+                let emailField = document.getElementById('email') ||
+                               document.getElementById('emailAddress') ||
+                               document.querySelector('input[type="email"]') ||
+                               document.querySelector('input[name*="email"]') ||
+                               document.querySelector('input[placeholder*="email"]') ||
+                               document.querySelector('input[placeholder*="Email"]');
+
+                console.log('[ODYSSEY] Email field found for autofill:', emailField ? {
+                    type: emailField.type,
+                    name: emailField.name,
+                    id: emailField.id,
+                    placeholder: emailField.placeholder
+                } : 'NOT FOUND');
+
+                if (emailField) {
+                    // Browser autofill behavior: scroll into view
+                    emailField.scrollIntoView({ behavior: 'auto', block: 'center' });
+
+                    // Focus and clear
+                    emailField.focus();
+                    emailField.value = '';
+
+                    // Autofill-style: set value instantly
+                    emailField.value = '\(email)';
+
+                    // Dispatch autofill events
+                    emailField.dispatchEvent(new Event('input', { bubbles: true }));
+                    emailField.dispatchEvent(new Event('change', { bubbles: true }));
+                    emailField.dispatchEvent(new Event('autocomplete', { bubbles: true }));
+
+                    // Blur (browser autofill behavior)
+                    emailField.blur();
+
+                    console.log('[ODYSSEY] Email autofill completed with:', emailField.value);
+                    return true;
+                } else {
+                    console.error('[ODYSSEY] Email field not found for autofill');
+                    return false;
+                }
+            } catch (error) {
+                console.error('[ODYSSEY] Error in email autofill:', error);
+                return false;
+            }
+        })();
+        """
+
+        do {
+            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
+            if result {
+                logger.info("Successfully filled email with autofill behavior")
+                // Minimal delay after autofill
+                try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 300_000_000))
+                return true
+            } else {
+                logger.error("Failed to fill email with autofill - field not found")
+                return false
+            }
+        } catch {
+            logger.error("Error filling email with autofill: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Fills name using browser autofill behavior
+    func fillNameWithAutofill(_ name: String) async -> Bool {
+        guard let webView else {
+            logger.error("WebView not initialized")
+            return false
+        }
+
+        let script = """
+        (function() {
+            try {
+                // Try multiple selectors to find the name field
+                let nameField = document.querySelector('input[id^="field"]') ||
+                              document.getElementById('name') ||
+                              document.getElementById('fullName') ||
+                              document.getElementById('firstName') ||
+                              document.querySelector('input[name*="name"]') ||
+                              document.querySelector('input[placeholder*="name"]') ||
+                              document.querySelector('input[placeholder*=\"Name\"]') ||
+                              document.querySelector('input[placeholder*=\"Full Name\"]');
+
+                console.log('[ODYSSEY] Name field found for autofill:', nameField ? {
+                    type: nameField.type,
+                    name: nameField.name,
+                    id: nameField.id,
+                    placeholder: nameField.placeholder
+                } : 'NOT FOUND');
+
+                if (nameField) {
+                    // Browser autofill behavior: scroll into view
+                    nameField.scrollIntoView({ behavior: 'auto', block: 'center' });
+
+                    // Focus and clear
+                    nameField.focus();
+                    nameField.value = '';
+
+                    // Autofill-style: set value instantly
+                    nameField.value = '\(name)';
+
+                    // Dispatch autofill events
+                    nameField.dispatchEvent(new Event('input', { bubbles: true }));
+                    nameField.dispatchEvent(new Event('change', { bubbles: true }));
+                    nameField.dispatchEvent(new Event('autocomplete', { bubbles: true }));
+
+                    // Blur (browser autofill behavior)
+                    nameField.blur();
+
+                    console.log('[ODYSSEY] Name autofill completed with:', nameField.value);
+                    return true;
+                } else {
+                    console.error('[ODYSSEY] Name field not found for autofill');
+                    return false;
+                }
+            } catch (error) {
+                console.error('[ODYSSEY] Error in name autofill:', error);
+                return false;
+            }
+        })();
+        """
+
+        do {
+            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
+            if result {
+                logger.info("Successfully filled name with autofill behavior")
+                // Minimal delay after autofill
+                try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 300_000_000))
+                return true
+            } else {
+                logger.error("Failed to fill name with autofill - field not found")
+                return false
+            }
+        } catch {
+            logger.error("Error filling name with autofill: \(error.localizedDescription)")
+            return false
         }
     }
 }

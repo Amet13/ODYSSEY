@@ -475,51 +475,48 @@ class ReservationManager: NSObject, ObservableObject {
 
             logger.info("Contact information page loaded successfully")
 
-            // Step 11: Proceed with human-like form filling (invisible reCAPTCHA will be handled automatically)
-            logger.info("Proceeding with human-like form filling to avoid triggering invisible reCAPTCHA")
+            // Step 11: Proceed with browser autofill-style form filling (less likely to trigger captchas)
+            logger.info("Proceeding with browser autofill-style form filling to avoid triggering captchas")
 
-            // Step 12: Fill contact information form with human-like behavior
-            await updateTask("Filling contact information...")
-
-            // Enhance human-like behavior before form filling
-            await webKitService.enhanceHumanLikeBehavior()
+            // Step 12: Fill contact information form with browser autofill behavior
+            await updateTask("Filling contact information with autofill...")
 
             // Get user settings for contact information
             let userSettings = UserSettingsManager.shared.userSettings
 
-            // Fill phone number (remove hyphens as per form instructions)
+            // Fill phone number using browser autofill behavior (remove hyphens as per form instructions)
             let phoneNumber = userSettings.phoneNumber.replacingOccurrences(of: "-", with: "")
-            let phoneFilled = await webKitService.fillPhoneNumber(phoneNumber)
+            let phoneFilled = await webKitService.fillPhoneNumberWithAutofill(phoneNumber)
             if !phoneFilled {
-                logger.error("Failed to fill phone number")
+                logger.error("Failed to fill phone number with autofill")
                 throw ReservationError.phoneNumberFieldNotFound
             }
 
-            logger.info("Successfully filled phone number")
+            logger.info("Successfully filled phone number with autofill")
 
-            // Optimized pause between fields to avoid reCAPTCHA (0.8–1.4s)
-            try? await Task.sleep(nanoseconds: UInt64.random(in: 800_000_000 ... 1_400_000_000))
+            // Minimal pause between fields (autofill is faster than human typing)
+            try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 500_000_000))
 
-            // Fill email address
-            let emailFilled = await webKitService.fillEmail(userSettings.imapEmail)
+            // Fill email address using browser autofill behavior
+            let emailFilled = await webKitService.fillEmailWithAutofill(userSettings.imapEmail)
             if !emailFilled {
-                logger.error("Failed to fill email address")
+                logger.error("Failed to fill email address with autofill")
                 throw ReservationError.emailFieldNotFound
             }
 
-            logger.info("Successfully filled email address")
+            logger.info("Successfully filled email address with autofill")
 
-            // Optimized pause between fields to avoid reCAPTCHA (0.8–1.4s)
-            try? await Task.sleep(nanoseconds: UInt64.random(in: 800_000_000 ... 1_400_000_000))
+            // Minimal pause between fields (autofill is faster than human typing)
+            try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 500_000_000))
 
-            // Fill name
-            let nameFilled = await webKitService.fillName(userSettings.name)
+            // Fill name using browser autofill behavior
+            let nameFilled = await webKitService.fillNameWithAutofill(userSettings.name)
             if !nameFilled {
-                logger.error("Failed to fill name")
+                logger.error("Failed to fill name with autofill")
                 throw ReservationError.nameFieldNotFound
             }
 
-            logger.info("Successfully filled name")
+            logger.info("Successfully filled name with autofill")
 
             // Before clicking confirm, optimized review pause (1.0–1.8s)
             try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000 ... 1_800_000_000))
