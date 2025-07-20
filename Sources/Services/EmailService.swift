@@ -31,6 +31,9 @@ class EmailService: ObservableObject {
     private let logger = Logger(subsystem: "com.odyssey.app", category: "EmailService")
     private let userSettingsManager = UserSettingsManager.shared
 
+    // Shared code pool for managing verification codes across multiple instances
+    private let sharedCodePool = SharedVerificationCodePool()
+
     enum IMAPError: Error {
         case connectionFailed(String)
         case authenticationFailed(String)
@@ -254,6 +257,11 @@ class EmailService: ObservableObject {
         let now = Date()
         let lastAttempt = EmailService.lastIMAPConnectionTimestamp
         EmailService.lastIMAPConnectionTimestamp = now
+
+        // Use the provided since parameter, but ensure we have a reasonable lookback window
+        // If since is more than 10 minutes ago, use 10 minutes ago to catch recent emails
+        let searchSince = since.timeIntervalSinceNow > -600 ? since : Date().addingTimeInterval(-600)
+
         if let last = lastAttempt {
             let interval = now.timeIntervalSince(last)
             logger.info("[IMAP][\(connectionID)] Time since last connection: \(interval) seconds")
@@ -262,6 +270,9 @@ class EmailService: ObservableObject {
         }
         logger.info("[IMAP][\(connectionID)] Starting fetchVerificationCodesForToday() at \(now)")
         logger.info("📧 EmailService: Starting fetchVerificationCodesForToday()")
+        logger.info("📧 EmailService: Using searchSince: \(searchSince)")
+        logger.info("📧 EmailService: Original since parameter was: \(since)")
+        logger.info("📧 EmailService: Time difference: \(searchSince.timeIntervalSince(since)) seconds")
 
         let settings = userSettingsManager.userSettings
         guard settings.hasEmailConfigured else {
@@ -296,7 +307,36 @@ class EmailService: ObservableObject {
 
         // Use the same NWConnection-based implementation that works for the test
         // This replaces the old InputStream/OutputStream implementation
-        return await fetchVerificationCodesWithSameConnection(since: since)
+        return await fetchVerificationCodesWithSameConnection(since: searchSince)
+    }
+
+    /// Fetches and consumes verification codes for a specific instance
+    /// - Parameters:
+    ///   - since: The date since which to fetch codes
+    ///   - instanceId: Unique identifier for the WebKit instance
+    /// - Returns: Array of verification codes for this instance
+    func fetchAndConsumeVerificationCodes(since: Date, instanceId: String) async -> [String] {
+        logger.info("📧 EmailService: Fetching and consuming codes for instance: \(instanceId)")
+
+        // Use a shared code pool to ensure each instance gets unique codes
+        return await sharedCodePool.consumeCodes(for: instanceId, since: since)
+    }
+
+    /// Checks if a verification code has already been consumed by another instance
+    /// - Parameters:
+    ///   - code: The verification code to check
+    ///   - currentInstanceId: The ID of the current instance
+    /// - Returns: True if the code has been consumed by another instance
+    func isCodeConsumedByOtherInstance(_ code: String, currentInstanceId: String) async -> Bool {
+        return sharedCodePool.isCodeConsumedByOtherInstance(code, currentInstanceId: currentInstanceId)
+    }
+
+    /// Marks a verification code as consumed by a specific instance
+    /// - Parameters:
+    ///   - code: The verification code to mark as consumed
+    ///   - instanceId: The ID of the instance that consumed the code
+    func markCodeAsConsumed(_ code: String, byInstanceId instanceId: String) async {
+        sharedCodePool.markCodeAsConsumed(code, byInstanceId: instanceId)
     }
 
     /// Fetches verification codes using the same connection logic as the test
@@ -410,7 +450,15 @@ class EmailService: ObservableObject {
         ) async {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd-MMM-yyyy"
-        let sinceDateStr = dateFormatter.string(from: since)
+
+        // Use the provided since parameter, but ensure we have a reasonable lookback window
+        // If since is more than 10 minutes ago, use 10 minutes ago to catch recent emails
+        let searchSince = since.timeIntervalSinceNow > -600 ? since : Date().addingTimeInterval(-600)
+        let sinceDateStr = dateFormatter.string(from: searchSince)
+
+        logger.info("📧 EmailService: NWConnection search using timestamp: \(searchSince)")
+        logger.info("📧 EmailService: Original since parameter was: \(since)")
+        logger.info("📧 EmailService: Time difference: \(searchSince.timeIntervalSince(since)) seconds")
 
         // First try: Search for emails with specific subject
         let specificSearchCommand =
@@ -494,35 +542,61 @@ class EmailService: ObservableObject {
         ids: [Int],
         continuation: CheckedContinuation<[String], Never>,
         ) {
-        // Fetch the latest email content
-        if let lastId = ids.last {
-            let fetchCommand = "a003 FETCH \(lastId) BODY[TEXT]\r\n"
-            Task {
-                await self.sendIMAPCommand(connection: connection, command: fetchCommand) { [weak self] result in
-                    guard let self else {
-                        continuation.resume(returning: [])
-                        return
-                    }
+        // Fetch ALL emails, not just the last one
+        self.logger.info("📧 EmailService: Fetching \(ids.count) emails for verification codes")
 
-                    switch result {
-                    case let .success(fetchResponse):
-                        self.logger.info("📧 EmailService: Fetch response received")
+        Task {
+            var allCodes: Set<String> = []
+            let totalEmails = ids.count
 
-                        // Extract verification codes from email body
+            // Process each email sequentially to avoid overwhelming the IMAP server
+            for (index, emailId) in ids.enumerated() {
+                let fetchCommand = "a00\(3 + index) FETCH \(emailId) BODY[TEXT]\r\n"
+
+                do {
+                    let fetchResponse = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<
+                        String,
+                        Error
+                    >) in
                         Task {
-                            let codes = await self.extractVerificationCodes(from: fetchResponse)
-                            self.logger.info("📧 EmailService: Extracted \(codes.count) verification codes: \(codes)")
-                            continuation.resume(returning: codes)
+                            await self.sendIMAPCommand(connection: connection, command: fetchCommand) { result in
+                                switch result {
+                                case let .success(response):
+                                    continuation.resume(returning: response)
+                                case let .failure(error):
+                                    continuation.resume(throwing: error)
+                                }
+                            }
                         }
-
-                    case let .failure(error):
-                        self.logger.error("❌ EmailService: Fetch failed: \(error)")
-                        continuation.resume(returning: [])
                     }
+
+                    self.logger
+                        .info(
+                            "📧 EmailService: Fetch response received for email \(emailId) (\(index + 1)/\(totalEmails))",
+                            )
+
+                    // Extract verification codes from email body
+                    let codes = await self.extractVerificationCodes(from: fetchResponse)
+                    self.logger
+                        .info("📧 EmailService: Email \(emailId) contained \(codes.count) verification codes: \(codes)")
+
+                    // Add codes to the set (automatically handles duplicates)
+                    for code in codes {
+                        allCodes.insert(code)
+                    }
+
+                } catch {
+                    self.logger.error("❌ EmailService: Fetch failed for email \(emailId): \(error)")
+                    // Continue with next email even if this one fails
                 }
             }
-        } else {
-            continuation.resume(returning: [])
+
+            let uniqueCodes = Array(allCodes).sorted()
+            self.logger
+                .info(
+                    "📧 EmailService: Processed all \(totalEmails) emails, extracted \(uniqueCodes.count) unique verification codes: \(uniqueCodes)",
+                    )
+            continuation.resume(returning: uniqueCodes)
         }
     }
 
@@ -1331,10 +1405,15 @@ class EmailService: ObservableObject {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "d-MMM-yyyy"
             dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-            let sinceDate = dateFormatter.string(from: since)
+
+            // Use a more recent timestamp to ensure we catch all verification emails
+            let searchSince = Date().addingTimeInterval(-600) // 10 minutes ago
+            let sinceDate = dateFormatter.string(from: searchSince)
 
             // Log search parameters
             logger.info("IMAP search window sinceDate: \(sinceDate)")
+            logger.info("IMAP search using timestamp: \(searchSince) (10 minutes ago)")
+            logger.info("IMAP original since parameter was: \(since)")
 
             logger.info("Connecting to IMAP server \(server):\(port) for user \(email)")
 
@@ -1484,8 +1563,7 @@ class EmailService: ObservableObject {
             var ids: [Int] = []
 
             // Strategy 1: Search by FROM only (since the provided timestamp)
-            let sinceDateStr = dateFormatter.string(from: since)
-            let searchCmd1 = "a3 SEARCH SINCE \(sinceDateStr) FROM \"\(fromAddress)\""
+            let searchCmd1 = "a3 SEARCH SINCE \(sinceDate) FROM \"\(fromAddress)\""
             sendCommand(searchCmd1)
             let searchResp1 = await expect("a3")
             let searchLines1 = searchResp1.components(separatedBy: "\n")
@@ -1496,7 +1574,7 @@ class EmailService: ObservableObject {
 
             // Strategy 2: Search by FROM and SUBJECT (exact match, since the provided timestamp)
             if ids.isEmpty {
-                let searchCmd2 = "a4 SEARCH SINCE \(sinceDateStr) FROM \"\(fromAddress)\" SUBJECT \"\(subject)\""
+                let searchCmd2 = "a4 SEARCH SINCE \(sinceDate) FROM \"\(fromAddress)\" SUBJECT \"\(subject)\""
                 sendCommand(searchCmd2)
                 let searchResp2 = await expect("a4")
                 let searchLines2 = searchResp2.components(separatedBy: "\n")
@@ -1508,7 +1586,7 @@ class EmailService: ObservableObject {
 
             // Strategy 3: Search for any email with "verification" in subject (broader, since the provided timestamp)
             if ids.isEmpty {
-                sendCommand("a5 SEARCH SINCE \(sinceDateStr) SUBJECT \"verification\"")
+                sendCommand("a5 SEARCH SINCE \(sinceDate) SUBJECT \"verification\"")
                 let searchResp3 = await expect("a5")
                 let searchLines3 = searchResp3.components(separatedBy: "\n")
                 let searchLine3 = searchLines3.first(where: { $0.contains("SEARCH") }) ?? ""
@@ -1522,7 +1600,7 @@ class EmailService: ObservableObject {
                 sendCommand("a6 SELECT INBOX")
                 _ = await expect("a6")
 
-                let searchCmd4 = "a7 SEARCH SINCE \(sinceDateStr) FROM \"\(fromAddress)\""
+                let searchCmd4 = "a7 SEARCH SINCE \(sinceDate) FROM \"\(fromAddress)\""
                 sendCommand(searchCmd4)
                 let searchResp4 = await expect("a7")
                 let searchLines4 = searchResp4.components(separatedBy: "\n")
@@ -1539,7 +1617,7 @@ class EmailService: ObservableObject {
                         "⚠️ No email IDs found in any search strategy. Listing all emails since provided timestamp for debug...",
                         )
                 // Search for all emails since the provided timestamp
-                sendCommand("a8 SEARCH SINCE \(sinceDateStr)")
+                sendCommand("a8 SEARCH SINCE \(sinceDate)")
                 let searchRespAll = await expect("a8")
                 let searchLinesAll = searchRespAll.components(separatedBy: "\n")
                 let searchLineAll = searchLinesAll.first(where: { $0.contains("SEARCH") }) ?? ""
@@ -1775,5 +1853,180 @@ func withTimeout<T: Sendable>(seconds: TimeInterval, operation: @escaping @Senda
 class IMAPStreamDelegate: NSObject, StreamDelegate {
     func stream(_: Stream, handle _: Stream.Event) {
         // No-op for now; can be expanded for error handling or logging
+    }
+}
+
+// MARK: - Shared Verification Code Pool
+
+/// Manages verification codes across multiple WebKit instances to prevent code reuse
+@MainActor
+class SharedVerificationCodePool: ObservableObject {
+    private let logger = Logger(subsystem: "com.odyssey.app", category: "SharedCodePool")
+
+    // Shared pool of available codes
+    private var availableCodes: [String] = []
+
+    // Track which codes have been consumed by which instances
+    private var consumedCodes: [String: String] = [:] // code -> instanceId
+
+    // Track when codes were last fetched to avoid stale data
+    private var lastFetchTime: Date?
+
+    /// Consumes verification codes for a specific instance
+    /// - Parameters:
+    ///   - instanceId: Unique identifier for the WebKit instance
+    ///   - since: The date since which to fetch codes
+    /// - Returns: Array of verification codes for this instance
+    func consumeCodes(for instanceId: String, since: Date) async -> [String] {
+        logger.info("🔄 SharedCodePool: Consuming codes for instance \(instanceId)")
+        logger.info("🔄 SharedCodePool: Using since parameter: \(since)")
+        logger
+            .info(
+                "🔄 SharedCodePool: Current pool status - Available: \(self.availableCodes.count), Consumed: \(self.consumedCodes.count)",
+                )
+
+        // Check if we need to refresh the code pool
+        if shouldRefreshCodePool(since: since) {
+            logger.info("🔄 SharedCodePool: Refreshing code pool for instance \(instanceId)")
+            await refreshCodePool(since: since)
+        }
+
+        // Get codes that haven't been consumed yet
+        let unconsumedCodes = availableCodes.filter { code in
+            !consumedCodes.keys.contains(code)
+        }
+
+        logger.info("🔄 SharedCodePool: Unconsumed codes: \(unconsumedCodes.count)")
+        logger
+            .info(
+                "🔄 SharedCodePool: Available codes: \(self.availableCodes.map { String(repeating: "*", count: $0.count) })",
+                )
+        logger
+            .info(
+                "🔄 SharedCodePool: Consumed codes: \(Array(self.consumedCodes.keys).map { String(repeating: "*", count: $0.count) })",
+                )
+
+        if unconsumedCodes.isEmpty {
+            logger.warning("⚠️ SharedCodePool: No unconsumed codes available for instance \(instanceId)")
+            logger.warning("⚠️ SharedCodePool: All codes have been consumed by other instances")
+            return []
+        }
+
+        // Consume codes for this instance (take up to 3 codes)
+        let codesToConsume = Array(unconsumedCodes.prefix(3))
+
+        // Mark codes as consumed for this instance
+        for code in codesToConsume {
+            self.consumedCodes[code] = instanceId
+        }
+
+        logger
+            .info(
+                "✅ SharedCodePool: Consumed \(codesToConsume.count) codes for instance \(instanceId): \(codesToConsume.map { String(repeating: "*", count: $0.count) })",
+                )
+        logger
+            .info(
+                "🔄 SharedCodePool: Updated pool status - Available: \(self.availableCodes.count), Consumed: \(self.consumedCodes.count)",
+                )
+        return codesToConsume
+    }
+
+    /// Refreshes the code pool by fetching new codes from email
+    /// - Parameter since: The date since which to fetch codes
+    private func refreshCodePool(since: Date) async {
+        logger.info("📧 SharedCodePool: Fetching fresh codes from email")
+        logger.info("📧 SharedCodePool: Using since parameter: \(since)")
+
+        // Use the existing email service to fetch codes
+        let emailService = EmailService.shared
+        let freshCodes = await emailService.fetchVerificationCodesForToday(since: since)
+
+        // Update the code pool
+        self.availableCodes = freshCodes
+        self.lastFetchTime = Date()
+
+        logger
+            .info(
+                "📧 SharedCodePool: Refreshed with \(freshCodes.count) codes: \(freshCodes.map { String(repeating: "*", count: $0.count) })",
+                )
+    }
+
+    /// Determines if the code pool should be refreshed
+    /// - Parameter since: The date since which codes should be fetched
+    /// - Returns: True if the pool should be refreshed
+    private func shouldRefreshCodePool(since _: Date) -> Bool {
+        // Refresh if:
+        // 1. No codes available
+        // 2. Last fetch was more than 15 seconds ago (reduced from 30)
+        // 3. Since date is newer than last fetch
+        // 4. All available codes have been consumed
+
+        if availableCodes.isEmpty {
+            logger.info("🔄 SharedCodePool: Refreshing - no codes available")
+            return true
+        }
+
+        // Check if all codes have been consumed
+        let unconsumedCodes = availableCodes.filter { code in
+            !consumedCodes.keys.contains(code)
+        }
+
+        if unconsumedCodes.isEmpty {
+            logger.info("🔄 SharedCodePool: Refreshing - all codes consumed")
+            return true
+        }
+
+        if let lastFetch = lastFetchTime {
+            let timeSinceLastFetch = Date().timeIntervalSince(lastFetch)
+            if timeSinceLastFetch > 15 { // 15 seconds (reduced from 30)
+                logger.info("🔄 SharedCodePool: Refreshing - \(timeSinceLastFetch) seconds since last fetch")
+                return true
+            }
+        }
+
+        return false
+    }
+
+    /// Clears consumed codes to free up memory
+    func clearConsumedCodes() {
+        self.consumedCodes.removeAll()
+        logger.info("🧹 SharedCodePool: Cleared consumed codes")
+    }
+
+    /// Gets current pool status for debugging
+    func getPoolStatus() -> (available: Int, consumed: Int) {
+        let available = self.availableCodes.count
+        let consumed = self.consumedCodes.count
+        return (available: available, consumed: consumed)
+    }
+
+    /// Checks if a verification code has already been consumed by another instance
+    /// - Parameters:
+    ///   - code: The verification code to check
+    ///   - currentInstanceId: The ID of the current instance
+    /// - Returns: True if the code has been consumed by another instance
+    func isCodeConsumedByOtherInstance(_ code: String, currentInstanceId: String) -> Bool {
+        // Check if the code is in consumedCodes and was consumed by a different instance
+        if let consumingInstanceId = consumedCodes[code] {
+            let isConsumedByOther = consumingInstanceId != currentInstanceId
+            logger
+                .info(
+                    "🔄 SharedCodePool: Code \(String(repeating: "*", count: code.count)) consumed by \(consumingInstanceId) - isOther: \(isConsumedByOther)",
+                    )
+            return isConsumedByOther
+        }
+        return false
+    }
+
+    /// Marks a verification code as consumed by a specific instance
+    /// - Parameters:
+    ///   - code: The verification code to mark as consumed
+    ///   - instanceId: The ID of the instance that consumed the code
+    func markCodeAsConsumed(_ code: String, byInstanceId instanceId: String) {
+        consumedCodes[code] = instanceId
+        logger
+            .info(
+                "✅ SharedCodePool: Marked code \(String(repeating: "*", count: code.count)) as consumed by instance \(instanceId)",
+                )
     }
 }

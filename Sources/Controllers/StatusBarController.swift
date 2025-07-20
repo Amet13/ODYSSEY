@@ -64,12 +64,14 @@ class StatusBarController: NSObject {
         // Observe reservation manager status
         reservationManager.$isRunning
             .sink { [weak self] isRunning in
+                self?.logger.info("StatusBarController: isRunning changed to \(isRunning)")
                 self?.updateStatusBarIcon(isRunning: isRunning)
             }
             .store(in: &cancellables)
 
         reservationManager.$lastRunStatus
             .sink { [weak self] status in
+                self?.logger.info("StatusBarController: lastRunStatus changed to \(status.description)")
                 self?.updateStatusBarTooltip(status: status)
             }
             .store(in: &cancellables)
@@ -98,6 +100,7 @@ class StatusBarController: NSObject {
     // MARK: - Private Methods
 
     private func updateStatusBarIcon(isRunning: Bool) {
+        logger.info("StatusBarController: Updating icon - isRunning: \(isRunning)")
         if let button = statusItem.button {
             let symbolName = isRunning ? "sportscourt.fill" : "sportscourt"
             let config = NSImage.SymbolConfiguration(pointSize: 18, weight: .medium)
@@ -105,6 +108,9 @@ class StatusBarController: NSObject {
                 .withSymbolConfiguration(config)
             image?.isTemplate = true
             button.image = image
+            logger.info("StatusBarController: Icon updated to \(symbolName)")
+        } else {
+            logger.error("StatusBarController: Button is nil, cannot update icon")
         }
     }
 

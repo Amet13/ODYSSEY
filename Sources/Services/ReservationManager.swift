@@ -255,6 +255,44 @@ class ReservationManager: NSObject, ObservableObject {
         }
     }
 
+    /// Runs multiple reservations simultaneously with separate WebKit instances
+    /// - Parameters:
+    ///   - configs: Array of reservation configurations to execute
+    ///   - runType: Whether these are manual or automatic runs
+    func runMultipleReservations(for configs: [ReservationConfig], runType: RunType = .manual) {
+        guard !configs.isEmpty else {
+            logger.warning("No configurations provided for multiple reservation run")
+            return
+        }
+
+        logger.info("Starting God Mode: Running \(configs.count) configurations simultaneously")
+
+        // Update main status for God Mode operation
+        Task { @MainActor in
+            logger.info("🔄 ReservationManager: Starting God Mode status update")
+            self.isRunning = true
+            self.lastRunStatus = .running
+            self.currentTask = "God Mode: Running \(configs.count) configurations"
+            self.lastRunDate = Date()
+            logger
+                .info(
+                    "🔄 ReservationManager: God Mode status updated - isRunning: \(self.isRunning), status: \(self.lastRunStatus.description)",
+                    )
+        }
+
+        // Track completion of all God Mode operations
+        Task {
+            await trackGodModeCompletion(configs: configs, runType: runType)
+        }
+
+        // Create separate WebKit instances for each configuration
+        for config in configs {
+            Task {
+                await runReservationWithSeparateWebKit(for: config, runType: runType)
+            }
+        }
+    }
+
     /// Handle reservation errors gracefully
     private func handleReservationError(_ error: Error, config: ReservationConfig, runType: RunType) async {
         logger.error("Reservation error: \(error.localizedDescription)")
@@ -632,6 +670,297 @@ class ReservationManager: NSObject, ObservableObject {
         }
     }
 
+    /// Runs a reservation with a separate WebKit instance for God Mode
+    private func runReservationWithSeparateWebKit(for config: ReservationConfig, runType: RunType) async {
+        logger.info("Starting separate WebKit instance for \(config.name)")
+
+        // Create a new WebKit service instance for this configuration with unique ID
+        let instanceId = "godmode_\(config.id.uuidString.prefix(8))_\(Date().timeIntervalSince1970)"
+        let separateWebKitService = WebKitService(forParallelOperation: true, instanceId: instanceId)
+
+        do {
+            // Update status for this specific configuration
+            await MainActor.run {
+                self.lastRunInfo[config.id] = (status: .running, date: Date(), runType: runType)
+            }
+
+            // Set up window closure callback for this instance
+            separateWebKitService.onWindowClosed = { [weak self] in
+                Task {
+                    await self?.handleManualWindowClosure()
+                }
+            }
+
+            // Start WebKit session
+            try await separateWebKitService.connect()
+
+            // Set current configuration for error reporting
+            separateWebKitService.currentConfig = config
+
+            // Navigate to facility URL
+            try await separateWebKitService.navigateToURL(config.facilityURL)
+
+            // Wait for DOM to be fully ready
+            let domReady = await separateWebKitService.waitForDOMReady()
+            if !domReady {
+                logger.error("DOM failed to load properly for \(config.name)")
+                throw ReservationError.pageLoadTimeout
+            }
+
+            // Find and click sport button
+            let buttonClicked = await separateWebKitService.findAndClickElement(withText: config.sportName)
+            if buttonClicked {
+                logger.info("Successfully clicked sport button for \(config.name)")
+
+                // Step 5: Wait for group size page to load
+                logger.info("Waiting for group size page for \(config.name)...")
+                let groupSizePageReady = await separateWebKitService.waitForGroupSizePage()
+                if !groupSizePageReady {
+                    logger.error("Group size page failed to load for \(config.name)")
+                    throw ReservationError.groupSizePageLoadTimeout
+                }
+
+                logger.info("Group size page loaded successfully for \(config.name)")
+
+                // Step 6: Fill number of people field
+                logger.info("Setting number of people for \(config.name): \(config.numberOfPeople)")
+                let peopleFilled = await separateWebKitService.fillNumberOfPeople(config.numberOfPeople)
+                if !peopleFilled {
+                    logger.error("Failed to fill number of people field for \(config.name)")
+                    throw ReservationError.numberOfPeopleFieldNotFound
+                }
+
+                logger.info("Successfully filled number of people for \(config.name): \(config.numberOfPeople)")
+
+                // Step 7: Click confirm button
+                logger.info("Confirming group size for \(config.name)...")
+                let confirmClicked = await separateWebKitService.clickConfirmButton()
+                if !confirmClicked {
+                    logger.error("Failed to click confirm button for \(config.name)")
+                    throw ReservationError.confirmButtonNotFound
+                }
+
+                logger.info("Successfully clicked confirm button for \(config.name)")
+
+                // Step 8: Wait for time selection page to load
+                logger.info("Waiting for time selection page for \(config.name)...")
+                logger.info("Skipping time selection page detection for \(config.name) - page already loaded")
+
+                // Step 9: Select time slot based on configuration
+                logger.info("Selecting time slot for \(config.name)...")
+
+                // Get the first available day and time from configuration
+                let selectedDay = config.dayTimeSlots.keys.first
+                let selectedTimeSlot = selectedDay.flatMap { day in
+                    config.dayTimeSlots[day]?.first
+                }
+
+                if let day = selectedDay, let timeSlot = selectedTimeSlot {
+                    let dayName = day.shortName // Use short name like "Tue"
+                    let timeString = timeSlot.formattedTime() // Format like "8:30 AM"
+
+                    logger
+                        .info("Attempting to select for \(config.name): \(dayName) at \(timeString, privacy: .private)")
+
+                    let timeSlotSelected = await separateWebKitService.selectTimeSlot(
+                        dayName: dayName,
+                        timeString: timeString,
+                        )
+                    if !timeSlotSelected {
+                        logger
+                            .error(
+                                "Failed to select time slot for \(config.name): \(dayName) at \(timeString, privacy: .private)",
+                                )
+                        throw ReservationError.timeSlotSelectionFailed
+                    }
+
+                    logger
+                        .info(
+                            "Successfully selected time slot for \(config.name): \(dayName) at \(timeString, privacy: .private)",
+                            )
+                } else {
+                    logger.warning("No time slots configured for \(config.name), skipping time selection")
+                }
+
+                // Step 10: Wait for contact information page to load
+                logger.info("Waiting for contact information page for \(config.name)...")
+
+                // Wait for contact info page with timeout
+                let contactInfoPageReady = await withTimeout(seconds: 10) {
+                    await separateWebKitService.waitForContactInfoPage()
+                } ?? false
+
+                if !contactInfoPageReady {
+                    logger.error("Contact information page failed to load for \(config.name)")
+                    throw ReservationError.contactInfoPageLoadTimeout
+                }
+
+                logger.info("Contact information page loaded successfully for \(config.name)")
+
+                // Step 11: Proceed with browser autofill-style form filling
+                logger.info("Proceeding with browser autofill-style form filling for \(config.name)")
+
+                // Step 12: Fill all contact information fields simultaneously
+                logger.info("Filling contact information with simultaneous autofill for \(config.name)...")
+
+                // Get user settings for contact information
+                let userSettings = UserSettingsManager.shared.userSettings
+
+                // Fill all fields simultaneously with browser autofill behavior and human-like movements
+                let phoneNumber = userSettings.phoneNumber.replacingOccurrences(of: "-", with: "")
+                let allFieldsFilled = await separateWebKitService.fillAllContactFieldsWithAutofillAndHumanMovements(
+                    phoneNumber: phoneNumber,
+                    email: userSettings.imapEmail,
+                    name: userSettings.name,
+                    )
+
+                if !allFieldsFilled {
+                    logger.error("Failed to fill all contact fields for \(config.name)")
+                    throw ReservationError.contactInfoFieldNotFound
+                }
+
+                logger.info("Successfully filled all contact fields for \(config.name)")
+
+                // Step 13: Click confirm button for contact information with retry logic
+                logger.info("Confirming contact information for \(config.name)...")
+
+                // Record timestamp before clicking confirm
+                let verificationStart = Date()
+
+                // Try clicking confirm button up to 6 times with retry logic
+                var contactConfirmClicked = false
+                var retryCount = 0
+                let maxRetries = 6
+
+                while !contactConfirmClicked, retryCount < maxRetries {
+                    if retryCount > 0 {
+                        logger.info("Retry attempt \(retryCount) for confirm button click for \(config.name)")
+
+                        // Apply essential anti-detection before retry
+                        logger
+                            .info(
+                                "Applying essential anti-detection for retry attempt \(retryCount) for \(config.name)",
+                                )
+
+                        // Essential anti-detection sequence
+                        await separateWebKitService.addQuickPause()
+
+                        // Optimized wait before retry to avoid reCAPTCHA (1.0-1.8s)
+                        try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000 ... 1_800_000_000))
+                    }
+
+                    contactConfirmClicked = await separateWebKitService.clickContactInfoConfirmButtonWithRetry()
+
+                    if contactConfirmClicked {
+                        // Check if retry text appears after clicking
+                        try? await Task.sleep(nanoseconds: 300_000_000) // Wait 0.3s
+                        let retryTextDetected = await separateWebKitService.detectRetryText()
+
+                        if retryTextDetected {
+                            logger
+                                .warning(
+                                    "Retry text detected after confirm button click for \(config.name) - will retry with enhanced measures",
+                                    )
+                            contactConfirmClicked = false
+                            retryCount += 1
+
+                            // Additional essential measures after retry text detection
+                            logger
+                                .info(
+                                    "Applying additional essential measures after retry text detection for \(config.name)",
+                                    )
+
+                            // Essential anti-detection
+                            await separateWebKitService.addQuickPause()
+
+                            // Optimized wait after retry text detection to avoid reCAPTCHA (1.5-2.2s)
+                            try? await Task.sleep(nanoseconds: UInt64.random(in: 1_500_000_000 ... 2_200_000_000))
+                        } else {
+                            logger
+                                .info(
+                                    "Successfully clicked contact confirm button for \(config.name) (no retry text detected)",
+                                    )
+                            break
+                        }
+                    } else {
+                        retryCount += 1
+                    }
+                }
+
+                if !contactConfirmClicked {
+                    logger
+                        .error("Failed to click contact confirm button after \(maxRetries) attempts for \(config.name)")
+                    throw ReservationError.contactInfoConfirmButtonNotFound
+                }
+
+                logger.info("Successfully clicked contact confirm button for \(config.name)")
+
+                // Step 14: Handle email verification if required
+                logger.info("Checking for email verification for \(config.name)...")
+
+                // Wait for the page to fully load
+                try? await Task.sleep(nanoseconds: 2_000_000_000) // Wait 2 seconds
+
+                let verificationRequired = await separateWebKitService.isEmailVerificationRequired()
+                if verificationRequired {
+                    logger.info("Email verification required for \(config.name), starting verification process...")
+                    let verificationSuccess = await separateWebKitService
+                        .handleEmailVerification(verificationStart: verificationStart)
+                    if !verificationSuccess {
+                        logger.error("Email verification failed for \(config.name)")
+                        throw ReservationError.emailVerificationFailed
+                    }
+                    logger.info("Email verification completed successfully for \(config.name)")
+
+                    // Wait for page navigation to complete after email verification
+                    logger.info("Waiting for confirmation page to load for \(config.name)...")
+                    try? await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second for navigation
+
+                    // Wait for DOM to be ready on the new page
+                    let domReady = await separateWebKitService.waitForDOMReady()
+                    if domReady {
+                        logger.info("Confirmation page loaded successfully for \(config.name)")
+                    } else {
+                        logger
+                            .warning(
+                                "DOM ready check failed for \(config.name), but continuing with click result as success indicator",
+                                )
+                    }
+                }
+
+                // Step 15: Determine success based on whether we completed all steps
+                logger.info("Finishing reservation for \(config.name)...")
+
+                // If we reached this point and email verification was successful (if required),
+                // or if no email verification was needed, then the reservation is successful
+                logger.info("Reservation completed successfully for \(config.name) - all steps completed!")
+                await MainActor.run {
+                    self.lastRunInfo[config.id] = (status: .success, date: Date(), runType: runType)
+                }
+
+                // Log success
+                logger.info("Reservation completed successfully for \(config.name)")
+
+            } else {
+                logger.error("Failed to click sport button for \(config.name)")
+                throw ReservationError.sportButtonNotFound
+            }
+
+        } catch {
+            logger.error("Reservation failed for \(config.name): \(error.localizedDescription)")
+            await MainActor.run {
+                self.lastRunInfo[config.id] = (
+                    status: .failed(error.localizedDescription),
+                    date: Date(),
+                    runType: runType,
+                    )
+            }
+        }
+
+        // Always cleanup the separate WebKit instance
+        await separateWebKitService.disconnect(closeWindow: true)
+    }
+
     private func handleError(_ error: String, configId: UUID?, runType: RunType = .manual) async {
         await MainActor.run {
             self.isRunning = false
@@ -680,6 +1009,104 @@ class ReservationManager: NSObject, ObservableObject {
             }
 
             return nil
+        }
+    }
+
+    /// Tracks completion of all God Mode operations and updates main status
+    private func trackGodModeCompletion(configs: [ReservationConfig], runType _: RunType) async {
+        logger.info("Starting God Mode completion tracking for \(configs.count) configurations")
+
+        let maxWaitTime: TimeInterval = 300 // 5 minutes maximum wait
+        let checkInterval: TimeInterval = 2.0 // Check every 2 seconds
+        let startTime = Date()
+
+        while Date().timeIntervalSince(startTime) < maxWaitTime {
+            // Check if all configurations have completed
+            let completedConfigs = configs.filter { config in
+                if let lastRunInfo = lastRunInfo[config.id] {
+                    switch lastRunInfo.status {
+                    case .success, .failed:
+                        return true
+                    case .idle, .running:
+                        return false
+                    }
+                }
+                return false
+            }
+
+            logger.info("God Mode progress: \(completedConfigs.count)/\(configs.count) configurations completed")
+
+            // If all configurations are completed, update main status
+            if completedConfigs.count == configs.count {
+                let successfulConfigs = configs.filter { config in
+                    if let lastRunInfo = lastRunInfo[config.id] {
+                        return lastRunInfo.status == .success
+                    }
+                    return false
+                }
+
+                let failedConfigs = configs.filter { config in
+                    if let lastRunInfo = lastRunInfo[config.id] {
+                        if case .failed = lastRunInfo.status {
+                            return true
+                        }
+                    }
+                    return false
+                }
+
+                await MainActor.run {
+                    logger.info("🔄 ReservationManager: Updating God Mode completion status")
+                    self.isRunning = false
+
+                    if failedConfigs.isEmpty {
+                        // All successful
+                        self.lastRunStatus = .success
+                        self.currentTask = "God Mode: All \(configs.count) configurations completed successfully"
+                        logger.info("🔄 ReservationManager: God Mode completed - All successful")
+                    } else if successfulConfigs.isEmpty {
+                        // All failed
+                        self.lastRunStatus = .failed("All \(configs.count) configurations failed")
+                        self.currentTask = "God Mode: All configurations failed"
+                        logger.info("🔄 ReservationManager: God Mode completed - All failed")
+                    } else {
+                        // Mixed results
+                        self.lastRunStatus = .success
+                        self
+                            .currentTask =
+                            "God Mode: \(successfulConfigs.count) successful, \(failedConfigs.count) failed"
+                        logger
+                            .info(
+                                "🔄 ReservationManager: God Mode completed - Mixed results: \(successfulConfigs.count) success, \(failedConfigs.count) failed",
+                                )
+                    }
+
+                    self.lastRunDate = Date()
+                    logger
+                        .info(
+                            "🔄 ReservationManager: Final God Mode status - isRunning: \(self.isRunning), status: \(self.lastRunStatus.description)",
+                            )
+                }
+
+                logger.info("God Mode completed: \(successfulConfigs.count) successful, \(failedConfigs.count) failed")
+                return
+            }
+
+            // Wait before next check
+            try? await Task.sleep(nanoseconds: UInt64(checkInterval * 1_000_000_000))
+        }
+
+        // Timeout reached
+        logger.warning("God Mode completion tracking timed out after \(maxWaitTime) seconds")
+        await MainActor.run {
+            logger.info("🔄 ReservationManager: God Mode timeout - updating status")
+            self.isRunning = false
+            self.lastRunStatus = .failed("God Mode timed out")
+            self.currentTask = "God Mode: Operation timed out"
+            self.lastRunDate = Date()
+            logger
+                .info(
+                    "🔄 ReservationManager: God Mode timeout status - isRunning: \(self.isRunning), status: \(self.lastRunStatus.description)",
+                    )
         }
     }
 }

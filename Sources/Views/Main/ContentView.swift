@@ -10,6 +10,7 @@ struct ContentView: View {
     @State private var selectedConfig: ReservationConfig?
     @State private var showingSettings = false
     @State private var showingAbout = false
+    @State private var showingGodMode = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -40,6 +41,13 @@ struct ContentView: View {
                 .presentationDragIndicator(.hidden)
                 .presentationBackground(.clear)
         }
+        .onKeyPress("g", phases: .down) { press in
+            if press.modifiers.contains(.command) {
+                showingGodMode.toggle()
+                return .handled
+            }
+            return .ignored
+        }
     }
 }
 
@@ -47,21 +55,43 @@ struct ContentView: View {
 
 private extension ContentView {
     var headerView: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "sportscourt.fill")
-                .font(.title2)
-                .foregroundColor(.accentColor)
-            Text("ODYSSEY")
-                .font(.title2)
-                .fontWeight(.bold)
-            Spacer()
-            Button(action: { showingAddConfig = true }) {
-                Image(systemName: "plus")
-                    .foregroundColor(.white)
+        VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                Image(systemName: "sportscourt.fill")
+                    .font(.title2)
+                    .foregroundColor(.accentColor)
+                Text("ODYSSEY")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                Spacer()
+                Button(action: { showingAddConfig = true }) {
+                    Image(systemName: "plus")
+                        .foregroundColor(.white)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.regular)
+                .help("Add new configuration")
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.regular)
-            .help("Add new configuration")
+
+            if showingGodMode {
+                HStack(spacing: 12) {
+                    Spacer()
+                    Button(action: simulateAutorunForToday) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "bolt.fill")
+                                .foregroundColor(.yellow)
+                            Text("GOD MODE")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.yellow)
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.black)
+                    .controlSize(.small)
+                    .help("Simulate autorun for 6pm today (⌘+G)")
+                }
+            }
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
@@ -247,6 +277,38 @@ private extension ContentView {
         } else {
             let minutesText = minutes == 1 ? "minute" : "minutes"
             return "\(minutes) \(minutesText)"
+        }
+    }
+
+    func simulateAutorunForToday() {
+        let calendar = Calendar.current
+        let now = Date()
+        let currentWeekday = calendar.component(.weekday, from: now)
+
+        // Convert Calendar weekday to our Weekday enum
+        let weekday: ReservationConfig.Weekday
+        switch currentWeekday {
+        case 1: weekday = .sunday
+        case 2: weekday = .monday
+        case 3: weekday = .tuesday
+        case 4: weekday = .wednesday
+        case 5: weekday = .thursday
+        case 6: weekday = .friday
+        case 7: weekday = .saturday
+        default:
+            return
+        }
+
+        let configsForToday = configManager.getConfigurationsForDay(weekday)
+        let enabledConfigs = configsForToday.filter(\.isEnabled)
+
+        if enabledConfigs.isEmpty {
+            // If no enabled configs for today, run all enabled configs
+            let allEnabledConfigs = configManager.settings.configurations.filter(\.isEnabled)
+            reservationManager.runMultipleReservations(for: allEnabledConfigs, runType: .automatic)
+        } else {
+            // Run only the configs scheduled for today
+            reservationManager.runMultipleReservations(for: enabledConfigs, runType: .automatic)
         }
     }
 }

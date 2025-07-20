@@ -50,6 +50,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     private var navigationDelegate: WebKitNavigationDelegate?
     private var scriptMessageHandler: WebKitScriptMessageHandler?
     private var debugWindow: NSWindow?
+    private var instanceId: String = "default"
 
     // Configuration
     var currentConfig: ReservationConfig? {
@@ -79,6 +80,29 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         // Do not show debug window at app launch
     }
 
+    /// Create a new WebKit service instance for parallel operations
+    convenience init(forParallelOperation: Bool) {
+        self.init()
+        if forParallelOperation {
+            // Show debug window for parallel operations
+            Task { @MainActor in
+                self.setupDebugWindow()
+            }
+        }
+    }
+
+    /// Create a new WebKit service instance with unique anti-detection profile
+    convenience init(forParallelOperation: Bool, instanceId: String) {
+        self.init()
+        self.instanceId = instanceId
+        if forParallelOperation {
+            // Show debug window for parallel operations
+            Task { @MainActor in
+                self.setupDebugWindow()
+            }
+        }
+    }
+
     deinit {
         logger.info("WebKitService deinit - cleaning up resources")
         // Only synchronous cleanup here
@@ -90,7 +114,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     private func setupWebView() {
-        logger.info("Setting up new WebView...")
+        logger.info("Setting up new WebView for instance: \(self.instanceId)")
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = WKUserContentController()
 
@@ -117,11 +141,23 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         // Set realistic viewport and screen properties
         configuration.preferences.setValue(true, forKey: "developerExtrasEnabled")
 
+        // Create unique website data store for each instance to avoid tab detection
+        let websiteDataStore = WKWebsiteDataStore.nonPersistent()
+        configuration.websiteDataStore = websiteDataStore
+
+        // Clear all data for this instance
+        websiteDataStore.removeData(
+            ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
+            modifiedSince: Date(timeIntervalSince1970: 0),
+            ) { [self] in
+            logger.info("Cleared website data for instance: \(self.instanceId)")
+        }
+
         // Create web view
         webView = WKWebView(frame: .zero, configuration: configuration)
-        logger.info("WebView created successfully")
+        logger.info("WebView created successfully for instance: \(self.instanceId)")
 
-        // Set realistic user agent (random from common browsers)
+        // Generate unique user agent for this instance
         let userAgents = [
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
@@ -137,18 +173,23 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         navigationDelegate?.delegate = self
         webView?.navigationDelegate = navigationDelegate
 
-        // Set realistic window size (random from common MacBook resolutions)
+        // Set realistic window size with unique positioning for each instance
         let windowSizes = [
             (width: 1_440, height: 900), // MacBook Air 13"
             (width: 1_680, height: 1_050) // MacBook Pro 15"
         ]
         let selectedSize = windowSizes.randomElement() ?? windowSizes[0]
-        webView?.frame = CGRect(x: 0, y: 0, width: selectedSize.width, height: selectedSize.height)
+
+        // Generate unique window position based on instance ID
+        let hash = abs(instanceId.hashValue)
+        let xOffset = (hash % 200) + 50
+        let yOffset = ((hash / 200) % 200) + 50
+        webView?.frame = CGRect(x: xOffset, y: yOffset, width: selectedSize.width, height: selectedSize.height)
 
         // Inject custom JavaScript for automation and anti-detection
         injectAutomationScripts()
         injectAntiDetectionScripts()
-        logger.info("WebView setup completed successfully")
+        logger.info("WebView setup completed successfully for instance: \(self.instanceId)")
     }
 
     @MainActor
@@ -362,13 +403,17 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         let antiDetectionScript = """
         // Comprehensive anti-detection measures to avoid reCAPTCHA detection
         (function() {
+            // Generate unique fingerprint for this instance
+            const instanceId = '\(instanceId)';
+            const instanceHash = instanceId.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+
             // Random screen sizes for realism (common MacBook resolutions)
             const screenSizes = [
                 { width: 1440, height: 900, pixelRatio: 2 },   // MacBook Air 13"
                 { width: 1680, height: 1050, pixelRatio: 2 }  // MacBook Pro 15"
             ];
 
-            const selectedScreen = screenSizes[Math.floor(Math.random() * screenSizes.length)];
+            const selectedScreen = screenSizes[instanceHash % screenSizes.length];
 
             // Real Chrome user agents (updated regularly)
             const userAgents = [
@@ -666,9 +711,180 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                 });
             }
 
-            console.log('[ODYSSEY] Comprehensive anti-detection measures activated');
+            // Advanced tab detection prevention
+            // Override localStorage and sessionStorage to be instance-specific
+            const originalLocalStorage = window.localStorage;
+            const originalSessionStorage = window.sessionStorage;
+
+            // Create unique storage keys for this instance
+            const storagePrefix = 'odyssey_' + instanceHash + '_';
+
+            // Override localStorage
+            Object.defineProperty(window, 'localStorage', {
+                get: () => ({
+                    getItem: function(key) {
+                        return originalLocalStorage.getItem(storagePrefix + key);
+                    },
+                    setItem: function(key, value) {
+                        return originalLocalStorage.setItem(storagePrefix + key, value);
+                    },
+                    removeItem: function(key) {
+                        return originalLocalStorage.removeItem(storagePrefix + key);
+                    },
+                    clear: function() {
+                        // Only clear our instance's data
+                        const keys = Object.keys(originalLocalStorage);
+                        keys.forEach(k => {
+                            if (k.startsWith(storagePrefix)) {
+                                originalLocalStorage.removeItem(k);
+                            }
+                        });
+                    },
+                    key: function(index) {
+                        const keys = Object.keys(originalLocalStorage).filter(k => k.startsWith(storagePrefix));
+                        return keys[index] ? keys[index].substring(storagePrefix.length) : null;
+                    },
+                    get length() {
+                        return Object.keys(originalLocalStorage).filter(k => k.startsWith(storagePrefix)).length;
+                    }
+                }),
+                configurable: true
+            });
+
+            // Override sessionStorage
+            Object.defineProperty(window, 'sessionStorage', {
+                get: () => ({
+                    getItem: function(key) {
+                        return originalSessionStorage.getItem(storagePrefix + key);
+                    },
+                    setItem: function(key, value) {
+                        return originalSessionStorage.setItem(storagePrefix + key, value);
+                    },
+                    removeItem: function(key) {
+                        return originalSessionStorage.removeItem(storagePrefix + key);
+                    },
+                    clear: function() {
+                        // Only clear our instance's data
+                        const keys = Object.keys(originalSessionStorage);
+                        keys.forEach(k => {
+                            if (k.startsWith(storagePrefix)) {
+                                originalSessionStorage.removeItem(k);
+                            }
+                        });
+                    },
+                    key: function(index) {
+                        const keys = Object.keys(originalSessionStorage).filter(k => k.startsWith(storagePrefix));
+                        return keys[index] ? keys[index].substring(storagePrefix.length) : null;
+                    },
+                    get length() {
+                        return Object.keys(originalSessionStorage).filter(k => k.startsWith(storagePrefix)).length;
+                    }
+                }),
+                configurable: true
+            });
+
+            // Override IndexedDB to be instance-specific
+            if (window.indexedDB) {
+                const originalOpen = window.indexedDB.open;
+                window.indexedDB.open = function(name, version) {
+                    return originalOpen.call(this, storagePrefix + name, version);
+                };
+            }
+
+            // Override cookies to be instance-specific
+            const originalDocumentCookie = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie');
+            Object.defineProperty(document, 'cookie', {
+                get: function() {
+                    const cookies = originalDocumentCookie.get.call(this);
+                    return cookies.split(';').filter(cookie =>
+                        cookie.trim().startsWith(storagePrefix)
+                    ).map(cookie =>
+                        cookie.trim().substring(storagePrefix.length)
+                    ).join('; ');
+                },
+                set: function(value) {
+                    return originalDocumentCookie.set.call(this, storagePrefix + value);
+                },
+                configurable: true
+            });
+
+            // Override WebSocket to add unique headers
+            const originalWebSocket = window.WebSocket;
+            window.WebSocket = function(url, protocols) {
+                const ws = new originalWebSocket(url, protocols);
+                ws.addEventListener('open', function() {
+                    // Add unique headers to WebSocket connection
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({
+                            type: 'odyssey_instance',
+                            instanceId: instanceId,
+                            timestamp: Date.now()
+                        }));
+                    }
+                });
+                return ws;
+            };
+            window.WebSocket.prototype = originalWebSocket.prototype;
+
+            // Override fetch to add unique headers
+            const originalFetch = window.fetch;
+            window.fetch = function(input, init) {
+                if (!init) init = {};
+                if (!init.headers) init.headers = {};
+
+                // Add unique headers to avoid request correlation
+                init.headers['X-Odyssey-Instance'] = instanceId;
+                init.headers['X-Odyssey-Timestamp'] = Date.now().toString();
+
+                return originalFetch.call(this, input, init);
+            };
+
+            // Override XMLHttpRequest to add unique headers
+            const originalXHROpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
+                const xhr = this;
+                originalXHROpen.call(this, method, url, async, user, password);
+
+                // Add unique headers after opening
+                this.addEventListener('readystatechange', function() {
+                    if (xhr.readyState === XMLHttpRequest.HEADERS_RECEIVED) {
+                        xhr.setRequestHeader('X-Odyssey-Instance', instanceId);
+                        xhr.setRequestHeader('X-Odyssey-Timestamp', Date.now().toString());
+                    }
+                });
+            };
+
+            // Override navigator.connection to be unique
+            if (navigator.connection) {
+                Object.defineProperty(navigator.connection, 'effectiveType', {
+                    get: () => ['4g', '3g', '2g'][instanceHash % 3],
+                    configurable: true
+                });
+            }
+
+            // Add unique device memory
+            Object.defineProperty(navigator, 'deviceMemory', {
+                get: () => [4, 8, 16][instanceHash % 3],
+                configurable: true
+            });
+
+            // Add unique battery API
+            if (navigator.getBattery) {
+                const originalGetBattery = navigator.getBattery;
+                navigator.getBattery = function() {
+                    return Promise.resolve({
+                        charging: Math.random() > 0.5,
+                        chargingTime: Math.random() * 3600,
+                        dischargingTime: Math.random() * 7200,
+                        level: Math.random()
+                    });
+                };
+            }
+
+            console.log('[ODYSSEY] Comprehensive anti-detection measures activated for instance: ' + instanceId);
             console.log('[ODYSSEY] Screen: ' + selectedScreen.width + 'x' + selectedScreen.height + ' @' + selectedScreen.pixelRatio + 'x');
             console.log('[ODYSSEY] User Agent: ' + selectedUserAgent.substring(0, 50) + '...');
+            console.log('[ODYSSEY] Storage prefix: ' + storagePrefix);
         })();
         """
 
@@ -2715,8 +2931,30 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         let script = """
         (function() {
             try {
-                // Use exact selector from Python/Selenium implementation
-                const button = document.querySelector('.mdc-button__ripple');
+                // Comprehensive button detection strategy
+                let button = null;
+
+                // Strategy 1: Material Design ripple button
+                button = document.querySelector('.mdc-button__ripple');
+
+                // Strategy 2: Material Design button
+                if (!button) {
+                    button = document.querySelector('.mdc-button');
+                }
+
+                // Strategy 3: Submit button
+                if (!button) {
+                    button = document.querySelector('button[type="submit"]') || document.querySelector('input[type="submit"]');
+                }
+
+                // Strategy 4: Button with confirm text
+                if (!button) {
+                    const allButtons = Array.from(document.querySelectorAll('button'));
+                    button = allButtons.find(btn => {
+                        const text = (btn.textContent || '').toLowerCase();
+                        return text.includes('confirm') || text.includes('submit') || text.includes('verify');
+                    });
+                }
 
                 console.log('[ODYSSEY] Confirm button found:', button ? {
                     tagName: button.tagName,
@@ -2729,43 +2967,59 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                     // Scroll to button with human-like behavior
                     button.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
+                    // Get button position for consistent coordinates
+                    const rect = button.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+
                     // Simulate realistic mouse movement and hover
                     button.dispatchEvent(new MouseEvent('mouseenter', {
                         bubbles: true,
-                        clientX: button.getBoundingClientRect().left + 10,
-                        clientY: button.getBoundingClientRect().top + 10
+                        clientX: centerX,
+                        clientY: centerY
                     }));
 
                     button.dispatchEvent(new MouseEvent('mouseover', {
                         bubbles: true,
-                        clientX: button.getBoundingClientRect().left + 15,
-                        clientY: button.getBoundingClientRect().top + 15
+                        clientX: centerX,
+                        clientY: centerY
                     }));
 
                     // Click with human-like behavior
                     button.dispatchEvent(new MouseEvent('mousedown', {
                         bubbles: true,
                         button: 0,
-                        clientX: button.getBoundingClientRect().left + 20,
-                        clientY: button.getBoundingClientRect().top + 20
+                        clientX: centerX,
+                        clientY: centerY
                     }));
 
                     button.dispatchEvent(new MouseEvent('mouseup', {
                         bubbles: true,
                         button: 0,
-                        clientX: button.getBoundingClientRect().left + 20,
-                        clientY: button.getBoundingClientRect().top + 20
+                        clientX: centerX,
+                        clientY: centerY
                     }));
 
                     button.dispatchEvent(new MouseEvent('click', {
                         bubbles: true,
                         button: 0,
-                        clientX: button.getBoundingClientRect().left + 20,
-                        clientY: button.getBoundingClientRect().top + 20
+                        clientX: centerX,
+                        clientY: centerY
                     }));
 
                     console.log('[ODYSSEY] Clicked confirm button with ultra-human-like behavior');
                     return true;
+                }
+
+                // Fallback: Try native click method
+                if (button) {
+                    try {
+                        button.click();
+                        console.log('[ODYSSEY] Used native click method as fallback');
+                        return true;
+                    } catch (e) {
+                        console.log('[ODYSSEY] Native click failed:', e);
+                    }
                 }
 
                 // Fallback to other common submit button selectors
@@ -2777,15 +3031,29 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                     console.log('[ODYSSEY] Using fallback confirm button:', fallbackButton.tagName);
                     fallbackButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                    // Use setTimeout for delays instead of await
-                    setTimeout(() => {
-                        fallbackButton.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
-                        setTimeout(() => {
-                            fallbackButton.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, button: 0 }));
-                            fallbackButton.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0 }));
-                        }, 50 + Math.random() * 100);
-                    }, 300 + Math.random() * 200);
+                    // Immediate click with proper event sequence
+                    fallbackButton.dispatchEvent(new MouseEvent('mousedown', {
+                        bubbles: true,
+                        button: 0,
+                        clientX: fallbackButton.getBoundingClientRect().left + 10,
+                        clientY: fallbackButton.getBoundingClientRect().top + 10
+                    }));
 
+                    fallbackButton.dispatchEvent(new MouseEvent('mouseup', {
+                        bubbles: true,
+                        button: 0,
+                        clientX: fallbackButton.getBoundingClientRect().left + 10,
+                        clientY: fallbackButton.getBoundingClientRect().top + 10
+                    }));
+
+                    fallbackButton.dispatchEvent(new MouseEvent('click', {
+                        bubbles: true,
+                        button: 0,
+                        clientX: fallbackButton.getBoundingClientRect().left + 10,
+                        clientY: fallbackButton.getBoundingClientRect().top + 10
+                    }));
+
+                    console.log('[ODYSSEY] Clicked fallback confirm button immediately');
                     return true;
                 }
 
@@ -2875,49 +3143,25 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             return false
         }
 
-        logger.info("Handling email verification...")
+        logger.info("Instance \(self.instanceId): Handling email verification...")
 
         // Step 1: Wait for verification page to load
         await updateTask("Waiting for verification page...")
         let verificationPageReady = await waitForVerificationPage()
         if !verificationPageReady {
-            logger.error("Verification page failed to load")
+            logger.error("Instance \(self.instanceId): Verification page failed to load")
             return false
         }
 
-        // Step 2: Fetch verification code from email
-        await updateTask("Fetching verification code from email...")
-        let verificationCode = await fetchVerificationCodeFromEmail(verificationStart: verificationStart)
-        if verificationCode.isEmpty {
-            logger.error("Failed to fetch verification code from email")
+        // Step 2: Try verification codes with retry mechanism
+        await updateTask("Trying verification codes with retry...")
+        let verificationSuccess = await tryVerificationCodesWithRetry(verificationStart: verificationStart)
+        if !verificationSuccess {
+            logger.error("Instance \(self.instanceId): All verification attempts failed")
             return false
         }
 
-        logger.info("Retrieved verification code: \(verificationCode, privacy: .private)")
-
-        // Step 3: Fill verification code into the form
-        await updateTask("Filling verification code...")
-        let codeFilled = await fillVerificationCode(verificationCode)
-        if !codeFilled {
-            logger.error("Failed to fill verification code")
-            return false
-        }
-
-        // Step 3.5: Wait for form to process the input and enable submit button
-        await updateTask("Waiting for form to process verification code...")
-        logger.info("Waiting 2 seconds for form to process verification code...")
-        try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
-        logger.info("Finished waiting for form to process verification code")
-
-        // Step 4: Click submit button
-        await updateTask("Submitting verification code...")
-        let submitClicked = await clickVerificationSubmitButton()
-        if !submitClicked {
-            logger.error("Failed to click verification submit button")
-            return false
-        }
-
-        logger.info("Email verification completed successfully")
+        logger.info("Instance \(self.instanceId): Email verification completed successfully")
         return true
     }
 
@@ -3079,6 +3323,436 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         return ""
     }
 
+    /// Fetches all verification codes from email using IMAP
+    private func fetchAllVerificationCodesFromEmail(verificationStart: Date) async -> [String] {
+        logger.info("Fetching all verification codes from email for instance: \(self.instanceId)")
+
+        // Initial wait before checking for the email
+        let initialWait: TimeInterval = 10.0 // 10 seconds
+        let maxTotalWait: TimeInterval = 120.0 // 2 minutes
+        let retryDelay: TimeInterval = 2.0 // 2 seconds
+        let deadline = Date().addingTimeInterval(maxTotalWait)
+
+        // Use shared email service but with instance-specific logging and timing
+        let emailService = EmailService.shared
+        logger.info("Using EmailService for WebKit instance: \(self.instanceId)")
+
+        // Wait for the initial period
+        logger
+            .info(
+                "Waiting \(initialWait)s before starting email verification checks for instance: \(self.instanceId)...",
+                )
+        try? await Task.sleep(nanoseconds: UInt64(initialWait * 1_000_000_000))
+
+        while Date() < deadline {
+            // Try both shared code pool and direct email fetching as fallback
+            var codes: [String] = []
+
+            // First try shared code pool
+            codes = await emailService.fetchAndConsumeVerificationCodes(
+                since: verificationStart,
+                instanceId: self.instanceId,
+                )
+
+            // If shared pool is empty, try direct email fetching as fallback
+            if codes.isEmpty {
+                logger.info("Instance \(self.instanceId): Shared code pool empty, trying direct email fetch...")
+                codes = await emailService.fetchVerificationCodesForToday(since: verificationStart)
+
+                if !codes.isEmpty {
+                    logger.info("Instance \(self.instanceId): Direct email fetch found \(codes.count) codes")
+                }
+            }
+
+            // If still empty, try with a broader time window for the second instance
+            if codes.isEmpty {
+                logger.info("Instance \(self.instanceId): Still no codes, trying with broader time window...")
+                let broaderStart = verificationStart.addingTimeInterval(-300) // 5 minutes earlier
+                codes = await emailService.fetchVerificationCodesForToday(since: broaderStart)
+
+                if !codes.isEmpty {
+                    logger.info("Instance \(self.instanceId): Broader search found \(codes.count) codes")
+                }
+            }
+
+            if !codes.isEmpty {
+                logger
+                    .info(
+                        "Instance \(self.instanceId): Found \(codes.count) verification codes: \(codes.map { String(repeating: "*", count: $0.count) })",
+                        )
+                return codes
+            }
+            logger
+                .info("Instance \(self.instanceId): No verification codes available yet, retrying in \(retryDelay)s...")
+            try? await Task.sleep(nanoseconds: UInt64(retryDelay * 1_000_000_000))
+        }
+        logger.error("Instance \(self.instanceId): Timed out waiting for verification codes after \(maxTotalWait)s")
+        return []
+    }
+
+    /// Tries verification codes systematically until one works or all fail
+    private func tryVerificationCodes(_ codes: [String]) async -> Bool {
+        logger
+            .info("Instance \(self.instanceId): Starting systematic verification code trial with \(codes.count) codes")
+
+        for (index, code) in codes.enumerated() {
+            logger
+                .info(
+                    "Instance \(self.instanceId): Trying verification code \(index + 1)/\(codes.count): \(String(repeating: "*", count: code.count))",
+                    )
+
+            // Check if this code has already been consumed by another instance
+            let emailService = EmailService.shared
+            let isCodeConsumed = await emailService.isCodeConsumedByOtherInstance(
+                code,
+                currentInstanceId: self.instanceId,
+                )
+
+            if isCodeConsumed {
+                logger
+                    .warning(
+                        "Instance \(self.instanceId): Code \(String(repeating: "*", count: code.count)) already consumed by another instance - skipping",
+                        )
+                continue
+            }
+
+            await updateTask("Trying verification code \(index + 1)/\(codes.count)...")
+
+            // Fill the verification code
+            let fillSuccess = await fillVerificationCode(code)
+            if !fillSuccess {
+                logger.warning("Instance \(self.instanceId): Failed to fill verification code \(index + 1)")
+                continue
+            }
+
+            // Wait for form to process
+            await updateTask("Waiting for form to process verification code...")
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+            logger.info("Instance \(self.instanceId): Finished waiting for form to process verification code")
+
+            // Click the verification submit button
+            let clickSuccess = await clickVerificationSubmitButton()
+            if !clickSuccess {
+                logger
+                    .warning(
+                        "Instance \(self.instanceId): Failed to click verification submit button for code \(index + 1)",
+                        )
+                continue
+            }
+
+            // Wait for verification response
+            await updateTask("Waiting for verification response...")
+            try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
+            logger.info("Instance \(self.instanceId): Finished waiting for verification response")
+
+            // Check verification result
+            logger.info("Instance \(self.instanceId): Checking verification result for code \(index + 1)...")
+            let verificationSuccess = await checkVerificationSuccess()
+
+            if verificationSuccess {
+                logger.info("Instance \(self.instanceId): ✅ Verification code \(index + 1) was accepted!")
+
+                // Mark this code as consumed by this instance
+                await emailService.markCodeAsConsumed(code, byInstanceId: self.instanceId)
+
+                logger.info("Instance \(self.instanceId): ✅ Verification successful on attempt \(index + 1)")
+                return true
+            } else {
+                logger.warning("Instance \(self.instanceId): ❌ Verification code \(index + 1) was rejected")
+
+                // Check if we're still on the verification page
+                let stillOnVerificationPage = await checkIfStillOnVerificationPage()
+                if stillOnVerificationPage {
+                    logger.info("Instance \(self.instanceId): Still on verification page - continuing to next code...")
+                    // Clear the input for the next attempt
+                    await clearVerificationInput()
+                } else {
+                    logger
+                        .info(
+                            "Instance \(self.instanceId): Moved away from verification page - likely success or different error",
+                            )
+                    // If we moved away from the page, it might be success or a different type of error
+                    // Let's check one more time for success indicators
+                    let finalCheck = await checkVerificationSuccess()
+                    if finalCheck {
+                        logger.info("Instance \(self.instanceId): ✅ Final check confirms verification success!")
+                        return true
+                    }
+                }
+            }
+        }
+
+        logger.error("Instance \(self.instanceId): All \(codes.count) verification codes failed")
+        return false
+    }
+
+    /// Tries verification codes with retry mechanism that fetches new codes if initial ones fail
+    private func tryVerificationCodesWithRetry(verificationStart: Date) async -> Bool {
+        logger.info("Instance \(self.instanceId): Starting verification with retry mechanism")
+
+        let maxRetryAttempts = 3
+        var retryCount = 0
+
+        while retryCount < maxRetryAttempts {
+            logger.info("Instance \(self.instanceId): Retry attempt \(retryCount + 1)/\(maxRetryAttempts)")
+
+            // Fetch verification codes for this attempt
+            await updateTask("Fetching verification codes (attempt \(retryCount + 1)/\(maxRetryAttempts))...")
+            let verificationCodes = await fetchAllVerificationCodesFromEmail(verificationStart: verificationStart)
+
+            if verificationCodes.isEmpty {
+                logger.warning("Instance \(self.instanceId): No verification codes found in attempt \(retryCount + 1)")
+                retryCount += 1
+
+                if retryCount < maxRetryAttempts {
+                    logger.info("Instance \(self.instanceId): Waiting before retry...")
+                    try? await Task
+                        .sleep(nanoseconds: UInt64.random(in: 5_000_000_000 ... 10_000_000_000)) // 5-10 seconds
+                }
+                continue
+            }
+
+            logger
+                .info(
+                    "Instance \(self.instanceId): Retrieved \(verificationCodes.count) verification codes for attempt \(retryCount + 1)",
+                    )
+
+            // Try the verification codes
+            await updateTask("Trying verification codes (attempt \(retryCount + 1)/\(maxRetryAttempts))...")
+            let verificationSuccess = await tryVerificationCodes(verificationCodes)
+
+            if verificationSuccess {
+                logger.info("Instance \(self.instanceId): ✅ Verification successful on attempt \(retryCount + 1)")
+                return true
+            } else {
+                logger.warning("Instance \(self.instanceId): ❌ Verification failed on attempt \(retryCount + 1)")
+                retryCount += 1
+
+                if retryCount < maxRetryAttempts {
+                    logger.info("Instance \(self.instanceId): Waiting before next retry...")
+                    try? await Task
+                        .sleep(nanoseconds: UInt64.random(in: 5_000_000_000 ... 10_000_000_000)) // 5-10 seconds
+                }
+            }
+        }
+
+        logger.error("Instance \(self.instanceId): All \(maxRetryAttempts) verification attempts failed")
+        return false
+    }
+
+    /// Checks if the verification was successful by looking for success indicators
+    private func checkVerificationSuccess() async -> Bool {
+        guard let webView else {
+            logger.error("WebView not initialized")
+            return false
+        }
+
+        let script = """
+        (function() {
+            try {
+                const bodyText = document.body.textContent || '';
+                const bodyTextLower = bodyText.toLowerCase();
+
+                console.log('[ODYSSEY] Checking verification result. Page content preview:', bodyText.substring(0, 500));
+
+                // Check for success indicators
+                const successIndicators = [
+                    'verification successful',
+                    'email verified',
+                    'verification complete',
+                    'successfully verified',
+                    'thank you for verifying',
+                    'verification confirmed',
+                    'email address verified',
+                    'verification successful',
+                    'success',
+                    'confirmed',
+                    'reservation confirmed',
+                    'booking confirmed',
+                    'thank you',
+                    'your reservation has been confirmed',
+                    'reservation successful',
+                    'booking successful'
+                ];
+
+                // Check for error indicators
+                const errorIndicators = [
+                    'invalid code',
+                    'incorrect code',
+                    'verification failed',
+                    'code not found',
+                    'try again',
+                    'error',
+                    'failed',
+                    'invalid',
+                    'the confirmation code is incorrect',
+                    'incorrect confirmation code',
+                    'verification code is incorrect',
+                    'please try again',
+                    'wrong code',
+                    'code is incorrect'
+                ];
+
+                // Check for success
+                for (const indicator of successIndicators) {
+                    if (bodyTextLower.includes(indicator)) {
+                        console.log('[ODYSSEY] Found success indicator:', indicator);
+                        return { success: true, reason: indicator };
+                    }
+                }
+
+                // Check for errors
+                for (const indicator of errorIndicators) {
+                    if (bodyTextLower.includes(indicator)) {
+                        console.log('[ODYSSEY] Found error indicator:', indicator);
+                        return { success: false, reason: indicator };
+                    }
+                }
+
+                // Check if we're still on the verification page (indicates failure)
+                const verificationInput = document.querySelector('input[type="text"]') ||
+                                        document.querySelector('input[type="number"]') ||
+                                        document.querySelector('input[name*="code"]') ||
+                                        document.querySelector('input[placeholder*="code"]');
+
+                if (verificationInput) {
+                    console.log('[ODYSSEY] Still on verification page - likely failed');
+                    return { success: false, reason: 'still_on_verification_page' };
+                }
+
+                // Check if we've moved to a different page (indicates success)
+                console.log('[ODYSSEY] Moved to different page - likely success');
+                return { success: true, reason: 'page_navigation' };
+
+            } catch (error) {
+                console.error('[ODYSSEY] Error checking verification success:', error);
+                return { success: false, reason: 'error_checking' };
+            }
+        })();
+        """
+
+        do {
+            let result = try await webView.evaluateJavaScript(script)
+            if let dict = result as? [String: Any] {
+                let success = dict["success"] as? Bool ?? false
+                let reason = dict["reason"] as? String ?? "unknown"
+
+                logger
+                    .info(
+                        "Instance \(self.instanceId): Verification check result: \(success ? "SUCCESS" : "FAILED") - \(reason)",
+                        )
+
+                // Add more detailed logging for debugging
+                if success {
+                    logger.info("Instance \(self.instanceId): 🎉 SUCCESS detected - reason: \(reason)")
+                } else {
+                    logger.info("Instance \(self.instanceId): ❌ FAILURE detected - reason: \(reason)")
+                }
+
+                return success
+            } else {
+                logger
+                    .error(
+                        "Instance \(self.instanceId): Could not parse verification result: \(String(describing: result))",
+                        )
+            }
+        } catch {
+            logger
+                .error(
+                    "Instance \(self.instanceId): Error checking verification success: \(error.localizedDescription)",
+                    )
+        }
+
+        logger.error("Instance \(self.instanceId): Defaulting to FAILURE due to error or parsing issue")
+        return false
+    }
+
+    /// Checks if we're still on the verification page
+    private func checkIfStillOnVerificationPage() async -> Bool {
+        guard let webView else {
+            logger.error("WebView not initialized")
+            return false
+        }
+
+        let script = """
+        (function() {
+            try {
+                // Check for verification code input field
+                const verificationInput = document.querySelector('input[type="text"]') ||
+                                        document.querySelector('input[type="number"]') ||
+                                        document.querySelector('input[name*="code"]') ||
+                                        document.querySelector('input[placeholder*="code"]');
+
+                // Check for verification-related text
+                const bodyText = document.body.textContent || '';
+                const hasVerificationText = bodyText.toLowerCase().includes('verification') ||
+                                        bodyText.toLowerCase().includes('verify') ||
+                                        bodyText.toLowerCase().includes('code') ||
+                                        bodyText.toLowerCase().includes('enter it below');
+
+                const result = !!verificationInput || hasVerificationText;
+                console.log('[ODYSSEY] Still on verification page check:', {
+                    hasInput: !!verificationInput,
+                    hasText: hasVerificationText,
+                    result: result
+                });
+                return result;
+            } catch (error) {
+                console.error('[ODYSSEY] Error checking if still on verification page:', error);
+                return false;
+            }
+        })();
+        """
+
+        do {
+            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
+            logger.info("Instance \(self.instanceId): Still on verification page: \(result)")
+            return result
+        } catch {
+            logger
+                .error(
+                    "Instance \(self.instanceId): Error checking if still on verification page: \(error.localizedDescription)",
+                    )
+            return false
+        }
+    }
+
+    /// Clears the verification input field for the next attempt
+    private func clearVerificationInput() async {
+        guard let webView else {
+            logger.error("WebView not initialized")
+            return
+        }
+
+        let script = """
+        (function() {
+            try {
+                const verificationInput = document.querySelector('input[type="text"]') ||
+                                        document.querySelector('input[type="number"]') ||
+                                        document.querySelector('input[name*="code"]') ||
+                                        document.querySelector('input[placeholder*="code"]');
+
+                if (verificationInput) {
+                    verificationInput.value = '';
+                    verificationInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    verificationInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    console.log('[ODYSSEY] Cleared verification input field');
+                }
+            } catch (error) {
+                console.error('[ODYSSEY] Error clearing verification input:', error);
+            }
+        })();
+        """
+
+        do {
+            _ = try await webView.evaluateJavaScript(script)
+            logger.info("Instance \(self.instanceId): Cleared verification input field")
+        } catch {
+            logger
+                .error("Instance \(self.instanceId): Error clearing verification input: \(error.localizedDescription)")
+        }
+    }
+
     /// Fills verification code into the input field using browser autofill behavior
     private func fillVerificationCode(_ code: String) async -> Bool {
         guard let webView else {
@@ -3130,16 +3804,19 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
-                logger.info("Successfully filled verification code with autofill behavior")
+                logger.info("Instance \(self.instanceId): Successfully filled verification code with autofill behavior")
                 // Minimal delay after autofill
                 try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 300_000_000))
                 return true
             } else {
-                logger.error("Failed to fill verification code with autofill")
+                logger.error("Instance \(self.instanceId): Failed to fill verification code with autofill")
                 return false
             }
         } catch {
-            logger.error("Error filling verification code with autofill: \(error.localizedDescription)")
+            logger
+                .error(
+                    "Instance \(self.instanceId): Error filling verification code with autofill: \(error.localizedDescription)",
+                    )
             return false
         }
     }
