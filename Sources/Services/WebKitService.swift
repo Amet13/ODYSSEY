@@ -3936,6 +3936,290 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             return false
         }
     }
+
+    /// Fills all contact fields simultaneously with browser autofill behavior
+    /// and then simulates human-like movements before clicking confirm
+    func fillAllContactFieldsWithAutofillAndHumanMovements(
+        phoneNumber: String,
+        email: String,
+        name: String,
+        ) async -> Bool {
+        guard let webView else {
+            logger.error("WebView not initialized")
+            return false
+        }
+
+        logger.info("Starting simultaneous contact form filling with autofill behavior")
+
+        let script = """
+        (function() {
+            try {
+                // Find all contact fields
+                let phoneField = document.getElementById('phone') ||
+                               document.getElementById('telephone') ||
+                               document.getElementById('phoneNumber') ||
+                               document.querySelector('input[type="tel"]') ||
+                               document.querySelector('input[name*="phone"]') ||
+                               document.querySelector('input[name*="tel"]') ||
+                               document.querySelector('input[placeholder*="phone"]') ||
+                               document.querySelector('input[placeholder*="tel"]') ||
+                               document.querySelector('input[placeholder*="Phone"]') ||
+                               document.querySelector('input[placeholder*="Telephone"]');
+
+                let emailField = document.getElementById('email') ||
+                               document.getElementById('emailAddress') ||
+                               document.querySelector('input[type="email"]') ||
+                               document.querySelector('input[name*="email"]') ||
+                               document.querySelector('input[placeholder*="email"]') ||
+                               document.querySelector('input[placeholder*="Email"]');
+
+                let nameField = document.querySelector('input[id^="field"]') ||
+                              document.getElementById('name') ||
+                              document.getElementById('fullName') ||
+                              document.getElementById('firstName') ||
+                              document.querySelector('input[name*="name"]') ||
+                              document.querySelector('input[placeholder*="name"]') ||
+                              document.querySelector('input[placeholder*="Name"]') ||
+                              document.querySelector('input[placeholder*="Full Name"]');
+
+                console.log('[ODYSSEY] Contact fields found:', {
+                    phone: phoneField ? { id: phoneField.id, name: phoneField.name, type: phoneField.type } : 'NOT FOUND',
+                    email: emailField ? { id: emailField.id, name: emailField.name, type: emailField.type } : 'NOT FOUND',
+                    name: nameField ? { id: nameField.id, name: nameField.name, type: nameField.type } : 'NOT FOUND'
+                });
+
+                // Fill all fields simultaneously with browser autofill behavior
+                const fillFieldWithAutofill = (field, value) => {
+                    if (!field) return false;
+
+                    // Browser autofill behavior: scroll into view
+                    field.scrollIntoView({ behavior: 'auto', block: 'center' });
+
+                    // Focus and clear
+                    field.focus();
+                    field.value = '';
+
+                    // Autofill-style: set value instantly
+                    field.value = value;
+
+                    // Dispatch autofill events
+                    field.dispatchEvent(new Event('input', { bubbles: true }));
+                    field.dispatchEvent(new Event('change', { bubbles: true }));
+                    field.dispatchEvent(new Event('autocomplete', { bubbles: true }));
+
+                    // Blur (browser autofill behavior)
+                    field.blur();
+
+                    return true;
+                };
+
+                // Fill all fields simultaneously
+                const phoneFilled = fillFieldWithAutofill(phoneField, '\(phoneNumber)');
+                const emailFilled = fillFieldWithAutofill(emailField, '\(email)');
+                const nameFilled = fillFieldWithAutofill(nameField, '\(name)');
+
+                console.log('[ODYSSEY] Simultaneous autofill results:', {
+                    phone: phoneFilled,
+                    email: emailFilled,
+                    name: nameFilled
+                });
+
+                // Simulate human-like movements after filling
+                const simulateHumanMovements = () => {
+                    // Simulate mouse movements across the form
+                    const fields = [phoneField, emailField, nameField].filter(f => f);
+
+                    fields.forEach((field, index) => {
+                        setTimeout(() => {
+                            if (field) {
+                                const rect = field.getBoundingClientRect();
+                                const centerX = rect.left + rect.width / 2;
+                                const centerY = rect.top + rect.height / 2;
+
+                                // Simulate mouse hover over field
+                                field.dispatchEvent(new MouseEvent('mouseenter', {
+                                    bubbles: true,
+                                    clientX: centerX + Math.random() * 10 - 5,
+                                    clientY: centerY + Math.random() * 10 - 5
+                                }));
+
+                                field.dispatchEvent(new MouseEvent('mouseover', {
+                                    bubbles: true,
+                                    clientX: centerX + Math.random() * 10 - 5,
+                                    clientY: centerY + Math.random() * 10 - 5
+                                }));
+                            }
+                        }, index * 200 + Math.random() * 300);
+                    });
+
+                    // Simulate general mouse movements
+                    setTimeout(() => {
+                        document.dispatchEvent(new MouseEvent('mousemove', {
+                            bubbles: true,
+                            clientX: 300 + Math.random() * 200,
+                            clientY: 200 + Math.random() * 150
+                        }));
+                    }, 800 + Math.random() * 400);
+
+                    setTimeout(() => {
+                        document.dispatchEvent(new MouseEvent('mousemove', {
+                            bubbles: true,
+                            clientX: 400 + Math.random() * 200,
+                            clientY: 300 + Math.random() * 150
+                        }));
+                    }, 1200 + Math.random() * 400);
+
+                    // Simulate scrolling to review the form
+                    setTimeout(() => {
+                        window.scrollBy({
+                            top: -50 + Math.random() * 100,
+                            left: 0,
+                            behavior: 'smooth'
+                        });
+                    }, 1600 + Math.random() * 300);
+
+                    // Simulate clicking on empty space (reviewing the form)
+                    setTimeout(() => {
+                        document.body.dispatchEvent(new MouseEvent('click', {
+                            bubbles: true,
+                            clientX: 100 + Math.random() * 100,
+                            clientY: 100 + Math.random() * 100
+                        }));
+                    }, 2000 + Math.random() * 500);
+                };
+
+                // Start human movement simulation
+                simulateHumanMovements();
+
+                return phoneFilled && emailFilled && nameFilled;
+
+            } catch (error) {
+                console.error('[ODYSSEY] Error in simultaneous contact form filling:', error);
+                return false;
+            }
+        })();
+        """
+
+        do {
+            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
+            if result {
+                logger.info("Successfully filled all contact fields simultaneously with autofill behavior")
+
+                // Wait for human movements to complete (3-4 seconds total)
+                try? await Task.sleep(nanoseconds: UInt64.random(in: 3_000_000_000 ... 4_000_000_000))
+
+                // Additional human-like behavior before clicking confirm
+                await simulateEnhancedHumanMovementsBeforeConfirm()
+
+                return true
+            } else {
+                logger.error("Failed to fill all contact fields simultaneously")
+                return false
+            }
+        } catch {
+            logger.error("Error filling contact fields simultaneously: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Simulates enhanced human-like movements specifically before clicking confirm button
+    func simulateEnhancedHumanMovementsBeforeConfirm() async {
+        guard let webView else { return }
+
+        logger.info("Simulating enhanced human-like movements before clicking confirm button")
+
+        // Simulate realistic mouse movements to the confirm button area
+        let script = """
+        (function() {
+            try {
+                // Find the confirm button to simulate movements towards it
+                const confirmButton = document.querySelector('button[type="submit"], input[type="submit"], .mdc-button, button:contains("Confirm"), button:contains("Submit")');
+
+                if (confirmButton) {
+                    const rect = confirmButton.getBoundingClientRect();
+                    const targetX = rect.left + rect.width / 2;
+                    const targetY = rect.top + rect.height / 2;
+
+                    // Simulate mouse movement path to the button
+                    const steps = 8;
+                    const startX = 200 + Math.random() * 100;
+                    const startY = 150 + Math.random() * 100;
+
+                    for (let i = 0; i <= steps; i++) {
+                        setTimeout(() => {
+                            const progress = i / steps;
+                            const currentX = startX + (targetX - startX) * progress + (Math.random() - 0.5) * 20;
+                            const currentY = startY + (targetY - startY) * progress + (Math.random() - 0.5) * 20;
+
+                            document.dispatchEvent(new MouseEvent('mousemove', {
+                                bubbles: true,
+                                clientX: currentX,
+                                clientY: currentY
+                            }));
+                        }, i * 150 + Math.random() * 100);
+                    }
+
+                    // Simulate hover over the button
+                    setTimeout(() => {
+                        confirmButton.dispatchEvent(new MouseEvent('mouseenter', {
+                            bubbles: true,
+                            clientX: targetX + Math.random() * 10 - 5,
+                            clientY: targetY + Math.random() * 10 - 5
+                        }));
+
+                        confirmButton.dispatchEvent(new MouseEvent('mouseover', {
+                            bubbles: true,
+                            clientX: targetX + Math.random() * 10 - 5,
+                            clientY: targetY + Math.random() * 10 - 5
+                        }));
+                    }, steps * 150 + 200);
+                }
+
+                // Simulate some random mouse movements in the form area
+                setTimeout(() => {
+                    document.dispatchEvent(new MouseEvent('mousemove', {
+                        bubbles: true,
+                        clientX: 250 + Math.random() * 200,
+                        clientY: 180 + Math.random() * 150
+                    }));
+                }, 500 + Math.random() * 300);
+
+                setTimeout(() => {
+                    document.dispatchEvent(new MouseEvent('mousemove', {
+                        bubbles: true,
+                        clientX: 350 + Math.random() * 200,
+                        clientY: 220 + Math.random() * 150
+                    }));
+                }, 1000 + Math.random() * 300);
+
+                // Simulate a small scroll to review the form
+                setTimeout(() => {
+                    window.scrollBy({
+                        top: -30 + Math.random() * 60,
+                        left: 0,
+                        behavior: 'smooth'
+                    });
+                }, 1500 + Math.random() * 400);
+
+                console.log('[ODYSSEY] Enhanced human movements before confirm completed');
+
+            } catch (error) {
+                console.error('[ODYSSEY] Error in enhanced human movements:', error);
+            }
+        })();
+        """
+
+        do {
+            _ = try await webView.evaluateJavaScript(script)
+
+            // Wait for movements to complete (2-3 seconds)
+            try? await Task.sleep(nanoseconds: UInt64.random(in: 2_000_000_000 ... 3_000_000_000))
+
+            logger.info("Enhanced human-like movements before confirm completed")
+        } catch {
+            logger.error("Error simulating enhanced human movements: \(error.localizedDescription)")
+        }
+    }
 }
 
 // MARK: - Navigation Delegate

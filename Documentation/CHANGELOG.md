@@ -5,6 +5,22 @@ All notable changes to ODYSSEY will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2025-01-XX
+
+### Enhanced
+
+- **Simultaneous Form Filling**: All contact fields are now filled at once using browser autofill behavior
+- **Enhanced Human-Like Movements**: Realistic mouse movements and form review behavior before clicking confirm
+- **Improved Stealth**: Reduced captcha detection risk through more natural automation patterns
+- **Better Performance**: Faster form completion (3-4 seconds vs 6-8 seconds)
+
+### Technical Improvements
+
+- New `fillAllContactFieldsWithAutofillAndHumanMovements()` method
+- Enhanced `simulateEnhancedHumanMovementsBeforeConfirm()` method
+- Improved error handling with new `contactInfoFieldNotFound` error case
+- Better timing patterns for human-like behavior simulation
+
 ## [0.1.0] - 2025-01-XX
 
 ### Added

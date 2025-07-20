@@ -120,6 +120,7 @@ class ReservationManager: NSObject, ObservableObject {
         case phoneNumberFieldNotFound
         case emailFieldNotFound
         case nameFieldNotFound
+        case contactInfoFieldNotFound
         case contactInfoConfirmButtonNotFound
         case emailVerificationFailed
         case reservationFailed
@@ -154,6 +155,8 @@ class ReservationManager: NSObject, ObservableObject {
                 "Email field not found on page"
             case .nameFieldNotFound:
                 "Name field not found on page"
+            case .contactInfoFieldNotFound:
+                "Contact information fields not found on page"
             case .contactInfoConfirmButtonNotFound:
                 "Contact information confirm button not found on page"
             case .emailVerificationFailed:
@@ -478,48 +481,26 @@ class ReservationManager: NSObject, ObservableObject {
             // Step 11: Proceed with browser autofill-style form filling (less likely to trigger captchas)
             logger.info("Proceeding with browser autofill-style form filling to avoid triggering captchas")
 
-            // Step 12: Fill contact information form with browser autofill behavior
-            await updateTask("Filling contact information with autofill...")
+            // Step 12: Fill all contact information fields simultaneously with browser autofill behavior
+            await updateTask("Filling contact information with simultaneous autofill...")
 
             // Get user settings for contact information
             let userSettings = UserSettingsManager.shared.userSettings
 
-            // Fill phone number using browser autofill behavior (remove hyphens as per form instructions)
+            // Fill all fields simultaneously with browser autofill behavior and human-like movements
             let phoneNumber = userSettings.phoneNumber.replacingOccurrences(of: "-", with: "")
-            let phoneFilled = await webKitService.fillPhoneNumberWithAutofill(phoneNumber)
-            if !phoneFilled {
-                logger.error("Failed to fill phone number with autofill")
-                throw ReservationError.phoneNumberFieldNotFound
+            let allFieldsFilled = await webKitService.fillAllContactFieldsWithAutofillAndHumanMovements(
+                phoneNumber: phoneNumber,
+                email: userSettings.imapEmail,
+                name: userSettings.name,
+                )
+
+            if !allFieldsFilled {
+                logger.error("Failed to fill all contact fields simultaneously")
+                throw ReservationError.contactInfoFieldNotFound
             }
 
-            logger.info("Successfully filled phone number with autofill")
-
-            // Minimal pause between fields (autofill is faster than human typing)
-            try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 500_000_000))
-
-            // Fill email address using browser autofill behavior
-            let emailFilled = await webKitService.fillEmailWithAutofill(userSettings.imapEmail)
-            if !emailFilled {
-                logger.error("Failed to fill email address with autofill")
-                throw ReservationError.emailFieldNotFound
-            }
-
-            logger.info("Successfully filled email address with autofill")
-
-            // Minimal pause between fields (autofill is faster than human typing)
-            try? await Task.sleep(nanoseconds: UInt64.random(in: 200_000_000 ... 500_000_000))
-
-            // Fill name using browser autofill behavior
-            let nameFilled = await webKitService.fillNameWithAutofill(userSettings.name)
-            if !nameFilled {
-                logger.error("Failed to fill name with autofill")
-                throw ReservationError.nameFieldNotFound
-            }
-
-            logger.info("Successfully filled name with autofill")
-
-            // Before clicking confirm, optimized review pause (1.0–1.8s)
-            try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000 ... 1_800_000_000))
+            logger.info("Successfully filled all contact fields simultaneously with autofill and human movements")
 
             // Step 13: Click confirm button for contact information with retry logic
             await updateTask("Confirming contact information...")
