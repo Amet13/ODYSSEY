@@ -250,7 +250,7 @@ class EmailService: ObservableObject {
         return nil
     }
 
-    /// Fetches all verification codes from emails from noreply@frontdesksuite.com received in the last 5 minutes
+    /// Fetches all verification codes from emails from noreply@frontdesksuite.com received in the last 15 minutes
     /// - Returns: Array of 4-digit codes (oldest to newest)
     func fetchVerificationCodesForToday(since: Date) async -> [String] {
         let connectionID = UUID().uuidString
@@ -258,9 +258,8 @@ class EmailService: ObservableObject {
         let lastAttempt = EmailService.lastIMAPConnectionTimestamp
         EmailService.lastIMAPConnectionTimestamp = now
 
-        // Use the provided since parameter, but ensure we have a reasonable lookback window
-        // If since is more than 10 minutes ago, use 10 minutes ago to catch recent emails
-        let searchSince = since.timeIntervalSinceNow > -600 ? since : Date().addingTimeInterval(-600)
+        // Use a 15-minute window to catch all recent verification emails
+        let searchSince = since.timeIntervalSinceNow > -900 ? since : Date().addingTimeInterval(-900)
 
         if let last = lastAttempt {
             let interval = now.timeIntervalSince(last)
@@ -282,31 +281,10 @@ class EmailService: ObservableObject {
 
         logger.info("✅ EmailService: Email settings are configured")
 
-        // Log the credentials being used (with masked password)
-        let maskedPassword = String(settings.imapPassword.prefix(2)) + "***" + String(settings.imapPassword.suffix(2))
-        logger.info(
-            "🔐 EmailService: Test connection using - Email: \(settings.imapEmail), Server: \(settings.currentServer), Password: \(maskedPassword)",
-            )
-
-        // Add raw credential logging for debugging
-        logger.info(
-            "🔍 EmailService: Raw credentials - Email length: \(settings.imapEmail.count), Password length: \(settings.imapPassword.count), Server: \(settings.currentServer)",
-            )
-
-        // Check if it's a Gmail account and validate accordingly
-        // let isGmail = settings.isGmailAccount(settings.imapEmail) // removed unused
-
-        logger.info("🔍 EmailService: Using \(settings.isGmailAccount(settings.imapEmail) ? "Gmail" : "IMAP") provider")
-
-        // Log the credentials being used (with masked password)
-        let maskedPasswordForLog = String(settings.imapPassword.prefix(2)) + "***" +
-            String(settings.imapPassword.suffix(2))
-        logger.info(
-            "🔐 EmailService: Reservation flow using - Email: \(settings.imapEmail), Server: \(settings.currentServer), Password: \(maskedPasswordForLog)",
-            )
-
         // Use the same NWConnection-based implementation that works for the test
         // This replaces the old InputStream/OutputStream implementation
+        // ---
+        // The following function will aggregate all unique IDs from all search strategies
         return await fetchVerificationCodesWithSameConnection(since: searchSince)
     }
 
@@ -1311,72 +1289,75 @@ class EmailService: ObservableObject {
         logger.info("🔍 Extracting verification codes from email body...")
         logger.debug("📧 Full email body (first 1000 chars): \(body.prefix(1_000))")
 
-        // Multiple patterns to match verification codes
-        let patterns = [
-            // Standard 4-digit code patterns
-            "\\b\\d{4}\\b", // Any 4-digit number
-            "verification code[\\s:]*([0-9]{4})", // "verification code: 1234"
-            "code[\\s:]*([0-9]{4})", // "code: 1234"
-            "([0-9]{4})[\\s]*is your verification code", // "1234 is your verification code"
-            "your code is[\\s:]*([0-9]{4})", // "your code is 1234"
-            "enter[\\s:]*([0-9]{4})", // "enter 1234"
-            "use[\\s:]*([0-9]{4})" // "use 1234"
+        // Contextual patterns (case-insensitive, allow line breaks)
+        let contextualPatterns: [(String, String)] = [
+            ("verification code is[:\\s\\r\\n]*([0-9]{4})", "verification code is"),
+            ("your verification code is[:\\s\\r\\n]*([0-9]{4})", "your verification code is"),
+            ("your code is[:\\s\\r\\n]*([0-9]{4})", "your code is"),
+            ("code is[:\\s\\r\\n]*([0-9]{4})", "code is"),
+            ("verification code[\\s:]*([0-9]{4})", "verification code (legacy)"),
+            ("code[\\s:]*([0-9]{4})", "code (legacy)")
         ]
-
-        var codes: Set<String> = []
-
-        for pattern in patterns {
+        var foundCodes: [String] = []
+        for (pattern, context) in contextualPatterns {
             do {
-                logger.debug("🔎 Trying regex pattern: \(pattern)")
                 let regex = try NSRegularExpression(pattern: pattern, options: [.caseInsensitive])
-                let range = NSRange(body.startIndex..., in: body)
-                let matches = regex.matches(in: body, options: [], range: range)
-                logger.debug("🔎 Pattern \(pattern) found \(matches.count) matches")
-
-                for match in matches {
-                    if match.numberOfRanges > 1 {
-                        // If there's a capture group, use it
-                        if let range = Range(match.range(at: 1), in: body) {
-                            let code = String(body[range])
-                            if code.count == 4, code.allSatisfy(\.isNumber) {
-                                codes.insert(code)
-                                logger.info("✅ Found verification code: \(code) with pattern: \(pattern)")
-                            }
-                        }
-                    } else {
-                        // If no capture group, use the full match
-                        if let range = Range(match.range, in: body) {
-                            let matchText = String(body[range])
-                            // Extract 4-digit numbers from the match
-                            let numberRegex = try NSRegularExpression(pattern: "\\b\\d{4}\\b")
-                            let numberRange = NSRange(matchText.startIndex..., in: matchText)
-                            let numberMatches = numberRegex.matches(in: matchText, options: [], range: numberRange)
-
-                            for numberMatch in numberMatches {
-                                if let numberRange = Range(numberMatch.range, in: matchText) {
-                                    let code = String(matchText[numberRange])
-                                    codes.insert(code)
-                                    logger.info("✅ Found verification code: \(code) with pattern: \(pattern)")
-                                }
-                            }
-                        }
-                    }
+                let matches = regex.matches(
+                    in: body,
+                    options: [],
+                    range: NSRange(location: 0, length: body.utf16.count),
+                    )
+                let codes = matches.compactMap { match -> String? in
+                    guard
+                        match.numberOfRanges > 1,
+                        let range = Range(match.range(at: 1), in: body) else { return nil }
+                    return String(body[range])
                 }
+                logger.debug("🔎 Pattern \(context) found \(codes.count) matches: \(codes)")
+                foundCodes.append(contentsOf: codes)
             } catch {
-                logger.warning("⚠️ Failed to compile regex pattern '\(pattern)': \(error.localizedDescription)")
+                logger.error("❌ Regex error for pattern \(context): \(error.localizedDescription)")
             }
         }
-
-        let result = Array(codes).sorted()
-        logger.info("📋 Extracted \(result.count) unique verification codes: \(result)")
-
-        // If no codes found, log the email body for debugging (truncated)
-        if result.isEmpty {
-            logger.warning("⚠️ No verification codes found in email body")
-            logger.debug("📧 Email body preview (first 500 chars): \(body.prefix(500))")
+        foundCodes = Array(Set(foundCodes)) // Unique
+        if !foundCodes.isEmpty {
+            // Filter out suspicious codes
+            let filtered = foundCodes.filter { code in
+                code != "0000" && code != "0004" && code != "1234" && code != "1111"
+            }
+            if !filtered.isEmpty {
+                logger.info("📋 Extracted \(filtered.count) unique verification codes (contextual): \(filtered)")
+                return filtered
+            } else {
+                logger.warning("⚠️ All contextual codes were filtered out as suspicious: \(foundCodes)")
+            }
         }
-
-        return result
+        logger.error("⚠️ No contextual code found, using fallback pattern: \\b\\d{4}\\b")
+        // Fallback pattern
+        do {
+            let fallbackPattern = "\\b\\d{4}\\b"
+            let regex = try NSRegularExpression(pattern: fallbackPattern)
+            let matches = regex.matches(in: body, options: [], range: NSRange(location: 0, length: body.utf16.count))
+            let codes = matches.compactMap { match -> String? in
+                guard let range = Range(match.range(at: 0), in: body) else { return nil }
+                return String(body[range])
+            }
+            // Filter out suspicious codes
+            let filtered = codes.filter { code in
+                code != "0000" && code != "0004" && code != "1234" && code != "1111"
+            }
+            logger.debug("🔎 Fallback pattern found \(filtered.count) matches: \(filtered)")
+            if !filtered.isEmpty {
+                logger.info("📋 Extracted \(filtered.count) unique verification codes (fallback): \(filtered)")
+                return filtered
+            } else {
+                logger.warning("⚠️ All fallback codes were filtered out as suspicious: \(codes)")
+            }
+        } catch {
+            logger.error("❌ Regex error for fallback pattern: \(error.localizedDescription)")
+        }
+        logger.error("⚠️ No verification codes found in email body")
+        return []
     }
 
     /// Fetches verification codes from emails using IMAP
@@ -1937,12 +1918,13 @@ class SharedVerificationCodePool: ObservableObject {
             await refreshCodePool(since: since)
         }
 
-        // Get codes that haven't been consumed yet
-        let unconsumedCodes = availableCodes.filter { code in
-            !consumedCodes.keys.contains(code)
-        }
+        // Get all available codes (do not filter by consumed codes)
+        let codesToReturn = availableCodes
 
-        logger.info("🔄 SharedCodePool: Unconsumed codes: \(unconsumedCodes.count)")
+        logger
+            .info(
+                "🔄 SharedCodePool: Returning \(codesToReturn.count) codes for instance \(instanceId): \(codesToReturn.map { String(repeating: "*", count: $0.count) })",
+                )
         logger
             .info(
                 "🔄 SharedCodePool: Available codes: \(self.availableCodes.map { String(repeating: "*", count: $0.count) })",
@@ -1951,30 +1933,7 @@ class SharedVerificationCodePool: ObservableObject {
             .info(
                 "🔄 SharedCodePool: Consumed codes: \(Array(self.consumedCodes.keys).map { String(repeating: "*", count: $0.count) })",
                 )
-
-        if unconsumedCodes.isEmpty {
-            logger.warning("⚠️ SharedCodePool: No unconsumed codes available for instance \(instanceId)")
-            logger.warning("⚠️ SharedCodePool: All codes have been consumed by other instances")
-            return []
-        }
-
-        // Consume codes for this instance (take up to 3 codes)
-        let codesToConsume = Array(unconsumedCodes.prefix(3))
-
-        // Mark codes as consumed for this instance
-        for code in codesToConsume {
-            self.consumedCodes[code] = instanceId
-        }
-
-        logger
-            .info(
-                "✅ SharedCodePool: Consumed \(codesToConsume.count) codes for instance \(instanceId): \(codesToConsume.map { String(repeating: "*", count: $0.count) })",
-                )
-        logger
-            .info(
-                "🔄 SharedCodePool: Updated pool status - Available: \(self.availableCodes.count), Consumed: \(self.consumedCodes.count)",
-                )
-        return codesToConsume
+        return codesToReturn
     }
 
     /// Refreshes the code pool by fetching new codes from email
@@ -2001,35 +1960,17 @@ class SharedVerificationCodePool: ObservableObject {
     /// - Parameter since: The date since which codes should be fetched
     /// - Returns: True if the pool should be refreshed
     private func shouldRefreshCodePool(since _: Date) -> Bool {
-        // Refresh if:
-        // 1. No codes available
-        // 2. Last fetch was more than 15 seconds ago (reduced from 30)
-        // 3. Since date is newer than last fetch
-        // 4. All available codes have been consumed
-
         if availableCodes.isEmpty {
             logger.info("🔄 SharedCodePool: Refreshing - no codes available")
             return true
         }
-
-        // Check if all codes have been consumed
-        let unconsumedCodes = availableCodes.filter { code in
-            !consumedCodes.keys.contains(code)
-        }
-
-        if unconsumedCodes.isEmpty {
-            logger.info("🔄 SharedCodePool: Refreshing - all codes consumed")
-            return true
-        }
-
         if let lastFetch = lastFetchTime {
             let timeSinceLastFetch = Date().timeIntervalSince(lastFetch)
-            if timeSinceLastFetch > 15 { // 15 seconds (reduced from 30)
+            if timeSinceLastFetch > 15 {
                 logger.info("🔄 SharedCodePool: Refreshing - \(timeSinceLastFetch) seconds since last fetch")
                 return true
             }
         }
-
         return false
     }
 
@@ -2050,17 +1991,9 @@ class SharedVerificationCodePool: ObservableObject {
     /// - Parameters:
     ///   - code: The verification code to check
     ///   - currentInstanceId: The ID of the current instance
-    /// - Returns: True if the code has been consumed by another instance
-    func isCodeConsumedByOtherInstance(_ code: String, currentInstanceId: String) -> Bool {
-        // Check if the code is in consumedCodes and was consumed by a different instance
-        if let consumingInstanceId = consumedCodes[code] {
-            let isConsumedByOther = consumingInstanceId != currentInstanceId
-            logger
-                .info(
-                    "🔄 SharedCodePool: Code \(String(repeating: "*", count: code.count)) consumed by \(consumingInstanceId) - isOther: \(isConsumedByOther)",
-                    )
-            return isConsumedByOther
-        }
+    /// - Returns: Always false (all windows can try all codes independently)
+    func isCodeConsumedByOtherInstance(_: String, currentInstanceId _: String) -> Bool {
+        // With new logic, all windows can try all codes independently
         return false
     }
 

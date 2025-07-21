@@ -43,7 +43,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     @Published var pageTitle: String?
 
     // Callback for window closure
-    var onWindowClosed: (() -> Void)?
+    var onWindowClosed: ((ReservationOrchestrator.RunType) -> Void)?
 
     let logger = Logger(subsystem: "com.odyssey.app", category: "WebKitService")
     var webView: WKWebView?
@@ -74,8 +74,18 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     private var scriptCompletions: [String: @Sendable (Any?) -> Void] = [:]
     private var elementCompletions: [String: @Sendable (String?) -> Void] = [:]
 
+    @MainActor private static var liveInstanceCount = 0
+    @MainActor static func printLiveInstanceCount() {
+        Logger(subsystem: "com.odyssey.app", category: "WebKitService")
+            .info("📊 Live WebKitService instances: \(liveInstanceCount)")
+    }
+
     override private init() {
         super.init()
+        Task { @MainActor in
+            Self.liveInstanceCount += 1
+            logger.info("🔄 WebKitService init. Live instances: \(Self.liveInstanceCount)")
+        }
         setupWebView()
         // Do not show debug window at app launch
     }
@@ -91,14 +101,21 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         self.instanceId = instanceId
     }
 
+    @MainActor private static func handleDeinitCleanup(logger: Logger) {
+        liveInstanceCount -= 1
+        logger.info("✅ WebKitService cleanup completed. Live instances: \(liveInstanceCount)")
+    }
+
     deinit {
         logger.info("🧹 WebKitService deinit - cleaning up resources.")
-        // Only synchronous cleanup here
         navigationCompletions.removeAll()
         scriptCompletions.removeAll()
         elementCompletions.removeAll()
         webView = nil
-        logger.info("✅ WebKitService cleanup completed.")
+        MainActor.assumeIsolated {
+            Self.liveInstanceCount -= 1
+            logger.info("✅ WebKitService cleanup completed. Live instances: \(Self.liveInstanceCount)")
+        }
     }
 
     private func setupWebView() {
@@ -945,7 +962,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     func disconnect(closeWindow: Bool = true) async {
-        logger.info("🔌 Starting WebKit service disconnect.")
+        logger.info("🔌 Starting WebKit service disconnect. closeWindow=\(closeWindow)")
         // Mark as disconnected first to prevent new operations
         isConnected = false
         isRunning = false
@@ -960,8 +977,23 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         // Only close debug window if requested
         if closeWindow {
             await MainActor.run {
-                self.debugWindow?.close()
+                if let window = self.debugWindow {
+                    logger.info("🪟 Closing debugWindow in disconnect.")
+                    window.close()
+                } else {
+                    logger.info("🪟 No debugWindow to close in disconnect.")
+                }
                 self.debugWindow = nil
+            }
+        }
+        // Failsafe: Force close all NSWindows with our title
+        await MainActor.run {
+            let allWindows = NSApplication.shared.windows
+            for window in allWindows {
+                if window.title.contains("ODYSSEY Web Automation") {
+                    logger.info("🪟 Failsafe: Forcibly closing window with title: \(window.title)")
+                    window.close()
+                }
             }
         }
         // Ensure WebView is properly cleaned up for next run
@@ -2136,15 +2168,9 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         let script = """
         (function() {
             // Try multiple selectors to find the phone field
-            let phoneField = document.getElementById('phone') ||
-                           document.getElementById('telephone') ||
-                           document.getElementById('phoneNumber') ||
+            let phoneField = document.getElementById('telephone') ||
                            document.querySelector('input[type="tel"]') ||
-                           document.querySelector('input[name*="phone"]') ||
-                           document.querySelector('input[name*="tel"]') ||
-                           document.querySelector('input[placeholder*="phone"]') ||
-                           document.querySelector('input[placeholder*="tel"]') ||
-                           document.querySelector('input[placeholder*="Phone"]') ||
+                           document.querySelector('input[name*="PhoneNumber"]') ||
                            document.querySelector('input[placeholder*="Telephone"]');
 
             console.log('[ODYSSEY] Phone field found:', phoneField ? {
@@ -2322,10 +2348,8 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         (function() {
             // Try multiple selectors to find the email field
             let emailField = document.getElementById('email') ||
-                           document.getElementById('emailAddress') ||
                            document.querySelector('input[type="email"]') ||
-                           document.querySelector('input[name*="email"]') ||
-                           document.querySelector('input[placeholder*="email"]') ||
+                           document.querySelector('input[name*="Email"]') ||
                            document.querySelector('input[placeholder*="Email"]');
 
             console.log('[ODYSSEY] Email field found:', emailField ? {
@@ -2512,13 +2536,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             try {
                 // Try multiple selectors to find the name field
                 let nameField = document.querySelector('input[id^=\"field\"]') ||
-                              document.getElementById('name') ||
-                              document.getElementById('fullName') ||
-                              document.getElementById('firstName') ||
-                              document.querySelector('input[name*=\"name\"]') ||
-                              document.querySelector('input[placeholder*=\"name\"]') ||
-                              document.querySelector('input[placeholder*=\"Name\"]') ||
-                              document.querySelector('input[placeholder*=\"Full Name\"]');
+                              document.querySelector('input[name*=\"field2021\"]');
 
                 console.log('[ODYSSEY] Name field found:', nameField ? {
                     type: nameField.type,
@@ -3224,150 +3242,153 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     /// Tries verification codes systematically until one works or all fail
     private func tryVerificationCodes(_ codes: [String]) async -> Bool {
         logger
-            .info("Instance \(self.instanceId): Starting systematic verification code trial with \(codes.count) codes")
-
+            .info(
+                "Instance \(self.instanceId): Starting systematic verification code trial with \(codes.count) codes: \(codes)",
+                )
+        logger.debug("[DEBUG] Codes array at start: \(codes)")
+        let emailService = EmailService.shared
         for (index, code) in codes.enumerated() {
+            logger.debug("[DEBUG] Loop iteration: index=\(index), code=\(code), instanceId=\(self.instanceId)")
+            // Validate code: must be 4 digits and not '0000'
+            if code.count != 4 || !code.allSatisfy(\.isNumber) || code == "0000" {
+                logger.warning("Instance \(self.instanceId): Skipping invalid code: \(code)")
+                logger.debug("[DEBUG] Continue after invalid code at index=\(index)")
+                continue
+            }
+            if !codes.contains(code) {
+                logger
+                    .warning("Instance \(self.instanceId): Code \(code) not in extracted set for this round, skipping.")
+                logger.debug("[DEBUG] Continue after code not in set at index=\(index)")
+                continue
+            }
             logger
                 .info(
                     "Instance \(self.instanceId): Trying verification code \(index + 1)/\(codes.count): \(String(repeating: "*", count: code.count))",
                     )
-
-            // Check if this code has already been consumed by another instance
-            let emailService = EmailService.shared
-            let isCodeConsumed = await emailService.isCodeConsumedByOtherInstance(
-                code,
-                currentInstanceId: self.instanceId,
-                )
-
-            if isCodeConsumed {
-                logger
-                    .warning(
-                        "Instance \(self.instanceId): Code \(String(repeating: "*", count: code.count)) already consumed by another instance - skipping",
-                        )
-                continue
-            }
-
             await updateTask("Trying verification code \(index + 1)/\(codes.count)...")
-
-            // Fill the verification code
             let fillSuccess = await fillVerificationCode(code)
             if !fillSuccess {
                 logger.warning("Instance \(self.instanceId): Failed to fill verification code \(index + 1)")
+                logger.debug("[DEBUG] Continue after failed fill at index=\(index)")
                 continue
             }
-
-            // Wait for form to process
             await updateTask("Waiting for form to process verification code...")
-            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
             logger.info("Instance \(self.instanceId): Finished waiting for form to process verification code")
-
-            // Click the verification submit button
             let clickSuccess = await clickVerificationSubmitButton()
             if !clickSuccess {
                 logger
                     .warning(
                         "Instance \(self.instanceId): Failed to click verification submit button for code \(index + 1)",
                         )
+                logger.debug("[DEBUG] Continue after failed click at index=\(index)")
                 continue
             }
-
-            // Wait for verification response
             await updateTask("Waiting for verification response...")
-            try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 seconds
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
             logger.info("Instance \(self.instanceId): Finished waiting for verification response")
-
-            // Check verification result
             logger.info("🔍 Instance \(self.instanceId): Checking verification result for code \(index + 1)...")
             let verificationSuccess = await checkVerificationSuccess()
-
             if verificationSuccess {
-                logger.info("✅ Instance \(self.instanceId): ✅ Verification code \(index + 1) was accepted!")
-
-                // Mark this code as consumed by this instance
+                logger
+                    .info(
+                        "✅ Instance \(self.instanceId): ✅ Verification code \(index + 1) was accepted or terminal state reached!",
+                        )
                 await emailService.markCodeAsConsumed(code, byInstanceId: self.instanceId)
-
-                logger.info("Instance \(self.instanceId): ✅ Verification successful on attempt \(index + 1)")
-                return true
+                logger
+                    .info(
+                        "Instance \(self.instanceId): ✅ Verification successful or terminal state on attempt \(index + 1)",
+                        )
+                logger.debug("[DEBUG] Return true after verification success or terminal state at index=\(index)")
+                return true // TERMINATE IMMEDIATELY ON SUCCESS OR TERMINAL STATE
+            }
+            logger.warning("Instance \(self.instanceId): ❌ Verification code \(index + 1) was rejected")
+            let stillOnVerificationPage = await checkIfStillOnVerificationPage()
+            if stillOnVerificationPage {
+                logger.info("Instance \(self.instanceId): Still on verification page - continuing to next code...")
+                await clearVerificationInput()
+                logger.debug("[DEBUG] Continue after still on verification page at index=\(index)")
+                continue
             } else {
-                logger.warning("Instance \(self.instanceId): ❌ Verification code \(index + 1) was rejected")
-
-                // Check if we're still on the verification page
-                let stillOnVerificationPage = await checkIfStillOnVerificationPage()
-                if stillOnVerificationPage {
-                    logger.info("Instance \(self.instanceId): Still on verification page - continuing to next code...")
-                    // Clear the input for the next attempt
-                    await clearVerificationInput()
-                } else {
-                    logger
-                        .info(
-                            "Instance \(self.instanceId): Moved away from verification page - likely success or different error",
-                            )
-                    // If we moved away from the page, it might be success or a different type of error
-                    // Let's check one more time for success indicators
-                    let finalCheck = await checkVerificationSuccess()
-                    if finalCheck {
-                        logger.info("Instance \(self.instanceId): ✅ Final check confirms verification success!")
-                        return true
-                    }
+                logger
+                    .info(
+                        "Instance \(self.instanceId): Moved away from verification page - likely success or different error",
+                        )
+                let finalCheck = await checkVerificationSuccess()
+                if finalCheck {
+                    logger.info("Instance \(self.instanceId): ✅ Final check confirms verification success!")
+                    await emailService.markCodeAsConsumed(code, byInstanceId: self.instanceId)
+                    logger.debug("[DEBUG] Return true after final check at index=\(index)")
+                    return true
                 }
+                logger.warning("Instance \(self.instanceId): Final check failed, continuing to next code...")
+                logger.debug("[DEBUG] Continue after final check failed at index=\(index)")
+                continue
             }
         }
-
-        logger.error("Instance \(self.instanceId): All \(codes.count) verification codes failed")
+        logger.debug("[DEBUG] Exiting loop after all codes tried for instanceId=\(self.instanceId)")
+        logger
+            .error(
+                "Instance \(self.instanceId): All \(codes.count) verification codes failed or were rejected. Failing gracefully.",
+                )
+        logger.debug("[DEBUG] Return false after all codes tried for instanceId=\(self.instanceId)")
         return false
     }
 
     /// Tries verification codes with retry mechanism that fetches new codes if initial ones fail
     private func tryVerificationCodesWithRetry(verificationStart: Date) async -> Bool {
         logger.info("Instance \(self.instanceId): Starting verification with retry mechanism")
-
         let maxRetryAttempts = 3
         var retryCount = 0
-
         while retryCount < maxRetryAttempts {
             logger.info("Instance \(self.instanceId): Retry attempt \(retryCount + 1)/\(maxRetryAttempts)")
-
-            // Fetch verification codes for this attempt
             await updateTask("Fetching verification codes (attempt \(retryCount + 1)/\(maxRetryAttempts))...")
             let verificationCodes = await fetchAllVerificationCodesFromEmail(verificationStart: verificationStart)
-
+            logger.info("Instance \(self.instanceId): Codes fetched for this round: \(verificationCodes)")
             if verificationCodes.isEmpty {
                 logger.warning("Instance \(self.instanceId): No verification codes found in attempt \(retryCount + 1)")
                 retryCount += 1
-
                 if retryCount < maxRetryAttempts {
                     logger.info("Instance \(self.instanceId): Waiting before retry...")
-                    try? await Task
-                        .sleep(nanoseconds: UInt64.random(in: 5_000_000_000 ... 10_000_000_000)) // 5-10 seconds
+                    try? await Task.sleep(nanoseconds: UInt64.random(in: 5_000_000_000 ... 10_000_000_000))
                 }
                 continue
             }
-
             logger
                 .info(
                     "Instance \(self.instanceId): Retrieved \(verificationCodes.count) verification codes for attempt \(retryCount + 1)",
                     )
-
-            // Try the verification codes
             await updateTask("Trying verification codes (attempt \(retryCount + 1)/\(maxRetryAttempts))...")
             let verificationSuccess = await tryVerificationCodes(verificationCodes)
-
             if verificationSuccess {
                 logger.info("Instance \(self.instanceId): ✅ Verification successful on attempt \(retryCount + 1)")
                 return true
             } else {
                 logger.warning("Instance \(self.instanceId): ❌ Verification failed on attempt \(retryCount + 1)")
                 retryCount += 1
-
                 if retryCount < maxRetryAttempts {
                     logger.info("Instance \(self.instanceId): Waiting before next retry...")
-                    try? await Task
-                        .sleep(nanoseconds: UInt64.random(in: 5_000_000_000 ... 10_000_000_000)) // 5-10 seconds
+                    try? await Task.sleep(nanoseconds: UInt64.random(in: 5_000_000_000 ... 10_000_000_000))
                 }
             }
         }
-
-        logger.error("Instance \(self.instanceId): All \(maxRetryAttempts) verification attempts failed")
+        // Final fallback: try direct fetch from email ignoring code pool
+        logger.error("Instance \(self.instanceId): All retry attempts failed. Trying final direct fetch from email.")
+        let directCodes = await EmailService.shared.fetchVerificationCodesForToday(since: verificationStart)
+        logger.info("Instance \(self.instanceId): Codes fetched for final direct fetch: \(directCodes)")
+        if !directCodes.isEmpty {
+            logger
+                .info("Instance \(self.instanceId): Final direct fetch found \(directCodes.count) codes. Trying them.")
+            let verificationSuccess = await tryVerificationCodes(directCodes)
+            if verificationSuccess {
+                logger.info("Instance \(self.instanceId): ✅ Verification successful on final direct fetch.")
+                return true
+            }
+        }
+        logger
+            .error(
+                "Instance \(self.instanceId): All verification attempts failed or all codes consumed. Failing gracefully.",
+                )
         return false
     }
 
@@ -3384,29 +3405,10 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                 const bodyText = document.body.textContent || '';
                 const bodyTextLower = bodyText.toLowerCase();
 
-                console.log('[ODYSSEY] Checking verification result. Page content preview:', bodyText.substring(0, 500));
+                // Debug: Print the first 1000 characters of the page
+                console.log('[ODYSSEY] Checking verification result. Page content preview:', bodyText.substring(0, 1000));
 
-                // Check for success indicators
-                const successIndicators = [
-                    'verification successful',
-                    'email verified',
-                    'verification complete',
-                    'successfully verified',
-                    'thank you for verifying',
-                    'verification confirmed',
-                    'email address verified',
-                    'verification successful',
-                    'success',
-                    'confirmed',
-                    'reservation confirmed',
-                    'booking confirmed',
-                    'thank you',
-                    'your reservation has been confirmed',
-                    'reservation successful',
-                    'booking successful'
-                ];
-
-                // Check for error indicators
+                // Check for error indicators FIRST
                 const errorIndicators = [
                     'invalid code',
                     'incorrect code',
@@ -3423,41 +3425,52 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                     'wrong code',
                     'code is incorrect'
                 ];
-
-                // Check for success
-                for (const indicator of successIndicators) {
-                    if (bodyTextLower.includes(indicator)) {
-                        console.log('[ODYSSEY] Found success indicator:', indicator);
-                        return { success: true, reason: indicator };
-                    }
-                }
-
-                // Check for errors
                 for (const indicator of errorIndicators) {
                     if (bodyTextLower.includes(indicator)) {
                         console.log('[ODYSSEY] Found error indicator:', indicator);
-                        return { success: false, reason: indicator };
+                        return { success: false, reason: indicator, pageText: bodyText.substring(0, 1000) };
                     }
                 }
 
-                // Check if we're still on the verification page (indicates failure)
-                const verificationInput = document.querySelector('input[type="text"]') ||
-                                        document.querySelector('input[type="number"]') ||
-                                        document.querySelector('input[name*="code"]') ||
-                                        document.querySelector('input[placeholder*="code"]');
-
-                if (verificationInput) {
-                    console.log('[ODYSSEY] Still on verification page - likely failed');
-                    return { success: false, reason: 'still_on_verification_page' };
+                // Check for success indicators
+                const successIndicators = [
+                  'confirmation',
+                  'is now confirmed',
+                  'your appointment on',
+                  'your appointment is now confirmed',
+                  'now confirmed'
+                ];
+                for (const indicator of successIndicators) {
+                  if (bodyTextLower.includes(indicator)) {
+                    console.log('[ODYSSEY] Found success indicator:', indicator);
+                    return { success: true, reason: indicator, pageText: bodyText.substring(0, 1000) };
+                  }
                 }
 
-                // Check if we've moved to a different page (indicates success)
-                console.log('[ODYSSEY] Moved to different page - likely success');
-                return { success: true, reason: 'page_navigation' };
+                // Check if we're still on the verification page (indicates failure)
+                const verificationInput = document.querySelector('input[type=\"text\"]') ||
+                                        document.querySelector('input[type=\"number\"]') ||
+                                        document.querySelector('input[name*=\"code\"]') ||
+                                        document.querySelector('input[placeholder*=\"code\"]');
 
+                // If the verification input is present but the confirmation text is also present, treat as success
+                if (verificationInput) {
+                  for (const indicator of successIndicators) {
+                    if (bodyTextLower.includes(indicator)) {
+                      console.log('[ODYSSEY] Found success indicator with input present:', indicator);
+                      return { success: true, reason: indicator + '_with_input', pageText: bodyText.substring(0, 1000) };
+                    }
+                  }
+                  console.log('[ODYSSEY] Still on verification page - likely failed');
+                  return { success: false, reason: 'still_on_verification_page', pageText: bodyText.substring(0, 1000) };
+                }
+
+                // If the verification input is gone and no error indicators, treat as success/terminal state
+                console.log('[ODYSSEY] No verification input found - treating as success/terminal state');
+                return { success: true, reason: 'no_verification_input', pageText: bodyText.substring(0, 1000) };
             } catch (error) {
                 console.error('[ODYSSEY] Error checking verification success:', error);
-                return { success: false, reason: 'error_checking' };
+                return { success: false, reason: 'error_checking', pageText: '' };
             }
         })();
         """
@@ -3467,11 +3480,13 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             if let dict = result as? [String: Any] {
                 let success = dict["success"] as? Bool ?? false
                 let reason = dict["reason"] as? String ?? "unknown"
+                let pageText = dict["pageText"] as? String ?? ""
 
                 logger
                     .info(
                         "Instance \(self.instanceId): Verification check result: \(success ? "SUCCESS" : "FAILED") - \(reason)",
                         )
+                logger.debug("[DEBUG] Verification page text (first 1000 chars): \(pageText)")
 
                 // Add more detailed logging for debugging
                 if success {
@@ -4143,7 +4158,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
             // Notify ReservationManager about window closure
             if let onWindowClosed = self.onWindowClosed {
-                onWindowClosed()
+                onWindowClosed(.manual)
             }
         }
     }

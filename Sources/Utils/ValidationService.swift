@@ -38,6 +38,21 @@ class ValidationService: NSObject, ValidationServiceProtocol {
         return gmailDomains.contains(domain ?? "")
     }
 
+    /// Validates IMAP server address format
+    /// - Parameter server: Server address to validate
+    /// - Returns: True if server address is valid
+    nonisolated func validateServer(_ server: String) -> Bool {
+        guard !server.isEmpty else { return false }
+
+        // Basic server validation - should contain a domain and optional port
+        let serverRegex = "^[a-zA-Z0-9.-]+(\\.[a-zA-Z0-9.-]+)*(:[0-9]+)?$"
+        let predicate = NSPredicate(format: "SELF MATCHES %@", serverRegex)
+        let isValid = predicate.evaluate(with: server)
+
+        logger.debug("Server validation result: \(isValid) for \(server)")
+        return isValid
+    }
+
     // MARK: - Phone Number Validation
 
     /// Validates phone number format

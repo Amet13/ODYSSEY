@@ -45,15 +45,11 @@ protocol UserSettingsManagerProtocol: AnyObject {
 // MARK: - Reservation Management Protocol
 
 /// Protocol defining the interface for reservation management
-protocol ReservationManagerProtocol: AnyObject {
-    var isRunning: Bool { get }
-    var lastRunDate: Date? { get }
-    var lastRunStatus: ReservationManager.RunStatus { get }
-    var currentTask: String { get }
-
-    func runReservation(for config: ReservationConfig, type: ReservationManager.RunType) async
+protocol ReservationOrchestratorProtocol: AnyObject {
+    var lastRunStatus: ReservationOrchestrator.RunStatus { get }
+    func runReservation(for config: ReservationConfig, type: ReservationOrchestrator.RunType) async
     func stopReservation() async
-    func emergencyCleanup() async
+    func emergencyCleanup(runType: ReservationOrchestrator.RunType) async
 }
 
 // MARK: - Facility Service Protocol

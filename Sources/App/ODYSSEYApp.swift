@@ -47,7 +47,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Emergency cleanup for any running automation
         Task {
-            await ReservationManager.shared.emergencyCleanup()
+            await ReservationOrchestrator.shared.emergencyCleanup(runType: .manual)
         }
     }
 
@@ -64,7 +64,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func checkScheduledReservations() {
         let configManager = ConfigurationManager.shared
-        let reservationManager = ReservationManager.shared
+        let orchestrator = ReservationOrchestrator.shared
 
         guard configManager.settings.globalEnabled else {
             return
@@ -81,7 +81,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if !configsToRun.isEmpty {
             logger.info("🕕 6:00 PM automatic run: Starting \(configsToRun.count) configurations simultaneously")
             DispatchQueue.main.async {
-                reservationManager.runMultipleReservations(for: configsToRun, runType: .automatic)
+                orchestrator.runMultipleReservations(for: configsToRun, runType: .automatic)
             }
         }
     }

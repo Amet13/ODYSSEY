@@ -12,7 +12,8 @@ class StatusBarController: NSObject {
     private var eventMonitor: EventMonitor?
 
     @MainActor private let configurationManager = ConfigurationManager.shared
-    @MainActor private let reservationManager = ReservationManager.shared
+    @MainActor private let orchestrator = ReservationOrchestrator.shared
+    @MainActor private let statusManager = ReservationStatusManager.shared
     private var cancellables = Set<AnyCancellable>()
     private let logger = Logger(subsystem: "com.odyssey.app", category: "StatusBarController")
 
@@ -62,14 +63,14 @@ class StatusBarController: NSObject {
 
     private func setupObservers() {
         // Observe reservation manager status
-        reservationManager.$isRunning
+        statusManager.$isRunning
             .sink { [weak self] isRunning in
                 self?.logger.info("🔄 StatusBarController: isRunning changed to \(isRunning)")
                 self?.updateStatusBarIcon(isRunning: isRunning)
             }
             .store(in: &cancellables)
 
-        reservationManager.$lastRunStatus
+        statusManager.$lastRunStatus
             .sink { [weak self] status in
                 self?.logger.info("🔄 StatusBarController: lastRunStatus changed to \(status.description)")
                 self?.updateStatusBarTooltip(status: status)
@@ -114,7 +115,7 @@ class StatusBarController: NSObject {
         }
     }
 
-    private func updateStatusBarTooltip(status: ReservationManager.RunStatus) {
+    private func updateStatusBarTooltip(status: ReservationOrchestrator.RunStatus) {
         if let button = statusItem.button {
             button.toolTip = "ODYSSEY - \(status.description)"
         }

@@ -176,35 +176,23 @@ class JavaScriptService: ObservableObject {
         (function() {
             try {
                 // Find contact fields
-                const phoneField = document.getElementById('phone') ||
-                                 document.getElementById('telephone') ||
-                                 document.getElementById('phoneNumber') ||
-                                 document.querySelector('input[type="tel"]') ||
+                const phoneField = document.getElementById('telephone') ||
                                  document.querySelector('input[name*="phone"]') ||
-                                 document.querySelector('input[name*="tel"]') ||
                                  document.querySelector('input[placeholder*="phone"]') ||
-                                 document.querySelector('input[placeholder*="tel"]') ||
                                  document.querySelector('input[placeholder*="Phone"]') ||
                                  document.querySelector('input[placeholder*="Telephone"]');
 
                 const emailField = document.getElementById('email') ||
-                                 document.getElementById('mail') ||
                                  document.querySelector('input[type="email"]') ||
                                  document.querySelector('input[name*="email"]') ||
-                                 document.querySelector('input[name*="mail"]') ||
                                  document.querySelector('input[placeholder*="email"]') ||
-                                 document.querySelector('input[placeholder*="Email"]') ||
-                                 document.querySelector('input[placeholder*="mail"]');
+                                 document.querySelector('input[placeholder*="Email"]');
 
                 const nameField = document.getElementById('name') ||
-                                document.getElementById('fullName') ||
-                                document.getElementById('firstName') ||
+                                document.getElementById('field2021') ||
                                 document.querySelector('input[name*="name"]') ||
-                                document.querySelector('input[name*="full"]') ||
-                                document.querySelector('input[name*="first"]') ||
                                 document.querySelector('input[placeholder*="name"]') ||
-                                document.querySelector('input[placeholder*="Name"]') ||
-                                document.querySelector('input[placeholder*="Full"]');
+                                document.querySelector('input[placeholder*="Name"]');
 
                 // Fill fields with autofill behavior
                 if (phoneField) {

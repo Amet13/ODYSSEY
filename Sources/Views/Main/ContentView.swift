@@ -4,7 +4,8 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var configManager = ConfigurationManager.shared
-    @StateObject private var reservationManager = ReservationManager.shared
+    @StateObject private var orchestrator = ReservationOrchestrator.shared
+    @StateObject private var statusManager = ReservationStatusManager.shared
     @StateObject private var userSettingsManager = UserSettingsManager.shared
     @State private var showingAddConfig = false
     @State private var selectedConfig: ReservationConfig?
@@ -112,10 +113,11 @@ private extension ContentView {
                             config: config,
                             nextAutorunInfo: getNextCronRunTime(for: config),
                             formatCountdown: formatCountdown,
+                            lastRunInfo: statusManager.getLastRunInfo(for: config.id),
                             onEdit: { selectedConfig = config },
                             onDelete: { configManager.removeConfiguration(config) },
                             onToggle: { configManager.toggleConfiguration(at: index) },
-                            onRun: { reservationManager.runReservation(for: config, runType: .manual) },
+                            onRun: { orchestrator.runReservation(for: config, runType: .manual) },
                             )
                     }
                     .onDelete(perform: { indices in
@@ -305,10 +307,10 @@ private extension ContentView {
         if enabledConfigs.isEmpty {
             // If no enabled configs for today, run all enabled configs
             let allEnabledConfigs = configManager.settings.configurations.filter(\.isEnabled)
-            reservationManager.runMultipleReservations(for: allEnabledConfigs, runType: .godmode)
+            orchestrator.runMultipleReservations(for: allEnabledConfigs, runType: .godmode)
         } else {
             // Run only the configs scheduled for today
-            reservationManager.runMultipleReservations(for: enabledConfigs, runType: .godmode)
+            orchestrator.runMultipleReservations(for: enabledConfigs, runType: .godmode)
         }
     }
 }
@@ -334,6 +336,7 @@ struct ConfigurationRowView: View {
     let config: ReservationConfig
     let nextAutorunInfo: NextAutorunInfo?
     let formatCountdown: (Date) -> String
+    let lastRunInfo: ReservationStatusManager.LastRunInfo?
     let onEdit: () -> Void
     let onDelete: () -> Void
     let onToggle: () -> Void
@@ -396,18 +399,15 @@ struct ConfigurationRowView: View {
                         Image(systemName: "clock")
                             .font(.caption)
                             .foregroundColor(.accentColor)
-                        Text("Next autorun:")
+                        Text("Next autorun in:")
                             .font(.caption)
                             .foregroundColor(.accentColor)
                         Text(formatCountdown(next.date))
                             .font(.caption)
                             .foregroundColor(.accentColor)
-                        Text("(\(next.weekday.localizedShortName) \(formatTime(next.date)))")
-                            .font(.caption)
-                            .foregroundColor(.accentColor)
                     }
                 }
-                lastRunStatusView(for: config)
+                lastRunStatusView(for: lastRunInfo)
             }
         }
         .padding(.vertical, 6)
@@ -494,8 +494,8 @@ struct ConfigurationRowView: View {
         return "\(autorunText) \(countdownText) \(scheduleText)"
     }
 
-    private func lastRunStatusView(for config: ReservationConfig) -> some View {
-        if let lastRun = ReservationManager.shared.getLastRunInfo(for: config.id) {
+    private func lastRunStatusView(for lastRunInfo: ReservationStatusManager.LastRunInfo?) -> some View {
+        if let lastRun = lastRunInfo {
             let statusInfo = switch lastRun.status {
             case .success:
                 LastRunStatusInfo(statusKey: "successful", statusColor: .green, iconName: "checkmark.circle.fill")

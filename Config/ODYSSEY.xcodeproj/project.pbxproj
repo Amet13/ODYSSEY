@@ -8,18 +8,24 @@
 
 /* Begin PBXBuildFile section */
 		08E92B69040CED9308FAFC6D /* SportIconMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D2446632770BD464AB6F9FF /* SportIconMapper.swift */; };
+		0E70C434A5115D2792406E89 /* WebKitScriptManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92BBD57449782EDCECED3713 /* WebKitScriptManager.swift */; };
+		1582427FE27C3EFD353DF26E /* WebKitAutomation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632EA0DA44CAE0DE8F7532B8 /* WebKitAutomation.swift */; };
 		183F0E2E156DB04F2DEB8013 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F37E32A2DEAB7D80A5148F2 /* Configuration.swift */; };
 		28755EA49FD31DFF91497043 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBDB0490C4EDFE8E4C23D5C0 /* AboutView.swift */; };
+		29D2C89D986A595CDA1C030E /* WebKitNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBE72B37B5F3E7A883443BF1 /* WebKitNavigation.swift */; };
 		2A9DC792EE6E7E2AB34E109C /* ValidationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CD0A611C34B6ED17316A214 /* ValidationService.swift */; };
 		38B4C58FCF95A17F7FD0F910 /* WebKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D6507655544E5D9BC6CABF /* WebKitService.swift */; };
 		41CB267A86BBFDE6B8D76B14 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6D876275C546C2EDF4733D3E /* Assets.xcassets */; };
 		48701937DE50EBC23AB4FBBE /* form-filling.js in Resources */ = {isa = PBXBuildFile; fileRef = AEAF9CA9491A3CFD297F8C14 /* form-filling.js */; };
 		522F86CF5E10071C780E56B5 /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8915E7585918FC6CC1F694E5 /* AppConstants.swift */; };
-		57B3EC8C77555EE0A1877A88 /* ReservationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC0F2FC1EC5039DF5FCC39B /* ReservationManager.swift */; };
+		54D15D41245A50BBE93C82B2 /* IMAPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49BD20D4DBFCFF068889B054 /* IMAPService.swift */; };
 		5C0D5006496F0363F46D5C9B /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FCC5DA7A130CA27C565988F /* Extensions.swift */; };
 		5CFE6AC761E865868F08AAC9 /* LoadingStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82530443D1540D732CEA17A3 /* LoadingStateManager.swift */; };
+		63F3DD9E40F3A0D96D713AB2 /* ReservationStatusManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D816DD0E16D5EE6F9F3CD84A /* ReservationStatusManager.swift */; };
+		6571A8FAF7F8B36862E0FC1D /* EmailVerification.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD0067DA95BD81571215AA0 /* EmailVerification.swift */; };
 		682EF0598BC17A8022F81E5B /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504F310E3FF9BD25280A3106 /* StatusBarController.swift */; };
 		6CE722921ABA9CF63AF4D2AE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34B7DED97B75C8D92AE1A31 /* ContentView.swift */; };
+		75DEE1A4DC3401DA8285BAD6 /* EmailCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF7F9263A160A352A9E2E0E7 /* EmailCore.swift */; };
 		7AB843B692B99A297F71AFA2 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D958E5CB6EBC1B6F06E168 /* UserSettings.swift */; };
 		82BF69EBE3B57623F100A29E /* WebDriverStealth.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBCC4A2B64370ACAF412BF87 /* WebDriverStealth.swift */; };
 		87A323E74E31D54CDF5ED611 /* Protocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C6FA2694660A932F8CC5A /* Protocols.swift */; };
@@ -27,8 +33,12 @@
 		8B1ED020B66221020312C147 /* ReservationConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0EBA9D765D3068E55BA51C /* ReservationConfig.swift */; };
 		905062F2527E06FEDA546FA1 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB48B132242AD260155FF55 /* KeychainService.swift */; };
 		9C914D35DD66BA8BD972637C /* anti-detection.js in Resources */ = {isa = PBXBuildFile; fileRef = DBFB6FFBF65D3F0EEE3E3534 /* anti-detection.js */; };
+		9DD08B43DF3B58266C3DFA76 /* WebKitCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D2EBFB5C84EC50958D1ACF /* WebKitCore.swift */; };
+		A1335E6664D5449F09663909 /* ReservationErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */; };
 		A135C6E4A59D7CA5AD165CD1 /* JavaScriptService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DC0AED5ADDD710EF3D626BC /* JavaScriptService.swift */; };
+		AA4730C31D341AD6C3669020 /* WebKitDebugWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4A3E2796AC58ABB58A6817 /* WebKitDebugWindowManager.swift */; };
 		AF9C5201A1EA357818523371 /* FacilityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D69C877E24F28F08FF142CE1 /* FacilityService.swift */; };
+		C20E70D3086A920222DC01C4 /* ReservationOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ED502E37F16EC8776288AD0 /* ReservationOrchestrator.swift */; };
 		C31CF17307DDA59BA42606BC /* ConfigurationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4032FBD046C7A84D2AB708F7 /* ConfigurationDetailView.swift */; };
 		CB04374E216585BE1DBC7BF4 /* ODYSSEYApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D401C9E0BDAD61E6DECC196A /* ODYSSEYApp.swift */; };
 		CD28D84649639DDF5D9281B7 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23E39878914FA1362DBDFB3 /* SettingsView.swift */; };
@@ -40,32 +50,42 @@
 /* Begin PBXFileReference section */
 		1CA820C244D658473331FE59 /* ODYSSEY.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ODYSSEY.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		293C6FA2694660A932F8CC5A /* Protocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Protocols.swift; sourceTree = "<group>"; };
+		2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationErrorHandler.swift; sourceTree = "<group>"; };
 		2D2446632770BD464AB6F9FF /* SportIconMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportIconMapper.swift; sourceTree = "<group>"; };
-		2DC0F2FC1EC5039DF5FCC39B /* ReservationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationManager.swift; sourceTree = "<group>"; };
+		2D4A3E2796AC58ABB58A6817 /* WebKitDebugWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitDebugWindowManager.swift; sourceTree = "<group>"; };
 		3419A41E593FC7E578492598 /* EmailService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailService.swift; sourceTree = "<group>"; };
 		34D958E5CB6EBC1B6F06E168 /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		4032FBD046C7A84D2AB708F7 /* ConfigurationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationDetailView.swift; sourceTree = "<group>"; };
+		43D2EBFB5C84EC50958D1ACF /* WebKitCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitCore.swift; sourceTree = "<group>"; };
 		48D6507655544E5D9BC6CABF /* WebKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitService.swift; sourceTree = "<group>"; };
+		49BD20D4DBFCFF068889B054 /* IMAPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMAPService.swift; sourceTree = "<group>"; };
 		504F310E3FF9BD25280A3106 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		5CD0A611C34B6ED17316A214 /* ValidationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationService.swift; sourceTree = "<group>"; };
+		632EA0DA44CAE0DE8F7532B8 /* WebKitAutomation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitAutomation.swift; sourceTree = "<group>"; };
 		6D876275C546C2EDF4733D3E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		6ED502E37F16EC8776288AD0 /* ReservationOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationOrchestrator.swift; sourceTree = "<group>"; };
 		6FCC5DA7A130CA27C565988F /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		82530443D1540D732CEA17A3 /* LoadingStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingStateManager.swift; sourceTree = "<group>"; };
 		88087B5FF17E55461F2F9181 /* UserSettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettingsManager.swift; sourceTree = "<group>"; };
 		8915E7585918FC6CC1F694E5 /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
 		8DC0AED5ADDD710EF3D626BC /* JavaScriptService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JavaScriptService.swift; sourceTree = "<group>"; };
 		9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebDriverProtocols.swift; sourceTree = "<group>"; };
+		92BBD57449782EDCECED3713 /* WebKitScriptManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitScriptManager.swift; sourceTree = "<group>"; };
 		9F32A0A5C6C800FBB7769711 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		9F37E32A2DEAB7D80A5148F2 /* Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		A7A301E1B3374676F73BCE2C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		AEAF9CA9491A3CFD297F8C14 /* form-filling.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "form-filling.js"; sourceTree = "<group>"; };
 		D401C9E0BDAD61E6DECC196A /* ODYSSEYApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ODYSSEYApp.swift; sourceTree = "<group>"; };
 		D69C877E24F28F08FF142CE1 /* FacilityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FacilityService.swift; sourceTree = "<group>"; };
+		D816DD0E16D5EE6F9F3CD84A /* ReservationStatusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationStatusManager.swift; sourceTree = "<group>"; };
 		DA0EBA9D765D3068E55BA51C /* ReservationConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationConfig.swift; sourceTree = "<group>"; };
 		DBCC4A2B64370ACAF412BF87 /* WebDriverStealth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebDriverStealth.swift; sourceTree = "<group>"; };
+		DBE72B37B5F3E7A883443BF1 /* WebKitNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitNavigation.swift; sourceTree = "<group>"; };
 		DBFB6FFBF65D3F0EEE3E3534 /* anti-detection.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "anti-detection.js"; sourceTree = "<group>"; };
+		DDD0067DA95BD81571215AA0 /* EmailVerification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailVerification.swift; sourceTree = "<group>"; };
 		DFB48B132242AD260155FF55 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		E34B7DED97B75C8D92AE1A31 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		EF7F9263A160A352A9E2E0E7 /* EmailCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailCore.swift; sourceTree = "<group>"; };
 		F23E39878914FA1362DBDFB3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		FBDB0490C4EDFE8E4C23D5C0 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -109,15 +129,25 @@
 			isa = PBXGroup;
 			children = (
 				9F37E32A2DEAB7D80A5148F2 /* Configuration.swift */,
+				EF7F9263A160A352A9E2E0E7 /* EmailCore.swift */,
 				3419A41E593FC7E578492598 /* EmailService.swift */,
+				DDD0067DA95BD81571215AA0 /* EmailVerification.swift */,
 				D69C877E24F28F08FF142CE1 /* FacilityService.swift */,
+				49BD20D4DBFCFF068889B054 /* IMAPService.swift */,
 				8DC0AED5ADDD710EF3D626BC /* JavaScriptService.swift */,
 				DFB48B132242AD260155FF55 /* KeychainService.swift */,
 				82530443D1540D732CEA17A3 /* LoadingStateManager.swift */,
-				2DC0F2FC1EC5039DF5FCC39B /* ReservationManager.swift */,
+				2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */,
+				6ED502E37F16EC8776288AD0 /* ReservationOrchestrator.swift */,
+				D816DD0E16D5EE6F9F3CD84A /* ReservationStatusManager.swift */,
 				88087B5FF17E55461F2F9181 /* UserSettingsManager.swift */,
 				9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */,
 				DBCC4A2B64370ACAF412BF87 /* WebDriverStealth.swift */,
+				632EA0DA44CAE0DE8F7532B8 /* WebKitAutomation.swift */,
+				43D2EBFB5C84EC50958D1ACF /* WebKitCore.swift */,
+				2D4A3E2796AC58ABB58A6817 /* WebKitDebugWindowManager.swift */,
+				DBE72B37B5F3E7A883443BF1 /* WebKitNavigation.swift */,
+				92BBD57449782EDCECED3713 /* WebKitScriptManager.swift */,
 				48D6507655544E5D9BC6CABF /* WebKitService.swift */,
 			);
 			path = Services;
@@ -290,16 +320,21 @@
 				183F0E2E156DB04F2DEB8013 /* Configuration.swift in Sources */,
 				C31CF17307DDA59BA42606BC /* ConfigurationDetailView.swift in Sources */,
 				6CE722921ABA9CF63AF4D2AE /* ContentView.swift in Sources */,
+				75DEE1A4DC3401DA8285BAD6 /* EmailCore.swift in Sources */,
 				87BEA07219CB32EABEA725D0 /* EmailService.swift in Sources */,
+				6571A8FAF7F8B36862E0FC1D /* EmailVerification.swift in Sources */,
 				5C0D5006496F0363F46D5C9B /* Extensions.swift in Sources */,
 				AF9C5201A1EA357818523371 /* FacilityService.swift in Sources */,
+				54D15D41245A50BBE93C82B2 /* IMAPService.swift in Sources */,
 				A135C6E4A59D7CA5AD165CD1 /* JavaScriptService.swift in Sources */,
 				905062F2527E06FEDA546FA1 /* KeychainService.swift in Sources */,
 				5CFE6AC761E865868F08AAC9 /* LoadingStateManager.swift in Sources */,
 				CB04374E216585BE1DBC7BF4 /* ODYSSEYApp.swift in Sources */,
 				87A323E74E31D54CDF5ED611 /* Protocols.swift in Sources */,
 				8B1ED020B66221020312C147 /* ReservationConfig.swift in Sources */,
-				57B3EC8C77555EE0A1877A88 /* ReservationManager.swift in Sources */,
+				A1335E6664D5449F09663909 /* ReservationErrorHandler.swift in Sources */,
+				C20E70D3086A920222DC01C4 /* ReservationOrchestrator.swift in Sources */,
+				63F3DD9E40F3A0D96D713AB2 /* ReservationStatusManager.swift in Sources */,
 				CD28D84649639DDF5D9281B7 /* SettingsView.swift in Sources */,
 				08E92B69040CED9308FAFC6D /* SportIconMapper.swift in Sources */,
 				682EF0598BC17A8022F81E5B /* StatusBarController.swift in Sources */,
@@ -308,6 +343,11 @@
 				2A9DC792EE6E7E2AB34E109C /* ValidationService.swift in Sources */,
 				DC6BD4AFB504DDB4F2D9BD47 /* WebDriverProtocols.swift in Sources */,
 				82BF69EBE3B57623F100A29E /* WebDriverStealth.swift in Sources */,
+				1582427FE27C3EFD353DF26E /* WebKitAutomation.swift in Sources */,
+				9DD08B43DF3B58266C3DFA76 /* WebKitCore.swift in Sources */,
+				AA4730C31D341AD6C3669020 /* WebKitDebugWindowManager.swift in Sources */,
+				29D2C89D986A595CDA1C030E /* WebKitNavigation.swift in Sources */,
+				0E70C434A5115D2792406E89 /* WebKitScriptManager.swift in Sources */,
 				38B4C58FCF95A17F7FD0F910 /* WebKitService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

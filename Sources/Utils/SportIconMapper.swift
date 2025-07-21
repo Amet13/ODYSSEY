@@ -3,278 +3,163 @@ import SwiftUI
 
 /// Maps sport names to appropriate SF Symbols icons
 enum SportIconMapper {
+    // MARK: - Sport Icon Mappings
+
+    /// Dictionary mapping sport keywords to SF Symbol icon names
+    private static let sportIconMappings: [String: String] = [
+        // MARK: - Swimming & Aqua Activities
+
+        "swim": "figure.pool.swim",
+        "lane swim": "figure.pool.swim",
+        "aqua": "figure.pool.swim",
+        "aquafit": "figure.pool.swim",
+        "preschool swim": "figure.pool.swim",
+
+        // MARK: - Basketball
+
+        "basketball": "basketball.fill",
+        "hoops": "basketball.fill",
+
+        // MARK: - Volleyball
+
+        "volleyball": "volleyball.fill",
+        "volley": "volleyball.fill",
+
+        // MARK: - Soccer
+
+        "soccer": "soccerball",
+        "football": "soccerball",
+
+        // MARK: - Gym & Fitness Activities
+
+        "open gym": "dumbbell.fill",
+        "kindergym": "dumbbell.fill",
+        "open turf": "sportscourt.fill",
+        "rockwall": "figure.climbing",
+        "rock wall": "figure.climbing",
+
+        // MARK: - Fitness Classes
+
+        "bootcamp": "figure.run",
+        "cardio": "heart.fill",
+        "hiit": "figure.run",
+        "indoor cycling": "bicycle",
+        "cycling": "bicycle",
+        "trx": "dumbbell.fill",
+        "core conditioning": "figure.mind.and.body",
+        "core": "figure.mind.and.body",
+        "strength": "dumbbell.fill",
+        "step and strength": "figure.run",
+        "stretch and strength": "figure.mind.and.body",
+        "balance": "figure.mind.and.body",
+        "stability": "figure.mind.and.body",
+        "circuit": "dumbbell.fill",
+
+        // MARK: - Dance & Movement
+
+        "dance": "figure.dance",
+        "zumba": "figure.dance",
+        "drums alive": "figure.dance",
+        "groove method": "figure.dance",
+        "tmc": "figure.dance",
+
+        // MARK: - Yoga & Mind-Body
+
+        "yoga": "figure.mind.and.body",
+        "pilates": "figure.mind.and.body",
+        "yoga tune up": "figure.mind.and.body",
+
+        // MARK: - Curling
+
+        "curling": "curling.stone",
+
+        // MARK: - Squash
+
+        "squash": "squash.racket",
+
+        // MARK: - Legacy Sports
+
+        "tennis": "tennis.racket",
+        "badminton": "tennis.racket",
+        "pickleball": "tennis.racket",
+        "hockey": "hockey.puck",
+        "running": "figure.run",
+        "run": "figure.run",
+
+        // MARK: - Martial Arts
+
+        "martial": "figure.martial.arts",
+        "karate": "figure.martial.arts",
+        "taekwondo": "figure.martial.arts",
+
+        // MARK: - Climbing
+
+        "climbing": "figure.climbing",
+        "climb": "figure.climbing",
+
+        // MARK: - Skating
+
+        "skating": "figure.skating",
+        "skate": "figure.skating",
+
+        // MARK: - Skiing
+
+        "skiing": "figure.skiing.downhill",
+        "ski": "figure.skiing.downhill",
+
+        // MARK: - Baseball
+
+        "baseball": "baseball.fill",
+        "softball": "baseball.fill",
+
+        // MARK: - Cricket
+
+        "cricket": "cricket.bat",
+
+        // MARK: - Table Tennis
+
+        "table tennis": "table.tennis",
+        "ping pong": "table.tennis",
+        "pingpong": "table.tennis",
+
+        // MARK: - Racquetball
+
+        "racquetball": "racquetball.racket",
+
+        // MARK: - American Football
+
+        "american football": "football.fill",
+
+        // MARK: - Boxing
+
+        "boxing": "figure.boxing",
+        "box": "figure.boxing",
+
+        // MARK: - Ice Hockey
+
+        "ice hockey": "hockey.puck",
+        "icehockey": "hockey.puck",
+
+        // MARK: - Rock Climbing
+
+        "rock climbing": "figure.climbing",
+        "rockclimbing": "figure.climbing",
+
+        // MARK: - Meditation
+
+        "meditation": "figure.mind.and.body",
+        "meditate": "figure.mind.and.body"
+    ]
+
     /// Returns the appropriate SF Symbol icon name for a given sport
     /// - Parameter sportName: The name of the sport
     /// - Returns: SF Symbol icon name
     static func iconForSport(_ sportName: String) -> String {
         let lowercasedSport = sportName.lowercased()
 
-        // MARK: - Swimming & Aqua Activities
-
-        // Swimming variations
-        if lowercasedSport.contains("swim") || lowercasedSport.contains("lane swim") {
-            return "figure.pool.swim"
-        }
-
-        // Aqua activities (including variations)
-        if lowercasedSport.contains("aqua") || lowercasedSport.contains("aquafit") {
-            return "figure.pool.swim"
-        }
-
-        // Preschool swim
-        if lowercasedSport.contains("preschool swim") {
-            return "figure.pool.swim"
-        }
-
-        // MARK: - Basketball
-
-        // Basketball variations (including age-specific)
-        if lowercasedSport.contains("basketball") || lowercasedSport.contains("hoops") {
-            return "basketball.fill"
-        }
-
-        // MARK: - Volleyball
-
-        // Volleyball variations (including age-specific)
-        if lowercasedSport.contains("volleyball") || lowercasedSport.contains("volley") {
-            return "volleyball.fill"
-        }
-
-        // MARK: - Soccer
-
-        // Soccer variations (including age-specific)
-        if lowercasedSport.contains("soccer") || lowercasedSport.contains("football") {
-            return "soccerball"
-        }
-
-        // MARK: - Gym & Fitness Activities
-
-        // Open gym variations
-        if lowercasedSport.contains("open gym") || lowercasedSport.contains("kindergym") {
-            return "dumbbell.fill"
-        }
-
-        // Open turf
-        if lowercasedSport.contains("open turf") {
-            return "sportscourt.fill"
-        }
-
-        // Rockwall
-        if lowercasedSport.contains("rockwall") || lowercasedSport.contains("rock wall") {
-            return "figure.climbing"
-        }
-
-        // MARK: - Fitness Classes
-
-        // Bootcamp variations
-        if lowercasedSport.contains("bootcamp") {
-            return "figure.run"
-        }
-
-        // Cardio variations (including older adult versions)
-        if lowercasedSport.contains("cardio") {
-            return "heart.fill"
-        }
-
-        // HIIT
-        if lowercasedSport.contains("hiit") {
-            return "figure.run"
-        }
-
-        // Indoor cycling
-        if lowercasedSport.contains("indoor cycling") || lowercasedSport.contains("cycling") {
-            return "bicycle"
-        }
-
-        // TRX
-        if lowercasedSport.contains("trx") {
-            return "dumbbell.fill"
-        }
-
-        // Core conditioning variations
-        if lowercasedSport.contains("core conditioning") || lowercasedSport.contains("core") {
-            return "figure.mind.and.body"
-        }
-
-        // Strength variations (including older adult versions)
-        if lowercasedSport.contains("strength") {
-            return "dumbbell.fill"
-        }
-
-        // Step and strength
-        if lowercasedSport.contains("step and strength") {
-            return "figure.run"
-        }
-
-        // Stretch and strength
-        if lowercasedSport.contains("stretch and strength") {
-            return "figure.mind.and.body"
-        }
-
-        // Balance and stability
-        if lowercasedSport.contains("balance") || lowercasedSport.contains("stability") {
-            return "figure.mind.and.body"
-        }
-
-        // Circuit training
-        if lowercasedSport.contains("circuit") {
-            return "dumbbell.fill"
-        }
-
-        // MARK: - Dance & Movement
-
-        // Dance
-        if lowercasedSport.contains("dance") {
-            return "figure.dance"
-        }
-
-        // Zumba variations (including toning and older adult versions)
-        if lowercasedSport.contains("zumba") {
-            return "figure.dance"
-        }
-
-        // Drums Alive
-        if lowercasedSport.contains("drums alive") {
-            return "figure.dance"
-        }
-
-        // The Groove Method
-        if lowercasedSport.contains("groove method") {
-            return "figure.dance"
-        }
-
-        // TMC variations (including older adult versions)
-        if lowercasedSport.contains("tmc") {
-            return "figure.dance"
-        }
-
-        // MARK: - Yoga & Mind-Body
-
-        // Yoga variations
-        if lowercasedSport.contains("yoga") {
-            return "figure.mind.and.body"
-        }
-
-        // Pilates
-        if lowercasedSport.contains("pilates") {
-            return "figure.mind.and.body"
-        }
-
-        // Yoga Tune Up
-        if lowercasedSport.contains("yoga tune up") {
-            return "figure.mind.and.body"
-        }
-
-        // MARK: - Curling
-
-        // Curling variations (including sheet-specific and age-specific)
-        if lowercasedSport.contains("curling") {
-            return "curling.stone"
-        }
-
-        // MARK: - Squash
-
-        // Squash variations (including court-specific)
-        if lowercasedSport.contains("squash") {
-            return "squash.racket"
-        }
-
-        // MARK: - Legacy Sports (keeping existing mappings)
-
-        // Tennis and Badminton and Pickleball
-        if
-            lowercasedSport.contains("tennis") || lowercasedSport.contains("badminton") || lowercasedSport
-                .contains("pickleball") {
-            return "tennis.racket"
-        }
-
-        // Hockey
-        if lowercasedSport.contains("hockey") {
-            return "hockey.puck"
-        }
-
-        // Running
-        if lowercasedSport.contains("running") || lowercasedSport.contains("run") {
-            return "figure.run"
-        }
-
-        // Martial Arts
-        if
-            lowercasedSport.contains("martial") || lowercasedSport.contains("karate") || lowercasedSport
-                .contains("taekwondo") {
-            return "figure.martial.arts"
-        }
-
-        // Climbing
-        if lowercasedSport.contains("climbing") || lowercasedSport.contains("climb") {
-            return "figure.climbing"
-        }
-
-        // Skating
-        if lowercasedSport.contains("skating") || lowercasedSport.contains("skate") {
-            return "figure.skating"
-        }
-
-        // Skiing
-        if lowercasedSport.contains("skiing") || lowercasedSport.contains("ski") {
-            return "figure.skiing.downhill"
-        }
-
-        // Baseball
-        if lowercasedSport.contains("baseball") {
-            return "baseball.fill"
-        }
-
-        // Softball
-        if lowercasedSport.contains("softball") {
-            return "baseball.fill"
-        }
-
-        // Cricket
-        if lowercasedSport.contains("cricket") {
-            return "cricket.bat"
-        }
-
-        // Table Tennis/Ping Pong
-        if
-            lowercasedSport.contains("table tennis") || lowercasedSport.contains("ping pong") || lowercasedSport
-                .contains("pingpong") {
-            return "table.tennis"
-        }
-
-        // Squash
-        if lowercasedSport.contains("squash") {
-            return "squash.racket"
-        }
-
-        // Racquetball
-        if lowercasedSport.contains("racquetball") {
-            return "racquetball.racket"
-        }
-
-        // American Football
-        if lowercasedSport.contains("american football") || lowercasedSport.contains("football") {
-            return "football.fill"
-        }
-
-        // Boxing
-        if lowercasedSport.contains("boxing") || lowercasedSport.contains("box") {
-            return "figure.boxing"
-        }
-
-        // Ice Hockey
-        if lowercasedSport.contains("ice hockey") || lowercasedSport.contains("icehockey") {
-            return "hockey.puck"
-        }
-
-        // Rock Climbing
-        if lowercasedSport.contains("rock climbing") || lowercasedSport.contains("rockclimbing") {
-            return "figure.climbing"
-        }
-
-        // Meditation
-        if lowercasedSport.contains("meditation") || lowercasedSport.contains("meditate") {
-            return "figure.mind.and.body"
+        // Check for exact matches first (longer phrases)
+        for (keyword, icon) in sportIconMappings where lowercasedSport.contains(keyword) {
+            return icon
         }
 
         // Default fallback for any sport not specifically mapped
