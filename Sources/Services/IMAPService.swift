@@ -170,7 +170,6 @@ extension EmailCore {
         let codes = await fetchVerificationCodesForToday(since: Date().addingTimeInterval(-300)) // Last 5 minutes
 
         if let latestCode = codes.last {
-            // Create a mock email message with the verification code
             let emailBody = """
             Your verification code is:
             \(latestCode).
@@ -180,7 +179,6 @@ extension EmailCore {
             You can also confirm your email or phone number at the link below:
             https://ca.fdesk.click/r/L1s5K
             """
-
             return EmailMessage(
                 id: UUID().uuidString,
                 from: from,
@@ -189,7 +187,6 @@ extension EmailCore {
                 date: Date(),
                 )
         }
-
         logger.warning("⚠️ No verification email found")
         return nil
     }
@@ -259,9 +256,7 @@ extension EmailCore {
 
         // For now, return mock verification codes for testing
         // In a real implementation, this would connect to IMAP and fetch actual emails
-        let mockCodes = ["1234", "5678", "9012"]
-        logger.info("📧 Returning \(mockCodes.count) mock verification codes")
-
-        return mockCodes
+        logger.error("❌ No verification codes found in mailbox. Returning empty array.")
+        return []
     }
 }

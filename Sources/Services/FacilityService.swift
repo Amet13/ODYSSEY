@@ -3,8 +3,9 @@ import Foundation
 import os.log
 import WebKit
 
-/// Service for fetching available sports/activities from facility pages
-/// Handles web scraping and sports detection from Ottawa recreation facilities
+/**
+ FacilityService is responsible for scraping and managing facility data, including fetching available facilities, parsing schedules, and providing facility-related utilities.
+ */
 @MainActor
 class FacilityService: NSObject, ObservableObject {
     static let shared = FacilityService()
@@ -17,16 +18,27 @@ class FacilityService: NSObject, ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private let logger = Logger(subsystem: "com.odyssey.app", category: "FacilityService")
 
-    override private init() {
+    override init() {
+        logger.info("🔧 FacilityService initialized.")
         super.init()
+    }
+
+    deinit {
+        logger.info("🧹 FacilityService deinitialized.")
+    }
+
+    func cleanup() {
+        logger.info("🧹 FacilityService cleanup called.")
     }
 
     // MARK: - Public Methods
 
-    /// Fetches available sports from a facility URL
-    /// - Parameters:
-    ///   - url: The facility URL to scrape
-    ///   - completion: Callback with detected sports array
+    /**
+     Fetches available sports from a facility URL
+     - Parameters:
+     ///   - url: The facility URL to scrape
+     ///   - completion: Callback with detected sports array
+     */
     func fetchAvailableSports(from url: String, completion: @escaping ([String]) -> Void) {
         guard let facilityURL = URL(string: url) else {
             logger.error("❌ Invalid facility URL: \(url)")

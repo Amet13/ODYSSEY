@@ -1,5 +1,7 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
+/// A detailed view for editing or creating a reservation configuration.
 struct ConfigurationDetailView: View {
     let config: ReservationConfig?
     let onSave: (ReservationConfig) -> Void
@@ -22,9 +24,21 @@ struct ConfigurationDetailView: View {
     @State private var showingValidationAlert = false
     @State private var validationMessage = ""
     @State private var isEditingExistingConfig = false
+    @State private var validationErrors: [String] = []
 
     var body: some View {
         VStack(spacing: 0) {
+            if !validationErrors.isEmpty {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange)
+                    Text(validationErrors.first ?? "Validation error.")
+                        .foregroundColor(.orange)
+                        .font(.subheadline)
+                    Spacer()
+                }
+                .padding(.horizontal, 32)
+                .padding(.top, 8)
+            }
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     basicSettingsSection
@@ -70,7 +84,10 @@ struct ConfigurationDetailView: View {
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
             TextField("Enter facility URL", text: $facilityURL)
-                .onChange(of: facilityURL) { _, _ in updateConfigurationName() }
+                .onChange(of: facilityURL) { _, _ in
+                    updateConfigurationName()
+                    validateAll()
+                }
             if !facilityURL.isEmpty, !isValidFacilityURL(facilityURL) {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -93,6 +110,11 @@ struct ConfigurationDetailView: View {
                     }
                     Spacer()
                 }
+            }
+            if validationErrors.contains(where: { $0.contains("Facility URL") }) {
+                Text("Facility URL is invalid.")
+                    .foregroundColor(.red)
+                    .font(.caption)
             }
         }
         .padding(.bottom, 20)
@@ -269,25 +291,25 @@ struct ConfigurationDetailView: View {
             Spacer()
             Button("Cancel") { dismiss() }
                 .buttonStyle(.bordered)
-                .controlSize(.regular)
-            Button("Save") {
-                if isValidConfiguration {
+            Button(config == nil ? "Add" : "Save") {
+                validateAll()
+                if validationErrors.isEmpty {
                     saveConfiguration()
-                } else {
-                    validationMessage = "Please fill in all required fields with valid data."
-                    showingValidationAlert = true
                 }
             }
             .buttonStyle(.borderedProminent)
-            .controlSize(.regular)
-            .disabled(!isValidConfiguration)
+            .disabled(!validationErrors.isEmpty)
         }
         .padding(.horizontal, 32)
-        .padding(.vertical, 16)
+        .padding(.vertical, 12)
     }
 
     // MARK: - Private Methods
 
+    /**
+     Loads the configuration from the provided `config` object.
+     - Parameter config: The existing configuration to load.
+     */
     private func loadConfiguration() {
         guard let config else {
             // Creating a new configuration
@@ -307,6 +329,10 @@ struct ConfigurationDetailView: View {
         // to preserve custom names that users have set
     }
 
+    /**
+     Saves the current configuration to the `onSave` closure.
+     - Returns: Void
+     */
     private func saveConfiguration() {
         let convertedSlots: [ReservationConfig.Weekday: [TimeSlot]] = dayTimeSlots
             .mapValues { $0.map { TimeSlot(time: $0) } }
@@ -324,6 +350,10 @@ struct ConfigurationDetailView: View {
         dismiss()
     }
 
+    /**
+     Checks if the current configuration is valid.
+     - Returns: Bool indicating if the configuration is valid.
+     */
     private var isValidConfiguration: Bool {
         !name.isEmpty &&
             isValidFacilityURL(facilityURL) &&
@@ -331,11 +361,21 @@ struct ConfigurationDetailView: View {
             !dayTimeSlots.isEmpty
     }
 
+    /**
+     Validates the facility URL.
+     - Parameter url: The URL string to validate.
+     - Returns: Bool indicating if the URL is valid.
+     */
     private func isValidFacilityURL(_ url: String) -> Bool {
         let pattern = #"^https://reservation\.frontdesksuite\.ca/rcfs/[^/]+/?$"#
         return url.range(of: pattern, options: .regularExpression) != nil
     }
 
+    /**
+     Extracts the facility name from a URL string.
+     - Parameter url: The URL string.
+     - Returns: The extracted facility name.
+     */
     private func extractFacilityName(from url: String) -> String {
         let pattern = #"https://reservation\.frontdesksuite\.ca/rcfs/([^/]+)"#
         if let regex = try? NSRegularExpression(pattern: pattern) {
@@ -350,6 +390,10 @@ struct ConfigurationDetailView: View {
         return ""
     }
 
+    /**
+     Updates the configuration name based on the facility URL and sport name.
+     - Returns: Void
+     */
     private func updateConfigurationName() {
         // Only update the name if we're creating a new configuration or if the name is empty
         // This preserves custom names when editing existing configurations
@@ -359,6 +403,10 @@ struct ConfigurationDetailView: View {
         }
     }
 
+    /**
+     Fetches available sports from the facility URL.
+     - Returns: Void
+     */
     private func fetchAvailableSports() {
         guard !facilityURL.isEmpty, isValidFacilityURL(facilityURL) else { return }
 
@@ -373,6 +421,11 @@ struct ConfigurationDetailView: View {
         }
     }
 
+    /**
+     Adds a default time slot for a given day.
+     - Parameter day: The day to add the time slot for.
+     - Returns: Void
+     */
     private func addTimeSlot(for day: ReservationConfig.Weekday) {
         if dayTimeSlots[day] == nil {
             let defaultTime = Self.normalizeTime(hour: 18, minute: 0)
@@ -381,6 +434,11 @@ struct ConfigurationDetailView: View {
         // Only allow one timeslot per day - no additional timeslots
     }
 
+    /**
+     Finds an available time slot for a given day.
+     - Parameter day: The day to find an available time for.
+     - Returns: The available time slot.
+     */
     private func findAvailableTime(for day: ReservationConfig.Weekday) -> Date? {
         guard let existingSlots = dayTimeSlots[day], let firstSlot = existingSlots.first else { return nil }
 
@@ -411,23 +469,95 @@ struct ConfigurationDetailView: View {
         return nil
     }
 
+    /**
+     Removes a day from the configuration.
+     - Parameter day: The day to remove.
+     - Returns: Void
+     */
     private func removeDay(_ day: ReservationConfig.Weekday) {
         dayTimeSlots.removeValue(forKey: day)
     }
 
+    /**
+     Normalizes a given hour and minute into a Date object.
+     - Parameter hour: The hour to set.
+     - Parameter minute: The minute to set.
+     - Returns: The normalized Date object.
+     */
     static func normalizeTime(hour: Int, minute: Int) -> Date {
         let calendar = Calendar.current
         let today = Date()
         return calendar.date(bySettingHour: hour, minute: minute, second: 0, of: today) ?? today
     }
+
+    /**
+     Validates all fields in the configuration and updates the validationErrors array.
+     - Returns: Void
+     */
+    private func validateAll() {
+        var errors: [String] = []
+        if facilityURL.isEmpty || !isValidFacilityURL(facilityURL) {
+            errors.append("Facility URL is invalid.")
+        }
+        if name.trimmingCharacters(in: .whitespaces).isEmpty {
+            errors.append("Configuration name is required.")
+        }
+        if sportName.trimmingCharacters(in: .whitespaces).isEmpty {
+            errors.append("Sport name is required.")
+        }
+        if numberOfPeople < 1 {
+            errors.append("Number of people must be at least 1.")
+        }
+        // Add more field checks as needed
+        validationErrors = errors
+    }
+
+    /**
+     Loads the configuration from an imported JSON file.
+     - Parameter imported: The imported configuration object.
+     - Returns: Void
+     */
+    private func loadFromImportedConfig(_ imported: ReservationConfig) {
+        name = imported.name
+        facilityURL = imported.facilityURL
+        sportName = imported.sportName
+        numberOfPeople = imported.numberOfPeople
+        isEnabled = imported.isEnabled
+        // Convert [TimeSlot] to [Date]
+        dayTimeSlots = imported.dayTimeSlots.mapValues { $0.map(\.time) }
+        validateAll()
+    }
+
+    /**
+     Returns the current configuration object for export.
+     - Returns: The ReservationConfig object.
+     */
+    private func currentConfigForExport() -> ReservationConfig {
+        ReservationConfig(
+            id: config?.id ?? UUID(),
+            name: name,
+            facilityURL: facilityURL,
+            sportName: sportName,
+            numberOfPeople: numberOfPeople,
+            isEnabled: isEnabled,
+            dayTimeSlots: dayTimeSlots.mapValues { $0.map { TimeSlot(time: $0) } },
+            )
+    }
 }
 
+/**
+ A default time slot for a reservation configuration.
+ - Returns: The default Date object.
+ */
 private func defaultTime() -> Date {
     Calendar.current.date(bySettingHour: 18, minute: 0, second: 0, of: Date()) ?? Date()
 }
 
 // MARK: - DayPickerView
 
+/**
+ A view for selecting days for a reservation configuration.
+ */
 struct DayPickerView: View {
     let selectedDays: Set<ReservationConfig.Weekday>
     let onAdd: (ReservationConfig.Weekday) -> Void
@@ -489,6 +619,9 @@ struct DayPickerView: View {
 
 // MARK: - TimeSlotPickerView
 
+/**
+ A view for picking time slots for a specific day.
+ */
 struct TimeSlotPickerView: View {
     @Binding var slots: [Date]
     let maxSlots = 1
@@ -511,5 +644,26 @@ struct TimeSlotPickerView: View {
                 }
             }
         }
+    }
+}
+
+/**
+ A document for exporting a reservation configuration to a JSON file.
+ */
+struct ExportConfigDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.json] }
+    var configuration: ReservationConfig
+    init(configuration: ReservationConfig) {
+        self.configuration = configuration
+    }
+
+    init(configuration: FileDocumentReadConfiguration) throws {
+        let data = configuration.file.regularFileContents ?? Data()
+        self.configuration = try JSONDecoder().decode(ReservationConfig.self, from: data)
+    }
+
+    func fileWrapper(configuration _: FileDocumentWriteConfiguration) throws -> FileWrapper {
+        let data = try JSONEncoder().encode(self.configuration)
+        return .init(regularFileWithContents: data)
     }
 }

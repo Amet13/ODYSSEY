@@ -28,7 +28,9 @@ struct Progress {
     }
 }
 
-/// Manages loading states and progress indicators throughout the app
+/**
+ LoadingStateManager is responsible for tracking and publishing loading/progress state, error/success banners, and notifications for user feedback.
+ */
 @MainActor
 class LoadingStateManager: ObservableObject {
     static let shared = LoadingStateManager()
@@ -39,11 +41,17 @@ class LoadingStateManager: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var progress: Progress?
     @Published var message: String = ""
+    @Published var notification: BannerNotification? // New: for in-app banners
 
     private var cancellables = Set<AnyCancellable>()
 
-    private init() {
+    init() {
+        logger.info("🔧 LoadingStateManager initialized.")
         setupBindings()
+    }
+
+    deinit {
+        logger.info("🧹 LoadingStateManager deinitialized.")
     }
 
     private func setupBindings() {
@@ -134,7 +142,9 @@ class LoadingStateManager: ObservableObject {
         }
     }
 
-    /// Reset to idle state
+    /**
+     Resets the loading state and clears notifications.
+     */
     func reset() {
         logger.info("🔄 Resetting loading state to idle.")
         currentState = .idle
@@ -172,6 +182,42 @@ class LoadingStateManager: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             self.setSuccess(message)
         }
+    }
+
+    // MARK: - Notification Banner Support
+
+    struct BannerNotification: Identifiable {
+        enum BannerType { case success, error, info }
+        let id = UUID()
+        let type: BannerType
+        let message: String
+    }
+
+    /**
+     Shows a success banner notification with the given message.
+     - Parameter message: The message to display.
+     */
+    func showSuccessBanner(_ message: String) {
+        notification = BannerNotification(type: .success, message: message)
+        logger.info("✅ Success banner: \(message)")
+    }
+
+    /**
+     Shows an error banner notification with the given message.
+     - Parameter message: The message to display.
+     */
+    func showErrorBanner(_ message: String) {
+        notification = BannerNotification(type: .error, message: message)
+        logger.error("❌ Error banner: \(message)")
+    }
+
+    /**
+     Shows an info banner notification with the given message.
+     - Parameter message: The message to display.
+     */
+    func showInfoBanner(_ message: String) {
+        notification = BannerNotification(type: .info, message: message)
+        logger.info("ℹ️ Info banner: \(message)")
     }
 
     // MARK: - Convenience Methods

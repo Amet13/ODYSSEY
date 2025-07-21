@@ -2,6 +2,9 @@ import Combine
 import Foundation
 import os.log
 
+/**
+ ReservationOrchestrator is responsible for managing and coordinating reservation runs, including manual, automatic, and godmode runs. Handles orchestration, state, and completion tracking.
+ */
 @MainActor
 class ReservationOrchestrator: ObservableObject {
     static let shared = ReservationOrchestrator()
@@ -117,8 +120,22 @@ class ReservationOrchestrator: ObservableObject {
         }
     }
 
+    init() {
+        logger.info("🔧 ReservationOrchestrator initialized.")
+    }
+
+    deinit {
+        logger.info("🧹 ReservationOrchestrator deinitialized.")
+    }
+
     // MARK: - Orchestration Methods
 
+    /**
+     Runs a single reservation for the given configuration and run type.
+     - Parameters:
+     - config: The reservation configuration to run.
+     - runType: The type of run (manual, automatic, godmode).
+     */
     func runReservation(for config: ReservationConfig, runType: RunType = .manual) {
         guard !statusManager.isRunning else {
             logger.warning("⚠️ Reservation already running, skipping.")
@@ -138,6 +155,12 @@ class ReservationOrchestrator: ObservableObject {
         }
     }
 
+    /**
+     Runs multiple reservations in parallel for the given configurations and run type.
+     - Parameters:
+     - configs: The reservation configurations to run.
+     - runType: The type of run (manual, automatic, godmode).
+     */
     func runMultipleReservations(for configs: [ReservationConfig], runType: RunType = .manual) {
         guard !configs.isEmpty else {
             logger.warning("⚠️ No configurations provided for multiple reservation run.")
@@ -158,6 +181,9 @@ class ReservationOrchestrator: ObservableObject {
         }
     }
 
+    /**
+     Cancels all running reservations and resets state.
+     */
     func stopAllReservations() async {
         if statusManager.isRunning, let config = currentConfig {
             logger.warning("🚨 Emergency cleanup triggered - capturing screenshot and sending notification.")
@@ -221,6 +247,12 @@ class ReservationOrchestrator: ObservableObject {
 
     // MARK: - Private Methods
 
+    /**
+     Performs the reservation logic for a given configuration and run type.
+     - Parameters:
+     - config: The reservation configuration to run.
+     - runType: The type of run.
+     */
     private func performReservation(for config: ReservationConfig, runType: RunType) async throws {
         statusManager.currentTask = "Starting reservation for \(config.name)"
         currentConfig = config
@@ -404,6 +436,12 @@ class ReservationOrchestrator: ObservableObject {
         }
     }
 
+    /**
+     Performs a reservation using a separate WebKit instance.
+     - Parameters:
+     - config: The reservation configuration to run.
+     - runType: The type of run.
+     */
     private func runReservationWithSeparateWebKit(for config: ReservationConfig, runType: RunType) async {
         logger.info("🚀 Starting separate WebKit instance for \(config.name).")
         let instanceId = "godmode_\(config.id.uuidString.prefix(8))_\(Date().timeIntervalSince1970)"
@@ -645,6 +683,12 @@ class ReservationOrchestrator: ObservableObject {
         }
     }
 
+    /**
+     Tracks completion of godmode or multi-reservation runs, updating state and allowing sleep if needed.
+     - Parameters:
+     - configs: The reservation configurations that were run.
+     - runType: The type of run.
+     */
     private func trackGodModeCompletion(configs: [ReservationConfig], runType: RunType) async {
         let completionRunType = runType // capture for closure
         logger.info("📊 Starting God Mode completion tracking for \(configs.count) configurations.")

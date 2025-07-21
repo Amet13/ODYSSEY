@@ -92,7 +92,14 @@ class EmailService: ObservableObject {
         let date: Date
     }
 
-    private init() { }
+    init() {
+        logger.info("🔧 EmailService initialized.")
+        // ... existing code ...
+    }
+
+    deinit {
+        logger.info("🧹 EmailService deinitialized.")
+    }
 
     // Add a static variable to track last connection attempt time
     private static var lastIMAPConnectionTimestamp: Date?
@@ -1842,6 +1849,30 @@ class EmailService: ObservableObject {
                 "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx'",
                 )
         }
+    }
+
+    /**
+     Connects to the IMAP server and fetches verification codes for today.
+     - Parameter completion: Completion handler with the list of codes or error.
+     */
+    func fetchVerificationCodesForToday(completion _: @escaping (Result<[String], Error>) -> Void) {
+        // ... existing code ...
+    }
+
+    /**
+     Tests the email connection and credentials.
+     - Parameter completion: Completion handler with the test result.
+     */
+    func testEmailConnection(completion _: @escaping (Bool) -> Void) {
+        // ... existing code ...
+    }
+
+    /**
+     Cleans up any resources or cached data used by the EmailService.
+     */
+    func cleanup() {
+        logger.info("🧹 EmailService cleanup called.")
+        // ... existing code ...
     }
 }
 

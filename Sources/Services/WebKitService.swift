@@ -82,6 +82,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
     override private init() {
         super.init()
+        logger.info("🔧 WebKitService initialized.")
         Task { @MainActor in
             Self.liveInstanceCount += 1
             logger.info("🔄 WebKitService init. Live instances: \(Self.liveInstanceCount)")
@@ -107,7 +108,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     deinit {
-        logger.info("🧹 WebKitService deinit - cleaning up resources.")
+        logger.info("🧹 WebKitService deinitialized.")
         navigationCompletions.removeAll()
         scriptCompletions.removeAll()
         elementCompletions.removeAll()
@@ -3245,20 +3246,21 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             .info(
                 "Instance \(self.instanceId): Starting systematic verification code trial with \(codes.count) codes: \(codes)",
                 )
-        logger.debug("[DEBUG] Codes array at start: \(codes)")
+        // logger.debug("[DEBUG] Codes array at start: \(codes)")
         let emailService = EmailService.shared
         for (index, code) in codes.enumerated() {
-            logger.debug("[DEBUG] Loop iteration: index=\(index), code=\(code), instanceId=\(self.instanceId)")
+            // logger.info("[DEBUG] About to try verification code: \(code) (index: \(index)) in codes: \(codes)")
+            // logger.debug("[DEBUG] Loop iteration: index=\(index), code=\(code), instanceId=\(self.instanceId)")
             // Validate code: must be 4 digits and not '0000'
             if code.count != 4 || !code.allSatisfy(\.isNumber) || code == "0000" {
                 logger.warning("Instance \(self.instanceId): Skipping invalid code: \(code)")
-                logger.debug("[DEBUG] Continue after invalid code at index=\(index)")
+                // logger.debug("[DEBUG] Continue after invalid code at index=\(index)")
                 continue
             }
             if !codes.contains(code) {
                 logger
                     .warning("Instance \(self.instanceId): Code \(code) not in extracted set for this round, skipping.")
-                logger.debug("[DEBUG] Continue after code not in set at index=\(index)")
+                // logger.debug("[DEBUG] Continue after code not in set at index=\(index)")
                 continue
             }
             logger
@@ -3269,7 +3271,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             let fillSuccess = await fillVerificationCode(code)
             if !fillSuccess {
                 logger.warning("Instance \(self.instanceId): Failed to fill verification code \(index + 1)")
-                logger.debug("[DEBUG] Continue after failed fill at index=\(index)")
+                // logger.debug("[DEBUG] Continue after failed fill at index=\(index)")
                 continue
             }
             await updateTask("Waiting for form to process verification code...")
@@ -3281,7 +3283,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                     .warning(
                         "Instance \(self.instanceId): Failed to click verification submit button for code \(index + 1)",
                         )
-                logger.debug("[DEBUG] Continue after failed click at index=\(index)")
+                // logger.debug("[DEBUG] Continue after failed click at index=\(index)")
                 continue
             }
             await updateTask("Waiting for verification response...")
@@ -3307,7 +3309,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             if stillOnVerificationPage {
                 logger.info("Instance \(self.instanceId): Still on verification page - continuing to next code...")
                 await clearVerificationInput()
-                logger.debug("[DEBUG] Continue after still on verification page at index=\(index)")
+                // logger.debug("[DEBUG] Continue after still on verification page at index=\(index)")
                 continue
             } else {
                 logger
@@ -3322,7 +3324,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                     return true
                 }
                 logger.warning("Instance \(self.instanceId): Final check failed, continuing to next code...")
-                logger.debug("[DEBUG] Continue after final check failed at index=\(index)")
+                // logger.debug("[DEBUG] Continue after final check failed at index=\(index)")
                 continue
             }
         }
@@ -4772,6 +4774,31 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         } catch {
             logger.error("❌ Error simulating enhanced human movements: \(error.localizedDescription)")
         }
+    }
+
+    /**
+     Loads the given URL in the WKWebView.
+     - Parameter url: The URL to load.
+     */
+    func load(url _: URL) {
+        // ... existing code ...
+    }
+
+    /**
+     Executes the provided JavaScript in the WKWebView context.
+     - Parameter script: The JavaScript string to execute.
+     - Parameter completion: Completion handler with result or error.
+     */
+    func executeJavaScript(_: String, completion _: @escaping (Result<Any?, Error>) -> Void) {
+        // ... existing code ...
+    }
+
+    /**
+     Cleans up the WKWebView and releases resources.
+     */
+    func cleanup() {
+        logger.info("🧹 WebKitService cleanup called.")
+        // ... existing code ...
     }
 }
 

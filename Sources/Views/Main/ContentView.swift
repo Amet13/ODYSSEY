@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 // MARK: - Main Content View
@@ -11,44 +12,68 @@ struct ContentView: View {
     @State private var selectedConfig: ReservationConfig?
     @State private var showingSettings = false
     @State private var showingAbout = false
-    @State private var showingGodMode = false
+    @State private var showingGodModeConfig = false
+    @ObservedObject private var loadingStateManager = LoadingStateManager.shared
+    @State private var bannerTimer: AnyCancellable?
+    @State private var godModeUIEnabled = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            headerView
-            Divider()
-            mainContentView
-            Divider()
-            footerView
-        }
-        .frame(width: 440, height: 600)
-        .background(Color(NSColor.windowBackgroundColor))
-        .sheet(isPresented: $showingAddConfig) {
-            ConfigurationDetailView(config: nil) { config in
-                configManager.addConfiguration(config)
+        ZStack {
+            VStack(spacing: 0) {
+                headerView
+                Divider()
+                mainContentView
+                Divider()
+                footerView
+            }
+            .frame(width: 440, height: 600)
+            .background(Color(NSColor.windowBackgroundColor))
+            .sheet(isPresented: $showingAddConfig) {
+                ConfigurationDetailView(config: nil, onSave: { config in
+                    configManager.addConfiguration(config)
+                })
+            }
+            .sheet(item: $selectedConfig) { config in
+                ConfigurationDetailView(config: config, onSave: { updatedConfig in
+                    configManager.updateConfiguration(updatedConfig)
+                })
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
+            }
+            .sheet(isPresented: $showingAbout) {
+                AboutView()
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.hidden)
+                    .presentationBackground(.clear)
+            }
+            .sheet(isPresented: $showingGodModeConfig) {
+                ConfigurationDetailView(config: nil, onSave: { _ in
+                    // You can define what saving in god mode does here
+                })
+            }
+            .onKeyPress("g", phases: .down) { press in
+                if press.modifiers.contains(.command) {
+                    godModeUIEnabled = true
+                    return .handled
+                }
+                return .ignored
             }
         }
-        .sheet(item: $selectedConfig) { config in
-            ConfigurationDetailView(config: config) { updatedConfig in
-                configManager.updateConfiguration(updatedConfig)
-            }
-        }
-        .sheet(isPresented: $showingSettings) {
-            SettingsView()
-        }
-        .sheet(isPresented: $showingAbout) {
-            AboutView()
-                .presentationDetents([.medium])
-                .presentationDragIndicator(.hidden)
-                .presentationBackground(.clear)
-        }
-        .onKeyPress("g", phases: .down) { press in
-            if press.modifiers.contains(.command) {
-                showingGodMode.toggle()
-                return .handled
-            }
-            return .ignored
-        }
+        .overlay(
+            Group {
+                if let notification = loadingStateManager.notification {
+                    BannerView(notification: notification)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .onAppear {
+                            bannerTimer?.cancel()
+                            bannerTimer = Just(()).delay(for: .seconds(3), scheduler: RunLoop.main).sink { _ in
+                                withAnimation { loadingStateManager.notification = nil }
+                            }
+                        }
+                }
+            }, alignment: .top,
+            )
     }
 }
 
@@ -65,18 +90,7 @@ private extension ContentView {
                     .font(.title2)
                     .fontWeight(.bold)
                 Spacer()
-                Button(action: { showingAddConfig = true }) {
-                    Image(systemName: "plus")
-                        .foregroundColor(.white)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.regular)
-                .help("Add new configuration")
-            }
-
-            if showingGodMode {
-                HStack(spacing: 12) {
-                    Spacer()
+                if godModeUIEnabled {
                     Button(action: simulateAutorunForToday) {
                         HStack(spacing: 6) {
                             Image(systemName: "bolt.fill")
@@ -92,6 +106,13 @@ private extension ContentView {
                     .controlSize(.small)
                     .help("Simulate autorun for 6pm today (⌘+G)")
                 }
+                Button(action: { showingAddConfig = true }) {
+                    Image(systemName: "plus")
+                        .foregroundColor(.white)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.regular)
+                .help("Add new configuration")
             }
         }
         .padding(.horizontal, 20)
@@ -605,5 +626,40 @@ struct DeleteConfirmationModal: View {
                 .shadow(radius: 20),
             )
         .padding()
+    }
+}
+
+struct BannerView: View {
+    let notification: LoadingStateManager.BannerNotification
+    var body: some View {
+        HStack {
+            Image(systemName: iconName(for: notification.type))
+                .foregroundColor(.white)
+            Text(notification.message)
+                .foregroundColor(.white)
+                .font(.headline)
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(color(for: notification.type))
+        .cornerRadius(8)
+        .shadow(radius: 4)
+        .padding([.top, .horizontal])
+    }
+
+    func color(for type: LoadingStateManager.BannerNotification.BannerType) -> Color {
+        switch type {
+        case .success: return .green
+        case .error: return .red
+        case .info: return .blue
+        }
+    }
+
+    func iconName(for type: LoadingStateManager.BannerNotification.BannerType) -> String {
+        switch type {
+        case .success: return "checkmark.circle.fill"
+        case .error: return "xmark.octagon.fill"
+        case .info: return "info.circle.fill"
+        }
     }
 }

@@ -123,7 +123,6 @@ extension WebKitCore {
                         continuation.resume(returning: nil)
                     }
                 } else {
-                    self.logger.debug("✅ JavaScript evaluated successfully.")
                     let value = result
                     DispatchQueue.main.async {
                         continuation.resume(returning: value)
