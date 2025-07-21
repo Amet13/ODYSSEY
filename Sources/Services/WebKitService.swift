@@ -3408,6 +3408,25 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                 // Debug: Print the first 1000 characters of the page
                 console.log('[ODYSSEY] Checking verification result. Page content preview:', bodyText.substring(0, 1000));
 
+                // Check for robust confirmation page indicators
+                // 1. .confirmed-reservation class
+                if (document.querySelector('.confirmed-reservation')) {
+                  console.log('[ODYSSEY] Found .confirmed-reservation class - success!');
+                  return { success: true, reason: 'confirmed_reservation_class', pageText: bodyText.substring(0, 1000) };
+                }
+                // 2. <h1>Confirmation</h1>
+                const h1s = Array.from(document.querySelectorAll('h1'));
+                if (h1s.some(h => h.textContent.trim().toLowerCase() === 'confirmation')) {
+                  console.log('[ODYSSEY] Found <h1>Confirmation</h1> - success!');
+                  return { success: true, reason: 'h1_confirmation', pageText: bodyText.substring(0, 1000) };
+                }
+                // 3. <p> containing 'is now confirmed'
+                const ps = Array.from(document.querySelectorAll('p'));
+                if (ps.some(p => p.textContent.toLowerCase().includes('is now confirmed'))) {
+                  console.log('[ODYSSEY] Found <p> with \"is now confirmed\" - success!');
+                  return { success: true, reason: 'p_is_now_confirmed', pageText: bodyText.substring(0, 1000) };
+                }
+
                 // Check for error indicators FIRST
                 const errorIndicators = [
                     'invalid code',
@@ -3438,7 +3457,19 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                   'is now confirmed',
                   'your appointment on',
                   'your appointment is now confirmed',
-                  'now confirmed'
+                  'now confirmed',
+                  'reservation confirmed',
+                  'booking confirmed',
+                  'successfully booked',
+                  'thank you for your reservation',
+                  'your reservation is confirmed',
+                  'your booking is confirmed',
+                  'your spot is confirmed',
+                  'your registration is confirmed',
+                  'your registration was successful',
+                  'success!',
+                  'completed successfully',
+                  // Add more as needed based on confirmation page text
                 ];
                 for (const indicator of successIndicators) {
                   if (bodyTextLower.includes(indicator)) {
@@ -3494,7 +3525,6 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                 } else {
                     logger.info("Instance \(self.instanceId): ❌ FAILURE detected - reason: \(reason)")
                 }
-
                 return success
             } else {
                 logger
