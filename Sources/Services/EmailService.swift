@@ -744,8 +744,7 @@ class EmailService: ObservableObject {
         let state = IMAPConnectionState()
 
         connection.stateUpdateHandler = { [weak self] nwState in
-            self?.handleIMAPState(
-                state: nwState,
+            let config = IMAPStateConfig(
                 connection: connection,
                 connectionID: connectionID,
                 server: server,
@@ -756,6 +755,7 @@ class EmailService: ObservableObject {
                 continuation: continuation,
                 stateObj: state,
                 )
+            self?.handleIMAPState(state: nwState, config: config)
         }
 
         connection.start(queue: .global())
@@ -791,73 +791,82 @@ class EmailService: ObservableObject {
         }
     }
 
+    /// Configuration for IMAP connection state handling
+    private struct IMAPStateConfig {
+        let connection: NWConnection
+        let connectionID: String
+        let server: String
+        let port: UInt16
+        let useTLS: Bool
+        let email: String
+        let password: String
+        let continuation: CheckedContinuation<TestResult, Never>
+        let stateObj: IMAPConnectionState
+    }
+
     private nonisolated func handleIMAPState(
         state: NWConnection.State,
-        connection: NWConnection,
-        connectionID: String,
-        server: String,
-        port: UInt16,
-        useTLS: Bool,
-        email: String,
-        password: String,
-        continuation: CheckedContinuation<TestResult, Never>,
-        stateObj: IMAPConnectionState,
+        config: IMAPStateConfig,
         ) {
         let staticLogger = Logger(subsystem: "ODYSSEY", category: "IMAP")
-        stateObj.connectionState = "\(state)"
-        let stateMsg = "[IMAP][\(connectionID)] Connection state for \(server):\(port) is \(state) (TLS=\(useTLS))"
+        config.stateObj.connectionState = "\(state)"
+        let stateMsg =
+            "[IMAP][\(config.connectionID)] Connection state for \(config.server):\(config.port) is \(state) (TLS=\(config.useTLS))"
         staticLogger.info("\(stateMsg, privacy: .public)")
 
         switch state {
         case .ready:
-            let readyMsg = "[IMAP][\(connectionID)] Connection ready for \(server):\(port) (TLS=\(useTLS))"
+            let readyMsg =
+                "[IMAP][\(config.connectionID)] Connection ready for \(config.server):\(config.port) (TLS=\(config.useTLS))"
             staticLogger.info("\(readyMsg, privacy: .public)")
-            if !stateObj.handshakeCompleted {
-                stateObj.handshakeCompleted = true
-                let handshakeMsg = "[IMAP][\(connectionID)] Starting handshake for \(server) connection (TLS=\(useTLS))"
+            if !config.stateObj.handshakeCompleted {
+                config.stateObj.handshakeCompleted = true
+                let handshakeMsg =
+                    "[IMAP][\(config.connectionID)] Starting handshake for \(config.server) connection (TLS=\(config.useTLS))"
                 staticLogger.info("\(handshakeMsg, privacy: .public)")
-                let provider: EmailProvider = server == "imap.gmail.com" ? .gmail : .imap
+                let provider: EmailProvider = config.server == "imap.gmail.com" ? .gmail : .imap
                 Task {
                     await self.performIMAPHandshake(
-                        connection: connection,
-                        email: email,
-                        password: password,
-                        useTLS: useTLS,
-                        isGmail: server == "imap.gmail.com",
+                        connection: config.connection,
+                        email: config.email,
+                        password: config.password,
+                        useTLS: config.useTLS,
+                        isGmail: config.server == "imap.gmail.com",
                         provider: provider,
                         ) { result in
-                        stateObj.authenticationCompleted = true
-                        if !stateObj.didResume {
-                            stateObj.didResume = true
-                            continuation.resume(returning: result)
+                        config.stateObj.authenticationCompleted = true
+                        if !config.stateObj.didResume {
+                            config.stateObj.didResume = true
+                            config.continuation.resume(returning: result)
                         }
                     }
                 }
             }
         case let .failed(error):
-            let failMsg = "[IMAP][\(connectionID)] Connection failed for \(server):\(port) (TLS=\(useTLS)): \(error)"
+            let failMsg =
+                "[IMAP][\(config.connectionID)] Connection failed for \(config.server):\(config.port) (TLS=\(config.useTLS)): \(error)"
             staticLogger.error("\(failMsg, privacy: .public)")
-            let provider: EmailProvider = server == "imap.gmail.com" ? .gmail : .imap
-            if !stateObj.didResume {
-                stateObj.didResume = true
-                continuation.resume(returning: .failure(
+            let provider: EmailProvider = config.server == "imap.gmail.com" ? .gmail : .imap
+            if !config.stateObj.didResume {
+                config.stateObj.didResume = true
+                config.continuation.resume(returning: .failure(
                     "Connection failed: \(error.localizedDescription)",
                     provider: provider,
                     ))
             }
         case .cancelled:
-            if stateObj.authenticationCompleted {
+            if config.stateObj.authenticationCompleted {
                 let cancelMsg =
-                    "[IMAP][\(connectionID)] Connection cancelled after successful authentication for \(server):\(port) (TLS=\(useTLS))"
+                    "[IMAP][\(config.connectionID)] Connection cancelled after successful authentication for \(config.server):\(config.port) (TLS=\(config.useTLS))"
                 staticLogger.info("\(cancelMsg, privacy: .public)")
             } else {
                 let cancelMsg =
-                    "❌ [IMAP][\(connectionID)] Connection cancelled on \(server):\(port) (TLS=\(useTLS)): Connection was cancelled"
+                    "❌ [IMAP][\(config.connectionID)] Connection cancelled on \(config.server):\(config.port) (TLS=\(config.useTLS)): Connection was cancelled"
                 staticLogger.error("\(cancelMsg, privacy: .public)")
-                if !stateObj.didResume {
-                    stateObj.didResume = true
-                    let provider: EmailProvider = server == "imap.gmail.com" ? .gmail : .imap
-                    continuation.resume(returning: .failure(
+                if !config.stateObj.didResume {
+                    config.stateObj.didResume = true
+                    let provider: EmailProvider = config.server == "imap.gmail.com" ? .gmail : .imap
+                    config.continuation.resume(returning: .failure(
                         "Connection cancelled before authentication",
                         provider: provider,
                         ))
@@ -1813,6 +1822,43 @@ class EmailService: ObservableObject {
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
             self.logger.info(
                 "Success notification would be sent for \(config.name, privacy: .private) at \(facilityName, privacy: .private) to \(self.userSettingsManager.userSettings.imapEmail, privacy: .private)",
+                )
+        }
+    }
+
+    /// Validates Gmail App Password format
+    /// Gmail App Password must be 16 characters in format "xxxx xxxx xxxx xxxx"
+    static func validateGmailAppPassword(_ password: String) -> Bool {
+        // Validate Gmail app password format: 16 characters in format "xxxx xxxx xxxx xxxx"
+        let pattern = #"^[a-z]{4}\s[a-z]{4}\s[a-z]{4}\s[a-z]{4}$"#
+        let regex = try? NSRegularExpression(pattern: pattern)
+        let range = NSRange(location: 0, length: password.utf16.count)
+        return regex?.firstMatch(in: password, range: range) != nil
+    }
+
+    /// Validates Gmail App Password format with detailed error message
+    static func validateGmailAppPasswordWithError(_ password: String) -> (isValid: Bool, error: String?) {
+        if password.isEmpty {
+            return (false, "Gmail App Password cannot be empty")
+        }
+
+        if password.count != 19 {
+            return (
+                false,
+                "Gmail App Password must be 19 characters (16 letters + 3 spaces)",
+                )
+        }
+
+        let pattern = #"^[a-z]{4}\s[a-z]{4}\s[a-z]{4}\s[a-z]{4}$"#
+        let regex = try? NSRegularExpression(pattern: pattern)
+        let range = NSRange(location: 0, length: password.utf16.count)
+
+        if regex?.firstMatch(in: password, range: range) != nil {
+            return (true, nil)
+        } else {
+            return (
+                false,
+                "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx'",
                 )
         }
     }

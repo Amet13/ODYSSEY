@@ -153,3 +153,6 @@ build/
 # Package manager
 Package.resolved
 Package.pins
+
+# Node.js
+node_modules/

@@ -16,143 +16,196 @@
   </p>
 </div>
 
-# ODYSSEY
+# 🥅 ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself
 
-**Ottawa Drop-in Your Sports & Schedule Easily Yourself**
+A sophisticated macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities.
 
-**Automate your Ottawa Recreation sports reservations with ease.**
+## 🚀 Features
 
-ODYSSEY (Ottawa Drop-in Your Sports & Schedule Easily Yourself) is a native macOS menu bar application that automatically books your sports reservations at Ottawa Recreation facilities. No more refreshing pages or competing for time slots - ODYSSEY handles it all for you.
+- **Native macOS Integration**: Runs quietly in the menu bar (not dock) using `LSUIElement = true`
+- **WebKit Automation**: Uses native Swift WebKit (WKWebView) for robust, native web automation
+- **Modern SwiftUI Interface**: Beautiful, responsive UI for configuration management
+- **Automated Scheduling**: Schedules automatic runs based on configured time slots
+- **Multiple Configurations**: Support for different sports and facilities
+- **God Mode**: Run multiple reservations simultaneously with separate WebKit instances
+- **Comprehensive Logging**: Structured logging with emojis for easy debugging
+- **Secure Storage**: Keychain integration for secure credential storage
+- **Email Verification**: Automated email verification for reservation confirmations
+- **Anti-Detection**: Advanced human-like behavior simulation to avoid bot detection
 
-## ✨ What ODYSSEY Does
+## 🏗️ Architecture
 
-- **🎯 Automatic Booking**: Books your preferred time slots automatically
-- **📅 Smart Scheduling**: Runs 2 days before your reservation to secure spots
-- **🏀 Multi-Sport Support**: Basketball, volleyball, badminton, tennis, and more
-- **🏢 Multi-Facility**: Works with all Ottawa Recreation facilities
-- **🔔 Email Verification**: Handles verification codes automatically
-- **📊 Real-time Status**: See booking status and next run times
-- **🛡️ Privacy First**: Everything runs locally on your Mac
+### Core Technologies
 
-## 🚀 Quick Start
+- **SwiftUI** - Modern, declarative UI framework for macOS
+- **AppKit** - Native macOS menu bar integration via `StatusBarController`
+- **WebKit (WKWebView)** - Native web automation engine for browser automation
+- **Combine** - Reactive programming for async operations and state management
+- **UserDefaults** - Persistent configuration storage via `ConfigurationManager`
+- **Timer** - Automated scheduling system for reservation automation
+- **os.log** - Structured logging for debugging and monitoring
 
-### 1. Build and Install
+### Key Components
 
-```bash
-# Clone and build
-git clone https://github.com/Amet13/ODYSSEY.git
-cd ODYSSEY
-./Scripts/build.sh
-```
+1. **AppDelegate** - Application lifecycle and scheduling management
+2. **StatusBarController** - Menu bar integration and UI management
+3. **ConfigurationManager** - Settings and data persistence (singleton)
+4. **ReservationManager** - Web automation orchestration
+5. **WebKitService** - Native web automation engine (singleton)
+6. **FacilityService** - Web scraping and facility data management
+7. **EmailService** - IMAP integration and email testing
+8. **UserSettingsManager** - User configuration and settings management
+9. **ValidationService** - Centralized validation logic (singleton)
+10. **AppConstants** - Centralized application constants
 
-### 2. Configure Your Settings
+## 📦 Installation
 
-1. **Open ODYSSEY** from your menu bar
-2. **Click Settings** to configure your contact information
-3. **Enter your details**:
-   - Name
-   - Phone number (10 digits)
-   - Email address
-   - Email password (Gmail users need an App Password)
+### Prerequisites
 
-### 3. Add Your First Reservation
+- macOS 12.0 or later
+- Xcode 15.0 or later (for development)
+- Node.js and npm (for JavaScript linting)
 
-1. **Click the + button** to add a new configuration
-2. **Enter facility URL** (e.g., `https://reservation.frontdesksuite.ca/rcfs/your-facility`)
-3. **Select your sport** from the dropdown
-4. **Choose your preferred day and time**
-5. **Save the configuration**
+### Quick Start
 
-### 4. Let ODYSSEY Work
+1. **Clone the repository**:
 
-- ODYSSEY will automatically run 2 days before your reservation
-- Check the status in the menu bar app
-- Receive confirmation when booking is successful
+   ```bash
+   git clone https://github.com/your-username/ODYSSEY.git
+   cd ODYSSEY
+   ```
 
-## 🎯 Supported Sports & Facilities
+2. **Build the application**:
 
-**Sports**: Basketball, Volleyball, Badminton, Tennis, Soccer, Hockey, Swimming, Fitness, and more
+   ```bash
+   ./Scripts/build.sh
+   ```
 
-**Facilities**: All Ottawa Recreation facilities using the FrontDesk Suite reservation system
+3. **Launch the app**:
+   The app will appear in your menu bar. Click the ODYSSEY icon to access the interface.
 
-## ⚙️ Configuration Options
+### Development Setup
 
-### Multiple Reservations
+1. **Install dependencies**:
 
-- Create separate configurations for different sports
-- Set different time preferences for each
-- Enable/disable configurations as needed
+   ```bash
+   npm install
+   ```
 
-### Scheduling
+2. **Open in Xcode**:
 
-- ODYSSEY runs automatically at 6:00 PM, 2 days before your reservation
-- Manual runs available for immediate booking
-- Real-time countdown to next automatic run
+   ```bash
+   open Config/ODYSSEY.xcodeproj
+   ```
 
-### Email Integration
+3. **Run code quality checks**:
+   ```bash
+   swiftlint lint
+   npm run lint
+   ```
 
-- Automatic verification code handling
-- Supports Gmail and other IMAP providers
-- Secure password storage
+## 🎯 Usage
 
-## 🔧 Troubleshooting
+### Basic Configuration
+
+1. **Add a Reservation Configuration**:
+
+   - Click the ODYSSEY menu bar icon
+   - Click "Add Configuration"
+   - Fill in the facility URL, sport name, and time slots
+   - Configure contact information
+
+2. **Set Up Email Verification**:
+
+   - Enter your Gmail address
+   - Generate an App Password (format: `xxxx xxxx xxxx xxxx`)
+   - Test the connection
+
+3. **Run Reservations**:
+   - **Manual Run**: Click "Run Now" for immediate execution
+   - **Automatic**: Enable automatic scheduling
+   - **God Mode**: Run multiple configurations simultaneously
+
+### Advanced Features
+
+- **Debug Window**: Monitor WebKit automation in real-time
+- **Logging**: View detailed logs with emoji indicators
+- **Error Handling**: Comprehensive error recovery and reporting
+- **Anti-Detection**: Human-like behavior simulation
+
+## 🔧 Configuration
+
+### Facility URLs
+
+Supported Ottawa Recreation facilities:
+
+- Various Ottawa recreation centers
+- Compatible with the Ottawa recreation booking system
+
+### Time Slots
+
+Configure multiple time slots for different days:
+
+- Select specific days of the week
+- Set preferred time ranges
+- Configure group sizes
+
+### Email Settings
+
+- **Gmail**: Use App Passwords for secure access
+- **IMAP**: Standard IMAP server configuration
+- **Verification**: Automated email verification code parsing
+
+## 🛡️ Security & Privacy
+
+- **Local Processing**: All automation runs locally on your machine
+- **Secure Storage**: Credentials stored in macOS Keychain
+- **No Data Transmission**: No user data sent to external servers
+- **Privacy Protection**: Sensitive data masked in logs
+
+## 🐛 Troubleshooting
 
 ### Common Issues
 
-**Booking not working?**
+1. **WebKit Crashes**: The app automatically recovers from WebKit crashes
+2. **Email Verification**: Ensure App Password format is correct
+3. **Timeouts**: Check network connection and facility availability
+4. **Debug Window**: Use the debug window to monitor automation progress
 
-- Check your facility URL is correct
-- Verify your contact information is complete
-- Ensure the sport name matches exactly
-- Check the app logs for detailed error messages
+### Logs
 
-**Email verification failing?**
+View detailed logs in Console.app:
 
-- Gmail users: Use an App Password, not your regular password
-- Enable IMAP in your email settings
-- Verify email server settings
-
-**App not appearing in menu bar?**
-
-- Check Activity Monitor for running instances
-- Restart the app if needed
-- Ensure no other instances are running
-
-### Getting Help
-
-- **App Logs**: Check Console.app → search for "ODYSSEY"
-- **GitHub Issues**: Report bugs and request features
-- **Debug Mode**: Built-in troubleshooting tools
-
-## 🛡️ Privacy & Security
-
-- **Local Processing**: All automation runs on your Mac
-- **No Data Sharing**: Your information stays private
-- **Standard Permissions**: No special access required
-- **Secure Storage**: Encrypted local configuration
-
-## 📱 System Requirements
-
-- **macOS**: 15.0 or later
-- **Storage**: 10MB free space
-- **Network**: Internet connection for booking
-- **Permissions**: Standard app permissions only
+- Filter by subsystem: `com.odyssey.app`
+- Look for emoji indicators for quick status identification
 
 ## 🤝 Contributing
 
-Help improve ODYSSEY! See [Contributing Guidelines](Documentation/CONTRIBUTING.md) for details.
+See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution guidelines.
+
+### Development Guidelines
+
+- Follow Swift style guide and SwiftLint rules
+- Use emojis in log messages for better readability
+- Add comprehensive documentation for new features
+- Test thoroughly before submitting changes
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 📚 Documentation
+## 🙏 Acknowledgments
 
-- [User Guide](Documentation/USER_GUIDE.md) - Complete user instructions
-- [Development Guide](Documentation/DEVELOPMENT.md) - For developers
-- [Changelog](Documentation/CHANGELOG.md) - Release notes
-- [Contributing](Documentation/CONTRIBUTING.md) - How to contribute
+- Ottawa Recreation for providing the booking system
+- The Swift and WebKit communities for excellent documentation
+- Contributors and testers who help improve the application
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/your-username/ODYSSEY/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-username/ODYSSEY/discussions)
+- **Documentation**: [Documentation/](Documentation/)
 
 ---
 
-**Made with ❤️ for the Ottawa sports community**
+**Note**: This application is designed to help the Ottawa sports community by automating routine reservation tasks. Always respect the terms of service of the facilities you're booking with.

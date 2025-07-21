@@ -7,7 +7,7 @@ enum AppConstants {
     // MARK: - Application Info
 
     static let appName = "ODYSSEY"
-    static let appVersion = "0.1.0"
+    static let appVersion = "1.0.0"
     static let appBundleId = "com.odyssey.app"
 
     // MARK: - Timeouts

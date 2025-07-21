@@ -199,11 +199,11 @@ class ReservationManager: NSObject, ObservableObject {
 
     /// Handle WebKit crashes gracefully
     private func handleWebKitCrash() async {
-        logger.error("WebKit crash detected, attempting recovery...")
+        logger.error("💥 WebKit crash detected, attempting recovery.")
 
         // Try to reset the WebKit service
         await webKitService.reset()
-        logger.info("WebKit service reset successful")
+        logger.info("✅ WebKit service reset successful.")
     }
 
     /// Timeout wrapper for async operations
@@ -237,7 +237,7 @@ class ReservationManager: NSObject, ObservableObject {
     ///   - runType: Whether this is a manual or automatic run
     func runReservation(for config: ReservationConfig, runType: RunType = .manual) {
         guard !isRunning else {
-            logger.warning("Reservation already running, skipping")
+            logger.warning("⚠️ Reservation already running, skipping.")
             return
         }
 
@@ -251,7 +251,7 @@ class ReservationManager: NSObject, ObservableObject {
                     try await self.performReservation(for: config, runType: runType)
                 }
             } catch {
-                logger.error("Reservation timeout reached (5 minutes)")
+                logger.error("⏰ Reservation timeout reached (5 minutes).")
                 await self.handleReservationError(error, config: config, runType: runType)
             }
         }
@@ -263,14 +263,14 @@ class ReservationManager: NSObject, ObservableObject {
     ///   - runType: Whether these are manual or automatic runs
     func runMultipleReservations(for configs: [ReservationConfig], runType: RunType = .manual) {
         guard !configs.isEmpty else {
-            logger.warning("No configurations provided for multiple reservation run")
+            logger.warning("⚠️ No configurations provided for multiple reservation run.")
             return
         }
 
-        logger.info("Starting God Mode: Running \(configs.count) configurations simultaneously")
+        logger.info("🚀 Starting God Mode: Running \(configs.count) configurations simultaneously.")
 
         // Update main status for God Mode operation - do this synchronously like single reservations
-        logger.info("🔄 ReservationManager: Starting God Mode status update")
+        logger.info("🔄 ReservationManager: Starting God Mode status update.")
         self.isRunning = true
         self.lastRunStatus = .running
         self.currentTask = "God Mode: Running \(configs.count) configurations"
@@ -295,7 +295,7 @@ class ReservationManager: NSObject, ObservableObject {
 
     /// Handle reservation errors gracefully
     private func handleReservationError(_ error: Error, config: ReservationConfig, runType: RunType) async {
-        logger.error("Reservation error: \(error.localizedDescription)")
+        logger.error("❌ Reservation error: \(error.localizedDescription).")
 
         // Update status
         await MainActor.run {
@@ -307,10 +307,10 @@ class ReservationManager: NSObject, ObservableObject {
         }
 
         // Log failure
-        logger.error("Reservation failed for \(config.name): \(error.localizedDescription)")
+        logger.error("❌ Reservation failed for \(config.name): \(error.localizedDescription).")
 
         // Cleanup WebKit session after error
-        logger.info("Cleaning up WebKit session after error")
+        logger.info("🧹 Cleaning up WebKit session after error.")
         await webKitService.disconnect(closeWindow: false)
     }
 
@@ -330,10 +330,10 @@ class ReservationManager: NSObject, ObservableObject {
     /// Captures screenshot and sends notification if automation was running
     func emergencyCleanup() async {
         if isRunning, let config = currentConfig {
-            logger.warning("Emergency cleanup triggered - capturing screenshot and sending notification")
+            logger.warning("🚨 Emergency cleanup triggered - capturing screenshot and sending notification.")
 
             // Log emergency failure
-            logger.error("Emergency cleanup triggered for \(config.name): automation was interrupted unexpectedly")
+            logger.error("🚨 Emergency cleanup triggered for \(config.name): automation was interrupted unexpectedly.")
 
             // Update status
             await MainActor.run {
@@ -355,7 +355,7 @@ class ReservationManager: NSObject, ObservableObject {
 
     /// Handle manual window closure by user
     func handleManualWindowClosure() async {
-        logger.info("Manual window closure detected - resetting reservation state")
+        logger.info("👤 Manual window closure detected - resetting reservation state.")
 
         // Update status to reflect manual closure
         await MainActor.run {
@@ -389,7 +389,7 @@ class ReservationManager: NSObject, ObservableObject {
         // Step 1: Check if WebKit service is in valid state
         await updateTask("Checking WebKit service state")
         if !webKitService.isServiceValid() {
-            logger.info("WebKit service not in valid state, resetting...")
+            logger.info("🔄 WebKit service not in valid state, resetting.")
             await webKitService.reset()
         }
 
@@ -421,56 +421,56 @@ class ReservationManager: NSObject, ObservableObject {
         // Wait for DOM to be fully ready with sport buttons
         let domReady = await webKitService.waitForDOMReady()
         if !domReady {
-            logger.error("DOM failed to load properly within timeout")
+            logger.error("⏰ DOM failed to load properly within timeout.")
             throw ReservationError.pageLoadTimeout
         }
 
-        logger.info("Page loaded successfully")
+        logger.info("✅ Page loaded successfully.")
 
         // Step 4: Find and click sport button
         await updateTask("Looking for sport: \(config.sportName)")
-        logger.info("Searching for sport button with text: '\(config.sportName, privacy: .private)'")
+        logger.info("🔍 Searching for sport button with text: '\(config.sportName, privacy: .private)'.")
         let buttonClicked = await webKitService.findAndClickElement(withText: config.sportName)
         if buttonClicked {
-            logger.info("Successfully clicked sport button: \(config.sportName, privacy: .private)")
+            logger.info("✅ Successfully clicked sport button: \(config.sportName, privacy: .private).")
 
             // Step 5: Wait for group size page to load
             await updateTask("Waiting for group size page...")
             let groupSizePageReady = await webKitService.waitForGroupSizePage()
             if !groupSizePageReady {
-                logger.error("Group size page failed to load within timeout")
+                logger.error("⏰ Group size page failed to load within timeout.")
                 throw ReservationError.groupSizePageLoadTimeout
             }
 
-            logger.info("Group size page loaded successfully")
+            logger.info("✅ Group size page loaded successfully.")
 
             // Step 6: Fill number of people field
             await updateTask("Setting number of people: \(config.numberOfPeople)")
 
             let peopleFilled = await webKitService.fillNumberOfPeople(config.numberOfPeople)
             if !peopleFilled {
-                logger.error("Failed to fill number of people field")
+                logger.error("❌ Failed to fill number of people field.")
                 throw ReservationError.numberOfPeopleFieldNotFound
             }
 
-            logger.info("Successfully filled number of people: \(config.numberOfPeople)")
+            logger.info("✅ Successfully filled number of people: \(config.numberOfPeople).")
 
             // Step 7: Click confirm button
             await updateTask("Confirming group size...")
 
             let confirmClicked = await webKitService.clickConfirmButton()
             if !confirmClicked {
-                logger.error("Failed to click confirm button")
+                logger.error("❌ Failed to click confirm button.")
                 throw ReservationError.confirmButtonNotFound
             }
 
-            logger.info("Successfully clicked confirm button")
+            logger.info("✅ Successfully clicked confirm button.")
 
             // Step 8: Wait for time selection page to load
             await updateTask("Waiting for time selection page...")
             // Skip time selection page detection since the page is already loaded
             // and we can see the "Select a date and time" text and ⊕ elements
-            logger.info("Skipping time selection page detection - page already loaded")
+            logger.info("⏭️ Skipping time selection page detection - page already loaded.")
 
             // Step 9: Select time slot based on configuration
             await updateTask("Selecting time slot...")
@@ -485,20 +485,20 @@ class ReservationManager: NSObject, ObservableObject {
                 let dayName = day.shortName // Use short name like "Tue"
                 let timeString = timeSlot.formattedTime() // Format like "8:30 AM"
 
-                logger.info("Attempting to select: \(dayName) at \(timeString, privacy: .private)")
+                logger.info("📅 Attempting to select: \(dayName) at \(timeString, privacy: .private).")
 
                 let timeSlotSelected = await webKitService.selectTimeSlot(
                     dayName: dayName,
                     timeString: timeString,
                     )
                 if !timeSlotSelected {
-                    logger.error("Failed to select time slot: \(dayName) at \(timeString, privacy: .private)")
+                    logger.error("❌ Failed to select time slot: \(dayName) at \(timeString, privacy: .private).")
                     throw ReservationError.timeSlotSelectionFailed
                 }
 
-                logger.info("Successfully selected time slot: \(dayName) at \(timeString, privacy: .private)")
+                logger.info("✅ Successfully selected time slot: \(dayName) at \(timeString, privacy: .private).")
             } else {
-                logger.warning("No time slots configured, skipping time selection")
+                logger.warning("⚠️ No time slots configured, skipping time selection.")
             }
 
             // Step 10: Wait for contact information page to load
@@ -510,14 +510,14 @@ class ReservationManager: NSObject, ObservableObject {
             } ?? false
 
             if !contactInfoPageReady {
-                logger.error("Contact information page failed to load within timeout")
+                logger.error("⏰ Contact information page failed to load within timeout.")
                 throw ReservationError.contactInfoPageLoadTimeout
             }
 
-            logger.info("Contact information page loaded successfully")
+            logger.info("✅ Contact information page loaded successfully.")
 
             // Step 11: Proceed with browser autofill-style form filling (less likely to trigger captchas)
-            logger.info("Proceeding with browser autofill-style form filling to avoid triggering captchas")
+            logger.info("📝 Proceeding with browser autofill-style form filling to avoid triggering captchas.")
 
             // Step 12: Fill all contact information fields simultaneously with browser autofill behavior
             await updateTask("Filling contact information with simultaneous autofill...")
@@ -534,11 +534,11 @@ class ReservationManager: NSObject, ObservableObject {
                 )
 
             if !allFieldsFilled {
-                logger.error("Failed to fill all contact fields simultaneously")
+                logger.error("❌ Failed to fill all contact fields simultaneously.")
                 throw ReservationError.contactInfoFieldNotFound
             }
 
-            logger.info("Successfully filled all contact fields simultaneously with autofill and human movements")
+            logger.info("✅ Successfully filled all contact fields simultaneously with autofill and human movements.")
 
             // Step 13: Click confirm button for contact information with retry logic
             await updateTask("Confirming contact information...")
@@ -553,11 +553,11 @@ class ReservationManager: NSObject, ObservableObject {
 
             while !contactConfirmClicked, retryCount < maxRetries {
                 if retryCount > 0 {
-                    logger.info("Retry attempt \(retryCount) for confirm button click")
+                    logger.info("🔄 Retry attempt \(retryCount) for confirm button click.")
                     await updateTask("Retrying confirmation... (Attempt \(retryCount + 1)/\(maxRetries))")
 
                     // Apply essential anti-detection before retry
-                    logger.info("Applying essential anti-detection for retry attempt \(retryCount)")
+                    logger.info("🛡️ Applying essential anti-detection for retry attempt \(retryCount).")
                     await updateTask("Applying anti-detection measures...")
 
                     // Essential anti-detection sequence
@@ -583,7 +583,7 @@ class ReservationManager: NSObject, ObservableObject {
                         retryCount += 1
 
                         // Additional essential measures after retry text detection
-                        logger.info("Applying additional essential measures after retry text detection")
+                        logger.info("🛡️ Applying additional essential measures after retry text detection.")
                         await updateTask("Applying additional anti-detection measures...")
 
                         // Essential anti-detection
@@ -592,7 +592,7 @@ class ReservationManager: NSObject, ObservableObject {
                         // Optimized wait after retry text detection to avoid reCAPTCHA (1.5-2.2s)
                         try? await Task.sleep(nanoseconds: UInt64.random(in: 1_500_000_000 ... 2_200_000_000))
                     } else {
-                        logger.info("Successfully clicked contact confirm button (no retry text detected)")
+                        logger.info("✅ Successfully clicked contact confirm button (no retry text detected).")
                         break
                     }
                 } else {
@@ -601,11 +601,11 @@ class ReservationManager: NSObject, ObservableObject {
             }
 
             if !contactConfirmClicked {
-                logger.error("Failed to click contact confirm button after \(maxRetries) attempts")
+                logger.error("❌ Failed to click contact confirm button after \(maxRetries) attempts.")
                 throw ReservationError.contactInfoConfirmButtonNotFound
             }
 
-            logger.info("Successfully clicked contact confirm button")
+            logger.info("✅ Successfully clicked contact confirm button.")
 
             // Step 14: Handle email verification if required
             await updateTask("Checking for email verification...")
@@ -615,26 +615,26 @@ class ReservationManager: NSObject, ObservableObject {
 
             let verificationRequired = await webKitService.isEmailVerificationRequired()
             if verificationRequired {
-                logger.info("Email verification required, starting verification process...")
+                logger.info("📧 Email verification required, starting verification process.")
                 let verificationSuccess = await webKitService
                     .handleEmailVerification(verificationStart: verificationStart)
                 if !verificationSuccess {
-                    logger.error("Email verification failed")
+                    logger.error("❌ Email verification failed.")
                     throw ReservationError.emailVerificationFailed
                 }
-                logger.info("Email verification completed successfully")
+                logger.info("✅ Email verification completed successfully.")
 
                 // Wait for page navigation to complete after email verification
                 await updateTask("Waiting for confirmation page to load...")
-                logger.info("Waiting for page navigation to complete after email verification...")
+                logger.info("⏳ Waiting for page navigation to complete after email verification.")
                 try? await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second for navigation
 
                 // Wait for DOM to be ready on the new page
                 let domReady = await webKitService.waitForDOMReady()
                 if domReady {
-                    logger.info("Confirmation page loaded successfully")
+                    logger.info("✅ Confirmation page loaded successfully.")
                 } else {
-                    logger.warning("DOM ready check failed, but continuing with click result as success indicator")
+                    logger.warning("⚠️ DOM ready check failed, but continuing with click result as success indicator.")
                 }
             }
 
@@ -643,7 +643,7 @@ class ReservationManager: NSObject, ObservableObject {
 
             // If we reached this point and email verification was successful (if required),
             // or if no email verification was needed, then the reservation is successful
-            logger.info("Reservation completed successfully - all steps completed!")
+            logger.info("🎉 Reservation completed successfully - all steps completed.")
             await MainActor.run {
                 self.isRunning = false
                 self.lastRunStatus = .success
@@ -653,13 +653,13 @@ class ReservationManager: NSObject, ObservableObject {
             }
 
             // Log success
-            logger.info("Reservation completed successfully for \(config.name)")
+            logger.info("🎉 Reservation completed successfully for \(config.name).")
 
-            logger.info("Cleaning up WebKit session after successful reservation")
+            logger.info("🧹 Cleaning up WebKit session after successful reservation.")
             await webKitService.disconnect(closeWindow: true)
             return // <-- Ensure we exit after success
         } else {
-            logger.error("Failed to click sport button: \(config.sportName, privacy: .private)")
+            logger.error("❌ Failed to click sport button: \(config.sportName, privacy: .private).")
             throw ReservationError.sportButtonNotFound
         }
     }
@@ -672,7 +672,7 @@ class ReservationManager: NSObject, ObservableObject {
 
     /// Runs a reservation with a separate WebKit instance for God Mode
     private func runReservationWithSeparateWebKit(for config: ReservationConfig, runType: RunType) async {
-        logger.info("Starting separate WebKit instance for \(config.name)")
+        logger.info("🚀 Starting separate WebKit instance for \(config.name).")
 
         // Create a new WebKit service instance for this configuration with unique ID
         let instanceId = "godmode_\(config.id.uuidString.prefix(8))_\(Date().timeIntervalSince1970)"
@@ -703,51 +703,51 @@ class ReservationManager: NSObject, ObservableObject {
             // Wait for DOM to be fully ready
             let domReady = await separateWebKitService.waitForDOMReady()
             if !domReady {
-                logger.error("DOM failed to load properly for \(config.name)")
+                logger.error("❌ DOM failed to load properly for \(config.name).")
                 throw ReservationError.pageLoadTimeout
             }
 
             // Find and click sport button
             let buttonClicked = await separateWebKitService.findAndClickElement(withText: config.sportName)
             if buttonClicked {
-                logger.info("Successfully clicked sport button for \(config.name)")
+                logger.info("✅ Successfully clicked sport button for \(config.name).")
 
                 // Step 5: Wait for group size page to load
-                logger.info("Waiting for group size page for \(config.name)...")
+                logger.info("⏳ Waiting for group size page for \(config.name).")
                 let groupSizePageReady = await separateWebKitService.waitForGroupSizePage()
                 if !groupSizePageReady {
-                    logger.error("Group size page failed to load for \(config.name)")
+                    logger.error("⏰ Group size page failed to load for \(config.name).")
                     throw ReservationError.groupSizePageLoadTimeout
                 }
 
-                logger.info("Group size page loaded successfully for \(config.name)")
+                logger.info("✅ Group size page loaded successfully for \(config.name).")
 
                 // Step 6: Fill number of people field
-                logger.info("Setting number of people for \(config.name): \(config.numberOfPeople)")
+                logger.info("👥 Setting number of people for \(config.name): \(config.numberOfPeople).")
                 let peopleFilled = await separateWebKitService.fillNumberOfPeople(config.numberOfPeople)
                 if !peopleFilled {
-                    logger.error("Failed to fill number of people field for \(config.name)")
+                    logger.error("❌ Failed to fill number of people field for \(config.name).")
                     throw ReservationError.numberOfPeopleFieldNotFound
                 }
 
-                logger.info("Successfully filled number of people for \(config.name): \(config.numberOfPeople)")
+                logger.info("✅ Successfully filled number of people for \(config.name): \(config.numberOfPeople).")
 
                 // Step 7: Click confirm button
-                logger.info("Confirming group size for \(config.name)...")
+                logger.info("✅ Confirming group size for \(config.name).")
                 let confirmClicked = await separateWebKitService.clickConfirmButton()
                 if !confirmClicked {
-                    logger.error("Failed to click confirm button for \(config.name)")
+                    logger.error("❌ Failed to click confirm button for \(config.name).")
                     throw ReservationError.confirmButtonNotFound
                 }
 
-                logger.info("Successfully clicked confirm button for \(config.name)")
+                logger.info("✅ Successfully clicked confirm button for \(config.name).")
 
                 // Step 8: Wait for time selection page to load
-                logger.info("Waiting for time selection page for \(config.name)...")
-                logger.info("Skipping time selection page detection for \(config.name) - page already loaded")
+                logger.info("⏳ Waiting for time selection page for \(config.name).")
+                logger.info("⏭️ Skipping time selection page detection for \(config.name) - page already loaded.")
 
                 // Step 9: Select time slot based on configuration
-                logger.info("Selecting time slot for \(config.name)...")
+                logger.info("📅 Selecting time slot for \(config.name).")
 
                 // Get the first available day and time from configuration
                 let selectedDay = config.dayTimeSlots.keys.first
@@ -779,11 +779,11 @@ class ReservationManager: NSObject, ObservableObject {
                             "Successfully selected time slot for \(config.name): \(dayName) at \(timeString, privacy: .private)",
                             )
                 } else {
-                    logger.warning("No time slots configured for \(config.name), skipping time selection")
+                    logger.warning("⚠️ No time slots configured for \(config.name), skipping time selection.")
                 }
 
                 // Step 10: Wait for contact information page to load
-                logger.info("Waiting for contact information page for \(config.name)...")
+                logger.info("📧 Waiting for contact information page for \(config.name).")
 
                 // Wait for contact info page with timeout
                 let contactInfoPageReady = await withTimeout(seconds: 10) {
@@ -791,17 +791,17 @@ class ReservationManager: NSObject, ObservableObject {
                 } ?? false
 
                 if !contactInfoPageReady {
-                    logger.error("Contact information page failed to load for \(config.name)")
+                    logger.error("⏰ Contact information page failed to load for \(config.name).")
                     throw ReservationError.contactInfoPageLoadTimeout
                 }
 
-                logger.info("Contact information page loaded successfully for \(config.name)")
+                logger.info("✅ Contact information page loaded successfully for \(config.name).")
 
                 // Step 11: Proceed with browser autofill-style form filling
-                logger.info("Proceeding with browser autofill-style form filling for \(config.name)")
+                logger.info("📝 Proceeding with browser autofill-style form filling for \(config.name).")
 
                 // Step 12: Fill all contact information fields simultaneously
-                logger.info("Filling contact information with simultaneous autofill for \(config.name)...")
+                logger.info("📝 Filling contact information with simultaneous autofill for \(config.name).")
 
                 // Get user settings for contact information
                 let userSettings = UserSettingsManager.shared.userSettings
@@ -815,14 +815,14 @@ class ReservationManager: NSObject, ObservableObject {
                     )
 
                 if !allFieldsFilled {
-                    logger.error("Failed to fill all contact fields for \(config.name)")
+                    logger.error("❌ Failed to fill all contact fields for \(config.name).")
                     throw ReservationError.contactInfoFieldNotFound
                 }
 
-                logger.info("Successfully filled all contact fields for \(config.name)")
+                logger.info("✅ Successfully filled all contact fields for \(config.name).")
 
                 // Step 13: Click confirm button for contact information with retry logic
-                logger.info("Confirming contact information for \(config.name)...")
+                logger.info("✅ Confirming contact information for \(config.name).")
 
                 // Record timestamp before clicking confirm
                 let verificationStart = Date()
@@ -834,7 +834,7 @@ class ReservationManager: NSObject, ObservableObject {
 
                 while !contactConfirmClicked, retryCount < maxRetries {
                     if retryCount > 0 {
-                        logger.info("Retry attempt \(retryCount) for confirm button click for \(config.name)")
+                        logger.info("🔄 Retry attempt \(retryCount) for confirm button click for \(config.name).")
 
                         // Apply essential anti-detection before retry
                         logger
@@ -893,61 +893,61 @@ class ReservationManager: NSObject, ObservableObject {
                     throw ReservationError.contactInfoConfirmButtonNotFound
                 }
 
-                logger.info("Successfully clicked contact confirm button for \(config.name)")
+                logger.info("✅ Successfully clicked contact confirm button for \(config.name).")
 
                 // Step 14: Handle email verification if required
-                logger.info("Checking for email verification for \(config.name)...")
+                logger.info("📧 Checking for email verification for \(config.name).")
 
                 // Wait for the page to fully load
                 try? await Task.sleep(nanoseconds: 2_000_000_000) // Wait 2 seconds
 
                 let verificationRequired = await separateWebKitService.isEmailVerificationRequired()
                 if verificationRequired {
-                    logger.info("Email verification required for \(config.name), starting verification process...")
+                    logger.info("📧 Email verification required for \(config.name), starting verification process.")
                     let verificationSuccess = await separateWebKitService
                         .handleEmailVerification(verificationStart: verificationStart)
                     if !verificationSuccess {
-                        logger.error("Email verification failed for \(config.name)")
+                        logger.error("❌ Email verification failed for \(config.name).")
                         throw ReservationError.emailVerificationFailed
                     }
-                    logger.info("Email verification completed successfully for \(config.name)")
+                    logger.info("✅ Email verification completed successfully for \(config.name).")
 
                     // Wait for page navigation to complete after email verification
-                    logger.info("Waiting for confirmation page to load for \(config.name)...")
+                    logger.info("⏳ Waiting for confirmation page to load for \(config.name).")
                     try? await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second for navigation
 
                     // Wait for DOM to be ready on the new page
                     let domReady = await separateWebKitService.waitForDOMReady()
                     if domReady {
-                        logger.info("Confirmation page loaded successfully for \(config.name)")
+                        logger.info("✅ Confirmation page loaded successfully for \(config.name).")
                     } else {
                         logger
                             .warning(
-                                "DOM ready check failed for \(config.name), but continuing with click result as success indicator",
+                                "⚠️ DOM ready check failed for \(config.name), but continuing with click result as success indicator",
                                 )
                     }
                 }
 
                 // Step 15: Determine success based on whether we completed all steps
-                logger.info("Finishing reservation for \(config.name)...")
+                logger.info("🎉 Finishing reservation for \(config.name).")
 
                 // If we reached this point and email verification was successful (if required),
                 // or if no email verification was needed, then the reservation is successful
-                logger.info("Reservation completed successfully for \(config.name) - all steps completed!")
+                logger.info("🎉 Reservation completed successfully for \(config.name) - all steps completed.")
                 await MainActor.run {
                     self.lastRunInfo[config.id] = (status: .success, date: Date(), runType: runType)
                 }
 
                 // Log success
-                logger.info("Reservation completed successfully for \(config.name)")
+                logger.info("🎉 Reservation completed successfully for \(config.name).")
 
             } else {
-                logger.error("Failed to click sport button for \(config.name)")
+                logger.error("❌ Failed to click sport button for \(config.name).")
                 throw ReservationError.sportButtonNotFound
             }
 
         } catch {
-            logger.error("Reservation failed for \(config.name): \(error.localizedDescription)")
+            logger.error("❌ Reservation failed for \(config.name): \(error.localizedDescription).")
             await MainActor.run {
                 self.lastRunInfo[config.id] = (
                     status: .failed(error.localizedDescription),
@@ -955,9 +955,12 @@ class ReservationManager: NSObject, ObservableObject {
                     runType: runType,
                     )
             }
+            // On failure, do not close the window
+            await separateWebKitService.disconnect(closeWindow: false)
+            return
         }
 
-        // Always cleanup the separate WebKit instance
+        // Always cleanup the separate WebKit instance (success case)
         await separateWebKitService.disconnect(closeWindow: true)
     }
 
@@ -971,15 +974,15 @@ class ReservationManager: NSObject, ObservableObject {
                 self.lastRunInfo[configId] = (status: .failed(error), date: Date(), runType: runType)
             }
         }
-        logger.error("Reservation error: \(error)")
+        logger.error("❌ Reservation error: \(error).")
 
         // Log failure if we have the current config
         if let currentConfig {
-            logger.error("Reservation failed for \(currentConfig.name): \(error)")
+            logger.error("❌ Reservation failed for \(currentConfig.name): \(error).")
         }
 
         // Always cleanup WebKit session
-        logger.info("Cleaning up WebKit session after error")
+        logger.info("🧹 Cleaning up WebKit session after error.")
         await webKitService.disconnect(closeWindow: false)
     }
 
@@ -1014,7 +1017,7 @@ class ReservationManager: NSObject, ObservableObject {
 
     /// Tracks completion of all God Mode operations and updates main status
     private func trackGodModeCompletion(configs: [ReservationConfig], runType _: RunType) async {
-        logger.info("Starting God Mode completion tracking for \(configs.count) configurations")
+        logger.info("📊 Starting God Mode completion tracking for \(configs.count) configurations.")
 
         let maxWaitTime: TimeInterval = 300 // 5 minutes maximum wait
         let checkInterval: TimeInterval = 2.0 // Check every 2 seconds
@@ -1034,7 +1037,7 @@ class ReservationManager: NSObject, ObservableObject {
                 return false
             }
 
-            logger.info("God Mode progress: \(completedConfigs.count)/\(configs.count) configurations completed")
+            logger.info("📈 God Mode progress: \(completedConfigs.count)/\(configs.count) configurations completed.")
 
             // If all configurations are completed, update main status
             if completedConfigs.count == configs.count {
@@ -1055,19 +1058,21 @@ class ReservationManager: NSObject, ObservableObject {
                 }
 
                 await MainActor.run {
-                    logger.info("🔄 ReservationManager: Updating God Mode completion status")
-                    self.isRunning = false
+                    logger.info("🔄 ReservationManager: Updating God Mode completion status.")
+
+                    // Keep isRunning true until we're ready to update the final status
+                    // This ensures the tray icon stays filled during the completion process
 
                     if failedConfigs.isEmpty {
                         // All successful
                         self.lastRunStatus = .success
                         self.currentTask = "God Mode: All \(configs.count) configurations completed successfully"
-                        logger.info("🔄 ReservationManager: God Mode completed - All successful")
+                        logger.info("🎉 God Mode completed - All successful.")
                     } else if successfulConfigs.isEmpty {
                         // All failed
                         self.lastRunStatus = .failed("All \(configs.count) configurations failed")
                         self.currentTask = "God Mode: All configurations failed"
-                        logger.info("🔄 ReservationManager: God Mode completed - All failed")
+                        logger.info("❌ God Mode completed - All failed.")
                     } else {
                         // Mixed results
                         self.lastRunStatus = .success
@@ -1081,13 +1086,25 @@ class ReservationManager: NSObject, ObservableObject {
                     }
 
                     self.lastRunDate = Date()
-                    logger
-                        .info(
-                            "🔄 ReservationManager: Final God Mode status - isRunning: \(self.isRunning), status: \(self.lastRunStatus.description)",
-                            )
+
+                    // Keep the icon filled for a bit longer to make the completion more visible
+                    logger.info("🔄 ReservationManager: Keeping icon filled for 3 seconds to show completion.")
+
+                    // Schedule the icon change after a delay
+                    Task {
+                        try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 seconds
+                        await MainActor.run {
+                            self.isRunning = false
+                            logger
+                                .info(
+                                    "🔄 ReservationManager: Final God Mode status - isRunning: \(self.isRunning), status: \(self.lastRunStatus.description)",
+                                    )
+                        }
+                    }
                 }
 
-                logger.info("God Mode completed: \(successfulConfigs.count) successful, \(failedConfigs.count) failed")
+                logger
+                    .info("📊 God Mode completed: \(successfulConfigs.count) successful, \(failedConfigs.count) failed.")
                 return
             }
 
@@ -1096,13 +1113,15 @@ class ReservationManager: NSObject, ObservableObject {
         }
 
         // Timeout reached
-        logger.warning("God Mode completion tracking timed out after \(maxWaitTime) seconds")
+        logger.warning("⏰ God Mode completion tracking timed out after \(maxWaitTime) seconds.")
         await MainActor.run {
-            logger.info("🔄 ReservationManager: God Mode timeout - updating status")
-            self.isRunning = false
+            logger.info("🔄 ReservationManager: God Mode timeout - updating status.")
             self.lastRunStatus = .failed("God Mode timed out")
             self.currentTask = "God Mode: Operation timed out"
             self.lastRunDate = Date()
+
+            // Set isRunning to false after updating other status
+            self.isRunning = false
             logger
                 .info(
                     "🔄 ReservationManager: God Mode timeout status - isRunning: \(self.isRunning), status: \(self.lastRunStatus.description)",

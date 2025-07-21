@@ -65,8 +65,8 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     // Set a Chrome-like user agent
-    var userAgent: String =
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    var userAgent: String = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) " +
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     private var language: String = "en-US,en"
 
     // Completion handlers for async operations
@@ -81,40 +81,28 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     /// Create a new WebKit service instance for parallel operations
-    convenience init(forParallelOperation: Bool) {
+    convenience init(forParallelOperation _: Bool) {
         self.init()
-        if forParallelOperation {
-            // Show debug window for parallel operations
-            Task { @MainActor in
-                self.setupDebugWindow()
-            }
-        }
     }
 
     /// Create a new WebKit service instance with unique anti-detection profile
-    convenience init(forParallelOperation: Bool, instanceId: String) {
+    convenience init(forParallelOperation _: Bool, instanceId: String) {
         self.init()
         self.instanceId = instanceId
-        if forParallelOperation {
-            // Show debug window for parallel operations
-            Task { @MainActor in
-                self.setupDebugWindow()
-            }
-        }
     }
 
     deinit {
-        logger.info("WebKitService deinit - cleaning up resources")
+        logger.info("🧹 WebKitService deinit - cleaning up resources.")
         // Only synchronous cleanup here
         navigationCompletions.removeAll()
         scriptCompletions.removeAll()
         elementCompletions.removeAll()
         webView = nil
-        logger.info("WebKitService cleanup completed")
+        logger.info("✅ WebKitService cleanup completed.")
     }
 
     private func setupWebView() {
-        logger.info("Setting up new WebView for instance: \(self.instanceId)")
+        logger.info("🔧 Setting up new WebView for instance: \(self.instanceId).")
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = WKUserContentController()
 
@@ -150,12 +138,12 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
             modifiedSince: Date(timeIntervalSince1970: 0),
             ) { [self] in
-            logger.info("Cleared website data for instance: \(self.instanceId)")
+            logger.info("🧹 Cleared website data for instance: \(self.instanceId).")
         }
 
         // Create web view
         webView = WKWebView(frame: .zero, configuration: configuration)
-        logger.info("WebView created successfully for instance: \(self.instanceId)")
+        logger.info("✅ WebView created successfully for instance: \(self.instanceId).")
 
         // Generate unique user agent for this instance
         let userAgents = [
@@ -189,14 +177,14 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         // Inject custom JavaScript for automation and anti-detection
         injectAutomationScripts()
         injectAntiDetectionScripts()
-        logger.info("WebView setup completed successfully for instance: \(self.instanceId)")
+        logger.info("✅ WebView setup completed successfully for instance: \(self.instanceId).")
     }
 
     @MainActor
     private func setupDebugWindow() {
         // Check if debug window already exists
         if debugWindow != nil {
-            logger.info("Debug window already exists, reusing existing window")
+            logger.info("🪟 Debug window already exists, reusing existing window.")
             debugWindow?.makeKeyAndOrderFront(nil)
             return
         }
@@ -235,7 +223,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         let schedule = ReservationConfig.formatScheduleInfoInline(config: config)
         let newTitle = "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(schedule)"
         window.title = newTitle
-        logger.info("Updated debug window title to: \(newTitle)")
+        logger.info("📝 Updated debug window title to: \(newTitle).")
     }
 
     private func injectAutomationScripts() {
@@ -895,8 +883,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     @MainActor
     private func logAllButtonsAndLinks() async {
         guard let webView else {
-            logger.error("[ButtonScan] webView is nil")
-            print("[ButtonScan] webView is nil")
+            logger.error("❌ [ButtonScan] webView is nil.")
             return
         }
         let script = """
@@ -918,94 +905,17 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             let result = try await webView.evaluateJavaScript(script)
             if let arr = result as? [String] {
                 for line in arr {
-                    logger.info("[ButtonScan] \(line, privacy: .public)")
-                    print("[ButtonScan] \(line)")
+                    logger.info("🔍 [ButtonScan] \(line, privacy: .public)")
                 }
             } else {
-                logger.error("[ButtonScan] Unexpected JS result: \(String(describing: result))")
-                print("[ButtonScan] Unexpected JS result: \(String(describing: result))")
+                logger.error("❌ [ButtonScan] Unexpected JS result: \(String(describing: result))")
             }
         } catch {
-            logger.error("[ButtonScan] JS error: \(error.localizedDescription, privacy: .public) | \(error)")
-            print("[ButtonScan] JS error: \(error.localizedDescription) | \(error)")
-        }
-    }
-
-    @MainActor
-    private func logPageSource() async {
-        guard let webView else {
-            logger.error("[PageSource] webView is nil")
-            print("[PageSource] webView is nil")
-            return
-        }
-        let script = "document.documentElement.outerHTML;"
-        do {
-            let result = try await webView.evaluateJavaScript(script)
-            if let html = result as? String {
-                let snippet = html.prefix(2_000)
-                logger.info("[PageSource] \(snippet, privacy: .public)")
-                print("[PageSource] \(snippet)")
-            } else {
-                logger.error("[PageSource] Unexpected JS result: \(String(describing: result))")
-                print("[PageSource] Unexpected JS result: \(String(describing: result))")
-            }
-        } catch {
-            logger.error("[PageSource] JS error: \(error.localizedDescription, privacy: .public) | \(error)")
-            print("[PageSource] JS error: \(error.localizedDescription) | \(error)")
+            logger.error("❌ [ButtonScan] JS error: \(error.localizedDescription, privacy: .public) | \(error)")
         }
     }
 
     // Helper to log page state for debugging
-    @MainActor
-    private func logPageState(context: String) async {
-        guard let webView else { return }
-        let script = """
-        (function() {
-            let html = document.documentElement.outerHTML.substring(0, 5000);
-            let inputs = Array.from(document.querySelectorAll('input')).map(el =>
-                `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [placeholder='${el.placeholder}'] [type='${el.type}']`
-            );
-            let buttons = Array.from(document.querySelectorAll('button')).map(el =>
-                `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [text='${el.innerText || ''}']`
-            );
-            let links = Array.from(document.querySelectorAll('a')).map(el =>
-                `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [href='${el.href}'] [text='${el.innerText || ''}']`
-            );
-            let divs = Array.from(document.querySelectorAll('div')).map(el =>
-                `[id='${el.id}'] [class='${el.className}'] [text='${el.innerText || ''}']`
-            );
-            return { html, inputs, buttons, links, divs };
-        })();
-        """
-        do {
-            let result = try await webView.evaluateJavaScript(script)
-            if let dict = result as? [String: Any] {
-                if let html = dict["html"] as? String {
-                    logger.info("[PageState][\(context)] HTML: \(html.prefix(5_000), privacy: .public)")
-                    print("[PageState][\(context)] HTML: \(html.prefix(5_000))")
-                }
-                if let inputs = dict["inputs"] as? [String] {
-                    logger.info("[PageState][\(context)] INPUTS: \(inputs.joined(separator: ", "), privacy: .public)")
-                    print("[PageState][\(context)] INPUTS: \(inputs.joined(separator: ", "))")
-                }
-                if let buttons = dict["buttons"] as? [String] {
-                    logger.info("[PageState][\(context)] BUTTONS: \(buttons.joined(separator: ", "), privacy: .public)")
-                    print("[PageState][\(context)] BUTTONS: \(buttons.joined(separator: ", "))")
-                }
-                if let links = dict["links"] as? [String] {
-                    logger.info("[PageState][\(context)] LINKS: \(links.joined(separator: ", "), privacy: .public)")
-                    print("[PageState][\(context)] LINKS: \(links.joined(separator: ", "))")
-                }
-                if let divs = dict["divs"] as? [String] {
-                    logger.info("[PageState][\(context)] DIVS: \(divs.joined(separator: ", "), privacy: .public)")
-                    print("[PageState][\(context)] DIVS: \(divs.joined(separator: ", "))")
-                }
-            }
-        } catch {
-            logger.error("[PageState][\(context)] Error logging page state: \(error.localizedDescription)")
-            print("[PageState][\(context)] Error logging page state: \(error.localizedDescription)")
-        }
-    }
 
     // MARK: - WebDriverServiceProtocol Implementation
 
@@ -1014,7 +924,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         await MainActor.run {
             // Check if window was manually closed and reset state if needed
             if self.debugWindow == nil, self.isConnected {
-                logger.info("Window was manually closed, resetting service state")
+                logger.info("👤 Window was manually closed, resetting service state.")
                 self.isConnected = false
                 self.isRunning = false
                 self.navigationCompletions.removeAll()
@@ -1024,18 +934,18 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             }
 
             if self.webView == nil {
-                logger.info("WebView is nil, setting up new WebView")
+                logger.info("🔧 WebView is nil, setting up new WebView.")
                 self.setupWebView()
             }
             self.setupDebugWindow()
         }
         isConnected = true
         isRunning = true
-        logger.info("WebKit service connected")
+        logger.info("🔗 WebKit service connected.")
     }
 
     func disconnect(closeWindow: Bool = true) async {
-        logger.info("Starting WebKit service disconnect...")
+        logger.info("🔌 Starting WebKit service disconnect.")
         // Mark as disconnected first to prevent new operations
         isConnected = false
         isRunning = false
@@ -1057,14 +967,14 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         // Ensure WebView is properly cleaned up for next run
         await MainActor.run {
             self.webView = nil
-            logger.info("WebView reference cleared for next run")
+            logger.info("🧹 WebView reference cleared for next run.")
         }
-        logger.info("WebKit service disconnected successfully")
+        logger.info("✅ WebKit service disconnected successfully.")
     }
 
     /// Reset the WebKit service for reuse
     func reset() async {
-        logger.info("Resetting WebKit service...")
+        logger.info("🔄 Resetting WebKit service.")
 
         // Disconnect first
         await disconnect(closeWindow: false)
@@ -1077,12 +987,12 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             self.setupWebView()
         }
 
-        logger.info("WebKit service reset completed")
+        logger.info("✅ WebKit service reset completed.")
     }
 
     /// Force reset the WebKit service (for troubleshooting)
     func forceReset() async {
-        logger.info("Force resetting WebKit service...")
+        logger.info("🔄 Force resetting WebKit service.")
 
         // Mark as disconnected
         isConnected = false
@@ -1113,7 +1023,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             self.setupWebView()
         }
 
-        logger.info("WebKit service force reset completed")
+        logger.info("✅ WebKit service force reset completed.")
     }
 
     /// Check if the service is in a valid state for operations
@@ -1139,48 +1049,46 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         // Check if service is in valid state
         await MainActor.run {
             if !self.isConnected || self.webView == nil {
-                logger.warning("Service not in valid state, attempting to reconnect")
+                logger.warning("⚠️ Service not in valid state, attempting to reconnect.")
                 self.setupDebugWindow()
             }
         }
         guard webView != nil else {
-            logger.error("navigateToURL: WebView not initialized")
+            logger.error("❌ navigateToURL: WebView not initialized.")
             throw WebDriverError.navigationFailed("WebView not initialized")
         }
-        logger.info("Navigating to URL: \(url, privacy: .private)")
+        logger.info("🌐 Navigating to URL: \(url, privacy: .private).")
         return try await withCheckedThrowingContinuation { continuation in
             let requestId = UUID().uuidString
             navigationCompletions[requestId] = { success in
                 if success {
-                    self.logger.info("Navigation to \(url, privacy: .private) succeeded")
-                    Task { await self.logPageState(context: "after navigation") }
+                    self.logger.info("✅ Navigation to \(url, privacy: .private) succeeded.")
+
                     // Log document.readyState and page source for diagnosis
                     Task { @MainActor in
                         do {
                             let readyState = try await self.executeScriptInternal("return document.readyState;")?.value
-                            self.logger.info("document.readyState after navigation: \(String(describing: readyState))")
+                            self.logger
+                                .info("📄 document.readyState after navigation: \(String(describing: readyState))")
                             let pageSource = try await self.getPageSource()
                             self.logger
                                 .info("Page source after navigation (first 500 chars): \(pageSource.prefix(500))")
                         } catch {
-                            self.logger.error("Error logging readyState/page source: \(error.localizedDescription)")
+                            self.logger.error("❌ Error logging readyState/page source: \(error.localizedDescription)")
                         }
                     }
                     // After navigation completes, log page source and all buttons/links
                     Task { @MainActor in
-                        await self.logPageSource()
                         await self.logAllButtonsAndLinks()
                     }
                     continuation.resume()
                 } else {
-                    self.logger.error("Navigation to \(url, privacy: .private) failed")
-                    Task { await self.logPageState(context: "error") }
+                    self.logger.error("❌ Navigation to \(url, privacy: .private) failed.")
                     continuation.resume(throwing: WebDriverError.navigationFailed("Failed to navigate to \(url)"))
                 }
             }
             guard let url = URL(string: url) else {
-                self.logger.error("navigateToURL: Invalid URL: \(url)")
-                Task { await self.logPageState(context: "error") }
+                self.logger.error("❌ navigateToURL: Invalid URL: \(url).")
                 continuation.resume(throwing: WebDriverError.navigationFailed("Invalid URL: \(url)"))
                 return
             }
@@ -1369,13 +1277,11 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
     func findAndClickElement(withText text: String) async -> Bool {
         guard webView != nil else {
-            logger.error("WebView not initialized")
-            Task { await self.logPageState(context: "error") }
+            logger.error("❌ WebView not initialized.")
             return false
         }
 
-        logger.info("Searching for sport button: '\(text, privacy: .private)'")
-        Task { await self.logPageState(context: "before button click") }
+        logger.info("🔍 Searching for sport button: '\(text, privacy: .private)'.")
         let script = """
         (function() {
             try {
@@ -1405,41 +1311,30 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             }
         })();
         """
-        logger.info("[ButtonClick] Executing JS: \(script, privacy: .public)")
-        print("[ButtonClick] Executing JS: \n\(script)")
+        logger.info("🔘 [ButtonClick] Executing JS: \(script, privacy: .public)")
         do {
             let result = try await executeScriptInternal(script)?.value
-            logger.info("[ButtonClick] JS result: \(String(describing: result), privacy: .public)")
-            print("[ButtonClick] JS result: \(String(describing: result))")
-            Task { await self.logPageState(context: "after button click") }
+            logger.info("🔘 [ButtonClick] JS result: \(String(describing: result), privacy: .public)")
             if let str = result as? String {
                 if str == "clicked" || str == "dispatched" {
                     try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second sleep
                     return true
                 } else if str.starts(with: "error:") {
-                    logger.error("[ButtonClick] JS error: \(str, privacy: .public)")
-                    print("[ButtonClick] JS error: \(str)")
-                    Task { await self.logPageState(context: "error") }
+                    logger.error("❌ [ButtonClick] JS error: \(str, privacy: .public)")
                     return false
                 } else {
                     logger
                         .error(
                             "Sport button not found: '\(text, privacy: .private)' | JS result: \(str, privacy: .public)",
                             )
-                    print("Sport button not found: '\(text)' | JS result: \(str)")
-                    Task { await self.logPageState(context: "error") }
                     return false
                 }
             } else {
-                logger.error("[ButtonClick] Unexpected JS result: \(String(describing: result))")
-                print("[ButtonClick] Unexpected JS result: \(String(describing: result))")
-                Task { await self.logPageState(context: "error") }
+                logger.error("❌ [ButtonClick] Unexpected JS result: \(String(describing: result))")
                 return false
             }
         } catch {
-            logger.error("Error clicking sport button: \(error.localizedDescription, privacy: .public) | \(error)")
-            print("Error clicking sport button: \(error.localizedDescription) | \(error)")
-            Task { await self.logPageState(context: "error") }
+            logger.error("❌ Error clicking sport button: \(error.localizedDescription, privacy: .public) | \(error)")
             return false
         }
     }
@@ -1448,7 +1343,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     /// Now also checks for the presence of a button with the configured sport name
     func waitForDOMReady() async -> Bool {
         guard webView != nil else {
-            logger.error("waitForDOMReady: WebView not initialized")
+            logger.error("❌ waitForDOMReady: WebView not initialized")
             return false
         }
         let configSport = currentConfig?.sportName ?? ""
@@ -1462,26 +1357,26 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         })();
         """
         do {
-            logger.info("Executing enhanced DOM ready/button check script...")
+            logger.info("🔧 Executing enhanced DOM ready/button check script...")
             let result = try await executeScriptInternal(buttonCheckScript)?.value
-            logger.info("DOM/button check result: \(String(describing: result))")
+            logger.info("📊 DOM/button check result: \(String(describing: result))")
             if let dict = result as? [String: Any] {
                 let readyState = dict["readyState"] as? String ?? ""
                 let buttonFound = dict["buttonFound"] as? Bool ?? false
-                logger.info("document.readyState=\(readyState), buttonFound=\(buttonFound)")
+                logger.info("📄 document.readyState=\(readyState), buttonFound=\(buttonFound)")
                 if readyState == "complete" || buttonFound {
-                    logger.info("DOM ready or button found, proceeding")
+                    logger.info("✅ DOM ready or button found, proceeding")
                     return true
                 } else {
-                    logger.error("DOM not ready and button not found")
+                    logger.error("❌ DOM not ready and button not found")
                     return false
                 }
             } else {
-                logger.error("Unexpected result from DOM/button check: \(String(describing: result))")
+                logger.error("❌ Unexpected result from DOM/button check: \(String(describing: result))")
                 return false
             }
         } catch {
-            logger.error("Error waiting for DOM ready/button: \(error.localizedDescription)")
+            logger.error("❌ Error waiting for DOM ready/button: \(error.localizedDescription)")
             return false
         }
     }
@@ -1489,8 +1384,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     @MainActor
     func waitForDOMReadyAndButton(selector _: String, buttonText: String) async -> Bool {
         guard let webView else {
-            logger.error("waitForDOMReady: WebView not initialized")
-            print("waitForDOMReady: WebView not initialized")
+            logger.error("❌ waitForDOMReady: WebView not initialized")
             return false
         }
         let start = Date()
@@ -1518,56 +1412,18 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                     .error(
                         "waitForDOMReadyAndButton JS error: \(error.localizedDescription, privacy: .public) | error: \(String(describing: error), privacy: .public)",
                         )
-                print("waitForDOMReadyAndButton JS error: \(error.localizedDescription) | error: \(error)")
+                return false
             }
             try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
         }
-        logger.error("Button with text \(buttonText) not found after 10s")
-        print("Button with text \(buttonText) not found after 10s")
+        logger.error("❌ Button with text \(buttonText) not found after 10s")
         return false
     }
 
     func fillNumberOfPeople(_ numberOfPeople: Int) async -> Bool {
         guard webView != nil else {
-            logger.error("WebView not initialized")
-            print("WebView not initialized")
-            Task { await self.logPageState(context: "error") }
+            logger.error("❌ WebView not initialized")
             return false
-        }
-        Task { await self.logPageState(context: "before fill number of people") }
-
-        // Log the page HTML and all input/button elements for debugging
-        let logScript = """
-        (function() {
-            let html = document.documentElement.outerHTML.substring(0, 5000);
-            let inputs = Array.from(document.querySelectorAll('input')).map(el =>
-                `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [placeholder='${el.placeholder}'] [type='${el.type}']`
-            );
-            let buttons = Array.from(document.querySelectorAll('button')).map(el =>
-                `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [text='${el.innerText || ''}']`
-            );
-            return { html, inputs, buttons };
-        })();
-        """
-        do {
-            let logResult = try await executeScriptInternal(logScript)?.value
-            if let dict = logResult as? [String: Any] {
-                if let html = dict["html"] as? String {
-                    logger.info("[PeopleFill] PAGE HTML: \(html.prefix(5_000), privacy: .public)")
-                    print("[PeopleFill] PAGE HTML: \(html.prefix(5_000))")
-                }
-                if let inputs = dict["inputs"] as? [String] {
-                    logger.info("[PeopleFill] INPUTS: \(inputs.joined(separator: ", "), privacy: .public)")
-                    print("[PeopleFill] INPUTS: \(inputs.joined(separator: ", "))")
-                }
-                if let buttons = dict["buttons"] as? [String] {
-                    logger.info("[PeopleFill] BUTTONS: \(buttons.joined(separator: ", "), privacy: .public)")
-                    print("[PeopleFill] BUTTONS: \(buttons.joined(separator: ", "))")
-                }
-            }
-        } catch {
-            logger.error("[PeopleFill] Error logging page HTML/inputs/buttons: \(error.localizedDescription)")
-            print("[PeopleFill] Error logging page HTML/inputs/buttons: \(error.localizedDescription)")
         }
 
         let script = """
@@ -1591,25 +1447,18 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             }
         })();
         """
-        logger.info("[PeopleFill] Executing JS: \(script, privacy: .public)")
-        print("[PeopleFill] Executing JS: \n\(script)")
+
         do {
             let result = try await executeScriptInternal(script)?.value
-            logger.info("[PeopleFill] JS result: \(String(describing: result), privacy: .public)")
-            print("[PeopleFill] JS result: \(String(describing: result))")
-            Task { await self.logPageState(context: "after fill number of people") }
+
             if let str = result as? String, str == "filled" {
                 return true
             } else {
-                logger.error("[PeopleFill] Field not found or not filled: \(String(describing: result))")
-                print("[PeopleFill] Field not found or not filled: \(String(describing: result))")
-                Task { await self.logPageState(context: "error") }
+                logger.error("❌ Field not found or not filled: \(String(describing: result))")
                 return false
             }
         } catch {
-            logger.error("Error filling number of people: \(error.localizedDescription)")
-            print("Error filling number of people: \(error.localizedDescription)")
-            Task { await self.logPageState(context: "error") }
+            logger.error("❌ Error filling number of people: \(error.localizedDescription)")
             return false
         }
     }
@@ -1617,7 +1466,6 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     func clickConfirmButton() async -> Bool {
         guard webView != nil else {
             logger.error("WebView not initialized")
-            print("WebView not initialized")
             return false
         }
 
@@ -1659,16 +1507,13 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         })();
         """
 
-        logger.info("[ConfirmClick] Executing JS: \(script, privacy: .public)")
-        print("[ConfirmClick] Executing JS: \n\(script)")
+        logger.info("🔘 [ConfirmClick] Executing JS: \(script, privacy: .public)")
         do {
             let result = try await executeScriptInternal(script)
-            logger.info("[ConfirmClick] JS result: \(String(describing: result), privacy: .public)")
-            print("[ConfirmClick] JS result: \(String(describing: result))")
+            logger.info("🔘 [ConfirmClick] JS result: \(String(describing: result), privacy: .public)")
             if let str = result?.value as? String, str == "clicked" {
-                // Wait a moment and then log the page state to see what happened
+                // Wait a moment for the page to settle
                 try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
-                await logPageState(context: "after confirm click")
 
                 // Also check for any error messages or loading states
                 let checkScript = """
@@ -1684,18 +1529,15 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                 })();
                 """
                 let checkResult = try await executeScriptInternal(checkScript)
-                logger.info("[ConfirmClick] Page check: \(String(describing: checkResult), privacy: .public)")
-                print("[ConfirmClick] Page check: \(String(describing: checkResult))")
+                logger.info("📊 [ConfirmClick] Page check: \(String(describing: checkResult), privacy: .public)")
 
                 return true
             } else {
-                logger.error("[ConfirmClick] Button not found or not clicked: \(String(describing: result))")
-                print("[ConfirmClick] Button not found or not clicked: \(String(describing: result))")
+                logger.error("❌ [ConfirmClick] Button not found or not clicked: \(String(describing: result))")
                 return false
             }
         } catch {
-            logger.error("Error clicking confirm button: \(error.localizedDescription)")
-            print("Error clicking confirm button: \(error.localizedDescription)")
+            logger.error("❌ Error clicking confirm button: \(error.localizedDescription)")
             return false
         }
     }
@@ -1745,21 +1587,17 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                         .info(
                             "[GroupSizePoll][poll \(pollCount)] found=\(found)\nINPUTS: \(inputs.joined(separator: ", "))\nBUTTONS: \(buttons.joined(separator: ", "))\nDIVS: \(divs.prefix(5).joined(separator: ", "))\nHTML: \(html.prefix(5_000))",
                             )
-                    print(
-                        "[GroupSizePoll][poll \(pollCount)] found=\(found)\nINPUTS: \(inputs.joined(separator: ", "))\nBUTTONS: \(buttons.joined(separator: ", "))\nDIVS: \(divs.prefix(5).joined(separator: ", "))\nHTML: \(html.prefix(5_000))",
-                        )
                     if found {
-                        logger.info("Group size input found on poll #\(pollCount)")
+                        logger.info("📊 Group size input found on poll #\(pollCount)")
                         return true
                     }
                 }
             } catch {
                 logger.error("[GroupSizePoll][poll \(pollCount)] JS error: \(error.localizedDescription)")
-                print("[GroupSizePoll][poll \(pollCount)] JS error: \(error.localizedDescription)")
             }
             try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
         }
-        logger.error("Group size page load timeout after \(Int(timeout))s and \(pollCount) polls")
+        logger.error("❌ Group size page load timeout after \(Int(timeout))s and \(pollCount) polls")
         return false
     }
 
@@ -1769,8 +1607,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             return false
         }
 
-        logger.info("[TimeSelection] Starting time selection page detection...")
-        print("[TimeSelection] Starting time selection page detection...")
+        logger.info("⏳ [TimeSelection] Starting time selection page detection...")
 
         // Simple script to check page content
         let script = """
@@ -1806,20 +1643,16 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         do {
             let result = try await executeScriptInternal(script)?.value as? Bool ?? false
 
-            logger.info("[TimeSelection] JavaScript result: \(result)")
-            print("[TimeSelection] JavaScript result: \(result)")
+            logger.info("📊 [TimeSelection] JavaScript result: \(result)")
 
             if result {
-                logger.info("Time selection page loaded successfully")
-                print("Time selection page loaded successfully")
+                logger.info("✅ Time selection page loaded successfully")
             } else {
-                logger.error("Time selection page not detected")
-                print("Time selection page not detected")
+                logger.error("❌ Time selection page not detected")
             }
             return result
         } catch {
-            logger.error("Error checking time selection page: \(error.localizedDescription)")
-            print("Error checking time selection page: \(error.localizedDescription)")
+            logger.error("❌ Error checking time selection page: \(error.localizedDescription)")
             return false
         }
     }
@@ -1830,8 +1663,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             return false
         }
 
-        logger.info("Selecting time slot: \(dayName, privacy: .private) at \(timeString, privacy: .private)")
-        await logPageState(context: "before time slot selection")
+        logger.info("📅 Selecting time slot: \(dayName, privacy: .private) at \(timeString, privacy: .private)")
 
         let script = """
         (function() {
@@ -1939,17 +1771,16 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         """
         do {
             let result = try await webView?.evaluateJavaScript(script)
-            logger.info("[TimeSlot][DaySection] JS result: \(String(describing: result), privacy: .private)")
-            await logPageState(context: "after day section click attempts")
+            logger.info("📊 [TimeSlot][DaySection] JS result: \(String(describing: result), privacy: .private)")
             if let dict = result as? [String: Any], let clicked = dict["clicked"] as? Bool, clicked {
-                logger.info("[TimeSlot][DaySection] Day section expanded successfully")
+                logger.info("📊 [TimeSlot][DaySection] Day section expanded successfully")
 
                 // Check if time slot was also clicked
                 if let timeSlotClicked = dict["timeSlotClicked"] as? Bool, timeSlotClicked {
-                    logger.info("[TimeSlot] Time slot clicked successfully")
+                    logger.info("✅ [TimeSlot] Time slot clicked successfully")
 
                     // Wait for page to load after time slot click
-                    logger.info("[TimeSlot] Waiting for page to load after time slot click...")
+                    logger.info("⏳ [TimeSlot] Waiting for page to load after time slot click...")
                     try await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second
 
                     // Check if we're already on the contact form page
@@ -1963,11 +1794,9 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                         // Check for continue button after time slot selection
                         let continueClicked = await checkAndClickContinueButton()
                         if continueClicked {
-                            logger.info("Continue button clicked after time slot selection")
+                            logger.info("✅ Continue button clicked after time slot selection")
                         } else {
-                            logger.info("No continue button found after time slot selection")
-                            // Log current page state for debugging
-                            await logPageState(context: "after time slot click - no continue button found")
+                            logger.warning("⚠️ No continue button found after time slot selection")
                         }
                     }
                 }
@@ -2064,8 +1893,11 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             return result
         } catch {
-            logger.error("Error checking for continue button: \(error.localizedDescription, privacy: .public)")
-            logger.error("Continue button error details: \(error, privacy: .public)")
+            logger
+                .error(
+                    "❌ [ContinueButton] Error checking for continue button: \(error.localizedDescription, privacy: .public)",
+                    )
+            logger.error("❌ [ContinueButton] Continue button error details: \(error, privacy: .public)")
             return false
         }
     }
@@ -2200,7 +2032,6 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         do {
             let result = try await webView?.evaluateJavaScript(script)
             logger.info("[ContinueButton] JS result: \(String(describing: result), privacy: .private)")
-            await logPageState(context: "after continue button click attempt")
             if let dict = result as? [String: Any], let clicked = dict["clicked"] as? Bool, clicked {
                 logger.info("[ContinueButton] Continue button clicked successfully")
                 return true
@@ -2273,19 +2104,19 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
-                logger.info("Contact info page loaded successfully")
+                logger.info("✅ Contact info page loaded successfully")
 
                 // Activate enhanced antidetection measures immediately when contact page is detected
-                logger.info("Activating enhanced antidetection measures for contact form page...")
+                logger.info("🛡️ Activating enhanced antidetection measures for contact form page...")
                 await enhanceHumanLikeBehavior()
 
             } else {
-                logger.error("Contact info page load timeout - see logs for page HTML and input fields")
+                logger.error("❌ Contact info page load timeout - see logs for page HTML and input fields")
             }
             return result
         } catch {
-            logger.error("Error checking contact info page: \(error.localizedDescription, privacy: .public)")
-            logger.error("Contact form error details: \(error, privacy: .public)")
+            logger.error("❌ Error checking contact info page: \(error.localizedDescription, privacy: .public)")
+            logger.error("❌ Contact form error details: \(error, privacy: .public)")
             return false
         }
     }
@@ -2461,16 +2292,16 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
-                logger.info("Successfully filled phone number with enhanced human-like behavior")
+                logger.info("✅ Successfully filled phone number with enhanced human-like behavior")
                 // Optimized delay after filling to avoid reCAPTCHA (0.4-0.7 second)
                 try? await Task.sleep(nanoseconds: UInt64.random(in: 400_000_000 ... 700_000_000))
                 return true
             } else {
-                logger.error("Failed to fill phone number - field not found")
+                logger.error("❌ Failed to fill phone number - field not found")
                 return false
             }
         } catch {
-            logger.error("Error filling phone number: \(error.localizedDescription)")
+            logger.error("❌ Error filling phone number: \(error.localizedDescription)")
             return false
         }
     }
@@ -2644,16 +2475,16 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
-                logger.info("Successfully filled email with enhanced human-like behavior")
+                logger.info("✅ Successfully filled email with enhanced human-like behavior")
                 // Optimized delay after filling to avoid reCAPTCHA (0.4-0.7 second)
                 try? await Task.sleep(nanoseconds: UInt64.random(in: 400_000_000 ... 700_000_000))
                 return true
             } else {
-                logger.error("Failed to fill email - field not found")
+                logger.error("❌ Failed to fill email - field not found")
                 return false
             }
         } catch {
-            logger.error("Error filling email: \(error.localizedDescription)")
+            logger.error("❌ Error filling email: \(error.localizedDescription)")
             return false
         }
     }
@@ -2846,16 +2677,16 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
-                logger.info("Successfully filled name with enhanced human-like behavior")
+                logger.info("✅ Successfully filled name with enhanced human-like behavior")
                 // Optimized delay after filling to avoid reCAPTCHA (0.4-0.7 second)
                 try? await Task.sleep(nanoseconds: UInt64.random(in: 400_000_000 ... 700_000_000))
                 return true
             } else {
-                logger.error("Failed to fill name - field not found")
+                logger.error("❌ Failed to fill name - field not found")
                 return false
             }
         } catch {
-            logger.error("Error filling name: \(error.localizedDescription)")
+            logger.error("❌ Error filling name: \(error.localizedDescription)")
             return false
         }
     }
@@ -2885,13 +2716,13 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         do {
             let result = try await executeScriptInternal(script)?.value as? Bool ?? false
             if result {
-                logger.warning("Google reCAPTCHA detected on page")
+                logger.warning("⚠️ Google reCAPTCHA detected on page")
             } else {
-                logger.info("No reCAPTCHA detected")
+                logger.info("🛡️ No reCAPTCHA detected")
             }
             return result
         } catch {
-            logger.error("Error detecting captcha: \(error.localizedDescription)")
+            logger.error("❌ Error detecting captcha: \(error.localizedDescription)")
             return false
         }
     }
@@ -2903,7 +2734,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             return false
         }
 
-        logger.info("Handling reCAPTCHA with human-like behavior...")
+        logger.info("🛡️ Handling reCAPTCHA with human-like behavior...")
 
         // Inject anti-detection scripts
         await injectAntiDetectionScript()
@@ -2922,7 +2753,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         }
 
         // Essential anti-detection before clicking
-        logger.info("Applying essential anti-detection before confirm button click")
+        logger.info("🛡️ Applying essential anti-detection before confirm button click")
         await addQuickPause()
 
         // Add human-like delay before clicking (1-1.5 seconds)
@@ -3068,14 +2899,14 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
-                logger.info("Successfully clicked contact info confirm button with human-like behavior")
+                logger.info("✅ Successfully clicked contact info confirm button with human-like behavior")
                 return true
             } else {
-                logger.error("Failed to click contact info confirm button")
+                logger.error("❌ Failed to click contact info confirm button")
                 return false
             }
         } catch {
-            logger.error("Error clicking contact info confirm button: \(error.localizedDescription)")
+            logger.error("❌ Error clicking contact info confirm button: \(error.localizedDescription)")
             return false
         }
     }
@@ -3126,13 +2957,13 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
-                logger.info("Email verification required")
+                logger.info("📧 Email verification required")
             } else {
-                logger.info("No email verification required")
+                logger.info("🛡️ No email verification required")
             }
             return result
         } catch {
-            logger.error("Error checking email verification: \(error.localizedDescription)")
+            logger.error("❌ Error checking email verification: \(error.localizedDescription)")
             return false
         }
     }
@@ -3143,13 +2974,13 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             return false
         }
 
-        logger.info("Instance \(self.instanceId): Handling email verification...")
+        logger.info("🛡️ Instance \(self.instanceId): Handling email verification...")
 
         // Step 1: Wait for verification page to load
         await updateTask("Waiting for verification page...")
         let verificationPageReady = await waitForVerificationPage()
         if !verificationPageReady {
-            logger.error("Instance \(self.instanceId): Verification page failed to load")
+            logger.error("❌ Instance \(self.instanceId): Verification page failed to load")
             return false
         }
 
@@ -3157,11 +2988,11 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         await updateTask("Trying verification codes with retry...")
         let verificationSuccess = await tryVerificationCodesWithRetry(verificationStart: verificationStart)
         if !verificationSuccess {
-            logger.error("Instance \(self.instanceId): All verification attempts failed")
+            logger.error("❌ Instance \(self.instanceId): All verification attempts failed")
             return false
         }
 
-        logger.info("Instance \(self.instanceId): Email verification completed successfully")
+        logger.info("✅ Instance \(self.instanceId): Email verification completed successfully")
         return true
     }
 
@@ -3240,28 +3071,28 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                     logger.info("Page content preview: \(bodyTextPreview)")
 
                     if hasInput || hasText || hasPattern {
-                        logger.info("Verification page detected successfully")
+                        logger.info("✅ Verification page detected successfully")
                         return true
                     }
 
                     if isLoading {
-                        logger.info("Page is still loading, waiting...")
+                        logger.info("⏳ Page is still loading, waiting...")
                     }
                 }
             } catch {
-                logger.error("Error checking verification page: \(error.localizedDescription)")
+                logger.error("❌ Error checking verification page: \(error.localizedDescription)")
             }
 
             try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
         }
 
-        logger.error("Verification page load timeout after \(timeout) seconds")
+        logger.error("❌ Verification page load timeout after \(timeout) seconds")
         return false
     }
 
     /// Fetches verification code from email using IMAP
     private func fetchVerificationCodeFromEmail(verificationStart: Date) async -> String {
-        logger.info("Fetching verification code from email...")
+        logger.info("📧 Fetching verification code from email...")
 
         // Initial wait before checking for the email
         let initialWait: TimeInterval = 10.0 // 10 seconds
@@ -3278,13 +3109,13 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             // Fetch verification codes using the correct method
             let codes = await emailService.fetchVerificationCodesForToday(since: verificationStart)
             if let code = codes.first {
-                logger.info("Found verification email, parsed code: \(code)")
+                logger.info("✅ Found verification email, parsed code: \(code)")
                 return code
             }
-            logger.info("Verification code not found yet, retrying in \(retryDelay)s...")
+            logger.info("⏳ Verification code not found yet, retrying in \(retryDelay)s...")
             try? await Task.sleep(nanoseconds: UInt64(retryDelay * 1_000_000_000))
         }
-        logger.error("Timed out waiting for verification code after \(maxTotalWait)s")
+        logger.error("❌ Timed out waiting for verification code after \(maxTotalWait)s")
         return ""
     }
 
@@ -3299,7 +3130,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                 let codeRange = match.range(at: 1)
                 if let range = Range(codeRange, in: emailBody) {
                     let code = String(emailBody[range])
-                    logger.info("Parsed verification code: \(code, privacy: .private)")
+                    logger.info("🔍 Parsed verification code: \(code, privacy: .private)")
                     return code
                 }
             }
@@ -3313,19 +3144,19 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                 let codeRange = match.range(at: 1)
                 if let range = Range(codeRange, in: emailBody) {
                     let code = String(emailBody[range])
-                    logger.info("Parsed verification code (fallback): \(code, privacy: .private)")
+                    logger.info("🔍 Parsed verification code (fallback): \(code, privacy: .private)")
                     return code
                 }
             }
         }
 
-        logger.error("Could not parse verification code from email body")
+        logger.error("❌ Could not parse verification code from email body")
         return ""
     }
 
     /// Fetches all verification codes from email using IMAP
     private func fetchAllVerificationCodesFromEmail(verificationStart: Date) async -> [String] {
-        logger.info("Fetching all verification codes from email for instance: \(self.instanceId)")
+        logger.info("📧 Fetching all verification codes from email for instance: \(self.instanceId)")
 
         // Initial wait before checking for the email
         let initialWait: TimeInterval = 10.0 // 10 seconds
@@ -3335,7 +3166,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
         // Use shared email service but with instance-specific logging and timing
         let emailService = EmailService.shared
-        logger.info("Using EmailService for WebKit instance: \(self.instanceId)")
+        logger.info("📧 Using EmailService for WebKit instance: \(self.instanceId)")
 
         // Wait for the initial period
         logger
@@ -3356,22 +3187,22 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
             // If shared pool is empty, try direct email fetching as fallback
             if codes.isEmpty {
-                logger.info("Instance \(self.instanceId): Shared code pool empty, trying direct email fetch...")
+                logger.info("📧 Instance \(self.instanceId): Shared code pool empty, trying direct email fetch...")
                 codes = await emailService.fetchVerificationCodesForToday(since: verificationStart)
 
                 if !codes.isEmpty {
-                    logger.info("Instance \(self.instanceId): Direct email fetch found \(codes.count) codes")
+                    logger.info("📧 Instance \(self.instanceId): Direct email fetch found \(codes.count) codes")
                 }
             }
 
             // If still empty, try with a broader time window for the second instance
             if codes.isEmpty {
-                logger.info("Instance \(self.instanceId): Still no codes, trying with broader time window...")
+                logger.info("📧 Instance \(self.instanceId): Still no codes, trying with broader time window...")
                 let broaderStart = verificationStart.addingTimeInterval(-300) // 5 minutes earlier
                 codes = await emailService.fetchVerificationCodesForToday(since: broaderStart)
 
                 if !codes.isEmpty {
-                    logger.info("Instance \(self.instanceId): Broader search found \(codes.count) codes")
+                    logger.info("📧 Instance \(self.instanceId): Broader search found \(codes.count) codes")
                 }
             }
 
@@ -3386,7 +3217,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                 .info("Instance \(self.instanceId): No verification codes available yet, retrying in \(retryDelay)s...")
             try? await Task.sleep(nanoseconds: UInt64(retryDelay * 1_000_000_000))
         }
-        logger.error("Instance \(self.instanceId): Timed out waiting for verification codes after \(maxTotalWait)s")
+        logger.error("❌ Instance \(self.instanceId): Timed out waiting for verification codes after \(maxTotalWait)s")
         return []
     }
 
@@ -3446,11 +3277,11 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             logger.info("Instance \(self.instanceId): Finished waiting for verification response")
 
             // Check verification result
-            logger.info("Instance \(self.instanceId): Checking verification result for code \(index + 1)...")
+            logger.info("🔍 Instance \(self.instanceId): Checking verification result for code \(index + 1)...")
             let verificationSuccess = await checkVerificationSuccess()
 
             if verificationSuccess {
-                logger.info("Instance \(self.instanceId): ✅ Verification code \(index + 1) was accepted!")
+                logger.info("✅ Instance \(self.instanceId): ✅ Verification code \(index + 1) was accepted!")
 
                 // Mark this code as consumed by this instance
                 await emailService.markCodeAsConsumed(code, byInstanceId: self.instanceId)
@@ -4078,11 +3909,11 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
-                logger.warning("Retry text detected - reCAPTCHA likely failed")
+                logger.warning("⚠️ Retry text detected - reCAPTCHA likely failed")
             }
             return result
         } catch {
-            logger.error("Error detecting retry text: \(error.localizedDescription)")
+            logger.error("❌ Error detecting retry text: \(error.localizedDescription)")
             return false
         }
     }
@@ -4091,7 +3922,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     func enhanceHumanLikeBehavior() async {
         guard let webView else { return }
 
-        logger.info("Enhancing human-like behavior to avoid reCAPTCHA detection...")
+        logger.info("🛡️ Enhancing human-like behavior to avoid reCAPTCHA detection...")
 
         // Inject simplified anti-detection scripts (less likely to cause errors)
         let antiDetectionScript = """
@@ -4132,7 +3963,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             _ = try await webView.evaluateJavaScript(antiDetectionScript)
             logger.info("Basic anti-detection measures applied successfully")
         } catch {
-            logger.error("Failed to apply anti-detection measures: \(error.localizedDescription)")
+            logger.error("❌ Failed to apply anti-detection measures: \(error.localizedDescription)")
         }
 
         // Quick human-like behavior simulation (much faster)
@@ -4168,7 +3999,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         do {
             _ = try await webView.evaluateJavaScript(script)
         } catch {
-            logger.error("Error simulating mouse movement: \(error.localizedDescription)")
+            logger.error("❌ Error simulating mouse movement: \(error.localizedDescription)")
         }
     }
 
@@ -4197,7 +4028,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         do {
             _ = try await webView.evaluateJavaScript(script)
         } catch {
-            logger.error("Error simulating scrolling: \(error.localizedDescription)")
+            logger.error("❌ Error simulating scrolling: \(error.localizedDescription)")
         }
     }
 
@@ -4287,7 +4118,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             return
         }
 
-        logger.info("Debug window is being closed by user - resetting WebKit service state")
+        logger.info("🪟 Debug window closed by user - resetting WebKit service state")
 
         // Reset service state when window is manually closed
         Task {
@@ -4307,7 +4138,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                 // Clear WebView reference
                 self.webView = nil
 
-                logger.info("WebKit service state reset after manual window closure")
+                logger.info("🪟 WebKit service state reset after manual window closure")
             }
 
             // Notify ReservationManager about window closure
@@ -4803,7 +4634,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     func simulateEnhancedHumanMovementsBeforeConfirm() async {
         guard let webView else { return }
 
-        logger.info("Simulating enhanced human-like movements before clicking confirm button")
+        logger.info("🛡️ Simulating enhanced human-like movements before clicking confirm button")
 
         // Simulate realistic mouse movements to the confirm button area
         let script = """
@@ -4894,7 +4725,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
             logger.info("Enhanced human-like movements before confirm completed")
         } catch {
-            logger.error("Error simulating enhanced human movements: \(error.localizedDescription)")
+            logger.error("❌ Error simulating enhanced human movements: \(error.localizedDescription)")
         }
     }
 }
@@ -4904,16 +4735,13 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
     weak var delegate: WebKitService?
 
-    func webView(_ webView: WKWebView, didStartProvisionalNavigation _: WKNavigation!) {
-        delegate?.logger.info("[Navigation] Started loading: \(webView.url?.absoluteString ?? "unknown")")
-        print("[Navigation] Started loading: \(webView.url?.absoluteString ?? "unknown")")
+    func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation!) {
+        // Removed: delegate?.logger.info("[Navigation] Started loading: \(webView.url?.absoluteString ?? "unknown")")
     }
 
     func webView(_ webView: WKWebView, didFinish _: WKNavigation!) {
         delegate?.currentURL = webView.url?.absoluteString
         delegate?.pageTitle = webView.title
-        delegate?.logger.info("[Navigation] Completed: \(webView.url?.absoluteString ?? "unknown")")
-        print("[Navigation] Completed: \(webView.url?.absoluteString ?? "unknown")")
 
         // Notify any waiting navigation completions
         if let delegate {
@@ -4924,9 +4752,8 @@ class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
         }
     }
 
-    func webView(_: WKWebView, didFail _: WKNavigation!, withError error: Error) {
-        delegate?.logger.error("[Navigation] Failed: \(error.localizedDescription)")
-        print("[Navigation] Failed: \(error.localizedDescription)")
+    func webView(_: WKWebView, didFail _: WKNavigation!, withError _: Error) {
+        // Removed: delegate?.logger.error("[Navigation] Failed: \(error.localizedDescription)")
 
         // Notify any waiting navigation completions
         if let delegate {
@@ -4937,19 +4764,16 @@ class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
         }
     }
 
-    func webView(_: WKWebView, didFailProvisionalNavigation _: WKNavigation!, withError error: Error) {
-        delegate?.logger.error("[Navigation] Provisional navigation failed: \(error.localizedDescription)")
-        print("[Navigation] Provisional navigation failed: \(error.localizedDescription)")
+    func webView(_: WKWebView, didFailProvisionalNavigation _: WKNavigation!, withError _: Error) {
+        // Removed: delegate?.logger.error("[Navigation] Provisional navigation failed: \(error.localizedDescription)")
     }
 
     func webView(
         _: WKWebView,
-        decidePolicyFor navigationAction: WKNavigationAction,
+        decidePolicyFor _: WKNavigationAction,
         decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void,
         ) {
-        delegate?.logger
-            .info("[Navigation] Policy decision for: \(navigationAction.request.url?.absoluteString ?? "unknown")")
-        print("[Navigation] Policy decision for: \(navigationAction.request.url?.absoluteString ?? "unknown")")
+        // Removed: delegate?.logger.info("[Navigation] Policy decision for: \(navigationAction.request.url?.absoluteString ?? "unknown")")
         decisionHandler(.allow)
     }
 }

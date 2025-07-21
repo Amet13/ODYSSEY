@@ -29,7 +29,7 @@ class FacilityService: NSObject, ObservableObject {
     ///   - completion: Callback with detected sports array
     func fetchAvailableSports(from url: String, completion: @escaping ([String]) -> Void) {
         guard let facilityURL = URL(string: url) else {
-            logger.error("Invalid facility URL: \(url)")
+            logger.error("❌ Invalid facility URL: \(url)")
             completion([])
             return
         }
@@ -46,7 +46,7 @@ class FacilityService: NSObject, ObservableObject {
         // Set up timeout
         DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
             if self?.isLoading == true {
-                self?.logger.warning("Timeout loading facility page")
+                self?.logger.warning("⏰ Timeout loading facility page")
                 self?.isLoading = false
                 self?.error = "Timeout loading facility page"
                 completion([])
@@ -127,7 +127,7 @@ class FacilityService: NSObject, ObservableObject {
             guard let self else { return }
 
             if let error {
-                logger.error("Sports detection script error: \(error.localizedDescription)")
+                logger.error("❌ Sports detection script error: \(error.localizedDescription)")
                 DispatchQueue.main.async {
                     self.isLoading = false
                     self.error = "Failed to analyze page: \(error.localizedDescription)"
@@ -150,7 +150,7 @@ extension FacilityService: WKNavigationDelegate {
     }
 
     func webView(_: WKWebView, didFail _: WKNavigation?, withError error: Error) {
-        logger.error("Failed to load facility page: \(error.localizedDescription)")
+        logger.error("❌ Failed to load facility page: \(error.localizedDescription)")
         DispatchQueue.main.async {
             self.isLoading = false
             self.error = "Failed to load page: \(error.localizedDescription)"
@@ -181,7 +181,7 @@ extension FacilityService: WKScriptMessageHandler {
             let body = message.body as? [String: Any],
             let type = body["type"] as? String
         else {
-            logger.warning("Invalid message received from facility WebKit")
+            logger.warning("⚠️ Invalid message received from facility WebKit")
             return
         }
 
@@ -189,13 +189,13 @@ extension FacilityService: WKScriptMessageHandler {
         case "sportsDetected":
             handleSportsDetected(body)
         default:
-            logger.warning("Unknown facility message type: \(type)")
+            logger.warning("⚠️ Unknown facility message type: \(type)")
         }
     }
 
     private func handleSportsDetected(_ data: [String: Any]) {
         guard let sports = data["sports"] as? [String] else {
-            logger.warning("Invalid sports data received")
+            logger.warning("⚠️ Invalid sports data received")
             return
         }
 

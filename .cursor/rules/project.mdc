@@ -1,5 +1,5 @@
 ---
-description: ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself
+description: ODYSSEY
 globs: *
 alwaysApply: true
 ---
@@ -121,9 +121,79 @@ ODYSSEY is a native macOS application that:
 - **Validation**: Use centralized validation for consistency
 - **Constants**: Use centralized constants for maintainability
 
+### JavaScript Code Quality
+
+- **Linting**: All JavaScript code must be linted using ESLint or similar tools
+- **Validation**: Validate JavaScript syntax and best practices
+- **Security**: Sanitize all user inputs in JavaScript code
+- **Error Handling**: Implement proper error handling in JavaScript functions
+- **Documentation**: Document complex JavaScript functions and their parameters
+
+### User Experience
+
+- **Loading States**: Always show loading indicators for async operations
+- **Progress Indicators**: Display progress for long-running operations
+- **Feedback**: Provide immediate visual feedback for user actions
+- **Error States**: Show clear error messages with actionable guidance
+- **Success States**: Confirm successful operations with appropriate feedback
+
+### Loading States Implementation
+
+- **SwiftUI Progress Views**: Use `ProgressView` for indeterminate loading
+- **Progress Bars**: Implement `ProgressView(progress:)` for determinate operations
+- **Loading Overlays**: Show loading states over content during operations
+- **Skeleton Screens**: Use placeholder content during data loading
+- **Status Updates**: Provide real-time status updates for long operations
+
+### Progress Indicators
+
+- **Reservation Progress**: Show step-by-step progress for reservation automation
+- **File Operations**: Display progress for configuration saves/loads
+- **Network Operations**: Show progress for web requests and automation
+- **Background Tasks**: Indicate progress for scheduled operations
+- **Error Recovery**: Show progress during error recovery operations
+
+### Security & Code Signing
+
+- **App Sandbox**: Enable App Sandbox for enhanced security
+- **Code Signing**: Implement proper code signing with Developer ID
+- **Notarization**: Notarize app for macOS security compliance
+- **Secure Credential Storage**: Use Keychain Services for sensitive data
+- **Input Validation**: Validate and sanitize all user inputs
+- **Network Security**: Use HTTPS and certificate pinning where appropriate
+
+### Logging Standards
+
+- **Emoji Usage:** **ALWAYS use emojis in log messages** for better readability and quick visual identification
+- **Consistent Format:** All log messages must follow the pattern: `logger.level("emoji message.")`
+- **Emoji Categories:**
+  - **Success Operations**: ✅ (green checkmark)
+  - **Error Conditions**: ❌ (red X)
+  - **Warnings**: ⚠️ (warning triangle)
+  - **Progress/Status**: 🔄 (rotating arrows)
+  - **Setup/Init**: 🔧 (wrench)
+  - **Navigation**: 🌐 (globe)
+  - **Cleanup**: 🧹 (broom)
+  - **User Actions**: 👤 (person)
+  - **Timeouts**: ⏰ (alarm clock)
+  - **Waiting**: ⏳ (hourglass)
+  - **Form Filling**: 📝 (memo)
+  - **Time Selection**: 📅 (calendar)
+  - **Email Operations**: 📧 (envelope)
+  - **Anti-Detection**: 🛡️ (shield)
+  - **Debug Windows**: 🪟 (window)
+  - **Progress Tracking**: 📊 (bar chart)
+  - **Crashes/Errors**: 💥 (collision)
+  - **Emergency**: 🚨 (rotating light)
+  - **Searching**: 🔍 (magnifying glass)
+  - **Skipping**: ⏭️ (fast forward)
+  - **Completion**: 🎉 (party popper)
+- **Punctuation:** Always end log messages with periods (.) for completed statements
+- **Privacy:** Use `privacy: .private` for sensitive data in logs
+
 ### Debugging
 
-- **Logging:** Use `os.log` with appropriate categories
+- **Logging:** Use `os.log` with appropriate categories and emojis
 - **Console:** Check Console app for detailed logs
 - **WebKit:** Test automation manually with WebKit debugging
 - **Network:** Monitor network requests and responses
@@ -144,6 +214,43 @@ ODYSSEY is a native macOS application that:
 - **Changelog:** Update `CHANGELOG.md` with all changes
 - **Version Numbers:** Update all version references consistently
 - **Build Numbers:** Increment build number for each release
+
+### Security Implementation
+
+- **App Sandbox Configuration:**
+
+  - Enable in `Info.plist` with appropriate entitlements
+  - Configure network access for web automation
+  - Set file system permissions for configuration storage
+  - Enable user interaction for window management
+
+- **Code Signing Setup:**
+
+  - Use Developer ID certificate for distribution
+  - Sign all binaries and frameworks
+  - Implement proper provisioning profiles
+  - Test signed builds thoroughly
+
+- **Secure Credential Storage:**
+  - Use Keychain Services for email credentials
+  - Implement secure credential retrieval
+  - Handle credential updates securely
+  - Provide user-friendly credential management
+
+### JavaScript Quality Assurance
+
+- **ESLint Configuration:**
+
+  - Set up `.eslintrc` with appropriate rules
+  - Validate JavaScript in build process
+  - Fix linting errors before commits
+  - Document JavaScript coding standards
+
+- **JavaScript Security:**
+  - Sanitize DOM manipulation
+  - Validate function parameters
+  - Implement proper error boundaries
+  - Use secure coding practices
 
 ### Quality Assurance
 
@@ -174,6 +281,22 @@ ODYSSEY is a native macOS application that:
 - **User Consent:** Require explicit permission for automation
 - **Community Benefit:** Focus on positive community impact
 - **Transparency:** Be clear about automation capabilities and limitations
+
+---
+
+**Remember:** ODYSSEY is designed to help the Ottawa sports community by automating routine reservation tasks. Always prioritize user privacy, security, and ethical automation practices.
+
+# Logging Format Rule
+
+All log messages (logger.info, logger.error, logger.warning, logger.debug) must:
+
+- Start with an appropriate emoji (see emoji categories in workspace rules)
+- End with a period
+- Be clear and descriptive
+
+**Example:**
+logger.info("✅ Reservation completed successfully.")
+logger.error("❌ Failed to click confirm button.")
 
 ---
 

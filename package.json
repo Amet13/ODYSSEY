@@ -1,0 +1,43 @@
+{
+  "name": "odyssey-app",
+  "version": "1.0.0",
+  "description": "ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint . --ext .js,.mjs,.cjs",
+    "lint:fix": "eslint . --ext .js,.mjs,.cjs --fix",
+    "lint:check": "eslint . --ext .js,.mjs,.cjs --format=compact",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:js": "echo \"Building JavaScript files...\"",
+    "validate": "npm run lint && npm run build:js"
+  },
+  "keywords": [
+    "macos",
+    "automation",
+    "sports",
+    "reservation",
+    "swift",
+    "webkit"
+  ],
+  "author": "Amet13",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amet13/odyssey.git"
+  },
+  "bugs": {
+    "url": "https://github.com/amet13/odyssey/issues"
+  },
+  "homepage": "https://github.com/amet13/odyssey#readme"
+}

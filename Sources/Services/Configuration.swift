@@ -40,7 +40,7 @@ class ConfigurationManager: ObservableObject {
         if let index = settings.configurations.firstIndex(where: { $0.id == config.id }) {
             settings.configurations[index] = config
         } else {
-            logger.warning("Configuration not found for update: \(config.id)")
+            logger.warning("⚠️ Configuration not found for update: \(config.id).")
         }
     }
 
@@ -57,7 +57,7 @@ class ConfigurationManager: ObservableObject {
         let configName = settings.configurations[index].name
         let isEnabled = settings.configurations[index].isEnabled
         let status = isEnabled ? "enabled" : "disabled"
-        logger.info("Configuration '\(configName)' \(status)")
+        logger.info("📝 Configuration '\(configName)' \(status).")
     }
 
     func getConfiguration(by id: UUID) -> ReservationConfig? {
@@ -71,7 +71,7 @@ class ConfigurationManager: ObservableObject {
             let data = try JSONEncoder().encode(settings)
             userDefaults.set(data, forKey: settingsKey)
         } catch {
-            logger.error("Failed to save settings: \(error.localizedDescription)")
+            logger.error("❌ Failed to save settings: \(error.localizedDescription).")
         }
     }
 

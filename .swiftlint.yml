@@ -1,14 +1,6 @@
 # SwiftLint Configuration for ODYSSEY
 # Enforces code quality standards and best practices
 
-disabled_rules:
-  # Disable rules that conflict with SwiftUI patterns
-  - trailing_whitespace # SwiftUI previews often need trailing spaces
-  - function_body_length # Allow longer functions for complex UI logic
-  - type_body_length # Allow longer types for comprehensive models
-  - file_length # Allow longer files for complex views
-  - cyclomatic_complexity # Allow complex logic in automation code
-
 opt_in_rules:
   # Code style and organization
   - array_init
