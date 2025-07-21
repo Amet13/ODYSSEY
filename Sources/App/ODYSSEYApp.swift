@@ -57,6 +57,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Check every minute for scheduled reservations
         timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
             Task { @MainActor in
+                let now = Date()
+                let calendar = Calendar.current
+                let currentHour = calendar.component(.hour, from: now)
+                let currentMinute = calendar.component(.minute, from: now)
+                // At 5:55pm, check if autorun is needed and prevent sleep if enabled
+                if currentHour == 17, currentMinute == 55 {
+                    let configManager = ConfigurationManager.shared
+                    let userSettings = UserSettingsManager.shared.userSettings
+                    if userSettings.preventSleepForAutorun {
+                        // Check if any configs are scheduled for autorun today
+                        let hasAutorun = configManager.settings.configurations.contains { config in
+                            self.shouldRunReservation(
+                                config: config,
+                                at: calendar.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now,
+                                )
+                        }
+                        if hasAutorun {
+                            SleepManager.preventSleep(reason: "ODYSSEY: Preparing for 6pm autorun reservations")
+                        }
+                    }
+                }
                 self.checkScheduledReservations()
             }
         }

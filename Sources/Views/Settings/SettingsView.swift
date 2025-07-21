@@ -275,6 +275,15 @@ struct SettingsFormView: View {
 
                     // Notification Settings Section
                     // Removed NotificationSettingsSection
+
+                    // Sleep Prevention Section
+                    Divider().padding(.horizontal, 4)
+                    Toggle(isOn: $userSettingsManager.userSettings.preventSleepForAutorun) {
+                        Text("Prevent sleep before autorun (5:55pm)")
+                    }
+                    .help(
+                        "If enabled, ODYSSEY will prevent your Mac from sleeping 5 minutes before autorun and allow sleep after reservations are done.",
+                        )
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {

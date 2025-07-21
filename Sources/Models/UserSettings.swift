@@ -35,6 +35,8 @@ struct UserSettings: Codable, Equatable {
         return Locale(identifier: "en")
     }
 
+    var preventSleepForAutorun: Bool = true // New setting: default to true for safety
+
     // MARK: - Equatable
 
     static func == (lhs: UserSettings, rhs: UserSettings) -> Bool {

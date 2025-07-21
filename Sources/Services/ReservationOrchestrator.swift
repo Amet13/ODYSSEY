@@ -379,7 +379,9 @@ class ReservationOrchestrator: ObservableObject {
             await updateTask("Finishing reservation...")
             logger.info("🎉 Reservation completed successfully - all steps completed.")
             await MainActor.run {
-                statusManager.isRunning = false
+                if runType != .godmode {
+                    statusManager.isRunning = false
+                }
                 statusManager.lastRunStatus = .success
                 statusManager.setLastRunInfo(for: config.id, status: .success, date: Date(), runType: runType)
                 statusManager.lastRunDate = Date()
@@ -582,6 +584,9 @@ class ReservationOrchestrator: ObservableObject {
                 logger.info("🎉 Reservation completed successfully for \(config.name) - all steps completed.")
                 await MainActor.run {
                     statusManager.setLastRunInfo(for: config.id, status: .success, date: Date(), runType: runType)
+                    if runType != .godmode {
+                        statusManager.isRunning = false
+                    }
                 }
                 logger.info("🎉 Reservation completed successfully for \(config.name).")
             } else {
@@ -640,7 +645,8 @@ class ReservationOrchestrator: ObservableObject {
         }
     }
 
-    private func trackGodModeCompletion(configs: [ReservationConfig], runType _: RunType) async {
+    private func trackGodModeCompletion(configs: [ReservationConfig], runType: RunType) async {
+        let completionRunType = runType // capture for closure
         logger.info("📊 Starting God Mode completion tracking for \(configs.count) configurations.")
         let maxWaitTime: TimeInterval = 300
         let checkInterval: TimeInterval = 2.0
@@ -700,6 +706,10 @@ class ReservationOrchestrator: ObservableObject {
                                 .info(
                                     "🔄 ReservationOrchestrator: Final God Mode status - isRunning: \(self.statusManager.isRunning), status: \(self.statusManager.lastRunStatus.description)",
                                     )
+                            // Allow sleep after autorun (automatic) reservations are done
+                            if completionRunType == .automatic {
+                                SleepManager.allowSleep()
+                            }
                         }
                     }
                 }

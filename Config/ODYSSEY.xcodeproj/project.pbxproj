@@ -44,11 +44,13 @@
 		CD28D84649639DDF5D9281B7 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23E39878914FA1362DBDFB3 /* SettingsView.swift */; };
 		DC6BD4AFB504DDB4F2D9BD47 /* WebDriverProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */; };
 		E2CDCC931C7C13AD6F4D8DD4 /* UserSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88087B5FF17E55461F2F9181 /* UserSettingsManager.swift */; };
+		EA6EEFF8B30707E8E262F49C /* SleepManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D0B7AB72792B20FDA3B016F /* SleepManager.swift */; };
 		FA8FDED3BB6BF7B43C24F5B5 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9F32A0A5C6C800FBB7769711 /* AppIcon.icns */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1CA820C244D658473331FE59 /* ODYSSEY.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ODYSSEY.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1D0B7AB72792B20FDA3B016F /* SleepManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepManager.swift; sourceTree = "<group>"; };
 		293C6FA2694660A932F8CC5A /* Protocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Protocols.swift; sourceTree = "<group>"; };
 		2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationErrorHandler.swift; sourceTree = "<group>"; };
 		2D2446632770BD464AB6F9FF /* SportIconMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportIconMapper.swift; sourceTree = "<group>"; };
@@ -193,6 +195,7 @@
 				8915E7585918FC6CC1F694E5 /* AppConstants.swift */,
 				6FCC5DA7A130CA27C565988F /* Extensions.swift */,
 				293C6FA2694660A932F8CC5A /* Protocols.swift */,
+				1D0B7AB72792B20FDA3B016F /* SleepManager.swift */,
 				2D2446632770BD464AB6F9FF /* SportIconMapper.swift */,
 				5CD0A611C34B6ED17316A214 /* ValidationService.swift */,
 			);
@@ -336,6 +339,7 @@
 				C20E70D3086A920222DC01C4 /* ReservationOrchestrator.swift in Sources */,
 				63F3DD9E40F3A0D96D713AB2 /* ReservationStatusManager.swift in Sources */,
 				CD28D84649639DDF5D9281B7 /* SettingsView.swift in Sources */,
+				EA6EEFF8B30707E8E262F49C /* SleepManager.swift in Sources */,
 				08E92B69040CED9308FAFC6D /* SportIconMapper.swift in Sources */,
 				682EF0598BC17A8022F81E5B /* StatusBarController.swift in Sources */,
 				7AB843B692B99A297F71AFA2 /* UserSettings.swift in Sources */,
