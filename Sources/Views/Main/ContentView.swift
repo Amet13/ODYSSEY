@@ -305,10 +305,10 @@ private extension ContentView {
         if enabledConfigs.isEmpty {
             // If no enabled configs for today, run all enabled configs
             let allEnabledConfigs = configManager.settings.configurations.filter(\.isEnabled)
-            reservationManager.runMultipleReservations(for: allEnabledConfigs, runType: .automatic)
+            reservationManager.runMultipleReservations(for: allEnabledConfigs, runType: .godmode)
         } else {
             // Run only the configs scheduled for today
-            reservationManager.runMultipleReservations(for: enabledConfigs, runType: .automatic)
+            reservationManager.runMultipleReservations(for: enabledConfigs, runType: .godmode)
         }
     }
 }
@@ -498,10 +498,10 @@ struct ConfigurationRowView: View {
         if let lastRun = ReservationManager.shared.getLastRunInfo(for: config.id) {
             let statusInfo = switch lastRun.status {
             case .success:
-                LastRunStatusInfo(statusKey: "success", statusColor: .green, iconName: "checkmark.circle.fill")
+                LastRunStatusInfo(statusKey: "successful", statusColor: .green, iconName: "checkmark.circle.fill")
             case .failed:
                 LastRunStatusInfo(
-                    statusKey: "fail",
+                    statusKey: "failed",
                     statusColor: .red,
                     iconName: "xmark.octagon.fill",
                     )
@@ -521,6 +521,7 @@ struct ConfigurationRowView: View {
             let runTypeKey = switch lastRun.runType {
             case .manual: " (manual)"
             case .automatic: " (auto)"
+            case .godmode: " (god mode)"
             }
             return AnyView(
                 HStack(spacing: 2) {

@@ -70,30 +70,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        let calendar = Calendar.current
-        let now = Date()
-        let currentWeekday = calendar.component(.weekday, from: now)
+        // Collect all configurations that should run at 6:00 PM today
+        var configsToRun: [ReservationConfig] = []
 
-        // Convert Calendar weekday to our Weekday enum
-        let weekday: ReservationConfig.Weekday
-        switch currentWeekday {
-        case 1: weekday = .sunday
-        case 2: weekday = .monday
-        case 3: weekday = .tuesday
-        case 4: weekday = .wednesday
-        case 5: weekday = .thursday
-        case 6: weekday = .friday
-        case 7: weekday = .saturday
-        default:
-            logger.warning("Invalid weekday: \(currentWeekday)")
-            return
+        for config in configManager.settings.configurations where shouldRunReservation(config: config, at: Date()) {
+            configsToRun.append(config)
         }
 
-        let configsForToday = configManager.getConfigurationsForDay(weekday)
-
-        for config in configsForToday where shouldRunReservation(config: config, at: now) {
+        // Run all eligible configurations simultaneously (like God Mode)
+        if !configsToRun.isEmpty {
+            logger.info("🕕 6:00 PM automatic run: Starting \(configsToRun.count) configurations simultaneously")
             DispatchQueue.main.async {
-                reservationManager.runReservation(for: config)
+                reservationManager.runMultipleReservations(for: configsToRun, runType: .automatic)
             }
         }
     }

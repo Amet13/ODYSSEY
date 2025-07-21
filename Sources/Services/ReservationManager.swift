@@ -73,7 +73,7 @@ class ReservationManager: NSObject, ObservableObject {
             switch self {
             case .idle: "Idle"
             case .running: "Running"
-            case .success: "Success"
+            case .success: "Successful"
             case let .failed(error): "Failed: \(error)"
             }
         }
@@ -97,11 +97,13 @@ class ReservationManager: NSObject, ObservableObject {
     enum RunType: Codable {
         case manual
         case automatic
+        case godmode
 
         var description: String {
             switch self {
             case .manual: "(manual)"
             case .automatic: "(auto)"
+            case .godmode: "(god mode)"
             }
         }
     }
@@ -267,18 +269,16 @@ class ReservationManager: NSObject, ObservableObject {
 
         logger.info("Starting God Mode: Running \(configs.count) configurations simultaneously")
 
-        // Update main status for God Mode operation
-        Task { @MainActor in
-            logger.info("🔄 ReservationManager: Starting God Mode status update")
-            self.isRunning = true
-            self.lastRunStatus = .running
-            self.currentTask = "God Mode: Running \(configs.count) configurations"
-            self.lastRunDate = Date()
-            logger
-                .info(
-                    "🔄 ReservationManager: God Mode status updated - isRunning: \(self.isRunning), status: \(self.lastRunStatus.description)",
-                    )
-        }
+        // Update main status for God Mode operation - do this synchronously like single reservations
+        logger.info("🔄 ReservationManager: Starting God Mode status update")
+        self.isRunning = true
+        self.lastRunStatus = .running
+        self.currentTask = "God Mode: Running \(configs.count) configurations"
+        self.lastRunDate = Date()
+        logger
+            .info(
+                "🔄 ReservationManager: God Mode status updated - isRunning: \(self.isRunning), status: \(self.lastRunStatus.description)",
+                )
 
         // Track completion of all God Mode operations
         Task {
