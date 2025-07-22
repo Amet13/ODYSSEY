@@ -34,9 +34,12 @@ A sophisticated macOS menu bar application that automates sports reservation boo
 
 ## 🖼️ Screenshots
 
-<!-- Add your screenshot(s) here -->
-
-![ODYSSEY Screenshot](docs/screenshot.png)
+<p align="center">
+  <img src="Documentation/Images/main.png" alt="Main View" width="200"/>
+  <img src="Documentation/Images/about.png" alt="About View" width="200"/>
+  <img src="Documentation/Images/settings.png" alt="Settings View" width="200"/>
+  <img src="Documentation/Images/add_config.png" alt="Add Configuration View" width="200"/>
+</p>
 
 ## 📦 Installation
 
@@ -131,7 +134,7 @@ See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution g
 
 - Credentials are securely stored in the macOS Keychain—never in plain text or UserDefaults.
 - All network requests use HTTPS; App Transport Security (ATS) is strictly enforced.
-- The app is code signed for distribution, but is **not notarized by Apple** (no Apple Developer account). To enable notarization, see DEVELOPMENT.md and Scripts/create-release.sh.
+- The app is code signed for distribution, but is **not notarized by Apple** (no Apple Developer account). To enable notarization, see [DEVELOPMENT.md](<(Documentation/DEVELOPMENT.md)>) and `Scripts/create-release.sh`.
 - No user data is ever sent externally without your explicit consent. All automation runs locally.
 - See [DEVELOPMENT.md](Documentation/DEVELOPMENT.md) for full security and compliance details.
 
@@ -143,49 +146,3 @@ See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution g
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## How to Add a New Sport, Facility, or Configuration
-
-ODYSSEY is designed for easy expansion. To add support for a new sport, facility, or reservation configuration:
-
-### 1. Update Sport Keywords (if needed)
-
-- Edit `Sources/Utils/AppConstants.swift` and add your new sport to the `sportsKeywords` array.
-- This ensures the UI and icon mapping recognize the new sport.
-
-### 2. Add or Update Facility URLs
-
-- In the app UI, add a new configuration and enter the facility URL for the new location.
-- If the facility uses a new URL pattern, update the validation logic in `ValidationService.swift` as needed.
-
-### 3. Test Facility Scraping
-
-- The app uses `FacilityService` and JavaScript scraping to detect available sports at each facility.
-- If the new facility has a unique page structure, update the detection script in `JavaScriptService.swift` (see `generateAntiDetectionScript` and related methods).
-
-### 4. Add/Update Icons (Optional)
-
-- To add a custom icon for your new sport, update `SportIconMapper.swift`.
-
-### 5. Validate Your Addition
-
-- Use the app UI to create a new configuration for your sport/facility.
-- Run a test reservation and ensure:
-  - The sport is detected and selectable.
-  - The reservation flow completes without errors.
-  - The correct icon and name appear in the UI.
-
-### 6. Write/Update Tests (Recommended)
-
-- If you add new scraping or validation logic, add or update tests in the relevant service (e.g., `FacilityService`, `ValidationService`).
-
-### 7. Document Your Change
-
-- Update this README and any relevant documentation to describe the new sport/facility/configuration.
-
-**Best Practices:**
-
-- Keep all new keywords, URLs, and logic centralized in the appropriate constants/services.
-- Test thoroughly with real facility pages.
-- Use the modular JavaScriptService for any new scraping or anti-detection logic.
-- Submit a pull request with a clear description of your addition.

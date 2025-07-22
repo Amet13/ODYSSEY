@@ -264,25 +264,6 @@ public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol
             return false
         }
     }
-
-    public func savePassword(_: String, for _: String) throws {
-        // Implement actual save logic or call existing method
-        // Example stub:
-        // try KeychainWrapper.save(password, for: account)
-    }
-
-    public func getPassword(for _: String) throws -> String? {
-        // Implement actual get logic or call existing method
-        // Example stub:
-        // return try KeychainWrapper.get(for: account)
-        return nil
-    }
-
-    public func deletePassword(for _: String) throws {
-        // Implement actual delete logic or call existing method
-        // Example stub:
-        // try KeychainWrapper.delete(for: account)
-    }
 }
 
 // Register the singleton for DI

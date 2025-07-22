@@ -7,9 +7,7 @@
     "lint": "eslint . --ext .js,.mjs,.cjs",
     "lint:fix": "eslint . --ext .js,.mjs,.cjs --fix",
     "lint:check": "eslint . --ext .js,.mjs,.cjs --format=compact",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build:js": "echo \"Building JavaScript files...\"",
-    "validate": "npm run lint && npm run build:js"
+    "validate": "npm run lint"
   },
   "keywords": [
     "macos",

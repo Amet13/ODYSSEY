@@ -68,9 +68,6 @@ public protocol EmailServiceProtocol: AnyObject {
 
 @MainActor
 public protocol KeychainServiceProtocol: AnyObject {
-    func savePassword(_ password: String, for account: String) throws
-    func getPassword(for account: String) throws -> String?
-    func deletePassword(for account: String) throws
     // ... add other methods as needed ...
 }
 
