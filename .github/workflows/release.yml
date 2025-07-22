@@ -216,11 +216,13 @@ jobs:
           ## ODYSSEY $VERSION
 
           ### 🚀 What's New
-          - Automated macOS menu bar application for Ottawa Recreation reservations
+          - Native macOS menu bar application for Ottawa Recreation reservations
           - Smart scheduling with 2-day advance booking
           - Modern SwiftUI interface
-          - WebKit automation for seamless booking
-          - Enhanced security and performance optimizations
+          - Native WebKit (WKWebView) automation for seamless booking (no ChromeDriver required)
+          - Enhanced security, privacy, and performance optimizations
+          - Email verification (IMAP and Gmail support)
+          - Anti-detection with human-like automation
 
           ### 📦 Installation
           1. Download the DMG file above
@@ -232,20 +234,21 @@ jobs:
           7. **Note**: This is normal for apps not from the App Store
 
           ### 📋 Requirements
-          - macOS 12.0 or later
-          - Google Chrome (for automation features)
-          - ChromeDriver (install with \`brew install chromedriver\`)
+          - macOS 15.0 or later
 
           ### 🔧 Features
           - 🖥️ Native macOS menu bar integration
           - ⏰ Smart scheduling system
           - ⚙️ Easy configuration interface
-          - 🤖 Web automation
-          - 📱 Modern UI with hover effects
+          - 🤖 Native WebKit automation (no ChromeDriver required)
           - 🔄 Multiple configurations
           - 📊 Real-time status
-          - 📝 Built-in logs
-          - 🔒 Enhanced security
+          - 📝 Built-in logs with emoji indicators
+          - 🔒 Secure credential storage (Keychain)
+          - 📧 Automated email verification (IMAP/Gmail)
+          - 🛡️ Anti-detection (human-like automation)
+          - 📅 Step-by-step reservation progress
+          - 🧹 Comprehensive error handling and cleanup
 
           ### 📊 Build Info
           - **App Size**: ${{ env.APP_SIZE }}
@@ -258,7 +261,6 @@ jobs:
 
           ### 🐛 Issues & Support
           - [Report Issues](https://github.com/Amet13/odyssey/issues)
-          - [Community Discussion](https://github.com/Amet13/odyssey/discussions)
 
           ### 🔧 Troubleshooting
           **"App is damaged" error?**
@@ -266,10 +268,8 @@ jobs:
           - This is normal for apps not from the App Store
           - macOS Gatekeeper protects you from unsigned apps
 
-          **ChromeDriver issues?**
-          - Install ChromeDriver: \`brew install chromedriver\`
-          - Add to System Settings > Privacy & Security > Full Disk Access
-          - Restart ODYSSEY after adding permissions
+          **Notarization:**
+          - This app is code signed but **not notarized by Apple**. See documentation for details.
 
           ---
           **Made with ❤️ for the Ottawa sports community**

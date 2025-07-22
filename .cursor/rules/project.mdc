@@ -14,13 +14,16 @@ This rule applies to all interactions and tasks unless overridden by a more spec
 
 ODYSSEY is a native macOS application that:
 
+- Requires **macOS 15.0 or later** for users (see README for details)
+- For development: requires **Xcode 16.0+**, Homebrew, Node.js/npm
 - Runs quietly in the menu bar (not dock) using `LSUIElement = true`
 - Automates web-based reservation booking for Ottawa Recreation facilities
-- Uses **Swift WebKit (WKWebView)** for robust, native web automation
+- Uses **Swift WebKit (WKWebView)** for robust, native web automation (no ChromeDriver, no Chrome, no external browsers)
 - Provides a modern SwiftUI interface for configuration management
 - Schedules automatic runs based on configured time slots
 - Supports multiple configurations for different sports and facilities
 - Includes comprehensive logging and error handling
+- Features anti-detection (human-like automation), secure Keychain storage, and automated email verification (IMAP/Gmail)
 
 ## 🏗️ Architecture & Technology Stack
 
@@ -79,7 +82,7 @@ ODYSSEY is a native macOS application that:
 ### WebKit Integration
 
 - **Native Approach**: Uses WKWebView for web automation
-- **No External Dependencies**: No ChromeDriver or Chrome required
+- **No External Dependencies**: No ChromeDriver, no Chrome, no non-native browsers required
 - **Better Performance**: Native macOS integration
 - **Smaller Footprint**: No additional browser dependencies
 - **No Permission Issues**: Standard app sandbox permissions only
@@ -103,6 +106,7 @@ ODYSSEY is a native macOS application that:
 ### Build Process
 
 - **Always rebuild app using `./Scripts/build.sh` after changing or fixing code**
+- The build process includes: `swiftlint`, `swiftformat`, and `npm run lint:check` for JavaScript
 - Never skip the build step after making changes
 - Verify the app launches successfully after each build
 - Check for any build warnings or errors
@@ -119,6 +123,7 @@ ODYSSEY is a native macOS application that:
 - **All code must pass SwiftLint with zero errors and minimal warnings before pushing or releasing**
 - All linter violations must be fixed or explicitly justified in code review
 - Do not push or release code with unresolved SwiftLint errors
+- All JavaScript code must pass `npm run lint:check` (ESLint)
 - Keep the repository clean by removing duplicate information
 - **Protocol-Oriented Design**: Use protocols for better testability and maintainability
 - **Extensions**: Use Swift extensions for code organization and reusability
@@ -161,7 +166,7 @@ ODYSSEY is a native macOS application that:
 
 - **App Sandbox**: Enable App Sandbox for enhanced security
 - **Code Signing**: Implement proper code signing with Developer ID
-- **Notarization**: Notarize app for macOS security compliance
+- **Notarization**: App is **code signed but not notarized by Apple** (see README and DEVELOPMENT.md)
 - **Secure Credential Storage**: Use Keychain Services for sensitive data
 - **Input Validation**: Validate and sanitize all user inputs
 - **Network Security**: Use HTTPS and certificate pinning where appropriate
@@ -276,11 +281,10 @@ ODYSSEY is a native macOS application that:
 - **Code Review:** Review for functionality, style, and security
 - **Testing:** Ensure all changes are properly tested
 - **Documentation:** Update documentation for all changes
-- **Communication:** Use GitHub Issues and Discussions for collaboration
+- **Communication:** Use GitHub Issues for collaboration
 
 ## 🛡️ Ethical Automation
 
-- **Respect Terms of Service:** Follow website terms and conditions
 - **Rate Limiting:** Implement appropriate delays and rate limits
 - **User Consent:** Require explicit permission for automation
 - **Community Benefit:** Focus on positive community impact

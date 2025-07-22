@@ -24,7 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Human-like anti-detection for web automation
 - Debug window for live automation monitoring
 - User-friendly onboarding and configuration flows
-- Command+G God Mode for batch/parallel reservations
 - In-app and Console log guidance for troubleshooting
 - Full documentation for users and developers
 
@@ -33,7 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Final UI/UX polish for onboarding, settings, and configuration views
 - Improved documentation structure for both users and developers
 - All logs now use emojis and proper punctuation
-- God Mode can now be toggled on/off with Command+G
 - Save button in Add Configuration is disabled until all fields are valid
 - Facility URL validation and user guidance improved
 

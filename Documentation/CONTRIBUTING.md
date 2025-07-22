@@ -397,7 +397,6 @@ Add any other context, logs, or screenshots
 ## 📞 Getting Help
 
 - **GitHub Issues** - For bug reports and feature requests
-- **GitHub Discussions** - For questions and general discussion
 
 ## 📄 License
 

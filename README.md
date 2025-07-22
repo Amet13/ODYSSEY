@@ -141,7 +141,6 @@ See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution g
 ## 💬 Support
 
 - [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
-- [GitHub Discussions](https://github.com/Amet13/ODYSSEY/discussions)
 
 ## 📄 License
 
