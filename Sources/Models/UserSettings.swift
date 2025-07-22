@@ -35,6 +35,7 @@ public struct UserSettings: Codable, Equatable, Sendable {
     }
 
     public var preventSleepForAutorun: Bool = true // New setting: default to true for safety
+    public var autoCloseDebugWindowOnFailure: Bool = false
 
     // MARK: - Equatable
 
@@ -45,7 +46,9 @@ public struct UserSettings: Codable, Equatable, Sendable {
             lhs.imapEmail == rhs.imapEmail &&
             lhs.imapPassword == rhs.imapPassword &&
             lhs.imapServer == rhs.imapServer &&
-            lhs.language == rhs.language
+            lhs.language == rhs.language &&
+            lhs.preventSleepForAutorun == rhs.preventSleepForAutorun &&
+            lhs.autoCloseDebugWindowOnFailure == rhs.autoCloseDebugWindowOnFailure
     }
 
     // MARK: - Validation

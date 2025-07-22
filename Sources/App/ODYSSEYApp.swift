@@ -15,7 +15,6 @@ struct ODYSSEYApp: App {
         WebKitService.registerForDI()
         EmailService.registerForDI()
         KeychainService.registerForDI()
-        FacilityService.registerForDI()
         // ... register other services as needed ...
     }
 
@@ -68,13 +67,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Private Methods
 
     private func setupSchedulingTimer() {
-        // Check every minute for scheduled reservations
+        // Schedule precise autorun at exactly 6:00:00 PM
+        schedulePreciseAutorun()
+
+        // Also keep a backup timer that checks every minute for any missed autoruns
         timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
             Task { @MainActor in
                 let now = Date()
                 let calendar = Calendar.current
                 let currentHour = calendar.component(.hour, from: now)
                 let currentMinute = calendar.component(.minute, from: now)
+                let currentSecond = calendar.component(.second, from: now)
+
                 // At 5:55pm, check if autorun is needed and prevent sleep if enabled
                 if currentHour == 17, currentMinute == 55 {
                     let configManager = ConfigurationManager.shared
@@ -92,7 +96,39 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         }
                     }
                 }
+
+                // Backup check: if we're at exactly 6:00:00 PM and haven't run yet
+                if currentHour == 18, currentMinute == 0, currentSecond == 0 {
+                    self.checkScheduledReservations()
+                }
+            }
+        }
+    }
+
+    private func schedulePreciseAutorun() {
+        let calendar = Calendar.current
+        let now = Date()
+
+        // Calculate the next 6:00:00 PM
+        var nextAutorun = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now
+
+        // If it's already past 6:00 PM today, schedule for tomorrow
+        if nextAutorun <= now {
+            nextAutorun = calendar.date(byAdding: .day, value: 1, to: nextAutorun) ?? nextAutorun
+        }
+
+        let timeUntilAutorun = nextAutorun.timeIntervalSince(now)
+
+        logger.info("🕕 Scheduling precise autorun for \(nextAutorun) (in \(timeUntilAutorun) seconds)")
+
+        // Schedule the precise timer
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeUntilAutorun) { [self] in
+            Task { @MainActor in
+                logger.info("🕕 PRECISE 6:00:00 PM autorun triggered!")
                 self.checkScheduledReservations()
+
+                // Schedule the next day's autorun
+                self.schedulePreciseAutorun()
             }
         }
     }

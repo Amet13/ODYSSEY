@@ -7,105 +7,102 @@ public final class SharedVerificationCodePool: ObservableObject, @unchecked Send
     public static let shared = SharedVerificationCodePool()
 
     private let logger = Logger(subsystem: "com.odyssey.app", category: "SharedCodePool")
+    private let emailService = EmailService.shared
 
-    // Shared pool of available codes
-    private var availableCodes: [String] = []
+    // Shared pool of available codes per instance
+    private var codePool: [String: [String]] = [:] // instanceId -> [codes]
 
     // Track which codes have been consumed by which instances
-    private var consumedCodes: [String: String] = [:] // code -> instanceId
+    private var consumedCodes: [String: [String]] = [:] // instanceId -> [codes]
 
     // Track when codes were last fetched to avoid stale data
-    private var lastFetchTime: Date?
+    private var lastFetchTime: [String: Date] = [:] // instanceId -> Date
 
     private init() {
         logger.info("🔧 SharedVerificationCodePool initialized.")
     }
 
-    /// Consumes verification codes for a specific instance
-    /// - Parameters:
-    ///   - instanceId: Unique identifier for the WebKit instance
-    ///   - since: The date since which to fetch codes
-    /// - Returns: Array of verification codes for this instance
-    public func consumeCodes(for instanceId: String, since: Date) async -> [String] {
-        logger.info("🔄 SharedCodePool: Consuming codes for instance \(instanceId)")
-        logger.info("🔄 SharedCodePool: Using since parameter: \(since)")
-        logger
-            .info(
-                "🔄 SharedCodePool: Current pool status - Available: \(self.availableCodes.count), Consumed: \(self.consumedCodes.count)",
-                )
-
-        // Check if we need to refresh the code pool
-        if shouldRefreshCodePool(since: since) {
-            logger.info("🔄 SharedCodePool: Refreshing code pool for instance \(instanceId)")
-            await refreshCodePool(since: since)
-        }
-
-        // Get all available codes (do not filter by consumed codes)
-        let codesToReturn = availableCodes
-
-        logger
-            .info(
-                "🔄 SharedCodePool: Returning \(codesToReturn.count) codes for instance \(instanceId): \(codesToReturn.map { String(repeating: "*", count: $0.count) })",
-                )
-        logger
-            .info(
-                "🔄 SharedCodePool: Available codes: \(self.availableCodes.map { String(repeating: "*", count: $0.count) })",
-                )
-        logger
-            .info(
-                "🔄 SharedCodePool: Consumed codes: \(Array(self.consumedCodes.keys).map { String(repeating: "*", count: $0.count) })",
-                )
-        return codesToReturn
+    deinit {
+        // Cleanup if needed
     }
 
-    /// Refreshes the code pool by fetching new codes from email
-    /// - Parameter since: The date since which to fetch codes
-    private func refreshCodePool(since: Date) async {
-        logger.info("📧 SharedCodePool: Fetching fresh codes from email")
-        logger.info("📧 SharedCodePool: Using since parameter: \(since)")
+    /// Consumes verification codes for a specific instance
+    /// - Parameters:
+    ///   - instanceId: Unique identifier for the instance
+    ///   - since: Date to search from
+    /// - Returns: Array of verification codes
+    func consumeCodes(for instanceId: String, since: Date) async -> [String] {
+        logger.info("🔄 SharedCodePool: Consuming codes for instance \(instanceId).")
+        logger.info("🔄 SharedCodePool: Using since parameter: \(since).")
 
-        // Use the existing email service to fetch codes
-        let emailService = EmailService.shared
+        // Check if we need to refresh the code pool
+        if shouldRefreshCodePool(for: instanceId, since: since) {
+            logger.info("🔄 SharedCodePool: Refreshing code pool for instance \(instanceId).")
+            await refreshCodePool(for: instanceId, since: since)
+        }
+
+        // Return available codes and mark them as consumed
+        let availableCodes = codePool[instanceId] ?? []
+        if !availableCodes.isEmpty {
+            consumedCodes[instanceId] = (consumedCodes[instanceId] ?? []) + availableCodes
+            codePool[instanceId] = []
+        }
+
+        return availableCodes
+    }
+
+    /// Refreshes the code pool by fetching fresh codes from email
+    /// - Parameters:
+    ///   - instanceId: Unique identifier for the instance
+    ///   - since: Date to search from
+    private func refreshCodePool(for instanceId: String, since: Date) async {
+        logger.info("📧 SharedCodePool: Fetching fresh codes from email.")
+        logger.info("📧 SharedCodePool: Using since parameter: \(since).")
+
+        // Fetch fresh codes from email service
         let freshCodes = await emailService.fetchVerificationCodesForToday(since: since)
 
-        // Update the code pool
-        self.availableCodes = freshCodes
-        self.lastFetchTime = Date()
+        // Store the fresh codes
+        codePool[instanceId] = freshCodes
+        lastFetchTime[instanceId] = Date()
 
-        logger
-            .info(
-                "📧 SharedCodePool: Refreshed with \(freshCodes.count) codes: \(freshCodes.map { String(repeating: "*", count: $0.count) })",
-                )
+        logger.info("✅ SharedCodePool: Refreshed with \(freshCodes.count) codes for instance \(instanceId).")
     }
 
     /// Determines if the code pool should be refreshed
-    /// - Parameter since: The date since which codes should be fetched
-    /// - Returns: True if the pool should be refreshed
-    private func shouldRefreshCodePool(since _: Date) -> Bool {
-        if availableCodes.isEmpty {
-            logger.info("🔄 SharedCodePool: Refreshing - no codes available")
+    /// - Parameters:
+    ///   - instanceId: Unique identifier for the instance
+    ///   - since: Date to search from
+    /// - Returns: True if refresh is needed
+    private func shouldRefreshCodePool(for instanceId: String, since _: Date) -> Bool {
+        // If no codes available, refresh
+        if (codePool[instanceId] ?? []).isEmpty {
+            logger.info("🔄 SharedCodePool: Refreshing - no codes available.")
             return true
         }
-        if let lastFetch = lastFetchTime {
+
+        // If it's been more than 5 minutes since last fetch, refresh
+        if let lastFetch = lastFetchTime[instanceId] {
             let timeSinceLastFetch = Date().timeIntervalSince(lastFetch)
-            if timeSinceLastFetch > 15 {
-                logger.info("🔄 SharedCodePool: Refreshing - \(timeSinceLastFetch) seconds since last fetch")
+            if timeSinceLastFetch > 300 { // 5 minutes
+                logger.info("🔄 SharedCodePool: Refreshing - \(timeSinceLastFetch) seconds since last fetch.")
                 return true
             }
         }
+
         return false
     }
 
-    /// Clears consumed codes to free up memory
-    public func clearConsumedCodes() {
-        self.consumedCodes.removeAll()
-        logger.info("🧹 SharedCodePool: Cleared consumed codes")
+    /// Clears consumed codes for cleanup
+    func clearConsumedCodes() {
+        consumedCodes.removeAll()
+        logger.info("🧹 SharedCodePool: Cleared consumed codes.")
     }
 
     /// Gets current pool status for debugging
     public func getPoolStatus() -> (available: Int, consumed: Int) {
-        let available = self.availableCodes.count
-        let consumed = self.consumedCodes.count
+        let available = codePool.values.flatMap(\.self).count
+        let consumed = consumedCodes.values.flatMap(\.self).count
         return (available: available, consumed: consumed)
     }
 
@@ -124,7 +121,10 @@ public final class SharedVerificationCodePool: ObservableObject, @unchecked Send
     ///   - code: The verification code to mark as consumed
     ///   - instanceId: The ID of the instance that consumed the code
     public func markCodeAsConsumed(_ code: String, byInstanceId instanceId: String) {
-        consumedCodes[code] = instanceId
+        if consumedCodes[instanceId] == nil {
+            consumedCodes[instanceId] = []
+        }
+        consumedCodes[instanceId]?.append(code)
         logger
             .info(
                 "✅ SharedCodePool: Marked code \(String(repeating: "*", count: code.count)) as consumed by instance \(instanceId)",

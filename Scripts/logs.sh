@@ -10,7 +10,7 @@ echo "Press Ctrl+C to stop monitoring"
 echo ""
 
 # Monitor Console.app logs for ODYSSEY
-log stream --predicate 'process == "ODYSSEY"' --info --debug | grep debug
+log stream --predicate 'process == "ODYSSEY"' --info --debug
 
 # Alternative: Monitor system logs for ODYSSEY
 # log stream --predicate 'subsystem == "com.odyssey.app"' --info --debug 

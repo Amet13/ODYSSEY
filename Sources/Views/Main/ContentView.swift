@@ -181,15 +181,24 @@ private struct MainBody: View {
         let minutes = Int((timeInterval.truncatingRemainder(dividingBy: 3_600)) / 60)
         if days > 0 {
             let daysText = days == 1 ? "day" : "days"
-            let hoursText = hours == 1 ? "hour" : "hours"
-            return "\(days) \(daysText), \(hours) \(hoursText)"
+            if hours > 0 {
+                let hoursText = hours == 1 ? "hour" : "hours"
+                return "\(days) \(daysText), \(hours) \(hoursText)"
+            } else if minutes > 0 {
+                let minutesText = minutes == 1 ? "minute" : "minutes"
+                return "\(days) \(daysText), \(minutes) \(minutesText)"
+            } else {
+                return "\(days) \(daysText)"
+            }
         } else if hours > 0 {
             let hoursText = hours == 1 ? "hour" : "hours"
             let minutesText = minutes == 1 ? "minute" : "minutes"
             return "\(hours) \(hoursText), \(minutes) \(minutesText)"
-        } else {
+        } else if minutes > 0 {
             let minutesText = minutes == 1 ? "minute" : "minutes"
             return "\(minutes) \(minutesText)"
+        } else {
+            return "less than a minute"
         }
     }
 
@@ -257,6 +266,8 @@ private struct HeaderView: View {
                     .tint(.odysseyAccent)
                     .controlSize(.small)
                     .help("Simulate autorun for 6pm today (⌘+G)")
+                    .accessibilityLabel("Simulate GOD MODE")
+                    .keyboardShortcut("g", modifiers: .command)
                 }
                 Button(action: { showingAddConfig = true }) {
                     Image(systemName: "plus")
@@ -265,6 +276,8 @@ private struct HeaderView: View {
                 .buttonStyle(.borderedProminent)
                 .controlSize(.regular)
                 .help("Add new configuration")
+                .accessibilityLabel("Add Configuration")
+                .keyboardShortcut("n", modifiers: .command)
             }
         }
         .padding(.horizontal, 20)
@@ -320,6 +333,8 @@ private struct EmptyStateView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.regular)
+            .accessibilityLabel("Add Configuration")
+            .keyboardShortcut("n", modifiers: .command)
             Spacer()
         }
         .padding()
@@ -350,6 +365,8 @@ private struct ConfigurationListView: View {
                     onToggle: { configManager.toggleConfiguration(at: index) },
                     onRun: { orchestrator.runReservation(for: config, runType: .manual) },
                     )
+                .accessibilityElement()
+                .accessibilityLabel("Reservation configuration for \(config.name)")
             }
             .onDelete(perform: { indices in
                 for index in indices {
@@ -381,6 +398,8 @@ private struct FooterView: View {
                 .tint(.blue)
                 .controlSize(.regular)
                 .help("Configure user settings and integrations")
+                .accessibilityLabel("Open Settings")
+                .keyboardShortcut(",", modifiers: .command)
 
                 Spacer()
 
@@ -483,6 +502,8 @@ struct ConfigurationRowView: View {
                 .buttonStyle(.bordered)
                 .help("Delete configuration")
             }
+            .accessibilityElement()
+            .accessibilityLabel("Reservation configuration for \(config.name)")
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
             HStack(spacing: 4) {
                 SportIconView(

@@ -1,38 +1,25 @@
-import Combine
+import AppKit
 import Foundation
 import os.log
 import WebKit
 
-/**
- FacilityService is responsible for scraping and managing facility data, including fetching available facilities, parsing schedules, and providing facility-related utilities.
- */
-@MainActor
+/// Service for fetching available sports from facility websites
 public final class FacilityService: NSObject, @unchecked Sendable, FacilityServiceProtocol {
+    // MARK: - Properties
+
     public static let shared = FacilityService()
-
-    @Published public var isLoading = false
-    @Published public var availableSports: [String] = []
-    @Published public var error: String?
-
+    private let logger = Logger(subsystem: "com.odyssey.app", category: "FacilityService")
     private var webView: WKWebView?
-    private var cancellables = Set<AnyCancellable>()
-    private let logger: Logger
+    public var isLoading = false
+    public var error: String?
+    public var availableSports: [String] = []
+    private var completionHandler: (([String]) -> Void)?
 
-    /// Main initializer supporting dependency injection for logger and webView.
-    /// - Parameters:
-    ///   - logger: Logger instance (default: ODYSSEY FacilityService logger)
-    ///   - webView: WKWebView instance (default: nil, will be set up internally)
-    public init(
-        logger: Logger = Logger(subsystem: "com.odyssey.app", category: "FacilityService"),
-        webView: WKWebView? = nil
-    ) {
-        self.logger = logger
-        self.webView = webView
-        super.init()
+    // MARK: - Initialization
+
+    override init() {
         logger.info("🔧 FacilityService initialized (DI mode).")
-        if webView == nil {
-            setupWebView()
-        }
+        super.init()
     }
 
     deinit {
@@ -53,7 +40,7 @@ public final class FacilityService: NSObject, @unchecked Sendable, FacilityServi
      */
     public func fetchAvailableSports(from url: String, completion: @escaping ([String]) -> Void) {
         guard let facilityURL = URL(string: url) else {
-            logger.error("❌ Invalid facility URL: \(url)")
+            logger.error("❌ Invalid facility URL: \(url).")
             completion([])
             return
         }
@@ -70,7 +57,7 @@ public final class FacilityService: NSObject, @unchecked Sendable, FacilityServi
         // Set up timeout
         DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
             if self?.isLoading == true {
-                self?.logger.warning("⏰ Timeout loading facility page")
+                self?.logger.warning("⏰ Timeout loading facility page.")
                 self?.isLoading = false
                 self?.error = "Timeout loading facility page"
                 completion([])
@@ -81,158 +68,211 @@ public final class FacilityService: NSObject, @unchecked Sendable, FacilityServi
         completionHandler = completion
     }
 
-    // MARK: - Private Properties
-
-    private var completionHandler: (([String]) -> Void)?
-
     // MARK: - Private Methods
 
     private func setupWebView() {
         let configuration = WKWebViewConfiguration()
-        configuration.userContentController.add(self, name: "facilityHandler")
+        configuration.userContentController = WKUserContentController()
+
+        // Add script message handler
+        let scriptMessageHandler = WebKitScriptMessageHandler()
+        configuration.userContentController.add(scriptMessageHandler, name: "facilityHandler")
 
         webView = WKWebView(frame: .zero, configuration: configuration)
         webView?.navigationDelegate = self
         webView?.uiDelegate = self
     }
 
-    private func injectSportsDetectionScript() {
-        let script = """
-        // ODYSSEY Sports Detection Script
-        function extractAvailableSports() {
+    private func executeSportsDetectionScript() {
+        let sportsDetectionScript = """
+        (function() {
             const sports = [];
-            const excludedTerms = [
-                'login', 'sign', 'register', 'search', 'filter', 'date', 'time',
-                'submit', 'cancel', 'back', 'next', 'previous', 'close', 'menu',
-                'home', 'about', 'contact', 'help', 'settings', 'profile', 'account',
-                'logout', 'sign out', 'signout', 'sign up', 'signup', 'create account',
-                'new account', 'forgot password', 'reset password', 'change password',
-                'update profile', 'edit profile', 'my account', 'my profile',
-                'my settings', 'my preferences', 'my bookings', 'my reservations',
-                'my history', 'my schedule', 'my calendar', 'my activities',
-                'my sports', 'my classes', 'my programs', 'my sessions',
-                'my times', 'my slots', 'my time slots'
+            const debug = [];
+
+            // Look for sport buttons/links with more comprehensive selectors
+            const selectors = [
+                '[class*="content"]'
             ];
 
-            // Look specifically for div elements with class="content"
-            const contentElements = document.querySelectorAll('div.content');
+            const sportElements = document.querySelectorAll(selectors.join(', '));
+            debug.push(`Found ${sportElements.length} potential elements`);
 
-            for (const element of contentElements) {
+            sportElements.forEach((element, index) => {
                 const text = element.textContent?.trim();
-                if (text && text.length > 0 && text.length < 100) {
+                if (text && text.length > 0 && text.length < 50) {
                     // Filter out common non-sport text
                     const lowerText = text.toLowerCase();
-                    const isExcluded = excludedTerms.some(term => lowerText.includes(term));
+                    const excludedWords = [
+                        'login', 'sign', 'help', 'contact', 'about', 'home',
+                        'menu', 'search', 'close', 'cancel', 'submit', 'next',
+                        'previous', 'back', 'logout', 'register', 'account',
+                        'settings', 'profile', 'dashboard', 'admin', 'user'
+                    ];
 
-                    if (!isExcluded) {
+                    const shouldExclude = excludedWords.some(word => lowerText.includes(word));
+
+                    if (!shouldExclude) {
                         sports.push(text);
+                        debug.push(`Added sport: "${text}" (element ${index})`);
+                    } else {
+                        debug.push(`Excluded: "${text}" (contains excluded word)`);
                     }
                 }
-            }
-
-            // Remove duplicates and sort
-            const uniqueSports = [...new Set(sports)].sort();
-
-            // Notify Swift about the results
-            window.webkit.messageHandlers.facilityHandler.postMessage({
-                type: 'sportsDetected',
-                sports: uniqueSports,
-                count: uniqueSports.length
             });
 
-            return uniqueSports;
-        }
+            // Remove duplicates and return
+            const uniqueSports = [...new Set(sports)];
+            debug.push(`Final unique sports: ${uniqueSports.length}`);
 
-        // Run the detection
-        extractAvailableSports();
+            console.log('[ODYSSEY] Sports detection debug:', debug);
+            return uniqueSports;
+        })();
         """
 
-        webView?.evaluateJavaScript(script) { [weak self] _, error in
-            guard let self else { return }
-
+        webView?.evaluateJavaScript(sportsDetectionScript) { [weak self] result, error in
             if let error {
-                logger.error("❌ Sports detection script error: \(error.localizedDescription)")
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    self.error = "Failed to analyze page: \(error.localizedDescription)"
-                    self.completionHandler?([])
-                }
+                self?.logger.error("❌ Sports detection script error: \(error.localizedDescription).")
+                self?.isLoading = false
+                self?.completionHandler?([])
+            } else if let sportsArray = result as? [String] {
+                self?.logger.info("✅ Extracted \(sportsArray.count) sports from facility page: \(sportsArray).")
+                self?.availableSports = sportsArray
+                self?.isLoading = false
+                self?.completionHandler?(sportsArray)
             } else {
-                // Script executed successfully
+                self?.logger.warning("⚠️ Invalid sports data received.")
+                self?.isLoading = false
+                self?.completionHandler?([])
             }
         }
     }
-}
 
-extension FacilityService {
-    static func registerForDI() {
-        ServiceRegistry.shared.register(FacilityService.shared, for: FacilityServiceProtocol.self)
+    private func executeFallbackSportsDetection() {
+        let fallbackScript = """
+        (function() {
+            const sports = [];
+            const debug = [];
+
+            // Try a more aggressive approach - look for any clickable elements with text
+            const allElements = document.querySelectorAll('*');
+            debug.push(`Total elements on page: ${allElements.length}`);
+
+            allElements.forEach((element, index) => {
+                // Only check elements that are likely to be clickable
+                const isClickable = element.tagName === 'BUTTON' ||
+                                   element.tagName === 'A' ||
+                                   element.onclick ||
+                                   element.style.cursor === 'pointer' ||
+                                   element.classList.contains('btn') ||
+                                   element.classList.contains('button') ||
+                                   element.getAttribute('role') === 'button';
+
+                if (isClickable) {
+                    const text = element.textContent?.trim();
+                    if (text && text.length > 0 && text.length < 50) {
+                        const lowerText = text.toLowerCase();
+
+                        // More permissive filtering - only exclude obvious non-sports
+                        const excludedWords = [
+                            'login', 'logout', 'sign', 'register', 'account',
+                            'settings', 'profile', 'dashboard', 'admin', 'user',
+                            'help', 'contact', 'about', 'home', 'menu', 'search',
+                            'close', 'cancel', 'submit', 'next', 'previous', 'back'
+                        ];
+
+                        const shouldExclude = excludedWords.some(word => lowerText.includes(word));
+
+                        if (!shouldExclude) {
+                            sports.push(text);
+                            debug.push(`Fallback added: "${text}" (${element.tagName})`);
+                        }
+                    }
+                }
+            });
+
+            const uniqueSports = [...new Set(sports)];
+            debug.push(`Fallback unique sports: ${uniqueSports.length}`);
+
+            console.log('[ODYSSEY] Fallback sports detection debug:', debug);
+            return uniqueSports;
+        })();
+        """
+
+        webView?.evaluateJavaScript(fallbackScript) { [weak self] result, error in
+            if let error {
+                self?.logger.error("❌ Fallback sports detection script error: \(error.localizedDescription).")
+                self?.isLoading = false
+                self?.completionHandler?([])
+            } else if let sportsArray = result as? [String] {
+                self?.logger.info("✅ Fallback extracted \(sportsArray.count) sports: \(sportsArray).")
+                self?.availableSports = sportsArray
+                self?.isLoading = false
+                self?.completionHandler?(sportsArray)
+            } else {
+                self?.logger.warning("⚠️ Fallback: Invalid sports data received.")
+                self?.isLoading = false
+                self?.completionHandler?([])
+            }
+        }
+    }
+
+    // MARK: - WebKit Message Handling
+
+    /// Handles messages from WebKit
+    /// - Parameter message: Message from WebKit
+    func handleWebKitMessage(_ message: [String: Any]) {
+        guard let type = message["type"] as? String else {
+            logger.warning("⚠️ Invalid message received from facility WebKit.")
+            return
+        }
+
+        switch type {
+        case "sportsData":
+            if let sports = message["data"] as? [String] {
+                logger.info("✅ Received sports data: \(sports).")
+            } else {
+                logger.warning("⚠️ Unknown facility message type: \(type).")
+            }
+        case "error":
+            if let error = message["error"] as? String {
+                logger.error("❌ Facility WebKit error: \(error).")
+            }
+        default:
+            logger.warning("⚠️ Invalid sports data received.")
+        }
     }
 }
 
 // MARK: - WKNavigationDelegate
 
 extension FacilityService: WKNavigationDelegate {
-    public func webView(_: WKWebView, didFinish _: WKNavigation?) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.injectSportsDetectionScript()
+    public func webView(_: WKWebView, didFinish _: WKNavigation!) {
+        logger.info("✅ Facility page loaded successfully.")
+
+        // Execute sports detection script after page is loaded
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.executeSportsDetectionScript()
+        }
+
+        // Fallback: if no sports found after 5 seconds, try again with different approach
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { [weak self] in
+            if let self, self.availableSports.isEmpty {
+                self.logger.warning("⚠️ No sports found after 5 seconds, trying fallback detection.")
+                self.executeFallbackSportsDetection()
+            }
         }
     }
 
-    public func webView(_: WKWebView, didFail _: WKNavigation?, withError error: Error) {
-        logger.error("❌ Failed to load facility page: \(error.localizedDescription)")
-        DispatchQueue.main.async {
-            self.isLoading = false
-            self.error = "Failed to load page: \(error.localizedDescription)"
-            self.completionHandler?([])
-        }
+    public func webView(_: WKWebView, didFail _: WKNavigation!, withError error: Error) {
+        logger.error("❌ Failed to load facility page: \(error.localizedDescription).")
+        isLoading = false
+        self.error = error.localizedDescription
+        completionHandler?([])
     }
 }
 
 // MARK: - WKUIDelegate
 
 extension FacilityService: WKUIDelegate {
-    public func webView(
-        _: WKWebView,
-        createWebViewWith _: WKWebViewConfiguration,
-        for _: WKNavigationAction,
-        windowFeatures _: WKWindowFeatures,
-        ) -> WKWebView? {
-        nil
-    }
-}
-
-// MARK: - WKScriptMessageHandler
-
-extension FacilityService: WKScriptMessageHandler {
-    public func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard
-            message.name == "facilityHandler",
-            let body = message.body as? [String: Any],
-            let type = body["type"] as? String
-        else {
-            logger.warning("⚠️ Invalid message received from facility WebKit")
-            return
-        }
-
-        switch type {
-        case "sportsDetected":
-            handleSportsDetected(body)
-        default:
-            logger.warning("⚠️ Unknown facility message type: \(type)")
-        }
-    }
-
-    private func handleSportsDetected(_ data: [String: Any]) {
-        guard let sports = data["sports"] as? [String] else {
-            logger.warning("⚠️ Invalid sports data received")
-            return
-        }
-
-        DispatchQueue.main.async {
-            self.isLoading = false
-            self.availableSports = sports
-            self.completionHandler?(sports)
-        }
-    }
+    // Handle any UI-related WebKit events if needed
 }

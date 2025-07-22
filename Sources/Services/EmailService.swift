@@ -177,7 +177,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     /// Extracts verification code from email
     /// - Returns: The verification code if found, nil otherwise
     func extractVerificationCode() async -> String? {
-        logger.info("Checking for verification email from noreply@frontdesksuite.com")
+        logger.info("📧 Checking for verification email from noreply@frontdesksuite.com.")
 
         // Check if we have the email settings needed
         guard
@@ -185,7 +185,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             !userSettingsManager.userSettings.imapPassword.isEmpty,
             !userSettingsManager.userSettings.imapServer.isEmpty
         else {
-            logger.error("Incomplete email settings")
+            logger.error("❌ Incomplete email settings.")
             return nil
         }
 
@@ -193,11 +193,11 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         let codes = await fetchVerificationCodesForToday(since: Date().addingTimeInterval(-300)) // Last 5 minutes
 
         if let latestCode = codes.last {
-            logger.info("Found verification code: \(latestCode)")
+            logger.info("✅ Found verification code: \(latestCode).")
             return latestCode
         }
 
-        logger.info("No verification code found in recent emails")
+        logger.info("📧 No verification code found in recent emails.")
         return nil
     }
 
@@ -214,7 +214,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         username: String,
         password: String,
         ) async throws {
-        logger.info("Connecting to IMAP server: \(server):\(port)")
+        logger.info("🔗 Connecting to IMAP server: \(server):\(port).")
 
         // Test the connection first
         let testResult = await testIMAPConnection(
@@ -227,7 +227,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             throw IMAPError.connectionFailed(error)
         }
 
-        logger.info("IMAP connection successful")
+        logger.info("✅ IMAP connection successful.")
     }
 
     /// Connects to IMAP server and searches for verification email
@@ -238,7 +238,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     ///   - password: Email password
     /// - Returns: Email with verification code if found
     func searchVerificationEmail(from: String, subject: String) async throws -> EmailMessage? {
-        logger.info("Searching for verification email from: \(from) with subject: \(subject)")
+        logger.info("🔍 Searching for verification email from: \(from) with subject: \(subject).")
 
         // For now, we'll use the existing fetchVerificationCodesForToday method
         // and look for the most recent email that matches our criteria
@@ -671,7 +671,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         }
 
         for config in portConfigurations {
-            logger.info("Trying IMAP connection to \(server):\(config.port) (\(config.description))")
+            logger.info("🔗 Trying IMAP connection to \(server):\(config.port) (\(config.description)).")
             let result = await connectToIMAP(
                 server: server,
                 port: config.port,
@@ -681,7 +681,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                 )
             if case .success = result { return result }
             if case let .failure(error, _) = result {
-                logger.warning("IMAP connection failed on \(server):\(config.port): \(error)")
+                logger.warning("⚠️ IMAP connection failed on \(server):\(config.port): \(error).")
             }
         }
         return .failure(
@@ -1051,7 +1051,11 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                                                         self.logger
                                                             .info("[IMAP] SELECT INBOX response: \(selectResponse)")
                                                         // After selecting INBOX, search for the latest email
-                                                        let searchCommand = "a004 SEARCH ALL\r\n"
+                                                        // Use RECENT for efficiency - only searches recently received
+                                                        // emails
+                                                        let searchCommand = "a004 SEARCH RECENT\r\n"
+                                                        self.logger
+                                                            .info("[IMAP] Using search command: \(searchCommand)")
                                                         Task {
                                                             await self.sendIMAPCommand(
                                                                 connection: connection,
@@ -1069,9 +1073,19 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                                                                         .components(separatedBy: .newlines)
                                                                     let searchLine = lines
                                                                         .first(where: { $0.contains("SEARCH") }) ?? ""
+                                                                    self.logger
+                                                                        .info("[IMAP] Search line: \(searchLine)")
                                                                     let parts = searchLine.components(separatedBy: " ")
                                                                     let ids = parts.dropFirst().compactMap { Int($0) }
+                                                                    self.logger
+                                                                        .info(
+                                                                            "[IMAP] Found \(ids.count) email IDs: \(ids)",
+                                                                            )
                                                                     if let lastId = ids.last {
+                                                                        self.logger
+                                                                            .info(
+                                                                                "[IMAP] Fetching subject for email ID: \(lastId)",
+                                                                                )
                                                                         let fetchCommand =
                                                                             "a005 FETCH \(lastId) BODY[HEADER.FIELDS (SUBJECT)]\r\n"
                                                                         Task {
@@ -1404,8 +1418,8 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             let fromAddress = "noreply@frontdesksuite.com"
 
             // Log email configuration for debugging
-            logger.info("Email configuration - Email: \(email)")
-            logger.info("Email configuration - Is Gmail: \(settings.isGmailAccount(email))")
+            logger.info("📧 Email configuration - Email: \(email).")
+            logger.info("📧 Email configuration - Is Gmail: \(settings.isGmailAccount(email)).")
 
             // Additional Gmail App Password validation
             if settings.isGmailAccount(email) {
@@ -1417,7 +1431,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                     let range = NSRange(trimmedPassword.startIndex..., in: trimmedPassword)
                     let matches = regex.firstMatch(in: trimmedPassword, range: range)
                     if matches == nil {
-                        logger.warning("Gmail App Password format validation failed")
+                        logger.warning("⚠️ Gmail App Password format validation failed.")
                     }
                 }
             }
@@ -1432,11 +1446,11 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             let sinceDate = dateFormatter.string(from: searchSince)
 
             // Log search parameters
-            logger.info("IMAP search window sinceDate: \(sinceDate)")
-            logger.info("IMAP search using timestamp: \(searchSince) (10 minutes ago)")
-            logger.info("IMAP original since parameter was: \(since)")
+            logger.info("📅 IMAP search window sinceDate: \(sinceDate).")
+            logger.info("📅 IMAP search using timestamp: \(searchSince) (10 minutes ago).")
+            logger.info("📅 IMAP original since parameter was: \(since).")
 
-            logger.info("Connecting to IMAP server \(server):\(port) for user \(email)")
+            logger.info("🔗 Connecting to IMAP server \(server):\(port) for user \(email).")
 
             var inputStream: InputStream?
             var outputStream: OutputStream?
@@ -1454,7 +1468,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             }
 
             guard let inputStream, let outputStream else {
-                logger.error("Failed to open IMAP streams")
+                logger.error("❌ Failed to open IMAP streams.")
                 return []
             }
 
@@ -1476,12 +1490,12 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
             if inputStream.streamStatus != .open || outputStream.streamStatus != .open {
                 logger.error(
-                    "Failed to open IMAP streams - status: input=\(inputStream.streamStatus.rawValue), output=\(outputStream.streamStatus.rawValue)",
+                    "❌ Failed to open IMAP streams - status: input=\(inputStream.streamStatus.rawValue), output=\(outputStream.streamStatus.rawValue).",
                     )
                 return []
             }
 
-            logger.info("IMAP streams opened successfully")
+            logger.info("✅ IMAP streams opened successfully.")
 
             defer {
                 inputStream.close()
@@ -1531,52 +1545,52 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                     try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
                 }
 
-                logger.warning("IMAP expect timeout for tag \(tag) after \(timeout) seconds")
+                logger.warning("⏰ IMAP expect timeout for tag \(tag) after \(timeout) seconds.")
                 return response
             }
 
             // Read greeting
             let greeting = await expect("*")
-            logger.info("IMAP greeting: \(greeting.prefix(200))")
-            logger.error("IMAP greeting (raw): \(String(describing: greeting))")
+            logger.info("📨 IMAP greeting: \(greeting.prefix(200)).")
+            logger.error("❌ IMAP greeting (raw): \(String(describing: greeting)).")
 
             // For Gmail, try CAPABILITY first to see what's supported
             if settings.isGmailAccount(email) {
-                logger.info("Checking Gmail IMAP capabilities...")
+                logger.info("🔍 Checking Gmail IMAP capabilities...")
                 sendCommand("a0 CAPABILITY")
                 let capabilityResp = await expect("a0")
-                logger.info("Gmail capabilities: \(capabilityResp.prefix(200))")
+                logger.info("📋 Gmail capabilities: \(capabilityResp.prefix(200)).")
             }
 
             // LOGIN
-            logger.info("Attempting IMAP login...")
+            logger.info("🔐 Attempting IMAP login...")
             sendCommand("a1 LOGIN \"\(email)\" \"\(password)\"")
             let loginResp = await expect("a1")
 
             // Log the full login response for debugging (without privacy protection)
-            logger.error("IMAP login response: \(String(describing: loginResp))")
+            logger.error("❌ IMAP login response: \(String(describing: loginResp)).")
 
             guard loginResp.contains("a1 OK") else {
-                logger.error("IMAP login failed: \(String(describing: loginResp))")
+                logger.error("❌ IMAP login failed: \(String(describing: loginResp)).")
                 // Log response details for debugging
                 let lines = loginResp.components(separatedBy: "\n")
                 for (index, line) in lines.enumerated() {
-                    logger.error("Login response line \(index): \(String(describing: line))")
+                    logger.error("❌ Login response line \(index): \(String(describing: line)).")
                 }
 
                 // Try to extract the actual error message by looking for patterns
                 if loginResp.contains("NO") {
-                    logger.error("IMAP NO response detected - authentication failed")
+                    logger.error("❌ IMAP NO response detected - authentication failed.")
                 }
                 if loginResp.contains("BAD") {
-                    logger.error("IMAP BAD response detected - command syntax error")
+                    logger.error("❌ IMAP BAD response detected - command syntax error.")
                 }
 
                 // Log response analysis
-                logger.error("Response length: \(loginResp.count)")
+                logger.error("❌ Response length: \(loginResp.count).")
                 return []
             }
-            logger.info("IMAP login successful, about to search for verification emails")
+            logger.info("✅ IMAP login successful, about to search for verification emails.")
 
             // Note: Debug logging removed for production
 
@@ -1912,17 +1926,18 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             Task { @MainActor in self.userFacingError = "Email or server is missing. Please check your settings." }
             return nil
         }
-        guard let password = KeychainService.shared.retrieveEmailPassword(email: email, server: server, port: port)
-        else {
+        let passwordResult = KeychainService.shared.retrieveEmailPassword(email: email, server: server, port: port)
+        switch passwordResult {
+        case let .success(password):
+            Task { @MainActor in self.userFacingError = nil }
+            return (email, password, server, port)
+        case let .failure(error):
             Task { @MainActor in
-                self
-                    .userFacingError =
-                    "No password found in Keychain for email: \(email). Please re-enter your credentials in Settings."
+                self.userFacingError = error.localizedDescription
+                LoadingStateManager.shared.showErrorBanner(self.userFacingError!)
             }
             return nil
         }
-        Task { @MainActor in self.userFacingError = nil }
-        return (email, password, server, port)
     }
 }
 

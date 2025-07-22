@@ -162,6 +162,7 @@ struct ConfigurationDetailView: View {
                         Image(systemName: "chevron.down").foregroundColor(.secondary).font(.caption)
                     }
                 }
+                .accessibilityLabel("Select Sport")
                 .disabled(availableSports.isEmpty)
                 if !facilityURL.isEmpty, isValidFacilityURL(facilityURL) {
                     Button(action: { fetchAvailableSports() }) {
@@ -238,6 +239,7 @@ struct ConfigurationDetailView: View {
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
             TextField("Configuration Name", text: $name)
+                .accessibilityLabel("Configuration Name")
                 .onChange(of: name) { _, newValue in
                     if newValue.count > 60 {
                         name = String(newValue.prefix(60))
@@ -307,10 +309,14 @@ struct ConfigurationDetailView: View {
         HStack {
             Spacer()
             Button("Cancel") { dismiss() }
+                .accessibilityLabel("Cancel")
+                .keyboardShortcut(.escape)
                 .buttonStyle(.bordered)
             Button(config == nil ? "Add" : "Save") {
                 saveConfiguration()
             }
+            .accessibilityLabel("Save Configuration")
+            .keyboardShortcut("s", modifiers: .command)
             .buttonStyle(.borderedProminent)
             .disabled(!isValidConfiguration)
         }

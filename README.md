@@ -41,6 +41,37 @@ A sophisticated macOS menu bar application that automates sports reservation boo
   <img src="Documentation/Images/add_config.png" alt="Add Configuration View" width="200"/>
 </p>
 
+## 🏗️ Architecture Diagram
+
+```mermaid
+flowchart TD
+    App["ODYSSEYApp (SwiftUI @main)"] -->|launches| AppDelegate
+    AppDelegate -->|creates| StatusBarController
+    AppDelegate -->|schedules| ReservationOrchestrator
+    StatusBarController -->|shows| ContentView
+    ContentView -->|binds| ConfigurationManager
+    ContentView -->|binds| UserSettingsManager
+    ContentView -->|binds| ReservationOrchestrator
+    ContentView -->|binds| ReservationStatusManager
+    ContentView -->|binds| LoadingStateManager
+    ReservationOrchestrator -->|uses| WebKitService
+    ReservationOrchestrator -->|uses| FacilityService
+    ReservationOrchestrator -->|uses| EmailService
+    ReservationOrchestrator -->|uses| KeychainService
+    WebKitService -->|injects| JavaScriptService
+    EmailService -->|uses| KeychainService
+    EmailService -->|uses| IMAPService
+    FacilityService -->|scrapes| WebKitService
+    UserSettingsManager -->|stores| KeychainService
+    ConfigurationManager -->|stores| UserDefaults
+    UserSettingsManager -->|stores| UserDefaults
+    LoadingStateManager -->|notifies| ContentView
+    ValidationService -->|validates| all
+    AppConstants -->|provides| all
+```
+
+If the diagram above does not render, see [architecture.png](Documentation/Images/architecture.png).
+
 ## 📦 Installation
 
 1. **Download the latest release**:
@@ -145,3 +176,40 @@ See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution g
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🛠️ Troubleshooting & FAQ
+
+### Common Issues
+
+- **Automation fails with reCAPTCHA or bot detection**
+
+  - Ensure browser windows remain visible during automation (do not minimize or hide).
+  - Try running the app at a different time or with a different network.
+  - Make sure your configuration matches the facility's current website structure.
+
+- **Email verification not working**
+
+  - Double-check your IMAP/Gmail credentials and App Password (for Gmail).
+  - Test your email connection in Settings.
+  - Check for typos in your email address or server.
+  - For Gmail, ensure 2FA is enabled and you are using an App Password.
+
+- **Keychain or credential errors**
+
+  - If you see a Keychain error banner, try re-entering your credentials in Settings.
+  - Make sure you have granted Keychain access to ODYSSEY.
+  - Restart the app after updating credentials.
+
+- **App does not appear in menu bar**
+
+  - Ensure you are running macOS 15.0 or later.
+  - Check that the app is not running in the Dock (it should only appear in the menu bar).
+
+- **Logs not showing in Console.app**
+  - Search for `ODYSSEY` or `com.odyssey.app` in Console.
+  - Make sure logging is enabled in your system settings.
+
+### Where to Get Help
+
+- [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
+- See the [full documentation](Documentation/DEVELOPMENT.md) for advanced troubleshooting.

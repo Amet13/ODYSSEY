@@ -136,7 +136,15 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
         let server = userSettings.imapServer
         let port = 993 // Default IMAP port; adjust if needed
         guard !email.isEmpty, !password.isEmpty, !server.isEmpty else { return }
-        _ = KeychainService.shared.storeEmailCredentials(email: email, password: password, server: server, port: port)
+        let result = KeychainService.shared.storeEmailCredentials(
+            email: email,
+            password: password,
+            server: server,
+            port: port,
+            )
+        if case let .failure(error) = result {
+            LoadingStateManager.shared.showErrorBanner(error.localizedDescription)
+        }
     }
 
     /// Removes email credentials from KeychainService
@@ -145,7 +153,10 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
         let server = userSettings.imapServer
         let port = 993
         guard !email.isEmpty, !server.isEmpty else { return }
-        _ = KeychainService.shared.deleteEmailCredentials(email: email, server: server, port: port)
+        let result = KeychainService.shared.deleteEmailCredentials(email: email, server: server, port: port)
+        if case let .failure(error) = result {
+            LoadingStateManager.shared.showErrorBanner(error.localizedDescription)
+        }
     }
 
     // MARK: - Private Methods
@@ -155,7 +166,7 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
             let data = try JSONEncoder().encode(userSettings)
             userDefaults.set(data, forKey: settingsKey)
         } catch {
-            logger.error("Failed to save user settings: \(error.localizedDescription)")
+            logger.error("❌ Failed to save user settings: \(error.localizedDescription).")
         }
     }
 }

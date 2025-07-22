@@ -14,6 +14,14 @@ public final class ReservationErrorHandler: @unchecked Sendable {
         runType: ReservationRunType,
         ) async {
         logger.error("❌ Reservation error: \(error.localizedDescription).")
+        // Attempt to capture DOM snapshot for debugging
+        if let webKitService = try? await getWebKitServiceIfAvailable() {
+            if let pageSource = try? await webKitService.getPageSource() {
+                logger.error("📄 DOM Snapshot (first 1000 chars): \(pageSource.prefix(1_000))")
+            } else {
+                logger.error("⚠️ Failed to capture DOM snapshot for error context.")
+            }
+        }
         await MainActor.run {
             if runType != .godmode { statusManager.isRunning = false }
             statusManager.lastRunStatus = ReservationRunStatus.failed(error.localizedDescription)
@@ -25,10 +33,13 @@ public final class ReservationErrorHandler: @unchecked Sendable {
                 )
             statusManager.lastRunDate = Date()
             statusManager.currentTask = "Reservation failed: \(error.localizedDescription)"
+            // Show user-facing error banner
+            LoadingStateManager.shared.showErrorBanner("Reservation failed: \(error.localizedDescription)")
         }
         logger.error("❌ Reservation failed for \(config.name): \(error.localizedDescription).")
         logger.info("🧹 Cleaning up WebKit session after error.")
-        await webKitService.disconnect(closeWindow: false)
+        let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
+        await webKitService.disconnect(closeWindow: shouldClose)
     }
 
     public func handleError(_ error: String, configId: UUID?, runType: ReservationRunType = .manual) async {
@@ -48,5 +59,14 @@ public final class ReservationErrorHandler: @unchecked Sendable {
         logger.error("💥 WebKit crash detected, attempting recovery.")
         await webKitService.reset()
         logger.info("✅ WebKit service reset successful.")
+    }
+
+    /// Helper to get WebKitService if available and connected
+    private func getWebKitServiceIfAvailable() async throws -> WebKitService? {
+        let service = WebKitService.shared
+        if service.isConnected, service.webView != nil {
+            return service
+        }
+        return nil
     }
 }
