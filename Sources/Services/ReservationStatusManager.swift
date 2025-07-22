@@ -3,10 +3,10 @@ import Foundation
 import os.log
 
 @MainActor
-class ReservationStatusManager: ObservableObject {
-    static let shared = ReservationStatusManager()
+public final class ReservationStatusManager: ObservableObject, @unchecked Sendable {
+    public static let shared = ReservationStatusManager()
 
-    @Published var isRunning = false {
+    @Published public var isRunning = false {
         didSet {
             if isRunning == false {
                 logger
@@ -18,7 +18,7 @@ class ReservationStatusManager: ObservableObject {
     }
 
     @Published var lastRunDate: Date?
-    @Published var lastRunStatus: ReservationOrchestrator.RunStatus = .idle
+    @Published public var lastRunStatus: ReservationRunStatus = .idle
     @Published var currentTask: String = ""
     @Published private(set) var lastRunInfo: [UUID: LastRunInfo] = [:] {
         didSet { saveLastRunInfo() }
@@ -50,38 +50,38 @@ class ReservationStatusManager: ObservableObject {
         }
     }
 
-    func getLastRunInfo(for configId: UUID) -> LastRunInfo? {
+    public func getLastRunInfo(for configId: UUID) -> LastRunInfo? {
         guard let tuple = lastRunInfo[configId] else { return nil }
         return LastRunInfo(status: tuple.status, date: tuple.date, runType: tuple.runType)
     }
 
-    func setLastRunInfo(
+    public func setLastRunInfo(
         for configId: UUID,
-        status: ReservationOrchestrator.RunStatus,
+        status: ReservationRunStatus,
         date: Date?,
-        runType: ReservationOrchestrator.RunType,
+        runType: ReservationRunType,
         ) {
         lastRunInfo[configId] = LastRunInfo(status: status, date: date, runType: runType)
     }
 
-    struct LastRunInfo: Equatable {
-        let status: ReservationOrchestrator.RunStatus
-        let date: Date?
-        let runType: ReservationOrchestrator.RunType
+    public struct LastRunInfo: Equatable, Codable {
+        public let status: ReservationRunStatus
+        public let date: Date?
+        public let runType: ReservationRunType
     }
 
     struct LastRunInfoCodable: Codable {
-        let status: ReservationOrchestrator.RunStatusCodable
+        let status: ReservationRunStatus
         let date: Date?
-        let runType: ReservationOrchestrator.RunType
+        let runType: ReservationRunType
         init(from info: LastRunInfo) {
-            self.status = ReservationOrchestrator.RunStatusCodable.from(info.status)
+            self.status = info.status
             self.date = info.date
             self.runType = info.runType
         }
 
         func toLastRunInfo() -> LastRunInfo {
-            .init(status: status.toRunStatus, date: date, runType: runType)
+            .init(status: status, date: date, runType: runType)
         }
     }
 }

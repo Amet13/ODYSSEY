@@ -3,8 +3,27 @@ import Foundation
 import os.log
 import SwiftUI
 
-/// Loading state for different operations
-enum LoadingState {
+public struct Progress: Sendable {
+    public let current: Int
+    public let total: Int
+    public let message: String
+    public init(current: Int, total: Int, message: String) {
+        self.current = current
+        self.total = total
+        self.message = message
+    }
+
+    public var percentage: Double {
+        guard total > 0 else { return 0 }
+        return Double(current) / Double(total)
+    }
+
+    public var isComplete: Bool {
+        return current >= total
+    }
+}
+
+public enum LoadingState: Sendable {
     case idle
     case loading(String)
     case progress(Progress)
@@ -12,28 +31,12 @@ enum LoadingState {
     case error(String)
 }
 
-/// Progress tracking for long-running operations
-struct Progress {
-    let current: Int
-    let total: Int
-    let message: String
-
-    var percentage: Double {
-        guard total > 0 else { return 0 }
-        return Double(current) / Double(total)
-    }
-
-    var isComplete: Bool {
-        return current >= total
-    }
-}
-
 /**
  LoadingStateManager is responsible for tracking and publishing loading/progress state, error/success banners, and notifications for user feedback.
  */
 @MainActor
-class LoadingStateManager: ObservableObject {
-    static let shared = LoadingStateManager()
+public final class LoadingStateManager: ObservableObject, @unchecked Sendable {
+    public static let shared = LoadingStateManager()
 
     private let logger = Logger(subsystem: "com.odyssey.app", category: "LoadingStateManager")
 
@@ -41,11 +44,11 @@ class LoadingStateManager: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var progress: Progress?
     @Published var message: String = ""
-    @Published var notification: BannerNotification? // New: for in-app banners
+    @Published public var notification: BannerNotification? // New: for in-app banners
 
     private var cancellables = Set<AnyCancellable>()
 
-    init() {
+    public init() {
         logger.info("🔧 LoadingStateManager initialized.")
         setupBindings()
     }
@@ -88,10 +91,16 @@ class LoadingStateManager: ObservableObject {
         $currentState
             .map { state in
                 switch state {
+                case .idle:
+                    return nil
+                case let .loading(message):
+                    return Progress(current: 0, total: 100, message: message) // Placeholder for loading progress
                 case let .progress(progress):
                     return progress
-                default:
-                    return nil
+                case let .success(message):
+                    return Progress(current: 100, total: 100, message: message) // Placeholder for success progress
+                case let .error(message):
+                    return Progress(current: 0, total: 100, message: message) // Placeholder for error progress
                 }
             }
             .assign(to: \.progress, on: self)
@@ -102,21 +111,21 @@ class LoadingStateManager: ObservableObject {
 
     /// Set loading state with message
     /// - Parameter message: Loading message
-    func setLoading(_ message: String) {
+    public func setLoading(_ message: String) {
         logger.info("⏳ Setting loading state: \(message).")
         currentState = .loading(message)
     }
 
     /// Set progress state
     /// - Parameter progress: Progress information
-    func setProgress(_ progress: Progress) {
-        logger.info("📊 Setting progress: \(progress.current)/\(progress.total) - \(progress.message).")
+    public func setProgress(_ progress: Progress) {
+        logger.info("📊 Setting progress: \(progress.current)/\(progress.total) - \(progress.percentage * 100)%.")
         currentState = .progress(progress)
     }
 
     /// Set success state
     /// - Parameter message: Success message
-    func setSuccess(_ message: String) {
+    public func setSuccess(_ message: String) {
         logger.info("✅ Setting success state: \(message).")
         currentState = .success(message)
 
@@ -130,7 +139,7 @@ class LoadingStateManager: ObservableObject {
 
     /// Set error state
     /// - Parameter message: Error message
-    func setError(_ message: String) {
+    public func setError(_ message: String) {
         logger.error("❌ Setting error state: \(message).")
         currentState = .error(message)
 
@@ -145,7 +154,7 @@ class LoadingStateManager: ObservableObject {
     /**
      Resets the loading state and clears notifications.
      */
-    func reset() {
+    public func reset() {
         logger.info("🔄 Resetting loading state to idle.")
         currentState = .idle
     }
@@ -154,8 +163,8 @@ class LoadingStateManager: ObservableObject {
 
     /// Start progress tracking for reservation automation
     /// - Parameter totalSteps: Total number of steps
-    func startReservationProgress(totalSteps: Int) {
-        let progress = Progress(current: 0, total: totalSteps, message: "Starting reservation...")
+    public func startReservationProgress(totalSteps: Int) {
+        let progress = Progress(current: 0, total: totalSteps, message: "Starting reservation process...")
         setProgress(progress)
     }
 
@@ -163,7 +172,7 @@ class LoadingStateManager: ObservableObject {
     /// - Parameters:
     ///   - currentStep: Current step number
     ///   - message: Progress message
-    func updateReservationProgress(currentStep: Int, message: String) {
+    public func updateReservationProgress(currentStep: Int, message: String) {
         guard case let .progress(progress) = currentState else { return }
 
         let newProgress = Progress(current: currentStep, total: progress.total, message: message)
@@ -172,7 +181,7 @@ class LoadingStateManager: ObservableObject {
 
     /// Complete progress tracking
     /// - Parameter message: Completion message
-    func completeProgress(_ message: String) {
+    public func completeProgress(_ message: String) {
         guard case let .progress(progress) = currentState else { return }
 
         let finalProgress = Progress(current: progress.total, total: progress.total, message: message)
@@ -186,18 +195,23 @@ class LoadingStateManager: ObservableObject {
 
     // MARK: - Notification Banner Support
 
-    struct BannerNotification: Identifiable {
-        enum BannerType { case success, error, info }
-        let id = UUID()
-        let type: BannerType
-        let message: String
+    public struct BannerNotification: Identifiable {
+        public enum BannerType { case success, error, info }
+        public let id = UUID()
+        public let type: BannerType
+        public let message: String
+
+        public init(type: BannerType, message: String) {
+            self.type = type
+            self.message = message
+        }
     }
 
     /**
      Shows a success banner notification with the given message.
      - Parameter message: The message to display.
      */
-    func showSuccessBanner(_ message: String) {
+    public func showSuccessBanner(_ message: String) {
         notification = BannerNotification(type: .success, message: message)
         logger.info("✅ Success banner: \(message)")
     }
@@ -206,7 +220,7 @@ class LoadingStateManager: ObservableObject {
      Shows an error banner notification with the given message.
      - Parameter message: The message to display.
      */
-    func showErrorBanner(_ message: String) {
+    public func showErrorBanner(_ message: String) {
         notification = BannerNotification(type: .error, message: message)
         logger.error("❌ Error banner: \(message)")
     }
@@ -215,7 +229,7 @@ class LoadingStateManager: ObservableObject {
      Shows an info banner notification with the given message.
      - Parameter message: The message to display.
      */
-    func showInfoBanner(_ message: String) {
+    public func showInfoBanner(_ message: String) {
         notification = BannerNotification(type: .info, message: message)
         logger.info("ℹ️ Info banner: \(message)")
     }
@@ -226,7 +240,10 @@ class LoadingStateManager: ObservableObject {
     /// - Parameters:
     ///   - message: Loading message
     ///   - operation: Async operation to perform
-    func withLoading<T: Sendable>(_ message: String, operation: @escaping () async throws -> T) async throws -> T {
+    public func withLoading<T: Sendable>(
+        _ message: String,
+        operation: @escaping () async throws -> T
+    ) async throws -> T {
         setLoading(message)
 
         do {
@@ -243,7 +260,7 @@ class LoadingStateManager: ObservableObject {
     /// - Parameters:
     ///   - totalSteps: Total number of steps
     ///   - operation: Operation with progress callback
-    func withProgress<T: Sendable>(
+    public func withProgress<T: Sendable>(
         totalSteps: Int,
         operation: @escaping (@escaping @Sendable (Int, String) -> Void) async throws -> T
     ) async throws -> T {
@@ -268,7 +285,7 @@ class LoadingStateManager: ObservableObject {
 
 // MARK: - SwiftUI Extensions
 
-extension View {
+public extension View {
     /// Apply loading state overlay
     /// - Parameter loadingState: Current loading state
     /// - Returns: View with loading overlay
@@ -326,7 +343,7 @@ struct ProgressOverlayView: View {
                 .progressViewStyle(LinearProgressViewStyle())
                 .frame(width: 200)
 
-            Text(progress.message)
+            Text("Progress: \(Int(progress.percentage * 100))%")
                 .font(.headline)
                 .foregroundColor(.primary)
 

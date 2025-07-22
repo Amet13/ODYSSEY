@@ -2,6 +2,28 @@
 
 Thank you for your interest in contributing to ODYSSEY! This document provides guidelines and information for contributors.
 
+---
+
+## 📝 How to Check Logs
+
+- Open **Console.app** (Applications > Utilities)
+- Search for `ODYSSEY` or `com.odyssey.app`
+- Look for emoji log messages for quick status identification
+- Sensitive data is masked or marked as private
+
+## 🐞 How to Report Bugs
+
+1. Go to [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
+2. Click 'New Issue' and use the bug report template
+3. Include:
+   - Steps to reproduce
+   - Expected vs actual behavior
+   - macOS version, ODYSSEY version, Xcode version
+   - Relevant logs (from Console.app)
+   - Screenshots if possible
+
+---
+
 ## 🤝 How to Contribute
 
 ### Reporting Issues
@@ -376,7 +398,6 @@ Add any other context, logs, or screenshots
 
 - **GitHub Issues** - For bug reports and feature requests
 - **GitHub Discussions** - For questions and general discussion
-- **Email** - support@odyssey.app for private matters
 
 ## 📄 License
 

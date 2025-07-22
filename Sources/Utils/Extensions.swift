@@ -97,14 +97,18 @@ extension View {
 
 // MARK: - Color Extensions
 
-extension Color {
+public extension Color {
     /// Custom colors for the ODYSSEY app
+    /// Use these for consistent branding and status feedback throughout the UI.
+    /// Example: .odysseyPrimary, .odysseySuccess, .odysseyError
     static let odysseyPrimary = Color.blue
     static let odysseySecondary = Color.orange
     static let odysseySuccess = Color.green
     static let odysseyError = Color.red
     static let odysseyWarning = Color.yellow
     static let odysseyBackground = Color(.windowBackgroundColor)
+    static let odysseyAccent = Color.accentColor
+    static let odysseyInfo = Color.blue
 }
 
 // MARK: - Logger Extensions

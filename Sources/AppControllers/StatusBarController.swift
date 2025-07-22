@@ -11,9 +11,9 @@ class StatusBarController: NSObject {
     private var popover: NSPopover
     private var eventMonitor: EventMonitor?
 
-    @MainActor private let configurationManager = ConfigurationManager.shared
-    @MainActor private let orchestrator = ReservationOrchestrator.shared
-    @MainActor private let statusManager = ReservationStatusManager.shared
+    private let configurationManager = ConfigurationManager.shared
+    private let orchestrator = ReservationOrchestrator.shared
+    private let statusManager = ReservationStatusManager.shared
     private var cancellables = Set<AnyCancellable>()
     private let logger = Logger(subsystem: "com.odyssey.app", category: "StatusBarController")
 
@@ -21,9 +21,7 @@ class StatusBarController: NSObject {
         statusBar = NSStatusBar.system
         statusItem = statusBar.statusItem(withLength: NSStatusItem.variableLength)
         popover = NSPopover()
-
         super.init()
-
         setupStatusBar()
         setupPopover()
         setupEventMonitor()
@@ -115,7 +113,7 @@ class StatusBarController: NSObject {
         }
     }
 
-    private func updateStatusBarTooltip(status: ReservationOrchestrator.RunStatus) {
+    private func updateStatusBarTooltip(status: ReservationRunStatus) {
         if let button = statusItem.button {
             button.toolTip = "ODYSSEY - \(status.description)"
         }

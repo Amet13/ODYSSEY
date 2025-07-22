@@ -4,8 +4,8 @@ import os.log
 /// Service for managing JavaScript code and operations
 /// Extracted from WebKitService to improve code organization
 @MainActor
-class JavaScriptService: ObservableObject {
-    static let shared = JavaScriptService()
+public final class JavaScriptService: @unchecked Sendable {
+    public static let shared = JavaScriptService()
 
     private let logger = Logger(subsystem: "com.odyssey.app", category: "JavaScriptService")
 
@@ -13,18 +13,30 @@ class JavaScriptService: ObservableObject {
 
     // MARK: - Anti-Detection Scripts
 
-    /// Generates anti-detection script with custom parameters
-    func generateAntiDetectionScript(
+    /**
+     * Generates a comprehensive anti-detection script for browser automation.
+     * Mirrors the logic from anti-detection.js.
+     * @param userAgent Optional user agent string.
+     * @param language Optional language string.
+     * @param instanceId Optional instance identifier for unique fingerprinting.
+     * @return The anti-detection JavaScript as a string.
+     *
+     * Example usage:
+     * ```swift
+     * let script = JavaScriptService.shared.generateAntiDetectionScript(userAgent: ..., language: ..., instanceId: ...)
+     * ```
+     */
+    public func generateAntiDetectionScript(
         userAgent: String? = nil,
         language: String? = nil,
-        instanceId: String? = nil,
+        instanceId _: String? = nil,
         ) -> String {
         let selectedUserAgent = userAgent ??
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         let lang = language?.components(separatedBy: ",").first ?? "en-US"
         let langs = language?.components(separatedBy: ",") ?? ["en-US", "en"]
-        _ = instanceId != nil ? "odyssey_\(instanceId!)_" : "odyssey_"
-
+        let screenWidth = 1_440
+        let screenHeight = 900
         return """
         (function() {
             try {
@@ -33,7 +45,6 @@ class JavaScriptService: ObservableObject {
                     get: () => undefined,
                     configurable: true
                 });
-
                 // Fake plugins and languages
                 Object.defineProperty(navigator, 'plugins', {
                     get: () => {
@@ -56,80 +67,65 @@ class JavaScriptService: ObservableObject {
                     },
                     configurable: true
                 });
-
                 Object.defineProperty(navigator, 'languages', {
                     get: () => \(langs),
                     configurable: true
                 });
-
                 Object.defineProperty(navigator, 'language', {
                     get: () => '\(lang)',
                     configurable: true
                 });
-
                 // Fake Chrome object
                 window.chrome = { runtime: {} };
-
                 // Patch permissions
                 const originalQuery = window.navigator.permissions.query;
                 window.navigator.permissions.query = (parameters) =>
                     parameters.name === 'notifications'
                         ? Promise.resolve({ state: Notification.permission })
                         : originalQuery(parameters);
-
                 // User-Agent override
                 Object.defineProperty(navigator, 'userAgent', {
                     get: () => '\(selectedUserAgent)',
                     configurable: true
                 });
-
                 // Hardware properties
                 Object.defineProperty(navigator, 'hardwareConcurrency', {
                     get: () => 8,
                     configurable: true
                 });
-
                 Object.defineProperty(navigator, 'maxTouchPoints', {
                     get: () => 0,
                     configurable: true
                 });
-
                 Object.defineProperty(navigator, 'vendor', {
                     get: () => 'Google Inc.',
                     configurable: true
                 });
-
                 // Screen properties
                 Object.defineProperty(screen, 'width', {
-                    get: () => 1440,
+                    get: () => \(screenWidth),
                     configurable: true
                 });
-
                 Object.defineProperty(screen, 'height', {
-                    get: () => 900,
+                    get: () => \(screenHeight),
                     configurable: true
                 });
-
                 Object.defineProperty(screen, 'availWidth', {
-                    get: () => 1440,
+                    get: () => \(screenWidth),
                     configurable: true
                 });
-
                 Object.defineProperty(screen, 'availHeight', {
-                    get: () => 900,
+                    get: () => \(screenHeight),
                     configurable: true
                 });
-
                 Object.defineProperty(screen, 'colorDepth', {
                     get: () => 24,
                     configurable: true
                 });
-
                 Object.defineProperty(screen, 'pixelDepth', {
                     get: () => 24,
                     configurable: true
                 });
-
                 // WebGL fingerprint spoof
                 const getParameter = WebGLRenderingContext.prototype.getParameter;
                 WebGLRenderingContext.prototype.getParameter = function(parameter) {
@@ -137,13 +133,11 @@ class JavaScriptService: ObservableObject {
                     if (parameter === 37446) return 'Intel(R) Iris(TM) Plus Graphics 640';
                     return getParameter.call(this, parameter);
                 };
-
                 // Canvas fingerprint spoof
                 const toDataURL = HTMLCanvasElement.prototype.toDataURL;
                 HTMLCanvasElement.prototype.toDataURL = function() {
                     return toDataURL.apply(this, arguments) + 'a';
                 };
-
                 // Remove automation indicators
                 if (window.cdc_adoQpoasnfa76pfcZLmcfl_Array) {
                     delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
@@ -154,12 +148,10 @@ class JavaScriptService: ObservableObject {
                 if (window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol) {
                     delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
                 }
-
                 // Add mouse movement tracking
                 if (!window.odysseyMouseMovements) {
                     window.odysseyMouseMovements = [];
                 }
-
                 // Anti-detection measures applied
             } catch (error) {
                 console.error('[ODYSSEY] Error in anti-detection script:', error);
@@ -170,29 +162,48 @@ class JavaScriptService: ObservableObject {
 
     // MARK: - Form Filling Scripts
 
-    /// Generates script to fill contact fields with autofill behavior
-    func generateContactFormFillingScript(phoneNumber: String, email: String, name: String) -> String {
+    /**
+     * Generates script to fill contact fields with autofill behavior.
+     * Mirrors the logic from form-filling.js.
+     * @param phoneNumber The phone number to fill.
+     * @param email The email address to fill.
+     * @param name The name to fill.
+     * @return The JavaScript as a string.
+     */
+    public func generateContactFormFillingScript(phoneNumber: String, email: String, name: String) -> String {
         return """
         (function() {
             try {
                 // Find contact fields
-                const phoneField = document.getElementById('telephone') ||
+                const phoneField = document.getElementById('phone') ||
+                                 document.getElementById('telephone') ||
+                                 document.getElementById('phoneNumber') ||
+                                 document.querySelector('input[type=\"tel\"]') ||
                                  document.querySelector('input[name*="phone"]') ||
+                                 document.querySelector('input[name*="tel"]') ||
                                  document.querySelector('input[placeholder*="phone"]') ||
+                                 document.querySelector('input[placeholder*="tel"]') ||
                                  document.querySelector('input[placeholder*="Phone"]') ||
                                  document.querySelector('input[placeholder*="Telephone"]');
 
                 const emailField = document.getElementById('email') ||
-                                 document.querySelector('input[type="email"]') ||
+                                 document.getElementById('mail') ||
+                                 document.querySelector('input[type=\"email\"]') ||
                                  document.querySelector('input[name*="email"]') ||
+                                 document.querySelector('input[name*="mail"]') ||
                                  document.querySelector('input[placeholder*="email"]') ||
-                                 document.querySelector('input[placeholder*="Email"]');
+                                 document.querySelector('input[placeholder*="Email"]') ||
+                                 document.querySelector('input[placeholder*="mail"]');
 
                 const nameField = document.getElementById('name') ||
-                                document.getElementById('field2021') ||
+                                document.getElementById('fullName') ||
+                                document.getElementById('firstName') ||
                                 document.querySelector('input[name*="name"]') ||
+                                document.querySelector('input[name*="full"]') ||
+                                document.querySelector('input[name*="first"]') ||
                                 document.querySelector('input[placeholder*="name"]') ||
-                                document.querySelector('input[placeholder*="Name"]');
+                                document.querySelector('input[placeholder*="Name"]') ||
+                                document.querySelector('input[placeholder*="Full"]');
 
                 // Fill fields with autofill behavior
                 if (phoneField) {
@@ -232,7 +243,7 @@ class JavaScriptService: ObservableObject {
     // MARK: - Element Interaction Scripts
 
     /// Generates script to find and click element with specific text
-    func generateFindAndClickScript(targetText: String) -> String {
+    public func generateFindAndClickScript(targetText: String) -> String {
         return """
         (function() {
             try {
@@ -257,7 +268,7 @@ class JavaScriptService: ObservableObject {
     }
 
     /// Generates script to check if DOM is ready
-    func generateDOMReadyCheckScript() -> String {
+    public func generateDOMReadyCheckScript() -> String {
         return """
         (function() {
             return document.readyState === 'complete';
@@ -268,7 +279,7 @@ class JavaScriptService: ObservableObject {
     // MARK: - Utility Scripts
 
     /// Generates script to detect reCAPTCHA
-    static func generateCaptchaDetectionScript() -> String {
+    public static func generateCaptchaDetectionScript() -> String {
         return """
         (function() {
             const captchaSelectors = [
@@ -289,4 +300,12 @@ class JavaScriptService: ObservableObject {
         })();
         """
     }
+
+    /**
+     * How to add or update scripts for new sites or anti-detection needs:
+     * 1. Add a new method here that generates the required JavaScript as a string.
+     * 2. Use string interpolation for dynamic values.
+     * 3. Document the method and provide a usage example.
+     * 4. Call the method from WebKitService or other automation services as needed.
+     */
 }

@@ -4,8 +4,8 @@ import Foundation
 // MARK: - Web Automation Protocols (WebKit)
 
 /// Protocol for web automation service abstraction
-@preconcurrency
-public protocol WebAutomationServiceProtocol: ObservableObject {
+@MainActor
+public protocol WebAutomationServiceProtocol: ObservableObject, Sendable {
     /// Indicates if the service is connected to a web automation session
     var isConnected: Bool { get }
     /// Indicates if the service is currently running a web automation task
@@ -27,6 +27,27 @@ public protocol WebAutomationServiceProtocol: ObservableObject {
     func getCurrentURL() async throws -> String
     /// Retrieves the title of the current web page
     func getTitle() async throws -> String
+
+    // --- Extended API for ODYSSEY automation ---
+    func forceReset() async
+    func isServiceValid() -> Bool
+    func reset() async
+    var onWindowClosed: ((ReservationRunType) -> Void)? { get set }
+    var currentConfig: ReservationConfig? { get set }
+    func waitForDOMReady() async -> Bool
+    func findAndClickElement(withText text: String) async -> Bool
+    func waitForGroupSizePage() async -> Bool
+    func fillNumberOfPeople(_ number: Int) async -> Bool
+    func clickConfirmButton() async -> Bool
+    func selectTimeSlot(dayName: String, timeString: String) async -> Bool
+    func waitForContactInfoPage() async -> Bool
+    func fillAllContactFieldsWithAutofillAndHumanMovements(phoneNumber: String, email: String, name: String) async
+    -> Bool
+    func addQuickPause() async
+    func clickContactInfoConfirmButtonWithRetry() async -> Bool
+    func detectRetryText() async -> Bool
+    func isEmailVerificationRequired() async -> Bool
+    func handleEmailVerification(verificationStart: Date) async -> Bool
 }
 
 // MARK: - Web Element Protocol

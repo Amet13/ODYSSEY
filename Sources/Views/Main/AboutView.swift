@@ -40,11 +40,11 @@ struct AboutView: View {
                             .fixedSize(horizontal: false, vertical: true)
 
                         if let githubURL = URL(string: "https://github.com/Amet13/ODYSSEY") {
-                            Link("Version \(appVersion) (\(buildNumber))", destination: githubURL)
+                            Link("Version \(appVersion)", destination: githubURL)
                                 .font(.caption2)
                                 .foregroundColor(.blue)
                         } else {
-                            Text("Version \(appVersion) (\(buildNumber))")
+                            Text("Version \(appVersion)")
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                         }

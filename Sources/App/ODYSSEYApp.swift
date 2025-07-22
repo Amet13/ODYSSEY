@@ -1,3 +1,4 @@
+import Combine
 import os.log
 import SwiftUI
 
@@ -9,6 +10,14 @@ import SwiftUI
 @main
 struct ODYSSEYApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    init() {
+        _ = WebKitService._registered
+        WebKitService.registerForDI()
+        EmailService.registerForDI()
+        KeychainService.registerForDI()
+        FacilityService.registerForDI()
+        // ... register other services as needed ...
+    }
 
     var body: some Scene {
         Settings {
@@ -26,6 +35,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusBarController: StatusBarController?
     private var timer: Timer?
     private let logger = Logger(subsystem: "com.odyssey.app", category: "AppDelegate")
+    private let orchestrator = ReservationOrchestrator.shared
+
+    override init() {
+        super.init()
+    }
 
     func applicationDidFinishLaunching(_: Notification) {
         // Hide dock icon since this is a status bar app
@@ -47,7 +61,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Emergency cleanup for any running automation
         Task {
-            await ReservationOrchestrator.shared.emergencyCleanup(runType: .manual)
+            await orchestrator.emergencyCleanup(runType: .manual)
         }
     }
 

@@ -7,7 +7,8 @@ struct ConfigurationDetailView: View {
     let onSave: (ReservationConfig) -> Void
 
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var userSettingsManager = UserSettingsManager.shared
+    @ObservedObject var configurationManager = ConfigurationManager.shared
+    @ObservedObject var userSettingsManager = UserSettingsManager.shared
 
     @State private var name: String = ""
     @State private var facilityURL: String = ""
@@ -86,7 +87,6 @@ struct ConfigurationDetailView: View {
             TextField("Enter facility URL", text: $facilityURL)
                 .onChange(of: facilityURL) { _, _ in
                     updateConfigurationName()
-                    validateAll()
                 }
             if !facilityURL.isEmpty, !isValidFacilityURL(facilityURL) {
                 HStack {
@@ -104,17 +104,23 @@ struct ConfigurationDetailView: View {
                         .buttonStyle(.plain)
                         .foregroundColor(.blue)
                         .font(.caption)
-                        Text(" Ottawa Recreation URL")
+                        Text(" Ottawa Recreation URL.")
                             .font(.caption)
                             .foregroundColor(.orange)
                     }
                     Spacer()
                 }
             }
-            if validationErrors.contains(where: { $0.contains("Facility URL") }) {
-                Text("Facility URL is invalid.")
-                    .foregroundColor(.red)
-                    .font(.caption)
+            if facilityURL.isEmpty {
+                HStack(spacing: 4) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    Text("Please enter your facility URL.")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                    Spacer()
+                }
+                .padding(.top, 2)
             }
         }
         .padding(.bottom, 20)
@@ -175,6 +181,17 @@ struct ConfigurationDetailView: View {
             if !availableSports.isEmpty {
                 Text("\(availableSports.count) sports found")
                     .font(.caption).foregroundColor(.secondary)
+            }
+            if validationErrors.contains(where: { $0.contains("Sport name") }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    Text("Sport name is required.")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                    Spacer()
+                }
+                .padding(.top, 2)
             }
         }
         .padding(.bottom, 20)
@@ -292,13 +309,10 @@ struct ConfigurationDetailView: View {
             Button("Cancel") { dismiss() }
                 .buttonStyle(.bordered)
             Button(config == nil ? "Add" : "Save") {
-                validateAll()
-                if validationErrors.isEmpty {
-                    saveConfiguration()
-                }
+                saveConfiguration()
             }
             .buttonStyle(.borderedProminent)
-            .disabled(!validationErrors.isEmpty)
+            .disabled(!isValidConfiguration)
         }
         .padding(.horizontal, 32)
         .padding(.vertical, 12)
@@ -491,28 +505,6 @@ struct ConfigurationDetailView: View {
     }
 
     /**
-     Validates all fields in the configuration and updates the validationErrors array.
-     - Returns: Void
-     */
-    private func validateAll() {
-        var errors: [String] = []
-        if facilityURL.isEmpty || !isValidFacilityURL(facilityURL) {
-            errors.append("Facility URL is invalid.")
-        }
-        if name.trimmingCharacters(in: .whitespaces).isEmpty {
-            errors.append("Configuration name is required.")
-        }
-        if sportName.trimmingCharacters(in: .whitespaces).isEmpty {
-            errors.append("Sport name is required.")
-        }
-        if numberOfPeople < 1 {
-            errors.append("Number of people must be at least 1.")
-        }
-        // Add more field checks as needed
-        validationErrors = errors
-    }
-
-    /**
      Loads the configuration from an imported JSON file.
      - Parameter imported: The imported configuration object.
      - Returns: Void
@@ -525,7 +517,6 @@ struct ConfigurationDetailView: View {
         isEnabled = imported.isEnabled
         // Convert [TimeSlot] to [Date]
         dayTimeSlots = imported.dayTimeSlots.mapValues { $0.map(\.time) }
-        validateAll()
     }
 
     /**
@@ -562,7 +553,7 @@ struct DayPickerView: View {
     let selectedDays: Set<ReservationConfig.Weekday>
     let onAdd: (ReservationConfig.Weekday) -> Void
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var userSettingsManager = UserSettingsManager.shared
+    @ObservedObject var userSettingsManager = UserSettingsManager.shared
 
     var availableDays: [ReservationConfig.Weekday] {
         // Only show days if no day is currently selected (restrict to one day)

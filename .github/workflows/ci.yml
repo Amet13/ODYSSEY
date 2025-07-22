@@ -43,8 +43,7 @@ jobs:
 
       - name: Run SwiftLint
         run: |
-          swiftlint lint --reporter github-actions-logging --config .swiftlint.yml || true
-        continue-on-error: true
+          swiftlint lint --reporter github-actions-logging --config .swiftlint.yml
 
       - name: Check code formatting
         run: |
@@ -53,6 +52,11 @@ jobs:
             exit 1
           fi
           echo "✅ Code formatting is correct"
+
+      - name: Run ESLint on JavaScript
+        run: |
+          npm install -g eslint
+          eslint Sources/Resources/JavaScript/**/*.js --max-warnings=0
 
   build-and-test:
     runs-on: macos-15

@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 /// Maps sport names to appropriate SF Symbols icons
-enum SportIconMapper {
+public enum SportIconMapper {
     // MARK: - Sport Icon Mappings
 
     /// Dictionary mapping sport keywords to SF Symbol icon names
@@ -154,7 +154,7 @@ enum SportIconMapper {
     /// Returns the appropriate SF Symbol icon name for a given sport
     /// - Parameter sportName: The name of the sport
     /// - Returns: SF Symbol icon name
-    static func iconForSport(_ sportName: String) -> String {
+    public static func iconForSport(_ sportName: String) -> String {
         let lowercasedSport = sportName.lowercased()
 
         // Check for exact matches first (longer phrases)
@@ -168,20 +168,25 @@ enum SportIconMapper {
 }
 
 /// A SwiftUI view that displays a sport icon with fallback if the symbol is unavailable
-struct SportIconView: View {
-    let symbolName: String
-    let fallback: String
-    let color: Color
-    let size: CGFloat
+public struct SportIconView: View {
+    public let symbolName: String
+    public let fallback: String
+    public let color: Color
+    public let size: CGFloat
 
-    init(symbolName: String, fallback: String = "sportscourt.fill", color: Color = .accentColor, size: CGFloat = 16) {
+    public init(
+        symbolName: String,
+        fallback: String = "sportscourt.fill",
+        color: Color = .accentColor,
+        size: CGFloat = 16
+    ) {
         self.symbolName = symbolName
         self.fallback = fallback
         self.color = color
         self.size = size
     }
 
-    var body: some View {
+    public var body: some View {
         #if os(macOS)
         if NSImage(systemSymbolName: symbolName, accessibilityDescription: nil) != nil {
             Image(systemName: symbolName)

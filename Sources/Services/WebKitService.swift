@@ -19,6 +19,7 @@ import AppKit
 import Combine
 import Foundation
 import os.log
+import SwiftUI
 import WebKit
 
 // Wrapper to make JavaScript evaluation results sendable
@@ -32,28 +33,41 @@ struct JavaScriptResult: @unchecked Sendable {
 
 /// WebKit service for native web automation
 /// Handles web navigation and automation using WKWebView
+///
+/// - Supports dependency injection for testability and flexibility.
+/// - Use the default initializer for app use, or inject dependencies for testing/mocking.
 @MainActor
 @preconcurrency
-class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationServiceProtocol, NSWindowDelegate {
-    static let shared = WebKitService()
+public final class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol, WebKitServiceProtocol,
+                                  NSWindowDelegate,
+                                  @unchecked Sendable {
+    public static let shared = WebKitService()
+    static let _registered: Void = {
+        ServiceRegistry.shared.register(WebKitService.shared, for: WebKitServiceProtocol.self)
+    }()
 
-    @Published var isConnected = false
-    @Published var isRunning: Bool = false
-    @Published var currentURL: String?
-    @Published var pageTitle: String?
+    @Published public var isConnected = false
+    @Published public var isRunning: Bool = false
+    @Published public var currentURL: String?
+    @Published public var pageTitle: String?
+    /// User-facing error message to be displayed in the UI.
+    @Published var userError: String?
 
     // Callback for window closure
-    var onWindowClosed: ((ReservationOrchestrator.RunType) -> Void)?
+    public var onWindowClosed: ((ReservationRunType) -> Void)?
 
-    let logger = Logger(subsystem: "com.odyssey.app", category: "WebKitService")
-    var webView: WKWebView?
+    let logger: Logger
+
+    // WebKit components
+    public var webView: WKWebView?
+
     private var navigationDelegate: WebKitNavigationDelegate?
     private var scriptMessageHandler: WebKitScriptMessageHandler?
     private var debugWindow: NSWindow?
     private var instanceId: String = "default"
 
     // Configuration
-    var currentConfig: ReservationConfig? {
+    public var currentConfig: ReservationConfig? {
         didSet {
             // Update window title when config changes
             if let config = currentConfig {
@@ -80,7 +94,42 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
             .info("📊 Live WebKitService instances: \(liveInstanceCount)")
     }
 
+    /// Main initializer supporting dependency injection for all major dependencies.
+    /// - Parameters:
+    ///   - logger: Logger instance (default: ODYSSEY WebKitService logger)
+    ///   - webView: WKWebView instance (default: nil, will be set up internally)
+    ///   - navigationDelegate: WebKitNavigationDelegate (default: nil, will be set up internally)
+    ///   - scriptMessageHandler: WebKitScriptMessageHandler (default: nil, will be set up internally)
+    ///   - debugWindow: NSWindow for debug (default: nil)
+    ///   - instanceId: Unique instance identifier (default: "default")
+    public init(
+        logger: Logger = Logger(subsystem: "com.odyssey.app", category: "WebKitService"),
+        webView: WKWebView? = nil,
+        navigationDelegate: WebKitNavigationDelegate? = nil,
+        scriptMessageHandler: WebKitScriptMessageHandler? = nil,
+        debugWindow: NSWindow? = nil,
+        instanceId: String = "default"
+    ) {
+        self.logger = logger
+        self.webView = webView
+        self.navigationDelegate = navigationDelegate
+        self.scriptMessageHandler = scriptMessageHandler
+        self.debugWindow = debugWindow
+        self.instanceId = instanceId
+        super.init()
+        logger.info("🔧 WebKitService initialized (DI mode).")
+        Task { @MainActor in
+            Self.liveInstanceCount += 1
+            logger.info("🔄 WebKitService init. Live instances: \(Self.liveInstanceCount)")
+        }
+        if webView == nil {
+            setupWebView()
+        }
+    }
+
+    // Keep the default singleton for app use
     override private init() {
+        self.logger = Logger(subsystem: "com.odyssey.app", category: "WebKitService")
         super.init()
         logger.info("🔧 WebKitService initialized.")
         Task { @MainActor in
@@ -98,8 +147,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
     /// Create a new WebKit service instance with unique anti-detection profile
     convenience init(forParallelOperation _: Bool, instanceId: String) {
-        self.init()
-        self.instanceId = instanceId
+        self.init(instanceId: instanceId)
     }
 
     @MainActor private static func handleDeinitCleanup(logger: Logger) {
@@ -937,7 +985,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
     // MARK: - WebDriverServiceProtocol Implementation
 
-    func connect() async throws {
+    public func connect() async throws {
         // Ensure WebView is properly initialized before connecting
         await MainActor.run {
             // Check if window was manually closed and reset state if needed
@@ -962,7 +1010,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         logger.info("🔗 WebKit service connected.")
     }
 
-    func disconnect(closeWindow: Bool = true) async {
+    public func disconnect(closeWindow: Bool = true) async {
         logger.info("🔌 Starting WebKit service disconnect. closeWindow=\(closeWindow)")
         // Mark as disconnected first to prevent new operations
         isConnected = false
@@ -1006,7 +1054,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     /// Reset the WebKit service for reuse
-    func reset() async {
+    public func reset() async {
         logger.info("🔄 Resetting WebKit service.")
 
         // Disconnect first
@@ -1024,7 +1072,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     /// Force reset the WebKit service (for troubleshooting)
-    func forceReset() async {
+    public func forceReset() async {
         logger.info("🔄 Force resetting WebKit service.")
 
         // Mark as disconnected
@@ -1060,12 +1108,12 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     /// Check if the service is in a valid state for operations
-    func isServiceValid() -> Bool {
+    public func isServiceValid() -> Bool {
         return isConnected && webView != nil && debugWindow != nil
     }
 
     /// Get current service state for debugging
-    func getServiceState() -> String {
+    public func getServiceState() -> String {
         return """
         Service State:
         - isConnected: \(isConnected)
@@ -1078,7 +1126,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         """
     }
 
-    func navigateToURL(_ url: String) async throws {
+    public func navigateToURL(_ url: String) async throws {
         // Check if service is in valid state
         await MainActor.run {
             if !self.isConnected || self.webView == nil {
@@ -1088,52 +1136,64 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         }
         guard webView != nil else {
             logger.error("❌ navigateToURL: WebView not initialized.")
+            await MainActor
+                .run { self.userError = "Web browser is not initialized. Please try again or restart the app." }
             throw WebDriverError.navigationFailed("WebView not initialized")
         }
         logger.info("🌐 Navigating to URL: \(url, privacy: .private).")
         return try await withCheckedThrowingContinuation { continuation in
-            let requestId = UUID().uuidString
-            navigationCompletions[requestId] = { success in
-                if success {
-                    self.logger.info("✅ Navigation to \(url, privacy: .private) succeeded.")
+            navigationCompletions[UUID().uuidString] = { success in
+                Task { @MainActor in
+                    if success {
+                        self.logger.info("✅ Navigation to \(url, privacy: .private) succeeded.")
 
-                    // Log document.readyState and page source for diagnosis
-                    Task { @MainActor in
-                        do {
-                            let readyState = try await self.executeScriptInternal("return document.readyState;")?.value
-                            self.logger
-                                .info("📄 document.readyState after navigation: \(String(describing: readyState))")
-                            let pageSource = try await self.getPageSource()
-                            self.logger
-                                .info("Page source after navigation (first 500 chars): \(pageSource.prefix(500))")
-                        } catch {
-                            self.logger.error("❌ Error logging readyState/page source: \(error.localizedDescription)")
+                        // Log document.readyState and page source for diagnosis
+                        Task { @MainActor in
+                            do {
+                                let readyState = try await self.executeScriptInternal("return document.readyState;")?
+                                    .value
+                                self.logger
+                                    .info("📄 document.readyState after navigation: \(String(describing: readyState))")
+                                let pageSource = try await self.getPageSource()
+                                self.logger
+                                    .info("Page source after navigation (first 500 chars): \(pageSource.prefix(500))")
+                            } catch {
+                                self.logger
+                                    .error("❌ Error logging readyState/page source: \(error.localizedDescription)")
+                            }
                         }
+                        // After navigation completes, log page source and all buttons/links
+                        Task { @MainActor in
+                            await self.logAllButtonsAndLinks()
+                        }
+                        continuation.resume()
+                    } else {
+                        self.logger.error("❌ Navigation to \(url, privacy: .private) failed.")
+                        await MainActor
+                            .run {
+                                self
+                                    .userError =
+                                    "Failed to load the reservation page. Please check your internet connection or try again later."
+                            }
+                        continuation.resume(throwing: WebDriverError.navigationFailed("Failed to navigate to \(url)"))
                     }
-                    // After navigation completes, log page source and all buttons/links
-                    Task { @MainActor in
-                        await self.logAllButtonsAndLinks()
-                    }
-                    continuation.resume()
-                } else {
-                    self.logger.error("❌ Navigation to \(url, privacy: .private) failed.")
-                    continuation.resume(throwing: WebDriverError.navigationFailed("Failed to navigate to \(url)"))
                 }
             }
             guard let url = URL(string: url) else {
                 self.logger.error("❌ navigateToURL: Invalid URL: \(url).")
+                Task { @MainActor in
+                    self.userError = "The reservation URL is invalid. Please check your configuration."
+                }
                 continuation.resume(throwing: WebDriverError.navigationFailed("Invalid URL: \(url)"))
                 return
             }
             let request = URLRequest(url: url)
-            Task { @MainActor in
-                webView?.load(request)
-            }
+            webView?.load(request)
         }
     }
 
     @MainActor
-    func findElement(by selector: String) async throws -> WebElementProtocol {
+    public func findElement(by selector: String) async throws -> WebElementProtocol {
         guard webView != nil else {
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
@@ -1149,7 +1209,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     @MainActor
-    func findElements(by selector: String) async throws -> [WebElementProtocol] {
+    public func findElements(by selector: String) async throws -> [WebElementProtocol] {
         guard webView != nil else {
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
@@ -1165,7 +1225,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     @MainActor
-    func getPageSource() async throws -> String {
+    public func getPageSource() async throws -> String {
         guard webView != nil else {
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
@@ -1174,7 +1234,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         return result as? String ?? ""
     }
 
-    func getCurrentURL() async throws -> String {
+    public func getCurrentURL() async throws -> String {
         guard webView != nil else {
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
@@ -1184,7 +1244,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         }
     }
 
-    func getTitle() async throws -> String {
+    public func getTitle() async throws -> String {
         guard webView != nil else {
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
@@ -1195,7 +1255,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     @MainActor
-    func waitForElement(by selector: String, timeout: TimeInterval) async throws -> WebElementProtocol {
+    public func waitForElement(by selector: String, timeout: TimeInterval) async throws -> WebElementProtocol {
         guard webView != nil else {
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
@@ -1222,7 +1282,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     @MainActor
-    func waitForElementToDisappear(by selector: String, timeout: TimeInterval) async throws {
+    public func waitForElementToDisappear(by selector: String, timeout: TimeInterval) async throws {
         guard webView != nil else {
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
@@ -1248,7 +1308,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     @MainActor
-    func executeScript(_ script: String) async throws -> String {
+    public func executeScript(_ script: String) async throws -> String {
         guard webView != nil else {
             throw WebDriverError.scriptExecutionFailed("WebView not initialized")
         }
@@ -1261,6 +1321,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
     func executeScriptInternal(_ script: String) async throws -> JavaScriptResult? {
         guard webView != nil, isConnected else {
+            await MainActor.run { self.userError = "Web browser is not ready. Please try again or restart the app." }
             throw WebDriverError.scriptExecutionFailed("WebView not initialized or disconnected")
         }
 
@@ -1274,6 +1335,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                 do {
                     // Double-check that webView is still valid before executing JavaScript
                     guard let currentWebView = self.webView, self.isConnected else {
+                        await MainActor.run { self.userError = "Web browser was disconnected during script execution." }
                         continuation
                             .resume(
                                 throwing: WebDriverError
@@ -1287,6 +1349,8 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
                     // Check again after the delay
                     guard self.isConnected else {
+                        await MainActor
+                            .run { self.userError = "Web browser was disconnected during JavaScript execution." }
                         continuation
                             .resume(
                                 throwing: WebDriverError
@@ -1300,6 +1364,12 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                     // The result contains primitive types (String, Number, Boolean, Array, Object) that are sendable
                     continuation.resume(returning: JavaScriptResult(result))
                 } catch {
+                    await MainActor
+                        .run {
+                            self
+                                .userError =
+                                "An error occurred while automating the reservation page. Please try again."
+                        }
                     continuation.resume(throwing: WebDriverError.scriptExecutionFailed(error.localizedDescription))
                 }
             }
@@ -1308,7 +1378,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
     // MARK: - Reservation-specific Methods
 
-    func findAndClickElement(withText text: String) async -> Bool {
+    public func findAndClickElement(withText text: String) async -> Bool {
         guard webView != nil else {
             logger.error("❌ WebView not initialized.")
             return false
@@ -1374,7 +1444,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
     /// Waits for DOM ready or for a key button/element to appear
     /// Now also checks for the presence of a button with the configured sport name
-    func waitForDOMReady() async -> Bool {
+    public func waitForDOMReady() async -> Bool {
         guard webView != nil else {
             logger.error("❌ waitForDOMReady: WebView not initialized")
             return false
@@ -1415,7 +1485,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     @MainActor
-    func waitForDOMReadyAndButton(selector _: String, buttonText: String) async -> Bool {
+    public func waitForDOMReadyAndButton(selector _: String, buttonText: String) async -> Bool {
         guard let webView else {
             logger.error("❌ waitForDOMReady: WebView not initialized")
             return false
@@ -1453,7 +1523,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         return false
     }
 
-    func fillNumberOfPeople(_ numberOfPeople: Int) async -> Bool {
+    public func fillNumberOfPeople(_ numberOfPeople: Int) async -> Bool {
         guard webView != nil else {
             logger.error("❌ WebView not initialized")
             return false
@@ -1496,7 +1566,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         }
     }
 
-    func clickConfirmButton() async -> Bool {
+    public func clickConfirmButton() async -> Bool {
         guard webView != nil else {
             logger.error("WebView not initialized")
             return false
@@ -1577,7 +1647,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
     // MARK: - Additional Reservation Methods (Placeholders)
 
-    func waitForGroupSizePage() async -> Bool {
+    public func waitForGroupSizePage() async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
             return false
@@ -1634,7 +1704,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         return false
     }
 
-    func waitForTimeSelectionPage() async -> Bool {
+    public func waitForTimeSelectionPage() async -> Bool {
         guard webView != nil else {
             logger.error("WebView not initialized")
             return false
@@ -1690,7 +1760,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         }
     }
 
-    func selectTimeSlot(dayName: String, timeString: String) async -> Bool {
+    public func selectTimeSlot(dayName: String, timeString: String) async -> Bool {
         guard webView != nil else {
             logger.error("WebView not initialized")
             return false
@@ -1886,7 +1956,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         }
     }
 
-    func checkAndClickContinueButton() async -> Bool {
+    public func checkAndClickContinueButton() async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
             return false
@@ -1935,7 +2005,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         }
     }
 
-    func clickContinueAfterTimeSlot() async -> Bool {
+    public func clickContinueAfterTimeSlot() async -> Bool {
         guard webView != nil else {
             logger.error("WebView not initialized")
             return false
@@ -2081,7 +2151,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         }
     }
 
-    func waitForContactInfoPage() async -> Bool {
+    public func waitForContactInfoPage() async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
             return false
@@ -2154,7 +2224,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         }
     }
 
-    func fillPhoneNumber(_ phoneNumber: String) async -> Bool {
+    public func fillPhoneNumber(_ phoneNumber: String) async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
             return false
@@ -2333,7 +2403,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         }
     }
 
-    func fillEmail(_ email: String) async -> Bool {
+    public func fillEmail(_ email: String) async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
             return false
@@ -2514,7 +2584,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         }
     }
 
-    func fillName(_ name: String) async -> Bool {
+    public func fillName(_ name: String) async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
             return false
@@ -2711,7 +2781,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     /// Detects if Google reCAPTCHA is present on the page
-    func detectCaptcha() async -> Bool {
+    public func detectCaptcha() async -> Bool {
         guard webView != nil else {
             logger.error("WebView not initialized")
             return false
@@ -2747,7 +2817,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     /// Handles reCAPTCHA by implementing human-like behavior and waiting
-    func handleCaptcha() async -> Bool {
+    public func handleCaptcha() async -> Bool {
         guard webView != nil else {
             logger.error("WebView not initialized")
             return false
@@ -2765,7 +2835,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         return false
     }
 
-    func clickContactInfoConfirmButtonWithRetry() async -> Bool {
+    public func clickContactInfoConfirmButtonWithRetry() async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
             return false
@@ -2930,7 +3000,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         }
     }
 
-    func isEmailVerificationRequired() async -> Bool {
+    public func isEmailVerificationRequired() async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
             return false
@@ -2987,7 +3057,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
         }
     }
 
-    func handleEmailVerification(verificationStart: Date) async -> Bool {
+    public func handleEmailVerification(verificationStart: Date) async -> Bool {
         guard webView != nil else {
             logger.error("WebView not initialized")
             return false
@@ -3115,7 +3185,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
         // Initial wait before checking for the email
         let initialWait: TimeInterval = 10.0 // 10 seconds
-        let maxTotalWait: TimeInterval = 120.0 // 2 minutes
+        let maxTotalWait: TimeInterval = 300.0 // 5 minutes
         let retryDelay: TimeInterval = 2.0 // 2 seconds
         let deadline = Date().addingTimeInterval(maxTotalWait)
         let emailService = EmailService.shared
@@ -3179,7 +3249,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
         // Initial wait before checking for the email
         let initialWait: TimeInterval = 10.0 // 10 seconds
-        let maxTotalWait: TimeInterval = 120.0 // 2 minutes
+        let maxTotalWait: TimeInterval = 300.0 // 5 minutes
         let retryDelay: TimeInterval = 2.0 // 2 seconds
         let deadline = Date().addingTimeInterval(maxTotalWait)
 
@@ -3351,8 +3421,8 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                 logger.warning("Instance \(self.instanceId): No verification codes found in attempt \(retryCount + 1)")
                 retryCount += 1
                 if retryCount < maxRetryAttempts {
-                    logger.info("Instance \(self.instanceId): Waiting before retry...")
-                    try? await Task.sleep(nanoseconds: UInt64.random(in: 5_000_000_000 ... 10_000_000_000))
+                    logger.info("Instance \(self.instanceId): Waiting 3 seconds before retry...")
+                    try? await Task.sleep(nanoseconds: 3_000_000_000)
                 }
                 continue
             }
@@ -3369,8 +3439,8 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
                 logger.warning("Instance \(self.instanceId): ❌ Verification failed on attempt \(retryCount + 1)")
                 retryCount += 1
                 if retryCount < maxRetryAttempts {
-                    logger.info("Instance \(self.instanceId): Waiting before next retry...")
-                    try? await Task.sleep(nanoseconds: UInt64.random(in: 5_000_000_000 ... 10_000_000_000))
+                    logger.info("Instance \(self.instanceId): Waiting 3 seconds before next retry...")
+                    try? await Task.sleep(nanoseconds: 3_000_000_000)
                 }
             }
         }
@@ -3924,7 +3994,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     /// Detects if "Retry" text appears on the page (indicating reCAPTCHA failure)
-    func detectRetryText() async -> Bool {
+    public func detectRetryText() async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
             return false
@@ -3966,7 +4036,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     /// Enhanced human-like behavior to avoid reCAPTCHA detection
-    func enhanceHumanLikeBehavior() async {
+    public func enhanceHumanLikeBehavior() async {
         guard let webView else { return }
 
         logger.info("🛡️ Enhancing human-like behavior to avoid reCAPTCHA detection...")
@@ -4020,7 +4090,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     /// Simulates quick realistic mouse movements
-    func simulateQuickMouseMovements() async {
+    public func simulateQuickMouseMovements() async {
         guard let webView else { return }
 
         // Much faster mouse movements (0.1-0.3s total)
@@ -4051,7 +4121,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     /// Simulates quick realistic scrolling
-    func simulateQuickScrolling() async {
+    public func simulateQuickScrolling() async {
         guard let webView else { return }
 
         // Much faster scrolling (0.1-0.2s)
@@ -4080,59 +4150,59 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     /// Adds a quick pause (0.1-0.3s)
-    func addQuickPause() async {
+    public func addQuickPause() async {
         try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 300_000_000))
     }
 
     /// Adds natural pauses to simulate human thinking/reading
-    func addNaturalPauses() async {
+    public func addNaturalPauses() async {
         // Much shorter pauses (0.2-0.5s)
         let pauseDuration = UInt64.random(in: 200_000_000 ... 500_000_000)
         try? await Task.sleep(nanoseconds: pauseDuration)
     }
 
     /// Simulates realistic mouse movements (alias for enhanced version)
-    func simulateRealisticMouseMovements() async {
+    public func simulateRealisticMouseMovements() async {
         await simulateQuickMouseMovements()
     }
 
     /// Simulates human scrolling
-    func simulateHumanScrolling() async {
+    public func simulateHumanScrolling() async {
         await simulateQuickScrolling()
     }
 
     /// Simulates human form interaction
-    func simulateHumanFormInteraction() async {
+    public func simulateHumanFormInteraction() async {
         await addQuickPause()
     }
 
     /// Simulates realistic scrolling
-    func simulateRealisticScrolling() async {
+    public func simulateRealisticScrolling() async {
         await simulateQuickScrolling()
     }
 
     /// Simulates enhanced mouse movements
-    func simulateEnhancedMouseMovements() async {
+    public func simulateEnhancedMouseMovements() async {
         await simulateQuickMouseMovements()
     }
 
     /// Simulates random keyboard events
-    func simulateRandomKeyboardEvents() async {
+    public func simulateRandomKeyboardEvents() async {
         await addQuickPause()
     }
 
     /// Simulates scrolling
-    func simulateScrolling() async {
+    public func simulateScrolling() async {
         await simulateQuickScrolling()
     }
 
     /// Moves mouse randomly
-    func moveMouseRandomly() async {
+    public func moveMouseRandomly() async {
         await simulateQuickMouseMovements()
     }
 
     /// Adds random delay
-    func addRandomDelay() async {
+    public func addRandomDelay() async {
         await addQuickPause()
     }
 
@@ -4160,7 +4230,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
     // MARK: - NSWindowDelegate
 
-    func windowWillClose(_ notification: Notification) {
+    public func windowWillClose(_ notification: Notification) {
         guard let window = notification.object as? NSWindow, window === debugWindow else {
             return
         }
@@ -4199,7 +4269,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
     /// Fills form fields using browser autofill behavior instead of human typing
     /// This mimics how browsers fill forms when users click autofill suggestions
-    func fillFieldWithAutofill(selector: String, value: String) async -> Bool {
+    public func fillFieldWithAutofill(selector: String, value: String) async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
             return false
@@ -4265,7 +4335,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     /// Fills phone number using browser autofill behavior
-    func fillPhoneNumberWithAutofill(_ phoneNumber: String) async -> Bool {
+    public func fillPhoneNumberWithAutofill(_ phoneNumber: String) async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
             return false
@@ -4343,7 +4413,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     /// Fills email using browser autofill behavior
-    func fillEmailWithAutofill(_ email: String) async -> Bool {
+    public func fillEmailWithAutofill(_ email: String) async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
             return false
@@ -4417,7 +4487,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     /// Fills name using browser autofill behavior
-    func fillNameWithAutofill(_ name: String) async -> Bool {
+    public func fillNameWithAutofill(_ name: String) async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
             return false
@@ -4494,7 +4564,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
     /// Fills all contact fields simultaneously with browser autofill behavior
     /// and then simulates human-like movements before clicking confirm
-    func fillAllContactFieldsWithAutofillAndHumanMovements(
+    public func fillAllContactFieldsWithAutofillAndHumanMovements(
         phoneNumber: String,
         email: String,
         name: String,
@@ -4678,7 +4748,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
     }
 
     /// Simulates enhanced human-like movements specifically before clicking confirm button
-    func simulateEnhancedHumanMovementsBeforeConfirm() async {
+    public func simulateEnhancedHumanMovementsBeforeConfirm() async {
         guard let webView else { return }
 
         logger.info("🛡️ Simulating enhanced human-like movements before clicking confirm button")
@@ -4780,7 +4850,7 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
      Loads the given URL in the WKWebView.
      - Parameter url: The URL to load.
      */
-    func load(url _: URL) {
+    public func load(url _: URL) {
         // ... existing code ...
     }
 
@@ -4789,14 +4859,14 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
      - Parameter script: The JavaScript string to execute.
      - Parameter completion: Completion handler with result or error.
      */
-    func executeJavaScript(_: String, completion _: @escaping (Result<Any?, Error>) -> Void) {
+    public func executeJavaScript(_: String, completion _: @escaping (Result<Any?, Error>) -> Void) {
         // ... existing code ...
     }
 
     /**
      Cleans up the WKWebView and releases resources.
      */
-    func cleanup() {
+    public func cleanup() {
         logger.info("🧹 WebKitService cleanup called.")
         // ... existing code ...
     }
@@ -4804,14 +4874,14 @@ class WebKitService: NSObject, ObservableObject, @preconcurrency WebAutomationSe
 
 // MARK: - Navigation Delegate
 
-class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
+public class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
     weak var delegate: WebKitService?
 
-    func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation!) {
+    public func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation!) {
         // Removed: delegate?.logger.info("[Navigation] Started loading: \(webView.url?.absoluteString ?? "unknown")")
     }
 
-    func webView(_ webView: WKWebView, didFinish _: WKNavigation!) {
+    public func webView(_ webView: WKWebView, didFinish _: WKNavigation!) {
         delegate?.currentURL = webView.url?.absoluteString
         delegate?.pageTitle = webView.title
 
@@ -4824,7 +4894,7 @@ class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
         }
     }
 
-    func webView(_: WKWebView, didFail _: WKNavigation!, withError _: Error) {
+    public func webView(_: WKWebView, didFail _: WKNavigation!, withError _: Error) {
         // Removed: delegate?.logger.error("[Navigation] Failed: \(error.localizedDescription)")
 
         // Notify any waiting navigation completions
@@ -4836,11 +4906,11 @@ class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
         }
     }
 
-    func webView(_: WKWebView, didFailProvisionalNavigation _: WKNavigation!, withError _: Error) {
+    public func webView(_: WKWebView, didFailProvisionalNavigation _: WKNavigation!, withError _: Error) {
         // Removed: delegate?.logger.error("[Navigation] Provisional navigation failed: \(error.localizedDescription)")
     }
 
-    func webView(
+    public func webView(
         _: WKWebView,
         decidePolicyFor _: WKNavigationAction,
         decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void,
@@ -4852,10 +4922,10 @@ class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
 
 // MARK: - Script Message Handler
 
-class WebKitScriptMessageHandler: NSObject, WKScriptMessageHandler {
+public class WebKitScriptMessageHandler: NSObject, WKScriptMessageHandler {
     weak var delegate: WebKitService?
 
-    func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
+    public func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "odysseyHandler" {
             if let body = message.body as? [String: Any], let type = body["type"] as? String {
                 switch type {
@@ -5020,5 +5090,12 @@ class WebKitElement: @preconcurrency WebElementProtocol {
         """
 
         return try await service.executeScriptInternal(script)?.value as? Bool ?? false
+    }
+}
+
+// Register the singleton for DI
+extension WebKitService {
+    static func registerForDI() {
+        ServiceRegistry.shared.register(WebKitService.shared, for: WebKitServiceProtocol.self)
     }
 }

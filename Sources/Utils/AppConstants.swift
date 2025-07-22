@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Application Constants
 
 /// Centralized constants for the ODYSSEY application
-enum AppConstants {
+public enum AppConstants {
     // MARK: - Application Info
 
     static let appName = "ODYSSEY"
@@ -85,8 +85,8 @@ enum AppConstants {
 
     // MARK: - URLs
 
-    static let ottawaFacilitiesURL = "https://ottawa.ca/en/recreation-and-parks/recreation-facilities"
-    static let gmailAppPasswordURL = "https://support.google.com/accounts/answer/185833"
+    public static let ottawaFacilitiesURL = "https://ottawa.ca/en/recreation-and-parks/facilities"
+    public static let gmailAppPasswordURL = "https://support.google.com/accounts/answer/185833"
     static let githubURL = "https://github.com/Amet13/ODYSSEY"
 
     // MARK: - UserDefaults Keys

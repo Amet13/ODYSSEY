@@ -6,10 +6,10 @@ import os.log
 /// Provides centralized access to user information including contact details,
 /// email settings, and optional Telegram integration settings.
 @MainActor
-class UserSettingsManager: ObservableObject {
-    static let shared = UserSettingsManager()
+public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
+    public static let shared = UserSettingsManager()
 
-    @Published var userSettings: UserSettings {
+    @Published public var userSettings: UserSettings {
         didSet {
             saveSettings()
         }
@@ -30,11 +30,23 @@ class UserSettingsManager: ObservableObject {
         let appPassword: String
     }
 
-    private let userDefaults = UserDefaults.standard
-    private let settingsKey = "ODYSSEY_UserSettings"
-    private let logger = Logger(subsystem: "com.odyssey.app", category: "UserSettingsManager")
+    private let userDefaults: UserDefaults
+    private let settingsKey: String
+    private let logger: Logger
 
-    private init() {
+    /// Main initializer supporting dependency injection for logger and userDefaults.
+    /// - Parameters:
+    ///   - logger: Logger instance (default: ODYSSEY UserSettingsManager logger)
+    ///   - userDefaults: UserDefaults instance (default: .standard)
+    ///   - settingsKey: Key for storing user settings (default: "ODYSSEY_UserSettings")
+    public init(
+        logger: Logger = Logger(subsystem: "com.odyssey.app", category: "UserSettingsManager"),
+        userDefaults: UserDefaults = .standard,
+        settingsKey: String = "ODYSSEY_UserSettings"
+    ) {
+        self.logger = logger
+        self.userDefaults = userDefaults
+        self.settingsKey = settingsKey
         // Load saved settings or use defaults
         if let data = userDefaults.data(forKey: settingsKey) {
             if let savedSettings = try? JSONDecoder().decode(UserSettings.self, from: data) {
@@ -47,28 +59,41 @@ class UserSettingsManager: ObservableObject {
         }
     }
 
+    // Keep the default singleton for app use
+    private convenience init() {
+        self.init(
+            logger: Logger(subsystem: "com.odyssey.app", category: "UserSettingsManager"),
+            userDefaults: .standard,
+            settingsKey: "ODYSSEY_UserSettings",
+            )
+    }
+
     // MARK: - Public Methods
 
     /// Updates user settings
     /// - Parameter settings: The new user settings
-    func updateSettings(_ settings: UserSettings) {
+    public func updateSettings(_ settings: UserSettings) {
         userSettings = settings
+        storeCredentialsInKeychain()
+        // Remove password from UserDefaults after storing in Keychain
+        userSettings.imapPassword = ""
+        saveSettings()
     }
 
     /// Resets user settings to defaults
-    func resetToDefaults() {
+    public func resetToDefaults() {
         userSettings = UserSettings()
     }
 
     /// Checks if user settings are valid for automation
     /// - Returns: True if all required fields are filled
-    func isSettingsValid() -> Bool {
+    public func isSettingsValid() -> Bool {
         userSettings.isValid
     }
 
     /// Gets formatted user information for display
     /// - Returns: Dictionary with user information
-    func getUserInfo() -> [String: String] {
+    public func getUserInfo() -> [String: String] {
         [
             "name": userSettings.name,
             "phone": userSettings.getFormattedPhoneNumber(),
@@ -79,15 +104,15 @@ class UserSettingsManager: ObservableObject {
 
     // MARK: - Last Successful Config Management
 
-    func saveLastSuccessfulIMAPConfig(email: String, password: String, server: String) {
+    public func saveLastSuccessfulIMAPConfig(email: String, password: String, server: String) {
         lastSuccessfulIMAPConfig = IMAPConfig(email: email, password: password, server: server)
     }
 
-    func saveLastSuccessfulGmailConfig(email: String, appPassword: String) {
+    public func saveLastSuccessfulGmailConfig(email: String, appPassword: String) {
         lastSuccessfulGmailConfig = GmailConfig(email: email, appPassword: appPassword)
     }
 
-    func restoreIMAPConfigIfAvailable() {
+    public func restoreIMAPConfigIfAvailable() {
         if let config = lastSuccessfulIMAPConfig {
             userSettings.imapEmail = config.email
             userSettings.imapPassword = config.password
@@ -95,16 +120,37 @@ class UserSettingsManager: ObservableObject {
         }
     }
 
-    func restoreGmailConfigIfAvailable() {
+    public func restoreGmailConfigIfAvailable() {
         if let config = lastSuccessfulGmailConfig {
             userSettings.imapEmail = config.email
             userSettings.imapPassword = config.appPassword
         }
     }
 
+    // MARK: - Keychain Credential Management
+
+    /// Stores email credentials in KeychainService
+    public func storeCredentialsInKeychain() {
+        let email = userSettings.imapEmail
+        let password = userSettings.imapPassword
+        let server = userSettings.imapServer
+        let port = 993 // Default IMAP port; adjust if needed
+        guard !email.isEmpty, !password.isEmpty, !server.isEmpty else { return }
+        _ = KeychainService.shared.storeEmailCredentials(email: email, password: password, server: server, port: port)
+    }
+
+    /// Removes email credentials from KeychainService
+    public func clearCredentialsFromKeychain() {
+        let email = userSettings.imapEmail
+        let server = userSettings.imapServer
+        let port = 993
+        guard !email.isEmpty, !server.isEmpty else { return }
+        _ = KeychainService.shared.deleteEmailCredentials(email: email, server: server, port: port)
+    }
+
     // MARK: - Private Methods
 
-    private func saveSettings() {
+    public func saveSettings() {
         do {
             let data = try JSONEncoder().encode(userSettings)
             userDefaults.set(data, forKey: settingsKey)

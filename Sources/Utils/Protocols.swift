@@ -3,138 +3,386 @@ import Foundation
 import os.log
 import WebKit
 
-// MARK: - Web Automation Protocol
+@MainActor
+public final class ServiceRegistry {
+    public static let shared = ServiceRegistry()
+    private var services: [String: Any] = [:]
+    private init() { }
+    public func register<T>(_ service: T, for type: T.Type) {
+        services[String(describing: type)] = service
+    }
 
-// Note: WebAutomationServiceProtocol is already defined in WebDriverProtocols.swift
+    public func resolve<T>(_ type: T.Type) -> T {
+        guard let service = services[String(describing: type)] as? T else {
+            fatalError("No service registered for type: \(type)")
+        }
+        return service
+    }
+}
 
-// MARK: - Email Service Protocol
+// MARK: - WebKitService Protocol
 
-/// Protocol defining the interface for email services
-protocol EmailServiceProtocol: AnyObject {
-    func testConnection(email: String, password: String, server: String) async -> EmailService.TestResult
-    func extractVerificationCode() async -> String?
-    func fetchVerificationCodesForToday(since: Date) async -> [String]
-    func sendSuccessNotification(for config: ReservationConfig) async
+@MainActor
+@preconcurrency
+public protocol WebKitServiceProtocol: AnyObject {
+    var isConnected: Bool { get }
+    var isRunning: Bool { get }
+    var currentURL: String? { get }
+    var pageTitle: String? { get }
+    func connect() async throws
+    func disconnect(closeWindow: Bool) async
+    func navigateToURL(_ url: String) async throws
+    // --- Extended API for ODYSSEY automation ---
+    func forceReset() async
+    func isServiceValid() -> Bool
+    func reset() async
+    var onWindowClosed: ((ReservationRunType) -> Void)? { get set }
+    var currentConfig: ReservationConfig? { get set }
+    func waitForDOMReady() async -> Bool
+    func findAndClickElement(withText text: String) async -> Bool
+    func waitForGroupSizePage() async -> Bool
+    func fillNumberOfPeople(_ number: Int) async -> Bool
+    func clickConfirmButton() async -> Bool
+    func selectTimeSlot(dayName: String, timeString: String) async -> Bool
+    func waitForContactInfoPage() async -> Bool
+    func fillAllContactFieldsWithAutofillAndHumanMovements(phoneNumber: String, email: String, name: String) async
+    -> Bool
+    func addQuickPause() async
+    func clickContactInfoConfirmButtonWithRetry() async -> Bool
+    func detectRetryText() async -> Bool
+    func isEmailVerificationRequired() async -> Bool
+    func handleEmailVerification(verificationStart: Date) async -> Bool
+}
+
+// MARK: - EmailService Protocol
+
+@MainActor
+public protocol EmailServiceProtocol: AnyObject {
+    var isTesting: Bool { get }
+    var lastTestResult: EmailService.TestResult? { get }
+    var userFacingError: String? { get }
+    // ... add other methods as needed ...
+}
+
+// MARK: - KeychainService Protocol
+
+@MainActor
+public protocol KeychainServiceProtocol: AnyObject {
+    func savePassword(_ password: String, for account: String) throws
+    func getPassword(for account: String) throws -> String?
+    func deletePassword(for account: String) throws
+    // ... add other methods as needed ...
 }
 
 // MARK: - Configuration Management Protocol
 
-/// Protocol defining the interface for configuration management
+/**
+ * Protocol defining the interface for configuration management.
+ *
+ * Example:
+ * ```swift
+ * class MyConfigManager: ConfigurationManagerProtocol {
+ *   var configurations: [ReservationConfig] = []
+ *   func addConfiguration(_ config: ReservationConfig) { ... }
+ *   func updateConfiguration(_ config: ReservationConfig) { ... }
+ *   func deleteConfiguration(with id: UUID) { ... }
+ *   func saveConfigurations() { ... }
+ *   func loadConfigurations() { ... }
+ * }
+ * ```
+ */
 protocol ConfigurationManagerProtocol: AnyObject {
+    /// The list of reservation configurations.
     var configurations: [ReservationConfig] { get }
-
+    /// Adds a new configuration.
     func addConfiguration(_ config: ReservationConfig)
+    /// Updates an existing configuration.
     func updateConfiguration(_ config: ReservationConfig)
+    /// Deletes a configuration by its UUID.
     func deleteConfiguration(with id: UUID)
+    /// Persists all configurations.
     func saveConfigurations()
+    /// Loads configurations from storage.
     func loadConfigurations()
 }
 
 // MARK: - User Settings Management Protocol
 
-/// Protocol defining the interface for user settings management
+/**
+ * Protocol defining the interface for user settings management.
+ *
+ * Example:
+ * ```swift
+ * class MyUserSettingsManager: UserSettingsManagerProtocol {
+ *   var userSettings: UserSettings = ...
+ *   func updateSettings(_ settings: UserSettings) { ... }
+ *   func saveSettings() { ... }
+ *   func loadSettings() { ... }
+ *   func validateSettings() -> Bool { ... }
+ * }
+ * ```
+ */
 protocol UserSettingsManagerProtocol: AnyObject {
+    /// The current user settings.
     var userSettings: UserSettings { get }
-
+    /// Updates the user settings.
     func updateSettings(_ settings: UserSettings)
+    /// Persists the user settings.
     func saveSettings()
+    /// Loads user settings from storage.
     func loadSettings()
+    /// Validates the current user settings.
+    /// @return True if valid, false otherwise.
     func validateSettings() -> Bool
 }
 
 // MARK: - Reservation Management Protocol
 
-/// Protocol defining the interface for reservation management
+/**
+ * Protocol defining the interface for reservation management.
+ *
+ * Example:
+ * ```swift
+ * class MyOrchestrator: ReservationOrchestratorProtocol {
+ *   var lastRunStatus: ReservationOrchestrator.RunStatus = .idle
+ *   func runReservation(for config: ReservationConfig, type: ReservationOrchestrator.RunType) async { ... }
+ *   func stopReservation() async { ... }
+ *   func emergencyCleanup(runType: ReservationOrchestrator.RunType) async { ... }
+ * }
+ * ```
+ */
 protocol ReservationOrchestratorProtocol: AnyObject {
-    var lastRunStatus: ReservationOrchestrator.RunStatus { get }
-    func runReservation(for config: ReservationConfig, type: ReservationOrchestrator.RunType) async
+    /// The last run status of the orchestrator.
+    var lastRunStatus: ReservationRunStatus { get }
+    /// Runs a reservation for the given configuration and type.
+    func runReservation(for config: ReservationConfig, type: ReservationRunType) async
+    /// Stops the current reservation.
     func stopReservation() async
-    func emergencyCleanup(runType: ReservationOrchestrator.RunType) async
+    /// Performs emergency cleanup for a given run type.
+    func emergencyCleanup(runType: ReservationRunType) async
 }
 
 // MARK: - Facility Service Protocol
 
-/// Protocol defining the interface for facility services
-protocol FacilityServiceProtocol: AnyObject {
+/**
+ * Protocol defining the interface for facility services.
+ *
+ * Example:
+ * ```swift
+ * class MyFacilityService: FacilityServiceProtocol {
+ *   var isLoading: Bool = false
+ *   var availableSports: [String] = []
+ *   var error: String? = nil
+ *   func fetchAvailableSports(from url: String, completion: @escaping ([String]) -> Void) { ... }
+ * }
+ * ```
+ */
+@MainActor
+public protocol FacilityServiceProtocol: AnyObject {
+    /// Indicates if the service is currently loading data.
     var isLoading: Bool { get }
+    /// The list of available sports.
     var availableSports: [String] { get }
+    /// The last error message, if any.
     var error: String? { get }
-
+    /// Fetches available sports from the given facility URL.
+    /// @param url The facility URL.
+    /// @param completion Callback with the detected sports array.
     func fetchAvailableSports(from url: String, completion: @escaping ([String]) -> Void)
 }
 
 // MARK: - Status Bar Controller Protocol
 
-/// Protocol defining the interface for status bar controllers
+/**
+ * Protocol defining the interface for status bar controllers.
+ *
+ * Example:
+ * ```swift
+ * class MyStatusBarController: StatusBarControllerProtocol {
+ *   func showPopover() { ... }
+ *   func hidePopover() { ... }
+ *   func updateStatus(_ status: String) { ... }
+ *   func showError(_ error: String) { ... }
+ * }
+ * ```
+ */
 protocol StatusBarControllerProtocol: AnyObject {
+    /// Shows the popover UI.
     func showPopover()
+    /// Hides the popover UI.
     func hidePopover()
+    /// Updates the status text in the UI.
     func updateStatus(_ status: String)
+    /// Shows an error message in the UI.
     func showError(_ error: String)
 }
 
 // MARK: - Logging Protocol
 
-/// Protocol defining the interface for logging services
+/**
+ * Protocol defining the interface for logging services.
+ *
+ * Example:
+ * ```swift
+ * class MyLogger: LoggingServiceProtocol {
+ *   func info(_ message: String) { ... }
+ *   func error(_ message: String) { ... }
+ *   func warning(_ message: String) { ... }
+ *   func debug(_ message: String) { ... }
+ * }
+ * ```
+ */
 protocol LoggingServiceProtocol {
+    /// Logs an informational message.
     func info(_ message: String)
+    /// Logs an error message.
     func error(_ message: String)
+    /// Logs a warning message.
     func warning(_ message: String)
+    /// Logs a debug message.
     func debug(_ message: String)
 }
 
 // MARK: - Validation Protocol
 
-/// Protocol defining the interface for validation services
+/**
+ * Protocol defining the interface for validation services.
+ *
+ * Example:
+ * ```swift
+ * class MyValidationService: ValidationServiceProtocol {
+ *   func validateEmail(_ email: String) -> Bool { ... }
+ *   func validatePhoneNumber(_ phone: String) -> Bool { ... }
+ *   func validateGmailAppPassword(_ password: String) -> Bool { ... }
+ *   func validateFacilityURL(_ url: String) -> Bool { ... }
+ * }
+ * ```
+ */
 protocol ValidationServiceProtocol {
+    /// Validates an email address.
     func validateEmail(_ email: String) -> Bool
+    /// Validates a phone number.
     func validatePhoneNumber(_ phone: String) -> Bool
+    /// Validates a Gmail app password.
     func validateGmailAppPassword(_ password: String) -> Bool
+    /// Validates a facility URL.
     func validateFacilityURL(_ url: String) -> Bool
 }
 
 // MARK: - Storage Protocol
 
-/// Protocol defining the interface for data storage services
+/**
+ * Protocol defining the interface for data storage services.
+ *
+ * Example:
+ * ```swift
+ * class MyStorageService: StorageServiceProtocol {
+ *   func save(_ object: some Encodable, forKey key: String) throws { ... }
+ *   func load<T: Decodable>(_ type: T.Type, forKey key: String) throws -> T? { ... }
+ *   func delete(forKey key: String) { ... }
+ *   func clearAll() { ... }
+ * }
+ * ```
+ */
 protocol StorageServiceProtocol {
+    /// Saves an encodable object for a given key.
     func save(_ object: some Encodable, forKey key: String) throws
+    /// Loads a decodable object for a given key.
     func load<T: Decodable>(_ type: T.Type, forKey key: String) throws -> T?
+    /// Deletes the object for a given key.
     func delete(forKey key: String)
+    /// Clears all stored data.
     func clearAll()
 }
 
 // MARK: - Network Service Protocol
 
-/// Protocol defining the interface for network services
+/**
+ * Protocol defining the interface for network services.
+ *
+ * Example:
+ * ```swift
+ * class MyNetworkService: NetworkServiceProtocol {
+ *   func makeRequest(to url: URL, method: String, headers: [String: String]?) async throws -> Data { ... }
+ *   func testConnection(to host: String, port: UInt16) async -> Bool { ... }
+ * }
+ * ```
+ */
 protocol NetworkServiceProtocol {
+    /// Makes a network request to the given URL.
     func makeRequest(to url: URL, method: String, headers: [String: String]?) async throws -> Data
+    /// Tests the connection to a host and port.
     func testConnection(to host: String, port: UInt16) async -> Bool
 }
 
 // MARK: - Timer Service Protocol
 
-/// Protocol defining the interface for timer services
+/**
+ * Protocol defining the interface for timer services.
+ *
+ * Example:
+ * ```swift
+ * class MyTimerService: TimerServiceProtocol {
+ *   func scheduleTimer(interval: TimeInterval, repeats: Bool, block: @escaping () -> Void) -> Timer { ... }
+ *   func invalidateTimer(_ timer: Timer) { ... }
+ *   func scheduleRepeatingTask(interval: TimeInterval, task: @escaping () async -> Void) { ... }
+ * }
+ * ```
+ */
 protocol TimerServiceProtocol {
+    /// Schedules a timer with the given interval and block.
     func scheduleTimer(interval: TimeInterval, repeats: Bool, block: @escaping () -> Void) -> Timer
+    /// Invalidates the given timer.
     func invalidateTimer(_ timer: Timer)
+    /// Schedules a repeating async task.
     func scheduleRepeatingTask(interval: TimeInterval, task: @escaping () async -> Void)
 }
 
 // MARK: - Error Handling Protocol
 
-/// Protocol defining the interface for error handling services
+/**
+ * Protocol defining the interface for error handling services.
+ *
+ * Example:
+ * ```swift
+ * class MyErrorHandler: ErrorHandlingServiceProtocol {
+ *   func handleError(_ error: Error, context: String) { ... }
+ *   func logError(_ error: Error, withMessage message: String) { ... }
+ *   func showUserFriendlyError(_ error: Error) { ... }
+ * }
+ * ```
+ */
 protocol ErrorHandlingServiceProtocol {
+    /// Handles an error with context.
     func handleError(_ error: Error, context: String)
+    /// Logs an error with a custom message.
     func logError(_ error: Error, withMessage message: String)
+    /// Shows a user-friendly error message.
     func showUserFriendlyError(_ error: Error)
 }
 
 // MARK: - Performance Monitoring Protocol
 
-/// Protocol defining the interface for performance monitoring
+/**
+ * Protocol defining the interface for performance monitoring.
+ *
+ * Example:
+ * ```swift
+ * class MyPerformanceMonitor: PerformanceMonitoringProtocol {
+ *   func startTimer(for operation: String) { ... }
+ *   func endTimer(for operation: String) -> TimeInterval { ... }
+ *   func logPerformance(operation: String, duration: TimeInterval) { ... }
+ *   func getAverageTime(for operation: String) -> TimeInterval? { ... }
+ * }
+ * ```
+ */
 protocol PerformanceMonitoringProtocol {
+    /// Starts a timer for the given operation.
     func startTimer(for operation: String)
+    /// Ends the timer and returns the duration.
     func endTimer(for operation: String) -> TimeInterval
+    /// Logs the performance of an operation.
     func logPerformance(operation: String, duration: TimeInterval)
+    /// Gets the average time for an operation.
     func getAverageTime(for operation: String) -> TimeInterval?
 }

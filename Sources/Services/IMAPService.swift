@@ -43,8 +43,16 @@ extension EmailCore {
     ///   - password: Email password
     ///   - server: IMAP server
     /// - Returns: TestResult indicating success or failure
-    func testIMAPConnection(email: String, password: String, server: String) async -> TestResult {
+    func testIMAPConnection(email: String, password _: String, server _: String) async -> TestResult {
         logger.info("🧪 Testing IMAP connection for \(email, privacy: .private)")
+
+        // Always retrieve credentials from Keychain
+        guard let creds = getCredentialsFromKeychain() else {
+            return .failure("Credentials not found in Keychain")
+        }
+        let email = creds.email
+        let password = creds.password
+        let server = creds.server
 
         // Rate limiting: prevent too many connection attempts
         if let lastAttempt = Self.lastConnectionTimestamp {
@@ -258,5 +266,23 @@ extension EmailCore {
         // In a real implementation, this would connect to IMAP and fetch actual emails
         logger.error("❌ No verification codes found in mailbox. Returning empty array.")
         return []
+    }
+
+    // MARK: - Keychain Credential Helper
+
+    /// Retrieves email credentials from KeychainService
+    /// - Returns: (email, password, server, port) tuple if found, else nil
+    private func getCredentialsFromKeychain() -> (email: String, password: String, server: String, port: Int)? {
+        let settings = userSettingsManager.userSettings
+        let email = settings.imapEmail
+        let server = settings.imapServer
+        let port = 993 // Default IMAP port; adjust if needed
+        guard !email.isEmpty, !server.isEmpty else { return nil }
+        guard let password = KeychainService.shared.retrieveEmailPassword(email: email, server: server, port: port)
+        else {
+            logger.error("❌ No password found in Keychain for email: \(email)")
+            return nil
+        }
+        return (email, password, server, port)
     }
 }

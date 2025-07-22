@@ -1,5 +1,4 @@
-// The debug window is essential for development, troubleshooting, and user support. It must never be deleted or removed
-// from the application.
+// The debug window is essential for development, troubleshooting, and user support.
 import AppKit
 import os.log
 import WebKit

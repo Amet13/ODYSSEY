@@ -1,5 +1,3 @@
-// The debug window is essential for development, troubleshooting, and user support. It must never be deleted or removed
-// from the application.
 import AppKit
 import Combine
 import Foundation
@@ -49,7 +47,7 @@ class WebKitCore: NSObject, ObservableObject {
     var elementCompletions: [String: @Sendable (String?) -> Void] = [:]
 
     // Callback for window closure
-    var onWindowClosed: ((ReservationOrchestrator.RunType) -> Void)?
+    var onWindowClosed: ((ReservationRunType) -> Void)?
 
     // MARK: - Initialization
 
@@ -201,6 +199,6 @@ class WebKitCore: NSObject, ObservableObject {
 extension WebKitCore: NSWindowDelegate {
     func windowWillClose(_: Notification) {
         logger.info("🪟 Debug window closing - notifying callback.")
-        onWindowClosed?(ReservationOrchestrator.RunType.godmode)
+        onWindowClosed?(ReservationRunType.godmode)
     }
 }

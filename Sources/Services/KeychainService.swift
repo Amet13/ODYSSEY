@@ -5,8 +5,8 @@ import Security
 /// Secure credential storage service using Keychain Services
 /// Provides secure storage and retrieval of sensitive data like email credentials
 @MainActor
-class KeychainService {
-    static let shared = KeychainService()
+public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol {
+    public static let shared = KeychainService()
 
     private let logger = Logger(subsystem: "com.odyssey.app", category: "KeychainService")
 
@@ -21,7 +21,7 @@ class KeychainService {
     ///   - server: IMAP server address
     ///   - port: IMAP server port
     /// - Returns: Success status
-    func storeEmailCredentials(email: String, password: String, server: String, port: Int) -> Bool {
+    public func storeEmailCredentials(email: String, password: String, server: String, port: Int) -> Bool {
         let query: [String: Any] = [
             kSecClass as String: kSecClassInternetPassword,
             kSecAttrAccount as String: email,
@@ -51,7 +51,7 @@ class KeychainService {
     ///   - server: IMAP server address
     ///   - port: IMAP server port
     /// - Returns: Email password if found
-    func retrieveEmailPassword(email: String, server: String, port: Int) -> String? {
+    public func retrieveEmailPassword(email: String, server: String, port: Int) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassInternetPassword,
             kSecAttrAccount as String: email,
@@ -82,7 +82,7 @@ class KeychainService {
     ///   - server: IMAP server address
     ///   - port: IMAP server port
     /// - Returns: Success status
-    func deleteEmailCredentials(email: String, server: String, port: Int) -> Bool {
+    public func deleteEmailCredentials(email: String, server: String, port: Int) -> Bool {
         let query: [String: Any] = [
             kSecClass as String: kSecClassInternetPassword,
             kSecAttrAccount as String: email,
@@ -107,7 +107,7 @@ class KeychainService {
     ///   - server: IMAP server address
     ///   - port: IMAP server port
     /// - Returns: True if credentials exist
-    func hasEmailCredentials(email: String, server: String, port: Int) -> Bool {
+    public func hasEmailCredentials(email: String, server: String, port: Int) -> Bool {
         let query: [String: Any] = [
             kSecClass as String: kSecClassInternetPassword,
             kSecAttrAccount as String: email,
@@ -129,7 +129,7 @@ class KeychainService {
     ///   - key: Unique key for the value
     ///   - service: Service identifier
     /// - Returns: Success status
-    func storeValue(_ value: String, forKey key: String, service: String) -> Bool {
+    public func storeValue(_ value: String, forKey key: String, service: String) -> Bool {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
@@ -157,7 +157,7 @@ class KeychainService {
     ///   - key: Unique key for the value
     ///   - service: Service identifier
     /// - Returns: Stored value if found
-    func retrieveValue(forKey key: String, service: String) -> String? {
+    public func retrieveValue(forKey key: String, service: String) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
@@ -186,7 +186,7 @@ class KeychainService {
     ///   - key: Unique key for the value
     ///   - service: Service identifier
     /// - Returns: Success status
-    func deleteValue(forKey key: String, service: String) -> Bool {
+    public func deleteValue(forKey key: String, service: String) -> Bool {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
@@ -234,7 +234,7 @@ class KeychainService {
 
     /// Clear all ODYSSEY-related items from Keychain
     /// - Returns: Success status
-    func clearAllOdysseyItems() -> Bool {
+    public func clearAllOdysseyItems() -> Bool {
         logger.info("🧹 Clearing all ODYSSEY items from Keychain.")
 
         // Clear generic passwords
@@ -263,5 +263,31 @@ class KeychainService {
             logger.error("❌ Failed to clear some ODYSSEY items from Keychain.")
             return false
         }
+    }
+
+    public func savePassword(_: String, for _: String) throws {
+        // Implement actual save logic or call existing method
+        // Example stub:
+        // try KeychainWrapper.save(password, for: account)
+    }
+
+    public func getPassword(for _: String) throws -> String? {
+        // Implement actual get logic or call existing method
+        // Example stub:
+        // return try KeychainWrapper.get(for: account)
+        return nil
+    }
+
+    public func deletePassword(for _: String) throws {
+        // Implement actual delete logic or call existing method
+        // Example stub:
+        // try KeychainWrapper.delete(for: account)
+    }
+}
+
+// Register the singleton for DI
+extension KeychainService {
+    static func registerForDI() {
+        ServiceRegistry.shared.register(KeychainService.shared, for: KeychainServiceProtocol.self)
     }
 }

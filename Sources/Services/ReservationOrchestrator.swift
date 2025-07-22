@@ -2,126 +2,170 @@ import Combine
 import Foundation
 import os.log
 
-/**
- ReservationOrchestrator is responsible for managing and coordinating reservation runs, including manual, automatic, and godmode runs. Handles orchestration, state, and completion tracking.
- */
-@MainActor
-class ReservationOrchestrator: ObservableObject {
-    static let shared = ReservationOrchestrator()
+// MARK: - Reservation Error (Top-level)
 
-    private let statusManager = ReservationStatusManager.shared
-    private let errorHandler = ReservationErrorHandler.shared
-    private let logger = Logger(subsystem: "com.odyssey.app", category: "ReservationOrchestrator")
-    private let webKitService = WebKitService.shared
-    private let configurationManager = ConfigurationManager.shared
+public enum ReservationError: Error, Codable, LocalizedError {
+    case network(String)
+    case facilityNotFound(String)
+    case slotUnavailable(String)
+    case automationFailed(String)
+    case unknown(String)
+    case pageLoadTimeout
+    case groupSizePageLoadTimeout
+    case numberOfPeopleFieldNotFound
+    case confirmButtonNotFound
+    case timeSlotSelectionFailed
+    case contactInfoPageLoadTimeout
+    case contactInfoFieldNotFound
+    case contactInfoConfirmButtonNotFound
+    case emailVerificationFailed
+    case sportButtonNotFound
+    case webKitTimeout
+
+    public var errorDescription: String? {
+        switch self {
+        case let .network(msg): return "Network error: \(msg)"
+        case let .facilityNotFound(msg): return "Facility not found: \(msg)"
+        case let .slotUnavailable(msg): return "Slot unavailable: \(msg)"
+        case let .automationFailed(msg): return "Automation failed: \(msg)"
+        case let .unknown(msg): return "Unknown error: \(msg)"
+        case .pageLoadTimeout: return "Page failed to load in time."
+        case .groupSizePageLoadTimeout: return "Group size page failed to load in time."
+        case .numberOfPeopleFieldNotFound: return "Number of people field not found."
+        case .confirmButtonNotFound: return "Confirm button not found."
+        case .timeSlotSelectionFailed: return "Failed to select time slot."
+        case .contactInfoPageLoadTimeout: return "Contact info page failed to load in time."
+        case .contactInfoFieldNotFound: return "Contact info field not found."
+        case .contactInfoConfirmButtonNotFound: return "Contact info confirm button not found."
+        case .emailVerificationFailed: return "Email verification failed."
+        case .sportButtonNotFound: return "Sport button not found."
+        case .webKitTimeout: return "WebKit operation timed out."
+        }
+    }
+}
+
+// MARK: - ReservationRunStatusCodable (Top-level)
+
+public struct ReservationRunStatusCodable: Codable, Equatable {
+    public let status: ReservationRunStatus
+    public let date: Date?
+    public let runType: ReservationRunType
+}
+
+// MARK: - Reservation Run Types and Status (Top-level)
+
+public enum ReservationRunType: String, Codable, Equatable, Sendable {
+    case manual
+    case automatic
+    case godmode
+    public var description: String {
+        switch self {
+        case .manual: return "(manual)"
+        case .automatic: return "(auto)"
+        case .godmode: return "(god mode)"
+        }
+    }
+}
+
+public enum ReservationRunStatus: Codable, Equatable, Sendable {
+    case idle
+    case running
+    case success
+    case failed(String)
+
+    public var description: String {
+        switch self {
+        case .idle: return "Idle"
+        case .running: return "Running"
+        case .success: return "Successful"
+        case let .failed(error): return "Failed: \(error)"
+        }
+    }
+
+    // Codable conformance
+    enum CodingKeys: String, CodingKey {
+        case idle, running, success, failed
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if container.contains(.idle) { self = .idle } else if container.contains(.running) { self = .running } else if container.contains(.success) { self = .success } else if container.contains(.failed) {
+            let error = try container.decode(String.self, forKey: .failed)
+            self = .failed(error)
+        } else {
+            throw DecodingError.dataCorrupted(.init(
+                codingPath: decoder.codingPath,
+                debugDescription: "Unknown ReservationRunStatus",
+                ))
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .idle: try container.encode(true, forKey: .idle)
+        case .running: try container.encode(true, forKey: .running)
+        case .success: try container.encode(true, forKey: .success)
+        case let .failed(error): try container.encode(error, forKey: .failed)
+        }
+    }
+
+    public static func == (lhs: ReservationRunStatus, rhs: ReservationRunStatus) -> Bool {
+        switch (lhs, rhs) {
+        case (.idle, .idle): return true
+        case (.running, .running): return true
+        case (.success, .success): return true
+        case let (.failed(lhsError), .failed(rhsError)): return lhsError == rhsError
+        default: return false
+        }
+    }
+}
+
+@MainActor
+public final class ReservationOrchestrator: ObservableObject, @unchecked Sendable {
+    public static let shared = ReservationOrchestrator()
+    public var lastRunStatus: ReservationRunStatus { statusManager.lastRunStatus }
+
+    private let statusManager: ReservationStatusManager
+    private let errorHandler: ReservationErrorHandler
+    private let logger: Logger
+    private let webKitService: WebKitServiceProtocol
+    private let configurationManager: ConfigurationManager
     private var currentConfig: ReservationConfig?
 
-    enum RunStatus: Equatable {
-        case idle
-        case running
-        case success
-        case failed(String)
-        var description: String {
-            switch self {
-            case .idle: "Idle"
-            case .running: "Running"
-            case .success: "Successful"
-            case let .failed(error): "Failed: \(error)"
-            }
-        }
+    /// User-facing error message to be displayed in the UI.
+    @Published public var userError: String?
 
-        static func == (lhs: RunStatus, rhs: RunStatus) -> Bool {
-            switch (lhs, rhs) {
-            case (.idle, .idle): return true
-            case (.running, .running): return true
-            case (.success, .success): return true
-            case let (.failed(lhsError), .failed(rhsError)): return lhsError == rhsError
-            default: return false
-            }
-        }
+    /// Main initializer supporting dependency injection for all major dependencies.
+    /// - Parameters:
+    ///   - statusManager: ReservationStatusManager instance (default: .shared)
+    ///   - errorHandler: ReservationErrorHandler instance (default: .shared)
+    ///   - logger: Logger instance (default: ODYSSEY ReservationOrchestrator logger)
+    ///   - webKitService: WebKitServiceProtocol instance (default: ServiceRegistry)
+    ///   - configurationManager: ConfigurationManager instance (default: .shared)
+    public init(
+        statusManager: ReservationStatusManager = ReservationStatusManager.shared,
+        errorHandler: ReservationErrorHandler = ReservationErrorHandler.shared,
+        logger: Logger = Logger(subsystem: "com.odyssey.app", category: "ReservationOrchestrator"),
+        webKitService: WebKitServiceProtocol = ServiceRegistry.shared.resolve(WebKitServiceProtocol.self),
+        configurationManager: ConfigurationManager = ConfigurationManager.shared
+    ) {
+        self.statusManager = statusManager
+        self.errorHandler = errorHandler
+        self.logger = logger
+        self.webKitService = webKitService
+        self.configurationManager = configurationManager
     }
 
-    enum RunType: Codable {
-        case manual
-        case automatic
-        case godmode
-        var description: String {
-            switch self {
-            case .manual: "(manual)"
-            case .automatic: "(auto)"
-            case .godmode: "(god mode)"
-            }
-        }
-    }
-
-    enum ReservationError: Error, LocalizedError {
-        case webDriverNotInitialized
-        case navigationFailed
-        case sportButtonNotFound
-        case pageLoadTimeout
-        case groupSizePageLoadTimeout
-        case numberOfPeopleFieldNotFound
-        case confirmButtonNotFound
-        case timeSelectionPageLoadTimeout
-        case timeSlotSelectionFailed
-        case contactInfoPageLoadTimeout
-        case phoneNumberFieldNotFound
-        case emailFieldNotFound
-        case nameFieldNotFound
-        case contactInfoFieldNotFound
-        case contactInfoConfirmButtonNotFound
-        case emailVerificationFailed
-        case reservationFailed
-        case webKitCrash
-        case webKitTimeout
-        var errorDescription: String? {
-            switch self {
-            case .webDriverNotInitialized: "WebDriver not initialized"
-            case .navigationFailed: "Failed to navigate to reservation page"
-            case .sportButtonNotFound: "Sport button not found on page"
-            case .pageLoadTimeout: "Page failed to load completely within timeout"
-            case .groupSizePageLoadTimeout: "Group size page failed to load within timeout"
-            case .numberOfPeopleFieldNotFound: "Number of people field not found on page"
-            case .confirmButtonNotFound: "Confirm button not found on page"
-            case .timeSelectionPageLoadTimeout: "Time selection page failed to load within timeout"
-            case .timeSlotSelectionFailed: "Failed to select time slot"
-            case .contactInfoPageLoadTimeout: "Contact information page failed to load within timeout"
-            case .phoneNumberFieldNotFound: "Phone number field not found on page"
-            case .emailFieldNotFound: "Email field not found on page"
-            case .nameFieldNotFound: "Name field not found on page"
-            case .contactInfoFieldNotFound: "Contact information fields not found on page"
-            case .contactInfoConfirmButtonNotFound: "Contact information confirm button not found on page"
-            case .emailVerificationFailed: "Email verification failed"
-            case .reservationFailed: "Reservation was not successful"
-            case .webKitCrash: "WebKit process crashed"
-            case .webKitTimeout: "WebKit operation timed out"
-            }
-        }
-    }
-
-    enum RunStatusCodable: String, Codable {
-        case idle, running, success, failed
-        var toRunStatus: RunStatus {
-            switch self {
-            case .idle: .idle
-            case .running: .running
-            case .success: .success
-            case .failed: .failed("") // error string not persisted
-            }
-        }
-
-        static func from(_ status: RunStatus) -> RunStatusCodable {
-            switch status {
-            case .idle: .idle
-            case .running: .running
-            case .success: .success
-            case .failed: .failed
-            }
-        }
-    }
-
-    init() {
-        logger.info("🔧 ReservationOrchestrator initialized.")
+    // Keep the default singleton for app use
+    convenience init() {
+        self.init(
+            statusManager: ReservationStatusManager.shared,
+            errorHandler: ReservationErrorHandler.shared,
+            logger: Logger(subsystem: "com.odyssey.app", category: "ReservationOrchestrator"),
+            webKitService: ServiceRegistry.shared.resolve(WebKitServiceProtocol.self),
+            configurationManager: ConfigurationManager.shared,
+            )
     }
 
     deinit {
@@ -136,19 +180,22 @@ class ReservationOrchestrator: ObservableObject {
      - config: The reservation configuration to run.
      - runType: The type of run (manual, automatic, godmode).
      */
-    func runReservation(for config: ReservationConfig, runType: RunType = .manual) {
+    public func runReservation(for config: ReservationConfig, runType: ReservationRunType = .manual) {
         guard !statusManager.isRunning else {
             logger.warning("⚠️ Reservation already running, skipping.")
             return
         }
         statusManager.isRunning = true
         statusManager.lastRunStatus = .running
+        statusManager.setLastRunInfo(for: config.id, status: .running, date: Date(), runType: runType)
         Task {
             do {
                 try await withTimeout(seconds: 300) {
                     try await self.performReservation(for: config, runType: runType)
                 }
             } catch {
+                // Set user-facing error
+                await MainActor.run { self.userError = error.localizedDescription }
                 logger.error("⏰ Reservation timeout reached (5 minutes).")
                 await errorHandler.handleReservationError(error, config: config, runType: runType)
             }
@@ -161,7 +208,7 @@ class ReservationOrchestrator: ObservableObject {
      - configs: The reservation configurations to run.
      - runType: The type of run (manual, automatic, godmode).
      */
-    func runMultipleReservations(for configs: [ReservationConfig], runType: RunType = .manual) {
+    public func runMultipleReservations(for configs: [ReservationConfig], runType: ReservationRunType = .manual) {
         guard !configs.isEmpty else {
             logger.warning("⚠️ No configurations provided for multiple reservation run.")
             return
@@ -184,7 +231,7 @@ class ReservationOrchestrator: ObservableObject {
     /**
      Cancels all running reservations and resets state.
      */
-    func stopAllReservations() async {
+    public func stopAllReservations() async {
         if statusManager.isRunning, let config = currentConfig {
             logger.warning("🚨 Emergency cleanup triggered - capturing screenshot and sending notification.")
             logger.error("🚨 Emergency cleanup triggered for \(config.name): automation was interrupted unexpectedly.")
@@ -204,7 +251,7 @@ class ReservationOrchestrator: ObservableObject {
         await webKitService.disconnect(closeWindow: false)
     }
 
-    func emergencyCleanup(runType _: RunType) async {
+    public func emergencyCleanup(runType _: ReservationRunType) async {
         if statusManager.isRunning, let config = currentConfig {
             logger.warning("🚨 Emergency cleanup triggered - capturing screenshot and sending notification.")
             logger.error("🚨 Emergency cleanup triggered for \(config.name): automation was interrupted unexpectedly.")
@@ -224,7 +271,7 @@ class ReservationOrchestrator: ObservableObject {
         await webKitService.disconnect(closeWindow: false)
     }
 
-    func handleManualWindowClosure(runType _: RunType) async {
+    public func handleManualWindowClosure(runType _: ReservationRunType) async {
         logger.info("👤 Manual window closure detected - resetting reservation state.")
         await MainActor.run {
             if statusManager.isRunning {
@@ -253,7 +300,7 @@ class ReservationOrchestrator: ObservableObject {
      - config: The reservation configuration to run.
      - runType: The type of run.
      */
-    private func performReservation(for config: ReservationConfig, runType: RunType) async throws {
+    private func performReservation(for config: ReservationConfig, runType: ReservationRunType) async throws {
         statusManager.currentTask = "Starting reservation for \(config.name)"
         currentConfig = config
         await updateTask("Checking WebKit service state")
@@ -274,6 +321,7 @@ class ReservationOrchestrator: ObservableObject {
         let domReady = await webKitService.waitForDOMReady()
         if !domReady {
             logger.error("⏰ DOM failed to load properly within timeout.")
+            self.userError = ReservationError.pageLoadTimeout.errorDescription
             throw ReservationError.pageLoadTimeout
         }
         logger.info("✅ Page loaded successfully.")
@@ -286,6 +334,7 @@ class ReservationOrchestrator: ObservableObject {
             let groupSizePageReady = await webKitService.waitForGroupSizePage()
             if !groupSizePageReady {
                 logger.error("⏰ Group size page failed to load within timeout.")
+                self.userError = ReservationError.groupSizePageLoadTimeout.errorDescription
                 throw ReservationError.groupSizePageLoadTimeout
             }
             logger.info("✅ Group size page loaded successfully.")
@@ -293,6 +342,7 @@ class ReservationOrchestrator: ObservableObject {
             let peopleFilled = await webKitService.fillNumberOfPeople(config.numberOfPeople)
             if !peopleFilled {
                 logger.error("❌ Failed to fill number of people field.")
+                self.userError = ReservationError.numberOfPeopleFieldNotFound.errorDescription
                 throw ReservationError.numberOfPeopleFieldNotFound
             }
             logger.info("✅ Successfully filled number of people: \(config.numberOfPeople).")
@@ -300,6 +350,7 @@ class ReservationOrchestrator: ObservableObject {
             let confirmClicked = await webKitService.clickConfirmButton()
             if !confirmClicked {
                 logger.error("❌ Failed to click confirm button.")
+                self.userError = ReservationError.confirmButtonNotFound.errorDescription
                 throw ReservationError.confirmButtonNotFound
             }
             logger.info("✅ Successfully clicked confirm button.")
@@ -322,11 +373,12 @@ class ReservationOrchestrator: ObservableObject {
                 logger.warning("⚠️ No time slots configured, skipping time selection.")
             }
             await updateTask("Waiting for contact information page...")
-            let contactInfoPageReady = await withTimeout(seconds: 10) { [self] in
-                await webKitService.waitForContactInfoPage()
-            } ?? false
+            let contactInfoPageReady = await withTimeout(seconds: 10, operation: { @MainActor in
+                await self.webKitService.waitForContactInfoPage()
+            }) ?? false
             if !contactInfoPageReady {
                 logger.error("⏰ Contact information page failed to load within timeout.")
+                self.userError = ReservationError.contactInfoPageLoadTimeout.errorDescription
                 throw ReservationError.contactInfoPageLoadTimeout
             }
             logger.info("✅ Contact information page loaded successfully.")
@@ -341,6 +393,7 @@ class ReservationOrchestrator: ObservableObject {
                 )
             if !allFieldsFilled {
                 logger.error("❌ Failed to fill all contact fields simultaneously.")
+                self.userError = ReservationError.contactInfoFieldNotFound.errorDescription
                 throw ReservationError.contactInfoFieldNotFound
             }
             logger.info("✅ Successfully filled all contact fields simultaneously with autofill and human movements.")
@@ -383,6 +436,7 @@ class ReservationOrchestrator: ObservableObject {
             }
             if !contactConfirmClicked {
                 logger.error("❌ Failed to click contact confirm button after \(maxRetries) attempts.")
+                self.userError = ReservationError.contactInfoConfirmButtonNotFound.errorDescription
                 throw ReservationError.contactInfoConfirmButtonNotFound
             }
             logger.info("✅ Successfully clicked contact confirm button.")
@@ -395,6 +449,7 @@ class ReservationOrchestrator: ObservableObject {
                     .handleEmailVerification(verificationStart: verificationStart)
                 if !verificationSuccess {
                     logger.error("❌ Email verification failed.")
+                    self.userError = ReservationError.emailVerificationFailed.errorDescription
                     throw ReservationError.emailVerificationFailed
                 }
                 logger.info("✅ Email verification completed successfully.")
@@ -425,6 +480,7 @@ class ReservationOrchestrator: ObservableObject {
             return
         } else {
             logger.error("❌ Failed to click sport button: \(config.sportName, privacy: .private).")
+            self.userError = ReservationError.sportButtonNotFound.errorDescription
             await webKitService.disconnect(closeWindow: true)
             throw ReservationError.sportButtonNotFound
         }
@@ -442,7 +498,7 @@ class ReservationOrchestrator: ObservableObject {
      - config: The reservation configuration to run.
      - runType: The type of run.
      */
-    private func runReservationWithSeparateWebKit(for config: ReservationConfig, runType: RunType) async {
+    private func runReservationWithSeparateWebKit(for config: ReservationConfig, runType: ReservationRunType) async {
         logger.info("🚀 Starting separate WebKit instance for \(config.name).")
         let instanceId = "godmode_\(config.id.uuidString.prefix(8))_\(Date().timeIntervalSince1970)"
         let separateWebKitService = WebKitService(forParallelOperation: true, instanceId: instanceId)
@@ -689,7 +745,7 @@ class ReservationOrchestrator: ObservableObject {
      - configs: The reservation configurations that were run.
      - runType: The type of run.
      */
-    private func trackGodModeCompletion(configs: [ReservationConfig], runType: RunType) async {
+    private func trackGodModeCompletion(configs: [ReservationConfig], runType: ReservationRunType) async {
         let completionRunType = runType // capture for closure
         logger.info("📊 Starting God Mode completion tracking for \(configs.count) configurations.")
         let maxWaitTime: TimeInterval = 300

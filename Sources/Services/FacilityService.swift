@@ -7,20 +7,32 @@ import WebKit
  FacilityService is responsible for scraping and managing facility data, including fetching available facilities, parsing schedules, and providing facility-related utilities.
  */
 @MainActor
-class FacilityService: NSObject, ObservableObject {
-    static let shared = FacilityService()
+public final class FacilityService: NSObject, @unchecked Sendable, FacilityServiceProtocol {
+    public static let shared = FacilityService()
 
-    @Published var isLoading = false
-    @Published var availableSports: [String] = []
-    @Published var error: String?
+    @Published public var isLoading = false
+    @Published public var availableSports: [String] = []
+    @Published public var error: String?
 
     private var webView: WKWebView?
     private var cancellables = Set<AnyCancellable>()
-    private let logger = Logger(subsystem: "com.odyssey.app", category: "FacilityService")
+    private let logger: Logger
 
-    override init() {
-        logger.info("🔧 FacilityService initialized.")
+    /// Main initializer supporting dependency injection for logger and webView.
+    /// - Parameters:
+    ///   - logger: Logger instance (default: ODYSSEY FacilityService logger)
+    ///   - webView: WKWebView instance (default: nil, will be set up internally)
+    public init(
+        logger: Logger = Logger(subsystem: "com.odyssey.app", category: "FacilityService"),
+        webView: WKWebView? = nil
+    ) {
+        self.logger = logger
+        self.webView = webView
         super.init()
+        logger.info("🔧 FacilityService initialized (DI mode).")
+        if webView == nil {
+            setupWebView()
+        }
     }
 
     deinit {
@@ -39,7 +51,7 @@ class FacilityService: NSObject, ObservableObject {
      ///   - url: The facility URL to scrape
      ///   - completion: Callback with detected sports array
      */
-    func fetchAvailableSports(from url: String, completion: @escaping ([String]) -> Void) {
+    public func fetchAvailableSports(from url: String, completion: @escaping ([String]) -> Void) {
         guard let facilityURL = URL(string: url) else {
             logger.error("❌ Invalid facility URL: \(url)")
             completion([])
@@ -152,16 +164,22 @@ class FacilityService: NSObject, ObservableObject {
     }
 }
 
+extension FacilityService {
+    static func registerForDI() {
+        ServiceRegistry.shared.register(FacilityService.shared, for: FacilityServiceProtocol.self)
+    }
+}
+
 // MARK: - WKNavigationDelegate
 
 extension FacilityService: WKNavigationDelegate {
-    func webView(_: WKWebView, didFinish _: WKNavigation?) {
+    public func webView(_: WKWebView, didFinish _: WKNavigation?) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             self.injectSportsDetectionScript()
         }
     }
 
-    func webView(_: WKWebView, didFail _: WKNavigation?, withError error: Error) {
+    public func webView(_: WKWebView, didFail _: WKNavigation?, withError error: Error) {
         logger.error("❌ Failed to load facility page: \(error.localizedDescription)")
         DispatchQueue.main.async {
             self.isLoading = false
@@ -174,7 +192,7 @@ extension FacilityService: WKNavigationDelegate {
 // MARK: - WKUIDelegate
 
 extension FacilityService: WKUIDelegate {
-    func webView(
+    public func webView(
         _: WKWebView,
         createWebViewWith _: WKWebViewConfiguration,
         for _: WKNavigationAction,
@@ -187,7 +205,7 @@ extension FacilityService: WKUIDelegate {
 // MARK: - WKScriptMessageHandler
 
 extension FacilityService: WKScriptMessageHandler {
-    func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
+    public func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
         guard
             message.name == "facilityHandler",
             let body = message.body as? [String: Any],

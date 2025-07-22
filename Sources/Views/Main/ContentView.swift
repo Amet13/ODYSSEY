@@ -4,6 +4,9 @@ import SwiftUI
 // MARK: - Main Content View
 
 struct ContentView: View {
+    private let webKitService: WebKitServiceProtocol = ServiceRegistry.shared.resolve(WebKitServiceProtocol.self)
+    private let emailService: EmailServiceProtocol = ServiceRegistry.shared.resolve(EmailServiceProtocol.self)
+    private let keychainService: KeychainServiceProtocol = ServiceRegistry.shared.resolve(KeychainServiceProtocol.self)
     @StateObject private var configManager = ConfigurationManager.shared
     @StateObject private var orchestrator = ReservationOrchestrator.shared
     @StateObject private var statusManager = ReservationStatusManager.shared
@@ -16,15 +19,70 @@ struct ContentView: View {
     @ObservedObject private var loadingStateManager = LoadingStateManager.shared
     @State private var bannerTimer: AnyCancellable?
     @State private var godModeUIEnabled = false
+    @State private var showingUserError = false
+    @State private var showingHelp = false
+
+    var body: some View {
+        MainBody(
+            configManager: configManager,
+            orchestrator: orchestrator,
+            statusManager: statusManager,
+            userSettingsManager: userSettingsManager,
+            showingAddConfig: $showingAddConfig,
+            selectedConfig: $selectedConfig,
+            showingSettings: $showingSettings,
+            showingAbout: $showingAbout,
+            showingGodModeConfig: $showingGodModeConfig,
+            loadingStateManager: loadingStateManager,
+            bannerTimer: $bannerTimer,
+            godModeUIEnabled: $godModeUIEnabled,
+            showingUserError: $showingUserError,
+            showingHelp: $showingHelp,
+            emailService: emailService,
+            )
+    }
+}
+
+private struct MainBody: View {
+    @ObservedObject var configManager: ConfigurationManager
+    @ObservedObject var orchestrator: ReservationOrchestrator
+    @ObservedObject var statusManager: ReservationStatusManager
+    @ObservedObject var userSettingsManager: UserSettingsManager
+    @Binding var showingAddConfig: Bool
+    @Binding var selectedConfig: ReservationConfig?
+    @Binding var showingSettings: Bool
+    @Binding var showingAbout: Bool
+    @Binding var showingGodModeConfig: Bool
+    @ObservedObject var loadingStateManager: LoadingStateManager
+    @Binding var bannerTimer: AnyCancellable?
+    @Binding var godModeUIEnabled: Bool
+    @Binding var showingUserError: Bool
+    @Binding var showingHelp: Bool
+    let emailService: EmailServiceProtocol
 
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
-                headerView
+                HeaderView(
+                    godModeUIEnabled: $godModeUIEnabled,
+                    showingAddConfig: $showingAddConfig,
+                    simulateAutorunForToday: simulateAutorunForToday,
+                    )
                 Divider()
-                mainContentView
+                MainContentView(
+                    configManager: configManager,
+                    statusManager: statusManager,
+                    selectedConfig: $selectedConfig,
+                    orchestrator: orchestrator,
+                    getNextCronRunTime: getNextCronRunTime,
+                    formatCountdown: formatCountdown,
+                    showingAddConfig: $showingAddConfig,
+                    )
                 Divider()
-                footerView
+                FooterView(
+                    showingSettings: $showingSettings,
+                    showingAbout: $showingAbout,
+                    )
             }
             .frame(width: 440, height: 600)
             .background(Color(NSColor.windowBackgroundColor))
@@ -54,179 +112,11 @@ struct ContentView: View {
             }
             .onKeyPress("g", phases: .down) { press in
                 if press.modifiers.contains(.command) {
-                    godModeUIEnabled = true
+                    godModeUIEnabled.toggle()
                     return .handled
                 }
                 return .ignored
             }
-        }
-        .overlay(
-            Group {
-                if let notification = loadingStateManager.notification {
-                    BannerView(notification: notification)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .onAppear {
-                            bannerTimer?.cancel()
-                            bannerTimer = Just(()).delay(for: .seconds(3), scheduler: RunLoop.main).sink { _ in
-                                withAnimation { loadingStateManager.notification = nil }
-                            }
-                        }
-                }
-            }, alignment: .top,
-            )
-    }
-}
-
-// MARK: - Header View
-
-private extension ContentView {
-    var headerView: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 12) {
-                Image(systemName: "sportscourt.fill")
-                    .font(.title2)
-                    .foregroundColor(.accentColor)
-                Text("ODYSSEY")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                Spacer()
-                if godModeUIEnabled {
-                    Button(action: simulateAutorunForToday) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "bolt.fill")
-                                .foregroundColor(.yellow)
-                            Text("GOD MODE")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundColor(.yellow)
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.black)
-                    .controlSize(.small)
-                    .help("Simulate autorun for 6pm today (⌘+G)")
-                }
-                Button(action: { showingAddConfig = true }) {
-                    Image(systemName: "plus")
-                        .foregroundColor(.white)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.regular)
-                .help("Add new configuration")
-            }
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 16)
-    }
-
-    var mainContentView: some View {
-        if configManager.settings.configurations.isEmpty {
-            AnyView(emptyStateView)
-        } else {
-            AnyView(
-                List {
-                    ForEach(
-                        Array(configManager.settings.configurations.enumerated()),
-                        id: \.element.id,
-                        ) { index, config in
-                        ConfigurationRowView(
-                            config: config,
-                            nextAutorunInfo: getNextCronRunTime(for: config),
-                            formatCountdown: formatCountdown,
-                            lastRunInfo: statusManager.getLastRunInfo(for: config.id),
-                            onEdit: { selectedConfig = config },
-                            onDelete: { configManager.removeConfiguration(config) },
-                            onToggle: { configManager.toggleConfiguration(at: index) },
-                            onRun: { orchestrator.runReservation(for: config, runType: .manual) },
-                            )
-                    }
-                    .onDelete(perform: { indices in
-                        for index in indices {
-                            let config = configManager.settings.configurations[index]
-                            configManager.removeConfiguration(config)
-                        }
-                    })
-                }
-                .listStyle(.inset),
-                )
-        }
-    }
-
-    var emptyStateView: some View {
-        VStack(spacing: 20) {
-            Spacer()
-            Image(systemName: "sportscourt")
-                .font(.system(size: 60))
-                .foregroundColor(.secondary)
-            Text("No Reservations Configured")
-                .font(.title3)
-                .fontWeight(.medium)
-            Text(
-                "Add your first reservation configuration to get started with automated booking.",
-                )
-            .font(.body)
-            .foregroundColor(.secondary)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal)
-            Button("Add Configuration") {
-                showingAddConfig = true
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.regular)
-            Spacer()
-        }
-        .padding()
-    }
-
-    var footerView: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Button(action: { showingSettings = true }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "gearshape.fill")
-                            .font(.system(size: 14))
-                        Text("Settings")
-                            .font(.system(size: 13))
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.blue)
-                .controlSize(.regular)
-                .help("Configure user settings and integrations")
-
-                Spacer()
-
-                Button(action: { showingAbout = true }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "info.circle.fill")
-                            .font(.system(size: 14))
-                        Text("About")
-                            .font(.system(size: 13))
-                    }
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
-                .help("About ODYSSEY")
-
-                Spacer()
-
-                Button(action: { NSApp.terminate(nil) }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "power")
-                            .font(.system(size: 14))
-                        Text("Quit")
-                            .font(.system(size: 13))
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.red)
-                .controlSize(.regular)
-                .help("Quit ODYSSEY")
-            }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 16)
-            .padding(.top, 16)
         }
     }
 
@@ -336,6 +226,198 @@ private extension ContentView {
     }
 }
 
+private struct HeaderView: View {
+    @Binding var godModeUIEnabled: Bool
+    @Binding var showingAddConfig: Bool
+    let simulateAutorunForToday: () -> Void
+
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                Image(systemName: "sportscourt.fill")
+                    .font(.title2)
+                    .foregroundColor(.odysseyAccent)
+                Text("ODYSSEY")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                Spacer()
+                // Removed help/question button
+                if godModeUIEnabled {
+                    Button(action: simulateAutorunForToday) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "bolt.fill")
+                                .foregroundColor(.odysseyWarning)
+                            Text("GOD MODE")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.odysseyWarning)
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.odysseyAccent)
+                    .controlSize(.small)
+                    .help("Simulate autorun for 6pm today (⌘+G)")
+                }
+                Button(action: { showingAddConfig = true }) {
+                    Image(systemName: "plus")
+                        .foregroundColor(.white)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.regular)
+                .help("Add new configuration")
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 16)
+        .padding(.bottom, 16)
+    }
+}
+
+private struct MainContentView: View {
+    @ObservedObject var configManager: ConfigurationManager
+    @ObservedObject var statusManager: ReservationStatusManager
+    @Binding var selectedConfig: ReservationConfig?
+    @ObservedObject var orchestrator: ReservationOrchestrator
+    let getNextCronRunTime: (ReservationConfig) -> NextAutorunInfo?
+    let formatCountdown: (Date) -> String
+    @Binding var showingAddConfig: Bool
+
+    var body: some View {
+        if configManager.settings.configurations.isEmpty {
+            EmptyStateView(showingAddConfig: $showingAddConfig)
+        } else {
+            ConfigurationListView(
+                configManager: configManager,
+                statusManager: statusManager,
+                selectedConfig: $selectedConfig,
+                orchestrator: orchestrator,
+                getNextCronRunTime: getNextCronRunTime,
+                formatCountdown: formatCountdown,
+                )
+        }
+    }
+}
+
+private struct EmptyStateView: View {
+    @Binding var showingAddConfig: Bool
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            Image(systemName: "sportscourt")
+                .font(.system(size: 60))
+                .foregroundColor(.secondary)
+            Text("No Reservations Configured")
+                .font(.title3)
+                .fontWeight(.medium)
+            Text("Add your first reservation configuration to get started with automated booking.")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            Button("Add Configuration") {
+                showingAddConfig = true
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.regular)
+            Spacer()
+        }
+        .padding()
+    }
+}
+
+private struct ConfigurationListView: View {
+    @ObservedObject var configManager: ConfigurationManager
+    @ObservedObject var statusManager: ReservationStatusManager
+    @Binding var selectedConfig: ReservationConfig?
+    @ObservedObject var orchestrator: ReservationOrchestrator
+    let getNextCronRunTime: (ReservationConfig) -> NextAutorunInfo?
+    let formatCountdown: (Date) -> String
+
+    var body: some View {
+        List {
+            ForEach(
+                Array(configManager.settings.configurations.enumerated()),
+                id: \.element.id,
+                ) { index, config in
+                ConfigurationRowView(
+                    config: config,
+                    nextAutorunInfo: getNextCronRunTime(config),
+                    formatCountdown: formatCountdown,
+                    lastRunInfo: statusManager.getLastRunInfo(for: config.id),
+                    onEdit: { selectedConfig = config },
+                    onDelete: { configManager.removeConfiguration(config) },
+                    onToggle: { configManager.toggleConfiguration(at: index) },
+                    onRun: { orchestrator.runReservation(for: config, runType: .manual) },
+                    )
+            }
+            .onDelete(perform: { indices in
+                for index in indices {
+                    let config = configManager.settings.configurations[index]
+                    configManager.removeConfiguration(config)
+                }
+            })
+        }
+        .listStyle(.inset)
+    }
+}
+
+private struct FooterView: View {
+    @Binding var showingSettings: Bool
+    @Binding var showingAbout: Bool
+
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Button(action: { showingSettings = true }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 14))
+                        Text("Settings")
+                            .font(.system(size: 13))
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.blue)
+                .controlSize(.regular)
+                .help("Configure user settings and integrations")
+
+                Spacer()
+
+                Button(action: { showingAbout = true }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "info.circle.fill")
+                            .font(.system(size: 14))
+                        Text("About")
+                            .font(.system(size: 13))
+                    }
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.regular)
+                .help("About ODYSSEY")
+
+                Spacer()
+
+                Button(action: { NSApp.terminate(nil) }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "power")
+                            .font(.system(size: 14))
+                        Text("Quit")
+                            .font(.system(size: 13))
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
+                .controlSize(.regular)
+                .help("Quit ODYSSEY")
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 16)
+            .padding(.top, 16)
+        }
+    }
+}
+
 // MARK: - Helper Structs
 
 struct NextAutorunInfo {
@@ -377,7 +459,7 @@ struct ConfigurationRowView: View {
                 Spacer()
                 Button(action: onRun) {
                     Image(systemName: "play.fill")
-                        .foregroundColor(.blue)
+                        .foregroundColor(.odysseyAccent)
                 }
                 .buttonStyle(.bordered)
                 .help("Run now")
@@ -392,10 +474,11 @@ struct ConfigurationRowView: View {
                     Image(systemName: "pencil")
                 }
                 .buttonStyle(.bordered)
+                .foregroundColor(.odysseyAccent)
                 .help("Edit configuration")
                 Button(action: { showingDeleteConfirmation = true }) {
                     Image(systemName: "trash")
-                        .foregroundColor(.red)
+                        .foregroundColor(.odysseyError)
                 }
                 .buttonStyle(.bordered)
                 .help("Delete configuration")
@@ -404,7 +487,7 @@ struct ConfigurationRowView: View {
             HStack(spacing: 4) {
                 SportIconView(
                     symbolName: SportIconMapper.iconForSport(config.sportName),
-                    color: .accentColor,
+                    color: .odysseyAccent,
                     size: 12,
                     )
                 Text(
@@ -419,13 +502,13 @@ struct ConfigurationRowView: View {
                     HStack(spacing: 2) {
                         Image(systemName: "clock")
                             .font(.caption)
-                            .foregroundColor(.accentColor)
+                            .foregroundColor(.odysseyAccent)
                         Text("Next autorun in:")
                             .font(.caption)
-                            .foregroundColor(.accentColor)
+                            .foregroundColor(.odysseyAccent)
                         Text(formatCountdown(next.date))
                             .font(.caption)
-                            .foregroundColor(.accentColor)
+                            .foregroundColor(.odysseyAccent)
                     }
                 }
                 lastRunStatusView(for: lastRunInfo)
@@ -519,17 +602,21 @@ struct ConfigurationRowView: View {
         if let lastRun = lastRunInfo {
             let statusInfo = switch lastRun.status {
             case .success:
-                LastRunStatusInfo(statusKey: "successful", statusColor: .green, iconName: "checkmark.circle.fill")
+                LastRunStatusInfo(
+                    statusKey: "successful",
+                    statusColor: .odysseySuccess,
+                    iconName: "checkmark.circle.fill",
+                    )
             case .failed:
                 LastRunStatusInfo(
                     statusKey: "failed",
-                    statusColor: .red,
+                    statusColor: .odysseyError,
                     iconName: "xmark.octagon.fill",
                     )
             case .running:
                 LastRunStatusInfo(
                     statusKey: "Running...",
-                    statusColor: .orange,
+                    statusColor: .odysseyWarning,
                     iconName: "hourglass",
                     )
             case .idle:
@@ -649,9 +736,9 @@ struct BannerView: View {
 
     func color(for type: LoadingStateManager.BannerNotification.BannerType) -> Color {
         switch type {
-        case .success: return .green
-        case .error: return .red
-        case .info: return .blue
+        case .success: return .odysseySuccess
+        case .error: return .odysseyError
+        case .info: return .odysseyInfo
         }
     }
 
@@ -663,3 +750,94 @@ struct BannerView: View {
         }
     }
 }
+
+// MARK: - Onboarding/Help View
+
+struct OnboardingHelpView: View {
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        ZStack {
+            Color.clear.contentShape(Rectangle())
+                .onTapGesture { dismiss() }
+            VStack(spacing: 20) {
+                Image(systemName: "questionmark.circle.fill")
+                    .font(.system(size: 40))
+                    .foregroundColor(.accentColor)
+                Text("Welcome to ODYSSEY!")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .multilineTextAlignment(.center)
+                Text(
+                    "ODYSSEY automates sports reservation bookings for Ottawa Recreation facilities.\n\nGet started by adding your first reservation configuration. Use the Settings to enter your contact and email info. For more help, see the documentation below.",
+                    )
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: 340)
+                Link("Read the Documentation", destination: URL(string: "https://github.com/Amet13/ODYSSEY#readme")!)
+                    .font(.body)
+                    .foregroundColor(.blue)
+                Spacer()
+            }
+            .padding()
+            .frame(width: 400, height: 340)
+        }
+    }
+}
+
+#if DEBUG
+final class PreviewMockWebKitService: WebKitServiceProtocol {
+    var isConnected: Bool = false
+    var isRunning: Bool = false
+    var currentURL: String?
+    var pageTitle: String?
+    func connect() async throws { }
+    func disconnect(closeWindow _: Bool) async { }
+    func navigateToURL(_: String) async throws { }
+    func forceReset() async { }
+    func isServiceValid() -> Bool { true }
+    func reset() async { }
+    var onWindowClosed: ((ReservationRunType) -> Void)?
+    var currentConfig: ReservationConfig?
+    func waitForDOMReady() async -> Bool { true }
+    func findAndClickElement(withText _: String) async -> Bool { true }
+    func waitForGroupSizePage() async -> Bool { true }
+    func fillNumberOfPeople(_: Int) async -> Bool { true }
+    func clickConfirmButton() async -> Bool { true }
+    func selectTimeSlot(dayName _: String, timeString _: String) async -> Bool { true }
+    func waitForContactInfoPage() async -> Bool { true }
+    func fillAllContactFieldsWithAutofillAndHumanMovements(
+        phoneNumber _: String,
+        email _: String,
+        name _: String,
+        ) async -> Bool { true }
+    func addQuickPause() async { }
+    func clickContactInfoConfirmButtonWithRetry() async -> Bool { true }
+    func detectRetryText() async -> Bool { false }
+    func isEmailVerificationRequired() async -> Bool { false }
+    func handleEmailVerification(verificationStart _: Date) async -> Bool { true }
+}
+
+final class PreviewMockEmailService: EmailServiceProtocol, ObservableObject {
+    @Published var isTesting: Bool = false
+    @Published var lastTestResult: EmailService.TestResult?
+    @Published var userFacingError: String?
+}
+
+final class PreviewMockKeychainService: KeychainServiceProtocol {
+    func savePassword(_: String, for _: String) throws { }
+    func getPassword(for _: String) throws -> String? { nil }
+    func deletePassword(for _: String) throws { }
+}
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        Task { @MainActor in
+            ServiceRegistry.shared.register(PreviewMockWebKitService(), for: WebKitServiceProtocol.self)
+            ServiceRegistry.shared.register(PreviewMockEmailService(), for: EmailServiceProtocol.self)
+            ServiceRegistry.shared.register(PreviewMockKeychainService(), for: KeychainServiceProtocol.self)
+        }
+        return ContentView()
+    }
+}
+#endif

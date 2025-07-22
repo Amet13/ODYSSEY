@@ -1,7 +1,27 @@
-// swift-tools-version: 6.2
-// Package.swift for ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself
-// Repository: https://github.com/Amet13/ODYSSEY
-//
-// This file is not needed for Xcode projects
-// ODYSSEY uses XcodeGen for project generation
-// See project.yml for project configuration
+// swift-tools-version: 6.1
+import PackageDescription
+
+let package = Package(
+    name: "ODYSSEY",
+    platforms: [
+        .macOS(.v15)
+    ],
+    products: [
+        .executable(name: "ODYSSEY", targets: ["ODYSSEY"])
+    ],
+    targets: [
+        .executableTarget(
+            name: "ODYSSEY",
+            path: "Sources",
+            exclude: ["App/Info.plist"],
+            resources: [
+                .process("Resources")
+            ]
+        ),
+        .testTarget(
+            name: "ODYSSEYTests",
+            dependencies: ["ODYSSEY"],
+            path: "Tests/ODYSSEYTests"
+        )
+    ]
+)

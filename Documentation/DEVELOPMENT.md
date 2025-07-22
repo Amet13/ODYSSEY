@@ -2,80 +2,29 @@
 
 **Ottawa Drop-in Your Sports & Schedule Easily Yourself**
 
-## Overview
-
-ODYSSEY is a native macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities. It is built with modern Apple technologies and robust architecture for reliability, security, and maintainability.
-
 ---
 
-## 🏗️ Core Technologies
-
-- **SwiftUI**: Declarative UI framework for macOS
-- **AppKit**: Native menu bar integration and window management
-- **WebKit (WKWebView)**: Native web automation engine (no external browsers)
-- **Combine**: Reactive programming for async operations and state management
-- **UserDefaults**: Persistent configuration storage
-- **os.log**: Structured logging with emoji indicators
-- **Keychain Services**: Secure credential storage
-- **IMAP**: Email integration for verification code extraction
-- **Timer**: Automated scheduling system
-
----
-
-## 🚀 Features
-
-- **Menu Bar Integration**: Runs quietly in the menu bar (not dock)
-- **Web Automation**: Automates web-based reservation booking for Ottawa Recreation facilities
-- **Modern SwiftUI Interface**: Clean, intuitive configuration management
-- **Automated Scheduling**: Runs at 6:00 PM, 2 days before your reservation
-- **Multiple Configurations**: Support for different sports, facilities, and time slots
-- **Comprehensive Logging**: Structured logs with emojis for easy debugging
-- **Email Verification**: Automated code extraction (IMAP and Gmail)
-- **Secure Storage**: Credentials stored in macOS Keychain
-- **Anti-Detection**: Human-like behavior simulation to avoid bot detection
-- **Error Handling**: Graceful recovery from network, automation, and WebKit issues
-- **Debug Window**: Essential for troubleshooting and support (must never be deleted)
-
----
-
-## 🧩 Key Components
-
-- **AppDelegate / ODYSSEYApp.swift**: Application lifecycle and scheduling
-- **StatusBarController**: Menu bar integration and UI management
-- **ConfigurationManager**: Settings and data persistence (singleton)
-- **ReservationOrchestrator**: Orchestrates reservation runs and automation
-- **WebKitService**: Core web automation engine (singleton)
-- **FacilityService**: Web scraping and facility data management
-- **EmailService**: IMAP integration and email testing
-- **UserSettingsManager**: User configuration and settings management
-- **ValidationService**: Centralized validation logic (singleton)
-- **AppConstants**: Centralized application constants
-- **LoadingStateManager**: In-app loading states and notifications
-- **ReservationStatusManager**: Tracks reservation run status and updates UI
-
----
-
-## 🛠️ Developer Setup
-
-### Prerequisites
+## 🖥️ System Requirements
 
 - macOS 15.0 or later
 - Xcode 16.0 or later
 - Node.js and npm (for JavaScript linting)
 - Homebrew (for installing dependencies)
 
-### Setup Steps
+---
 
-- Clone the repository
-- Install dependencies: `brew install xcodegen swiftlint` and `npm install`
-- Generate Xcode project: `xcodegen`
-- Build and run: `./Scripts/build.sh`
-- (Optional) Open in Xcode: `open Config/ODYSSEY.xcodeproj`
-- Run code quality checks: `swiftlint lint` and `npm run lint`
+## 🚀 Quick Start
+
+1. Clone the repository
+2. Install dependencies: `brew install xcodegen swiftlint` and `npm install`
+3. Generate Xcode project: `xcodegen`
+4. Build and run: `./Scripts/build.sh`
+5. (Optional) Open in Xcode: `open Config/ODYSSEY.xcodeproj`
+6. Run code quality checks: `swiftlint lint` and `npm run lint`
 
 ---
 
-## 🏛️ Architecture Principles
+## 🏗️ Architecture Principles
 
 - **Protocol-Oriented Design**: Clear interfaces for all services and models
 - **Separation of Concerns**: Each service/component has a single responsibility
@@ -91,8 +40,8 @@ ODYSSEY is a native macOS menu bar application that automates sports reservation
 
 ## 🐞 Debugging & Troubleshooting
 
-- **Debug Window**: Essential for development, troubleshooting, and user support. Must never be deleted or removed from the application. Use it to monitor WebKit automation, diagnose issues, and provide logs for support.
-- **Logging**: All logs use `os.log` with emoji indicators for quick identification. Sensitive data is masked or marked as private.
+- **Debug Window**: Essential for development and support. Use it to monitor automation and diagnose issues.
+- **Logs**: All logs use `os.log` with emoji indicators. Sensitive data is masked or marked as private.
 - **Console.app**: View logs by searching for `ODYSSEY` or `com.odyssey.app`.
 - **Error Handling**: All errors are logged with context and user-friendly messages are shown in the UI.
 - **LoadingStateManager**: Provides in-app banners and progress indicators for async operations and errors.
@@ -110,7 +59,7 @@ ODYSSEY is a native macOS menu bar application that automates sports reservation
 
 ---
 
-## 📚 Related Documentation
+## 📦 Related Documentation
 
 - [Changelog](CHANGELOG.md) - Release notes
 - [Contributing Guidelines](CONTRIBUTING.md) - How to contribute
@@ -118,3 +67,15 @@ ODYSSEY is a native macOS menu bar application that automates sports reservation
 ---
 
 For user installation and setup, see the main [README.md](../README.md).
+
+---
+
+## 🛡️ Security & Compliance
+
+- **Credential Storage:** All sensitive credentials (e.g., email passwords) are securely stored in the macOS Keychain using Keychain Services. No credentials are ever stored in UserDefaults or plain text files.
+- **Network Security:** All network requests use HTTPS. App Transport Security (ATS) is strictly enforced; there are no exceptions for ottawa.ca or any other domains.
+- **Code Signing & Notarization:** The app is code signed for distribution, but is **not notarized by Apple** (no Apple Developer account). To enable notarization, see the commented steps in `Scripts/create-release.sh` and provide the required credentials.
+- **Dependency Policy:** All runtime dependencies are native Swift/Apple frameworks. JavaScript development dependencies (e.g., ESLint) are MIT or similarly permissive. No third-party runtime code is included.
+- **Input Validation:** All user input is validated and sanitized through the centralized `ValidationService`.
+- **Data Privacy:** No user data is transmitted externally without explicit user consent. All automation runs locally on the user's machine.
+- **Periodic Audits:** It is recommended to periodically audit all dependencies and review security practices as part of ongoing maintenance.

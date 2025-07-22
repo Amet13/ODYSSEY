@@ -81,11 +81,11 @@ identifier_name:
 
 # Force unwrapping configuration
 force_unwrapping:
-  severity: warning
+  severity: error
 
 # Implicitly unwrapped optional configuration
 implicitly_unwrapped_optional:
-  severity: warning
+  severity: error
   mode: all_except_iboutlets
 
 # Custom rule: Enforce documentation for public APIs
@@ -94,7 +94,7 @@ custom_rules:
     name: "Public API Documentation"
     regex: "^(?!.*///).*public.*func|^(?!.*///).*public.*var|^(?!.*///).*public.*class|^(?!.*///).*public.*struct|^(?!.*///).*public.*enum"
     message: "Public APIs should be documented with /// comments"
-    severity: warning
+    severity: error
 
 # Exclude patterns
 excluded:

@@ -22,17 +22,15 @@ import os.log
 /// 4. Generate a new app password for "Mail"
 /// 5. Use this 16-character password in ODYSSEY settings
 @MainActor
-class EmailService: ObservableObject {
-    static let shared = EmailService()
+public final class EmailService: ObservableObject, @unchecked Sendable, EmailServiceProtocol {
+    public static let shared = EmailService()
 
-    @Published var isTesting = false
-    @Published var lastTestResult: TestResult?
+    @Published public var isTesting = false
+    @Published public var lastTestResult: TestResult?
+    @Published public var userFacingError: String?
 
-    private let logger = Logger(subsystem: "com.odyssey.app", category: "EmailService")
-    private let userSettingsManager = UserSettingsManager.shared
-
-    // Shared code pool for managing verification codes across multiple instances
-    private let sharedCodePool = SharedVerificationCodePool()
+    private let logger: Logger
+    private let userSettingsManager: UserSettingsManager
 
     enum IMAPError: Error {
         case connectionFailed(String)
@@ -56,29 +54,26 @@ class EmailService: ObservableObject {
         }
     }
 
-    enum TestResult {
+    public enum TestResult: Sendable {
         case success(String)
         case failure(String, provider: EmailProvider = .imap)
 
-        var description: String {
+        public var isSuccess: Bool {
             switch self {
-            case let .success(message):
-                return message
-            case let .failure(error, provider):
-                let prefix = provider == .gmail ? "Gmail test failed:" : "IMAP test failed:"
-                return prefix + " \(error)"
+            case .success: return true
+            case .failure: return false
             }
         }
 
-        var isSuccess: Bool {
+        public var description: String {
             switch self {
-            case .success: true
-            case .failure: false
+            case let .success(message): return message
+            case let .failure(message, _): return message
             }
         }
     }
 
-    enum EmailProvider {
+    public enum EmailProvider: Sendable {
         case imap
         case gmail
     }
@@ -92,9 +87,26 @@ class EmailService: ObservableObject {
         let date: Date
     }
 
-    init() {
-        logger.info("🔧 EmailService initialized.")
-        // ... existing code ...
+    /// Main initializer supporting dependency injection for logger, userSettingsManager, and sharedCodePool.
+    /// - Parameters:
+    ///   - logger: Logger instance (default: ODYSSEY EmailService logger)
+    ///   - userSettingsManager: UserSettingsManager instance (default: .shared)
+    ///   - sharedCodePool: SharedVerificationCodePool instance (default: new instance)
+    public init(
+        logger: Logger,
+        userSettingsManager: UserSettingsManager
+    ) {
+        self.logger = logger
+        self.userSettingsManager = userSettingsManager
+        logger.info("🔧 EmailService initialized (DI mode).")
+    }
+
+    // Keep the default singleton for app use
+    convenience init() {
+        self.init(
+            logger: Logger(subsystem: "com.odyssey.app", category: "EmailService"),
+            userSettingsManager: UserSettingsManager.shared,
+            )
     }
 
     deinit {
@@ -253,7 +265,7 @@ class EmailService: ObservableObject {
                 )
         }
 
-        logger.warning("No verification email found")
+        logger.warning("⚠️ No verification email found.")
         return nil
     }
 
@@ -304,7 +316,7 @@ class EmailService: ObservableObject {
         logger.info("📧 EmailService: Fetching and consuming codes for instance: \(instanceId)")
 
         // Use a shared code pool to ensure each instance gets unique codes
-        return await sharedCodePool.consumeCodes(for: instanceId, since: since)
+        return await SharedVerificationCodePool.shared.consumeCodes(for: instanceId, since: since)
     }
 
     /// Checks if a verification code has already been consumed by another instance
@@ -313,7 +325,10 @@ class EmailService: ObservableObject {
     ///   - currentInstanceId: The ID of the current instance
     /// - Returns: True if the code has been consumed by another instance
     func isCodeConsumedByOtherInstance(_ code: String, currentInstanceId: String) async -> Bool {
-        return sharedCodePool.isCodeConsumedByOtherInstance(code, currentInstanceId: currentInstanceId)
+        return SharedVerificationCodePool.shared.isCodeConsumedByOtherInstance(
+            code,
+            currentInstanceId: currentInstanceId,
+            )
     }
 
     /// Marks a verification code as consumed by a specific instance
@@ -321,7 +336,7 @@ class EmailService: ObservableObject {
     ///   - code: The verification code to mark as consumed
     ///   - instanceId: The ID of the instance that consumed the code
     func markCodeAsConsumed(_ code: String, byInstanceId instanceId: String) async {
-        sharedCodePool.markCodeAsConsumed(code, byInstanceId: instanceId)
+        SharedVerificationCodePool.shared.markCodeAsConsumed(code, byInstanceId: instanceId)
     }
 
     /// Fetches verification codes using the same connection logic as the test
@@ -602,15 +617,24 @@ class EmailService: ObservableObject {
             )
     }
 
-    func testIMAPConnection(
-        email: String,
-        password: String,
-        server: String,
+    public func testIMAPConnection(
+        email _: String,
+        password _: String,
+        server _: String,
         isGmail _: Bool = false,
         provider: EmailProvider = .imap,
         ) async -> TestResult {
         isTesting = true
         defer { isTesting = false }
+
+        // Always retrieve credentials from Keychain
+        guard let creds = getCredentialsFromKeychain() else {
+            return .failure("Credentials not found in Keychain", provider: provider)
+        }
+        let email = creds.email
+        let password = creds.password
+        let server = creds.server
+
         guard !email.isEmpty else {
             return .failure("Email address is empty", provider: provider)
         }
@@ -1874,6 +1898,32 @@ class EmailService: ObservableObject {
         logger.info("🧹 EmailService cleanup called.")
         // ... existing code ...
     }
+
+    // MARK: - Keychain Credential Helper
+
+    /// Retrieves email credentials from KeychainService
+    /// - Returns: (email, password, server, port) tuple if found, else nil
+    private func getCredentialsFromKeychain() -> (email: String, password: String, server: String, port: Int)? {
+        let settings = userSettingsManager.userSettings
+        let email = settings.imapEmail
+        let server = settings.imapServer
+        let port = 993 // Default IMAP port; adjust if needed
+        guard !email.isEmpty, !server.isEmpty else {
+            Task { @MainActor in self.userFacingError = "Email or server is missing. Please check your settings." }
+            return nil
+        }
+        guard let password = KeychainService.shared.retrieveEmailPassword(email: email, server: server, port: port)
+        else {
+            Task { @MainActor in
+                self
+                    .userFacingError =
+                    "No password found in Keychain for email: \(email). Please re-enter your credentials in Settings."
+            }
+            return nil
+        }
+        Task { @MainActor in self.userFacingError = nil }
+        return (email, password, server, port)
+    }
 }
 
 private final class IMAPConnectionState: @unchecked Sendable {
@@ -1914,129 +1964,9 @@ class IMAPStreamDelegate: NSObject, StreamDelegate {
     }
 }
 
-// MARK: - Shared Verification Code Pool
-
-/// Manages verification codes across multiple WebKit instances to prevent code reuse
-@MainActor
-class SharedVerificationCodePool: ObservableObject {
-    private let logger = Logger(subsystem: "com.odyssey.app", category: "SharedCodePool")
-
-    // Shared pool of available codes
-    private var availableCodes: [String] = []
-
-    // Track which codes have been consumed by which instances
-    private var consumedCodes: [String: String] = [:] // code -> instanceId
-
-    // Track when codes were last fetched to avoid stale data
-    private var lastFetchTime: Date?
-
-    /// Consumes verification codes for a specific instance
-    /// - Parameters:
-    ///   - instanceId: Unique identifier for the WebKit instance
-    ///   - since: The date since which to fetch codes
-    /// - Returns: Array of verification codes for this instance
-    func consumeCodes(for instanceId: String, since: Date) async -> [String] {
-        logger.info("🔄 SharedCodePool: Consuming codes for instance \(instanceId)")
-        logger.info("🔄 SharedCodePool: Using since parameter: \(since)")
-        logger
-            .info(
-                "🔄 SharedCodePool: Current pool status - Available: \(self.availableCodes.count), Consumed: \(self.consumedCodes.count)",
-                )
-
-        // Check if we need to refresh the code pool
-        if shouldRefreshCodePool(since: since) {
-            logger.info("🔄 SharedCodePool: Refreshing code pool for instance \(instanceId)")
-            await refreshCodePool(since: since)
-        }
-
-        // Get all available codes (do not filter by consumed codes)
-        let codesToReturn = availableCodes
-
-        logger
-            .info(
-                "🔄 SharedCodePool: Returning \(codesToReturn.count) codes for instance \(instanceId): \(codesToReturn.map { String(repeating: "*", count: $0.count) })",
-                )
-        logger
-            .info(
-                "🔄 SharedCodePool: Available codes: \(self.availableCodes.map { String(repeating: "*", count: $0.count) })",
-                )
-        logger
-            .info(
-                "🔄 SharedCodePool: Consumed codes: \(Array(self.consumedCodes.keys).map { String(repeating: "*", count: $0.count) })",
-                )
-        return codesToReturn
-    }
-
-    /// Refreshes the code pool by fetching new codes from email
-    /// - Parameter since: The date since which to fetch codes
-    private func refreshCodePool(since: Date) async {
-        logger.info("📧 SharedCodePool: Fetching fresh codes from email")
-        logger.info("📧 SharedCodePool: Using since parameter: \(since)")
-
-        // Use the existing email service to fetch codes
-        let emailService = EmailService.shared
-        let freshCodes = await emailService.fetchVerificationCodesForToday(since: since)
-
-        // Update the code pool
-        self.availableCodes = freshCodes
-        self.lastFetchTime = Date()
-
-        logger
-            .info(
-                "📧 SharedCodePool: Refreshed with \(freshCodes.count) codes: \(freshCodes.map { String(repeating: "*", count: $0.count) })",
-                )
-    }
-
-    /// Determines if the code pool should be refreshed
-    /// - Parameter since: The date since which codes should be fetched
-    /// - Returns: True if the pool should be refreshed
-    private func shouldRefreshCodePool(since _: Date) -> Bool {
-        if availableCodes.isEmpty {
-            logger.info("🔄 SharedCodePool: Refreshing - no codes available")
-            return true
-        }
-        if let lastFetch = lastFetchTime {
-            let timeSinceLastFetch = Date().timeIntervalSince(lastFetch)
-            if timeSinceLastFetch > 15 {
-                logger.info("🔄 SharedCodePool: Refreshing - \(timeSinceLastFetch) seconds since last fetch")
-                return true
-            }
-        }
-        return false
-    }
-
-    /// Clears consumed codes to free up memory
-    func clearConsumedCodes() {
-        self.consumedCodes.removeAll()
-        logger.info("🧹 SharedCodePool: Cleared consumed codes")
-    }
-
-    /// Gets current pool status for debugging
-    func getPoolStatus() -> (available: Int, consumed: Int) {
-        let available = self.availableCodes.count
-        let consumed = self.consumedCodes.count
-        return (available: available, consumed: consumed)
-    }
-
-    /// Checks if a verification code has already been consumed by another instance
-    /// - Parameters:
-    ///   - code: The verification code to check
-    ///   - currentInstanceId: The ID of the current instance
-    /// - Returns: Always false (all windows can try all codes independently)
-    func isCodeConsumedByOtherInstance(_: String, currentInstanceId _: String) -> Bool {
-        // With new logic, all windows can try all codes independently
-        return false
-    }
-
-    /// Marks a verification code as consumed by a specific instance
-    /// - Parameters:
-    ///   - code: The verification code to mark as consumed
-    ///   - instanceId: The ID of the instance that consumed the code
-    func markCodeAsConsumed(_ code: String, byInstanceId instanceId: String) {
-        consumedCodes[code] = instanceId
-        logger
-            .info(
-                "✅ SharedCodePool: Marked code \(String(repeating: "*", count: code.count)) as consumed by instance \(instanceId)",
-                )
+// Register the singleton for DI
+extension EmailService {
+    static func registerForDI() {
+        ServiceRegistry.shared.register(EmailService.shared, for: EmailServiceProtocol.self)
     }
 }
