@@ -54,9 +54,6 @@
    - The app will appear in your menu bar (top right of your screen).
 4. **Initial Setup**:
    - Click the ODYSSEY menu bar icon.
-   - Add your reservation configurations and contact information.
-   - Set up your email (IMAP or Gmail) for verification codes.
-   - Test your email connection in Settings.
    - You're ready to automate your bookings! 🎾
 
 ## 🎯 Usage
