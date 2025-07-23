@@ -18,8 +18,6 @@
   </p>
 </div>
 
----
-
 # 🚀 Quick Start
 
 1. **Download** the latest `.dmg` from the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
@@ -27,8 +25,6 @@
 3. **Launch**: Find ODYSSEY in your menu bar (top right).
 4. **Configure**: Click the icon, add your reservation details, and set up email for verification.
 5. **Automate!** Sit back and let ODYSSEY book your sports for you! 🎉
-
----
 
 # 🖼️ Screenshots
 
@@ -40,8 +36,6 @@
   <img src="Documentation/Images/settings.png" alt="Settings View" width="400"/>
   <img src="Documentation/Images/add_config.png" alt="Add Configuration View" width="400"/>
 </p>
-
----
 
 # ✨ Features
 
@@ -56,8 +50,6 @@
 | 📧 Email Verification       | Automated IMAP/Gmail verification for reservation confirmations |
 | 🕵️‍♂️ Anti-Detection           | Human-like automation to avoid bot detection                    |
 | 🪟 Debug Window             | Live browser window for transparency and troubleshooting        |
-
----
 
 # 📦 Installation
 
@@ -77,8 +69,6 @@
    - Set up your email (IMAP or Gmail) for verification codes.
    - Test your email connection in Settings.
    - You're ready to automate your bookings! 🎾
-
----
 
 # 🎯 Usage
 
@@ -105,16 +95,12 @@
 > ⚠️ **Important:**
 > To avoid Google reCAPTCHA and other anti-bot detection, browser windows must remain visible during automation. Hiding or minimizing these windows may increase the risk of being flagged as a bot and cause reservations to fail. The automation simulates real user activity in a visible window for maximum reliability.
 
----
-
 # 📊 Logs & Debugging
 
 - View detailed logs in **Console.app**:
   - Filter by subsystem: `com.odyssey.app`
   - Look for emoji indicators for quick status identification
 - All sensitive data is masked or marked as private in logs
-
----
 
 # 🛠️ Troubleshooting & FAQ
 
@@ -154,13 +140,9 @@
 - [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
 - See the [full documentation](Documentation/DEVELOPMENT.md) for advanced troubleshooting
 
----
-
 # 🤝 Contributing
 
 See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution guidelines.
-
----
 
 # 🛡️ Security & Compliance
 
@@ -170,13 +152,9 @@ See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution g
 - 🚫 No user data is ever sent externally without your explicit consent. All automation runs locally
 - See [DEVELOPMENT.md](Documentation/DEVELOPMENT.md) for full security and compliance details
 
----
-
 # 💬 Support
 
 - [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
-
----
 
 # 📄 License
 
