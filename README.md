@@ -30,6 +30,17 @@
 
 ---
 
+# 🖼️ Screenshots
+
+<p align="center">
+  <img src="Documentation/Images/main.png" alt="Main View" width="200"/>
+  <img src="Documentation/Images/about.png" alt="About View" width="200"/>
+  <img src="Documentation/Images/settings.png" alt="Settings View" width="200"/>
+  <img src="Documentation/Images/add_config.png" alt="Add Configuration View" width="200"/>
+</p>
+
+---
+
 # ✨ Features
 
 | Feature                     | Description                                                     |
