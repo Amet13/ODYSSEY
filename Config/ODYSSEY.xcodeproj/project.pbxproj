@@ -32,6 +32,7 @@
 		9DD08B43DF3B58266C3DFA76 /* WebKitCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D2EBFB5C84EC50958D1ACF /* WebKitCore.swift */; };
 		A1335E6664D5449F09663909 /* ReservationErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */; };
 		A135C6E4A59D7CA5AD165CD1 /* JavaScriptService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DC0AED5ADDD710EF3D626BC /* JavaScriptService.swift */; };
+		A9A2F3FB377649F3A070A9A4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 34C024E102B748548377EE51 /* Localizable.strings */; };
 		AA4730C31D341AD6C3669020 /* WebKitDebugWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4A3E2796AC58ABB58A6817 /* WebKitDebugWindowManager.swift */; };
 		AF9C5201A1EA357818523371 /* FacilityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D69C877E24F28F08FF142CE1 /* FacilityService.swift */; };
 		C20E70D3086A920222DC01C4 /* ReservationOrchestrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ED502E37F16EC8776288AD0 /* ReservationOrchestrator.swift */; };
@@ -55,6 +56,7 @@
 		2D2446632770BD464AB6F9FF /* SportIconMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SportIconMapper.swift; sourceTree = "<group>"; };
 		2D4A3E2796AC58ABB58A6817 /* WebKitDebugWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitDebugWindowManager.swift; sourceTree = "<group>"; };
 		3419A41E593FC7E578492598 /* EmailService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailService.swift; sourceTree = "<group>"; };
+		34C024E102B748548377EE51 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		34D958E5CB6EBC1B6F06E168 /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		4032FBD046C7A84D2AB708F7 /* ConfigurationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationDetailView.swift; sourceTree = "<group>"; };
 		43D2EBFB5C84EC50958D1ACF /* WebKitCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitCore.swift; sourceTree = "<group>"; };
@@ -229,6 +231,7 @@
 				B57C1EBE44AFED1AF1A59B4C /* JavaScript */,
 				9F32A0A5C6C800FBB7769711 /* AppIcon.icns */,
 				6D876275C546C2EDF4733D3E /* Assets.xcassets */,
+				34C024E102B748548377EE51 /* Localizable.strings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -303,6 +306,7 @@
 			files = (
 				FA8FDED3BB6BF7B43C24F5B5 /* AppIcon.icns in Resources */,
 				41CB267A86BBFDE6B8D76B14 /* Assets.xcassets in Resources */,
+				A9A2F3FB377649F3A070A9A4 /* Localizable.strings in Resources */,
 				9C914D35DD66BA8BD972637C /* anti-detection.js in Resources */,
 				48701937DE50EBC23AB4FBBE /* form-filling.js in Resources */,
 			);

@@ -254,7 +254,6 @@ private struct HeaderView: View {
                     .font(.title2)
                     .fontWeight(.bold)
                 Spacer()
-                // Removed help/question button
                 if godModeUIEnabled {
                     Button(action: simulateAutorunForToday) {
                         HStack(spacing: 6) {
@@ -269,7 +268,7 @@ private struct HeaderView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(.odysseyAccent)
                     .controlSize(.small)
-                    .help("Simulate autorun for 6pm today (⌘+G)")
+                    .help("⚡ Simulate autorun for 6pm today (⌘+G)")
                     .accessibilityLabel("Simulate GOD MODE")
                 }
                 Button(action: { showingAddConfig = true }) {
@@ -278,8 +277,12 @@ private struct HeaderView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.regular)
-                .help("Add new configuration")
-                .accessibilityLabel("Add Configuration")
+                .help(NSLocalizedString("add_config_tooltip", comment: "Add a new reservation configuration"))
+                .accessibilityLabel(NSLocalizedString("add_configuration", comment: "Add Configuration"))
+                .accessibilityHint(NSLocalizedString(
+                    "add_config_tooltip",
+                    comment: "Add a new reservation configuration",
+                    ))
                 .keyboardShortcut("n", modifiers: .command)
             }
         }
@@ -400,8 +403,8 @@ private struct FooterView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(.blue)
                 .controlSize(.regular)
-                .help("Configure user settings and integrations")
-                .accessibilityLabel("Open Settings")
+                .help(NSLocalizedString("settings_tooltip", comment: "Configure user settings and integrations"))
+                .accessibilityLabel(NSLocalizedString("settings", comment: "Settings"))
                 .keyboardShortcut(",", modifiers: .command)
 
                 Spacer()
@@ -416,7 +419,8 @@ private struct FooterView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.regular)
-                .help("About ODYSSEY")
+                .help(NSLocalizedString("about_tooltip", comment: "About ODYSSEY"))
+                .accessibilityLabel(NSLocalizedString("about", comment: "About"))
 
                 Spacer()
 
@@ -431,7 +435,8 @@ private struct FooterView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(.red)
                 .controlSize(.regular)
-                .help("Quit ODYSSEY")
+                .help(NSLocalizedString("quit_tooltip", comment: "Quit ODYSSEY"))
+                .accessibilityLabel(NSLocalizedString("quit", comment: "Quit"))
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 16)
@@ -484,26 +489,43 @@ struct ConfigurationRowView: View {
                         .foregroundColor(.odysseyAccent)
                 }
                 .buttonStyle(.bordered)
-                .help("Run now")
+                .help(NSLocalizedString("run_now_tooltip", comment: "Run this reservation now"))
+                .accessibilityLabel(NSLocalizedString("run_now", comment: "Run Now"))
+                .accessibilityHint(NSLocalizedString("run_now_tooltip", comment: "Run this reservation now"))
                 Toggle("", isOn: Binding(
                     get: { config.isEnabled },
                     set: { _ in onToggle() },
                     ))
                 .toggleStyle(.switch)
                 .labelsHidden()
-                .help("Enable or disable autorun")
+                .help(NSLocalizedString(
+                    "enable_autorun_tooltip",
+                    comment: "Enable or disable autorun for this configuration",
+                    ))
+                .accessibilityLabel(NSLocalizedString(
+                    "enable_autorun_tooltip",
+                    comment: "Enable or disable autorun for this configuration",
+                    ))
+                .accessibilityHint(NSLocalizedString(
+                    "enable_autorun_tooltip",
+                    comment: "Enable or disable autorun for this configuration",
+                    ))
                 Button(action: onEdit) {
                     Image(systemName: "pencil")
                 }
                 .buttonStyle(.bordered)
                 .foregroundColor(.odysseyAccent)
-                .help("Edit configuration")
+                .help(NSLocalizedString("edit_tooltip", comment: "Edit this configuration"))
+                .accessibilityLabel(NSLocalizedString("edit_configuration", comment: "Edit Configuration"))
+                .accessibilityHint(NSLocalizedString("edit_tooltip", comment: "Edit this configuration"))
                 Button(action: { showingDeleteConfirmation = true }) {
                     Image(systemName: "trash")
                         .foregroundColor(.odysseyError)
                 }
                 .buttonStyle(.bordered)
-                .help("Delete configuration")
+                .help(NSLocalizedString("delete_tooltip", comment: "Delete this configuration"))
+                .accessibilityLabel(NSLocalizedString("delete_configuration", comment: "Delete Configuration"))
+                .accessibilityHint(NSLocalizedString("delete_tooltip", comment: "Delete this configuration"))
             }
             .accessibilityElement()
             .accessibilityLabel("Reservation configuration for \(config.name)")

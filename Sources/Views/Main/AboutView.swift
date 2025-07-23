@@ -29,11 +29,11 @@ struct AboutView: View {
                             .font(.system(size: 32))
                             .foregroundColor(.blue)
 
-                        Text("ODYSSEY")
+                        Text(NSLocalizedString("ODYSSEY", comment: "App name"))
                             .font(.title2)
                             .fontWeight(.bold)
 
-                        Text("Ottawa Drop-in Your Sports & Schedule Easily Yourself")
+                        Text(NSLocalizedString("about_app_subtitle", comment: "App subtitle"))
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -54,25 +54,42 @@ struct AboutView: View {
 
                     // Description
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("About ODYSSEY")
+                        Text(NSLocalizedString("about_section_title", comment: "About ODYSSEY"))
                             .font(.headline)
                             .fontWeight(.semibold)
-
-                        Text(
-                            "ODYSSEY is a native macOS menu bar application that automates sports reservation bookings " +
-                                "for Ottawa Recreation facilities.",
-                            )
-                        .font(.body)
-                        .foregroundColor(.primary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .multilineTextAlignment(.leading)
-
+                            .padding(.bottom, 2)
+                        Text(NSLocalizedString("about_app_description", comment: "App description"))
+                            .font(.body)
+                            .foregroundColor(.primary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .multilineTextAlignment(.leading)
                         VStack(alignment: .leading, spacing: 6) {
-                            FeatureRow(icon: "sportscourt", text: "Automated reservation booking")
-                            FeatureRow(icon: "clock", text: "Smart scheduling system")
-                            FeatureRow(icon: "shield", text: "Native WebKit automation")
-                            FeatureRow(icon: "envelope", text: "Email verification support")
-                            FeatureRow(icon: "gear", text: "Multiple configuration support")
+                            FeatureRow(
+                                icon: "sportscourt",
+                                text: NSLocalizedString(
+                                    "about_feature_automated_booking",
+                                    comment: "Automated reservation booking",
+                                    ),
+                                )
+                            FeatureRow(
+                                icon: "clock",
+                                text: NSLocalizedString("about_feature_scheduling", comment: "Smart scheduling system"),
+                                )
+                            FeatureRow(
+                                icon: "shield",
+                                text: NSLocalizedString("about_feature_webkit", comment: "Native WebKit automation"),
+                                )
+                            FeatureRow(
+                                icon: "envelope",
+                                text: NSLocalizedString("about_feature_email", comment: "Email verification support"),
+                                )
+                            FeatureRow(
+                                icon: "gear",
+                                text: NSLocalizedString(
+                                    "about_feature_multi_config",
+                                    comment: "Multiple configuration support",
+                                    ),
+                                )
                         }
                     }
                 }

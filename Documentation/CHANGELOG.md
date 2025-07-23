@@ -1,15 +1,20 @@
-# Changelog
+# 📋 Changelog
 
 All notable changes to ODYSSEY will be documented in this file.
 
----
+> **How to read this changelog:**
+>
+> - 🎉 **Added**: New features
+> - 🛠️ **Changed**: Updates or improvements
+> - 🗑️ **Removed**: Features that were removed
+> - 🐛 **Fixed**: Bug fixes
+> - Each release follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.0.0] - 2025-07-22
 
-### Added
+### 🎉 Added
 
 - First public release of ODYSSEY: Ottawa Drop-in Your Sports & Schedule Easily Yourself
 - Native macOS menu bar app for automated sports reservation bookings
@@ -27,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - In-app and Console log guidance for troubleshooting
 - Full documentation for users and developers
 
-### Changed
+### 🛠️ Changed
 
 - Final UI/UX polish for onboarding, settings, and configuration views
 - Improved documentation structure for both users and developers
@@ -35,13 +40,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Save button in Add Configuration is disabled until all fields are valid
 - Facility URL validation and user guidance improved
 
-### Removed
+### 🗑️ Removed
 
 - All test targets and test files for a clean release
 - All debug-only logs and useless comments
 - All banners and overlays for reservation state (UI is now minimal)
 
-### Fixed
+### 🐛 Fixed
 
 - Consistent versioning across Info.plist, manifests, and About page
 - "Last run status" now updates correctly for manual and auto runs
