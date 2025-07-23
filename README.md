@@ -26,17 +26,6 @@
 4. **Configure**: Click the icon, add your reservation details, and set up email for verification.
 5. **Automate!** Sit back and let ODYSSEY book your sports for you! 🎉
 
-## 🖼️ Screenshots
-
-<p align="center">
-  <img src="Documentation/Images/main.png" alt="Main View" width="400"/>
-  <img src="Documentation/Images/about.png" alt="About View" width="400"/>
-</p>
-<p align="center">
-  <img src="Documentation/Images/settings.png" alt="Settings View" width="400"/>
-  <img src="Documentation/Images/add_config.png" alt="Add Configuration View" width="400"/>
-</p>
-
 ## ✨ Features
 
 | Feature                     | Description                                                     |
@@ -75,22 +64,29 @@
 ### 1️⃣ Add a Reservation Configuration
 
 - Click the ODYSSEY menu bar icon
-- Click **Add Configuration**
-- Fill in the facility URL, sport name, and time slots
-- Configure your contact information
+- Click **Add Configuration** or **+** button
+- Fill in the facility URL, select sport name, and daytime slot
+
+![](Documentation/Images/add_config.png)
 
 ### 2️⃣ Set Up Contact Data
 
-- Enter your phone and name
-- Enter your IMAP/Gmail settings
-- Test your email connection
+- Click **Settings**
+- Fill in your name and phone
+- Fill in your email credentials
+- Click **Test Email**
+- Tune advanced settings (optional)
 
-### 3️⃣ Run Reservations
+![](Documentation/Images/settings.png)
+
+### 3️⃣ Configure Reservations
 
 - **Manual Run**: Click **Run Now** for immediate execution
-- **Automatic**: Runs at 6PM, 2 days before your event
+- **Auto Run**: Enable toggle; runs at 6PM, 2 days before your event
+- **Edit Configuration** (optional)
+- **Delete Configuration** (optional)
 
-### 4️⃣ Browser Windows
+![](Documentation/Images/main.png)
 
 > ⚠️ **Important:**
 > To avoid Google reCAPTCHA and other anti-bot detection, browser windows must remain visible during automation. Hiding or minimizing these windows may increase the risk of being flagged as a bot and cause reservations to fail. The automation simulates real user activity in a visible window for maximum reliability.
