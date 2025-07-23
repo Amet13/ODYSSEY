@@ -2,16 +2,12 @@
 
 **Ottawa Drop-in Your Sports & Schedule Easily Yourself**
 
----
-
 ## 🖥️ System Requirements
 
 - macOS 15.0 or later
 - Xcode 16.0 or later
 - Node.js and npm (for JavaScript linting)
 - Homebrew (for installing dependencies)
-
----
 
 ## 🚀 Quick Start (For Developers)
 
@@ -43,8 +39,6 @@
    npm run lint
    ```
 
----
-
 ## 🏗️ Architecture Principles
 
 - **Protocol-Oriented Design:** Clear interfaces for all services and models
@@ -57,8 +51,6 @@
 - **Performance:** Optimized for memory usage and responsiveness
 - **Security:** Local processing, secure credential storage, and privacy by design
 
----
-
 ## 🐞 Debugging & Troubleshooting
 
 - **Debug Window:** Essential for development and support. Use it to monitor automation and diagnose issues.
@@ -66,8 +58,6 @@
 - **Console.app:** View logs by searching for `ODYSSEY` or `com.odyssey.app`.
 - **Error Handling:** All errors are logged with context and user-friendly messages are shown in the UI.
 - **LoadingStateManager:** Provides in-app banners and progress indicators for async operations and errors.
-
----
 
 ## 🧪 Code Quality & Testing
 
@@ -84,16 +74,12 @@
 # This will run SwiftFormat, SwiftLint, and npm lint automatically
 ```
 
----
-
 ## 🧪 Testing
 
 - **Manual Testing:**
   - Always test new features manually in the app UI.
 - **Linting:**
   - Run `./Scripts/build.sh` to check formatting and linting before every commit.
-
----
 
 ## 🚀 Release Process
 
@@ -109,8 +95,6 @@
 7. **(Optional) Notarize** the app with Apple (see `DEVELOPMENT.md` for steps).
 8. **Publish the release** on GitHub with release notes and the DMG.
 
----
-
 ## 💡 Common Pitfalls & Tips
 
 - ⚠️ **Xcode version mismatch:** Make sure you are using Xcode 16.0+ (check with `xcodebuild -version`).
@@ -118,8 +102,6 @@
 - 🔑 **Keychain issues:** If you see credential errors, re-enter credentials in Settings and restart the app.
 - 📝 **Documentation:** Always update docs and comments when making changes.
 - 🧹 **Clean builds:** If you encounter strange build errors, try cleaning the build folder in Xcode (`Shift+Cmd+K`).
-
----
 
 ## 🛠️ Common Code Samples
 
@@ -157,15 +139,11 @@ let userSettings = UserSettingsManager.shared.userSettings
 print(userSettings.emailProvider)
 ```
 
----
-
 ## 📦 Related Documentation
 
 - [Changelog](CHANGELOG.md) - Release notes
 - [Contributing Guidelines](CONTRIBUTING.md) - How to contribute
 - [README.md](../README.md) - User installation and setup
-
----
 
 ## 🛡️ Security & Compliance
 
@@ -177,15 +155,11 @@ print(userSettings.emailProvider)
 - **Data Privacy:** No user data is transmitted externally without explicit user consent. All automation runs locally on the user's machine.
 - **Periodic Audits:** It is recommended to periodically audit all dependencies and review security practices as part of ongoing maintenance.
 
----
-
 ## 🙌 Need Help?
 
 - Open an issue on [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
 - See the [README](../README.md) for user-facing instructions
 - For advanced troubleshooting, check the logs in Console.app and review the Debug Window
-
----
 
 ## 🛡️ Security Best Practices
 

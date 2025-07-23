@@ -2,16 +2,12 @@
 
 Thank you for your interest in contributing to ODYSSEY! This document provides guidelines and information for contributors.
 
----
-
 ## 📝 How to Check Logs
 
 - Open **Console.app** (Applications > Utilities)
 - Search for `ODYSSEY` or `com.odyssey.app`
 - Look for emoji log messages for quick status identification
 - Sensitive data is masked or marked as private
-
----
 
 ## 🐞 How to Report Bugs
 
@@ -24,15 +20,11 @@ Thank you for your interest in contributing to ODYSSEY! This document provides g
    - Relevant logs (from Console.app)
    - Screenshots if possible
 
----
-
 ## ✨ How to Suggest Features
 
 1. Go to [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
 2. Click 'New Issue' and use the feature request template
 3. Describe your idea, motivation, and possible solutions
-
----
 
 ## 🚀 Code Contributions
 
@@ -51,8 +43,6 @@ Thank you for your interest in contributing to ODYSSEY! This document provides g
    git push origin feature/amazing-feature
    ```
 7. **Open a Pull Request** on GitHub
-
----
 
 ## 🧑‍💻 Coding Guidelines
 
@@ -176,8 +166,6 @@ struct ConfigurationDetailView: View {
 }
 ```
 
----
-
 ## ✅ First PR Checklist
 
 - [ ] My code follows the style guidelines
@@ -186,8 +174,6 @@ struct ConfigurationDetailView: View {
 - [ ] I have updated documentation as needed
 - [ ] My code passes all linting and formatting checks
 - [ ] My PR includes a clear description and screenshots if applicable
-
----
 
 ## 🔄 Pull Request Process
 
@@ -232,8 +218,6 @@ Brief description of changes
 Add screenshots for UI changes
 ```
 
----
-
 ## 🧐 Review Process
 
 - All PRs require at least one review from a maintainer
@@ -241,8 +225,6 @@ Add screenshots for UI changes
 - Reviewers may request changes or clarifications
 - Be responsive and address feedback promptly
 - PRs are merged after approval
-
----
 
 ## 🐛 Bug Reports
 
@@ -279,8 +261,6 @@ What actually happened
 Add any other context, logs, or screenshots
 ```
 
----
-
 ## 📚 Resources
 
 - [SwiftUI Documentation](https://developer.apple.com/documentation/swiftui/)
@@ -290,31 +270,21 @@ Add any other context, logs, or screenshots
 - [SwiftLint](https://github.com/realm/SwiftLint) - Code style enforcement
 - [create-dmg](https://github.com/create-dmg/create-dmg) - DMG creation
 
----
-
 ## 🎯 Areas for Contribution
 
 - **High Priority:** Bug fixes, performance improvements, error handling, testing
 - **Medium Priority:** UI/UX improvements, documentation, accessibility, localization
 - **Low Priority:** New features, integration with other systems, advanced scheduling
 
----
-
 ## 📞 Getting Help
 
 - **GitHub Issues** - For bug reports and feature requests
-
----
 
 ## 📄 License
 
 By contributing to ODYSSEY, you agree that your contributions will be licensed under the MIT License.
 
----
-
 **Thank you for contributing to ODYSSEY! 🚀**
-
----
 
 ## 🌟 New Contributor Onboarding
 

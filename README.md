@@ -18,7 +18,7 @@
   </p>
 </div>
 
-# 🚀 Quick Start
+## 🚀 Quick Start
 
 1. **Download** the latest `.dmg` from the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
 2. **Install**: Open the `.dmg`, drag ODYSSEY to `Applications`.
@@ -26,7 +26,7 @@
 4. **Configure**: Click the icon, add your reservation details, and set up email for verification.
 5. **Automate!** Sit back and let ODYSSEY book your sports for you! 🎉
 
-# 🖼️ Screenshots
+## 🖼️ Screenshots
 
 <p align="center">
   <img src="Documentation/Images/main.png" alt="Main View" width="400"/>
@@ -37,7 +37,7 @@
   <img src="Documentation/Images/add_config.png" alt="Add Configuration View" width="400"/>
 </p>
 
-# ✨ Features
+## ✨ Features
 
 | Feature                     | Description                                                     |
 | --------------------------- | --------------------------------------------------------------- |
@@ -51,7 +51,7 @@
 | 🕵️‍♂️ Anti-Detection           | Human-like automation to avoid bot detection                    |
 | 🪟 Debug Window             | Live browser window for transparency and troubleshooting        |
 
-# 📦 Installation
+## 📦 Installation
 
 1. **Download the latest release**:
    - Go to the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
@@ -70,81 +70,81 @@
    - Test your email connection in Settings.
    - You're ready to automate your bookings! 🎾
 
-# 🎯 Usage
+## 🎯 Usage
 
-## 1️⃣ Add a Reservation Configuration
+### 1️⃣ Add a Reservation Configuration
 
 - Click the ODYSSEY menu bar icon
 - Click **Add Configuration**
 - Fill in the facility URL, sport name, and time slots
 - Configure your contact information
 
-## 2️⃣ Set Up Contact Data
+### 2️⃣ Set Up Contact Data
 
 - Enter your phone and name
 - Enter your IMAP/Gmail settings
 - Test your email connection
 
-## 3️⃣ Run Reservations
+### 3️⃣ Run Reservations
 
 - **Manual Run**: Click **Run Now** for immediate execution
 - **Automatic**: Runs at 6PM, 2 days before your event
 
-## 4️⃣ Browser Windows
+### 4️⃣ Browser Windows
 
 > ⚠️ **Important:**
 > To avoid Google reCAPTCHA and other anti-bot detection, browser windows must remain visible during automation. Hiding or minimizing these windows may increase the risk of being flagged as a bot and cause reservations to fail. The automation simulates real user activity in a visible window for maximum reliability.
 
-# 📊 Logs & Debugging
+## 📊 Logs & Debugging
 
 - View detailed logs in **Console.app**:
   - Filter by subsystem: `com.odyssey.app`
   - Look for emoji indicators for quick status identification
 - All sensitive data is masked or marked as private in logs
 
-# 🛠️ Troubleshooting & FAQ
+## 🛠️ Troubleshooting & FAQ
 
-## Common Issues
+### Common Issues
 
-### ❌ Automation fails with reCAPTCHA or bot detection
+#### ❌ Automation fails with reCAPTCHA or bot detection
 
 - Ensure browser windows remain visible during automation (do not minimize or hide)
 - Try running the app at a different time or with a different network
 - Make sure your configuration matches the facility's current website structure
 
-### 📧 Email verification not working
+#### 📧 Email verification not working
 
 - Double-check your IMAP/Gmail credentials and App Password (for Gmail)
 - Test your email connection in Settings
 - Check for typos in your email address or server
 - For Gmail, ensure 2FA is enabled and you are using an App Password
 
-### 🔒 Keychain or credential errors
+#### 🔒 Keychain or credential errors
 
 - If you see a Keychain error banner, try re-entering your credentials in Settings
 - Make sure you have granted Keychain access to ODYSSEY
 - Restart the app after updating credentials
 
-### 🕵️‍♂️ App does not appear in menu bar
+#### 🕵️‍♂️ App does not appear in menu bar
 
 - Ensure you are running macOS 15.0 or later
 - Check that the app is not running in the Dock (it should only appear in the menu bar)
 
-### 📝 Logs not showing in Console.app
+#### 📝 Logs not showing in Console.app
 
 - Search for `ODYSSEY` or `com.odyssey.app` in Console
 - Make sure logging is enabled in your system settings
 
-## Where to Get Help
+### Where to Get Help
 
 - [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
 - See the [full documentation](Documentation/DEVELOPMENT.md) for advanced troubleshooting
 
-# 🤝 Contributing
+## 🤝 Contributing
 
 See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution guidelines.
 
-# 🛡️ Security & Compliance
+## 🛡️ Security & Compliance
 
 - 🔒 Credentials are securely stored in the macOS Keychain—never in plain text or UserDefaults
 - 🌐 All network requests use HTTPS; App Transport Security (ATS) is strictly enforced
@@ -152,10 +152,10 @@ See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution g
 - 🚫 No user data is ever sent externally without your explicit consent. All automation runs locally
 - See [DEVELOPMENT.md](Documentation/DEVELOPMENT.md) for full security and compliance details
 
-# 💬 Support
+## 💬 Support
 
 - [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
 
-# 📄 License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

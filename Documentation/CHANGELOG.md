@@ -2,8 +2,6 @@
 
 All notable changes to ODYSSEY will be documented in this file.
 
----
-
 > **How to read this changelog:**
 >
 > - 🎉 **Added**: New features

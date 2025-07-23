@@ -1,9 +1,6 @@
 ---
 name: "Pull Request"
 about: "Submit a pull request to improve ODYSSEY."
-title: "[PR] "
-labels: []
-assignees: []
 ---
 
 ## 🚀 Description
