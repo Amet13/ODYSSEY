@@ -658,7 +658,8 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                                 runType: runType,
                                 )
                         }
-                        await separateWebKitService.disconnect(closeWindow: false)
+                        let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
+                        await separateWebKitService.disconnect(closeWindow: shouldClose)
                         return
                     }
                     logger.info("✅ Email verification completed successfully for \(config.name).")
@@ -697,7 +698,8 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     runType: runType,
                     )
             }
-            await separateWebKitService.disconnect(closeWindow: false)
+            let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
+            await separateWebKitService.disconnect(closeWindow: shouldClose)
             return
         }
         await separateWebKitService.disconnect(closeWindow: true)

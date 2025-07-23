@@ -113,6 +113,10 @@ private struct MainBody: View {
             .onKeyPress("g", phases: .down) { press in
                 if press.modifiers.contains(.command) {
                     godModeUIEnabled.toggle()
+                    // Remove focus from the God Mode button if toggling off
+                    if !godModeUIEnabled {
+                        NSApp.keyWindow?.makeFirstResponder(nil)
+                    }
                     return .handled
                 }
                 return .ignored
@@ -267,7 +271,6 @@ private struct HeaderView: View {
                     .controlSize(.small)
                     .help("Simulate autorun for 6pm today (⌘+G)")
                     .accessibilityLabel("Simulate GOD MODE")
-                    .keyboardShortcut("g", modifiers: .command)
                 }
                 Button(action: { showingAddConfig = true }) {
                     Image(systemName: "plus")
