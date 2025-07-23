@@ -43,40 +43,6 @@
 | 📧 Email Verification       | Automated IMAP/Gmail verification for reservation confirmations |
 | 🕵️‍♂️ Anti-Detection           | Human-like automation to avoid bot detection                    |
 | 🪟 Debug Window             | Live browser window for transparency and troubleshooting        |
-| 📊 Emoji Logging            | All logs use emoji for quick status identification              |
-
----
-
-# 🏗️ Architecture
-
-```mermaid
-flowchart TD
-    App["ODYSSEYApp (SwiftUI @main)"] -->|launches| AppDelegate
-    AppDelegate -->|creates| StatusBarController
-    AppDelegate -->|schedules| ReservationOrchestrator
-    StatusBarController -->|shows| ContentView
-    ContentView -->|binds| ConfigurationManager
-    ContentView -->|binds| UserSettingsManager
-    ContentView -->|binds| ReservationOrchestrator
-    ContentView -->|binds| ReservationStatusManager
-    ContentView -->|binds| LoadingStateManager
-    ReservationOrchestrator -->|uses| WebKitService
-    ReservationOrchestrator -->|uses| FacilityService
-    ReservationOrchestrator -->|uses| EmailService
-    ReservationOrchestrator -->|uses| KeychainService
-    WebKitService -->|injects| JavaScriptService
-    EmailService -->|uses| KeychainService
-    EmailService -->|uses| IMAPService
-    FacilityService -->|scrapes| WebKitService
-    UserSettingsManager -->|stores| KeychainService
-    ConfigurationManager -->|stores| UserDefaults
-    UserSettingsManager -->|stores| UserDefaults
-    LoadingStateManager -->|notifies| ContentView
-    ValidationService -->|validates| all
-    AppConstants -->|provides| all
-```
-
-If the diagram above does not render, see [architecture.png](Documentation/Images/architecture.png).
 
 ---
 
@@ -202,19 +168,3 @@ See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution g
 # 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-# 🏓 About ODYSSEY (In-App Help)
-
-ODYSSEY is a native macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities.
-
-**Key Features:**
-
-- 🏸 Automated reservation booking
-- ⏰ Smart scheduling system
-- 🛡️ Native WebKit automation
-- 📧 Email verification support
-- ⚙️ Multiple configuration support
-
-For more information, visit the [project homepage](https://github.com/Amet13/ODYSSEY).

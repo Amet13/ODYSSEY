@@ -176,66 +176,6 @@ struct ConfigurationDetailView: View {
 }
 ```
 
-### Testing Guidelines
-
-- **Unit Tests:**
-
-```swift
-import XCTest
-@testable import ODYSSEY
-
-class ConfigurationManagerTests: XCTestCase {
-    var manager: ConfigurationManager!
-
-    override func setUp() {
-        super.setUp()
-        manager = ConfigurationManager.shared
-        // Clear test data
-        UserDefaults.standard.removeObject(forKey: "ODYSSEY_Settings")
-    }
-
-    func testAddConfiguration() {
-        // Given
-        let config = ReservationConfig(
-            name: "Test Config",
-            facilityURL: "https://test.com",
-            sportName: "Basketball"
-        )
-
-        // When
-        manager.addConfiguration(config)
-
-        // Then
-        XCTAssertEqual(manager.settings.configurations.count, 1)
-        XCTAssertEqual(manager.settings.configurations.first?.name, "Test Config")
-    }
-}
-```
-
-- **UI Tests:**
-
-```swift
-import XCTest
-
-class ODYSSEYUITests: XCTestCase {
-    var app: XCUIApplication!
-
-    override func setUp() {
-        super.setUp()
-        app = XCUIApplication()
-        app.launch()
-    }
-
-    func testAddConfiguration() {
-        app.buttons["Add Configuration"].tap()
-        let urlField = app.textFields["Facility URL"]
-        urlField.tap()
-        urlField.typeText("https://test.com")
-        // ...
-    }
-}
-```
-
 ---
 
 ## ✅ First PR Checklist
@@ -276,8 +216,6 @@ Brief description of changes
 
 ## Testing
 
-- [ ] Unit tests pass
-- [ ] UI tests pass
 - [ ] Manual testing completed
 - [ ] Tested on macOS [version]
 

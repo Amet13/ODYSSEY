@@ -59,37 +59,6 @@
 
 ---
 
-## 🖼️ Visual Overview
-
-```mermaid
-flowchart TD
-    App["ODYSSEYApp (SwiftUI @main)"] -->|launches| AppDelegate
-    AppDelegate -->|creates| StatusBarController
-    AppDelegate -->|schedules| ReservationOrchestrator
-    StatusBarController -->|shows| ContentView
-    ContentView -->|binds| ConfigurationManager
-    ContentView -->|binds| UserSettingsManager
-    ContentView -->|binds| ReservationOrchestrator
-    ContentView -->|binds| ReservationStatusManager
-    ContentView -->|binds| LoadingStateManager
-    ReservationOrchestrator -->|uses| WebKitService
-    ReservationOrchestrator -->|uses| FacilityService
-    ReservationOrchestrator -->|uses| EmailService
-    ReservationOrchestrator -->|uses| KeychainService
-    WebKitService -->|injects| JavaScriptService
-    EmailService -->|uses| KeychainService
-    EmailService -->|uses| IMAPService
-    FacilityService -->|scrapes| WebKitService
-    UserSettingsManager -->|stores| KeychainService
-    ConfigurationManager -->|stores| UserDefaults
-    UserSettingsManager -->|stores| UserDefaults
-    LoadingStateManager -->|notifies| ContentView
-    ValidationService -->|validates| all
-    AppConstants -->|provides| all
-```
-
----
-
 ## 🐞 Debugging & Troubleshooting
 
 - **Debug Window:** Essential for development and support. Use it to monitor automation and diagnose issues.
@@ -105,7 +74,6 @@ flowchart TD
 - **SwiftLint:** Enforced code style and best practices
 - **SwiftFormat:** Automatic code formatting
 - **Comprehensive Documentation:** All public APIs and services are documented
-- **Unit & UI Testing:** Add tests for new features and bug fixes
 - **Self-Review:** All changes should be self-reviewed before submission
 - **Zero Linter Errors:** All code must pass SwiftLint and SwiftFormat before merging
 
@@ -120,14 +88,6 @@ flowchart TD
 
 ## 🧪 Testing
 
-- **Unit Tests:**
-  - Add tests for new features and bug fixes in the `Tests/` directory.
-  - Run all tests in Xcode with `Cmd+U` or from the command line:
-    ```bash
-    xcodebuild test -scheme ODYSSEY
-    ```
-- **UI Tests:**
-  - Use Xcode’s UI testing tools for end-to-end scenarios.
 - **Manual Testing:**
   - Always test new features manually in the app UI.
 - **Linting:**
