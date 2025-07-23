@@ -3,15 +3,29 @@ import Foundation
 import os.log
 import WebKit
 
+/**
+ ServiceRegistry is a singleton for dependency injection and service lookup.
+ */
 @MainActor
 public final class ServiceRegistry {
     public static let shared = ServiceRegistry()
     private var services: [String: Any] = [:]
     private init() { }
+    /**
+     Register a service instance for a protocol or type.
+     - Parameters:
+     - service: The instance to register.
+     - type: The protocol or type to register for.
+     */
     public func register<T>(_ service: T, for type: T.Type) {
         services[String(describing: type)] = service
     }
 
+    /**
+     Resolve a registered service for a protocol or type.
+     - Parameter type: The protocol or type to resolve.
+     - Returns: The registered instance.
+     */
     public func resolve<T>(_ type: T.Type) -> T {
         guard let service = services[String(describing: type)] as? T else {
             fatalError("No service registered for type: \(type)")
@@ -22,35 +36,128 @@ public final class ServiceRegistry {
 
 // MARK: - WebKitService Protocol
 
+/**
+ Protocol for the main WebKit automation service used by ODYSSEY.
+ */
 @MainActor
 @preconcurrency
 public protocol WebKitServiceProtocol: AnyObject {
+    /// Indicates if the service is connected to a web automation session
     var isConnected: Bool { get }
+    /// Indicates if the service is currently running a web automation task
     var isRunning: Bool { get }
+    /// The current URL of the web page being displayed
     var currentURL: String? { get }
+    /// The title of the current web page
     var pageTitle: String? { get }
+    /**
+     Establishes a connection to a web automation session.
+     - Throws: An error if connection fails.
+     */
     func connect() async throws
+    /**
+     Disconnects from the current web automation session.
+     - Parameter closeWindow: Whether to close the debug window.
+     */
     func disconnect(closeWindow: Bool) async
+    /**
+     Navigates the web browser to the specified URL.
+     - Parameter url: The URL to navigate to.
+     - Throws: An error if navigation fails.
+     */
     func navigateToURL(_ url: String) async throws
     // --- Extended API for ODYSSEY automation ---
+    /**
+     Force reset the WebKit service (for troubleshooting).
+     */
     func forceReset() async
+    /**
+     Checks if the service is in a valid state for operations.
+     - Returns: True if valid, false otherwise.
+     */
     func isServiceValid() -> Bool
+    /**
+     Resets the service to a clean state.
+     */
     func reset() async
+    /// Callback for when the debug window is closed
     var onWindowClosed: ((ReservationRunType) -> Void)? { get set }
+    /// The current reservation configuration being automated
     var currentConfig: ReservationConfig? { get set }
+    /**
+     Waits for the DOM to be ready or for a key button/element to appear.
+     - Returns: True if ready, false if timeout.
+     */
     func waitForDOMReady() async -> Bool
+    /**
+     Finds and clicks an element with the given text.
+     - Parameter text: The text to search for.
+     - Returns: True if the element was found and clicked.
+     */
     func findAndClickElement(withText text: String) async -> Bool
+    /**
+     Waits for the group size page to appear.
+     - Returns: True if the page appeared.
+     */
     func waitForGroupSizePage() async -> Bool
+    /**
+     Fills the number of people field.
+     - Parameter number: The number of people.
+     - Returns: True if successful.
+     */
     func fillNumberOfPeople(_ number: Int) async -> Bool
+    /**
+     Clicks the confirm button on the current page.
+     - Returns: True if successful.
+     */
     func clickConfirmButton() async -> Bool
+    /**
+     Selects a time slot for a given day and time string.
+     - Parameters:
+     - dayName: The day of the week.
+     - timeString: The time string.
+     - Returns: True if successful.
+     */
     func selectTimeSlot(dayName: String, timeString: String) async -> Bool
+    /**
+     Waits for the contact info page to appear.
+     - Returns: True if the page appeared.
+     */
     func waitForContactInfoPage() async -> Bool
+    /**
+     Fills all contact fields using autofill and human-like movements.
+     - Parameters:
+     - phoneNumber: The user's phone number.
+     - email: The user's email address.
+     - name: The user's name.
+     - Returns: True if successful.
+     */
     func fillAllContactFieldsWithAutofillAndHumanMovements(phoneNumber: String, email: String, name: String) async
     -> Bool
+    /**
+     Adds a quick pause (for human-like timing).
+     */
     func addQuickPause() async
+    /**
+     Clicks the contact info confirm button, with retry logic.
+     - Returns: True if successful.
+     */
     func clickContactInfoConfirmButtonWithRetry() async -> Bool
+    /**
+     Detects if a retry text is present on the page.
+     - Returns: True if retry is needed.
+     */
     func detectRetryText() async -> Bool
+    /**
+     Checks if email verification is required.
+     - Returns: True if verification is required.
+     */
     func isEmailVerificationRequired() async -> Bool
+    /**
+     Handles the email verification process.
+     - Parameter verificationStart: The start time of verification.
+     - Returns: True if successful.
+     */
     func handleEmailVerification(verificationStart: Date) async -> Bool
 }
 

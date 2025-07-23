@@ -6,54 +6,64 @@ import Foundation
 public enum AppConstants {
     // MARK: - Application Info
 
+    /// The application name
     static let appName = "ODYSSEY"
+    /// The current app version
     static let appVersion = "1.0.0"
+    /// The app bundle identifier
     static let appBundleId = "com.odyssey.app"
 
     // MARK: - Timeouts
 
+    /// Default timeout for general operations (seconds)
     static let defaultTimeout: TimeInterval = 30.0
+    /// Timeout for page loads (seconds)
     static let pageLoadTimeout: TimeInterval = 15.0
+    /// Timeout for waiting for elements (seconds)
     static let elementWaitTimeout: TimeInterval = 10.0
+    /// Timeout for IMAP connection (seconds)
     static let imapConnectionTimeout: TimeInterval = 30.0
+    /// Timeout for email verification code (seconds)
     static let verificationCodeTimeout: TimeInterval = 300.0 // 5 minutes
 
     // MARK: - Delays
 
+    /// Minimum human-like delay (seconds)
     static let minHumanDelay: TimeInterval = 0.5
+    /// Maximum human-like delay (seconds)
     static let maxHumanDelay: TimeInterval = 0.9
+    /// Typing delay per character (seconds)
     static let typingDelay: TimeInterval = 0.12
+    /// Delay for page transitions (seconds)
     static let pageTransitionDelay: TimeInterval = 1.2
 
     // MARK: - Email Configuration
 
+    /// Default Gmail IMAP server
     static let gmailImapServer = "imap.gmail.com"
+    /// Default Gmail IMAP port
     static let gmailImapPort: UInt16 = 993
+    /// Default IMAP port
     static let defaultImapPort: UInt16 = 993
+    /// Expected sender for verification emails
     static let verificationEmailFrom = "noreply@frontdesksuite.com"
+    /// Expected subject for verification emails
     static let verificationEmailSubject = "Verify your email"
 
     // MARK: - WebKit Configuration
 
+    /// Default width for WebKit debug window
     static let webKitWindowWidth = 1_440
+    /// Default height for WebKit debug window
     static let webKitWindowHeight = 900
+    /// Default X position for WebKit debug window
     static let webKitDebugWindowX: CGFloat = 200
+    /// Default Y position for WebKit debug window
     static let webKitDebugWindowY: CGFloat = 200
 
     // MARK: - User Agent Strings
 
-    static let userAgents = [
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
-            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
-            "(KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
-            "(KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 " +
-            "(KHTML, like Gecko) Version/17.1 Safari/605.1.15",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 " +
-            "(KHTML, like Gecko) Version/17.0 Safari/605.1.15"
-    ]
+    // (User agent constants can be added here)
 
     // MARK: - Window Sizes
 

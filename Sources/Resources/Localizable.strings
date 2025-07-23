@@ -1,0 +1,31 @@
+/*
+ Localizable.strings
+ Centralized user-facing strings for ODYSSEY (English)
+*/
+
+"add_configuration" = "Add Configuration";
+"edit_configuration" = "Edit Configuration";
+"delete_configuration" = "Delete Configuration";
+"run_now" = "Run Now";
+"settings" = "Settings";
+"about" = "About";
+"quit" = "Quit";
+"god_mode" = "GOD MODE";
+"simulate_god_mode" = "Simulate autorun for 6pm today (⌘+G)";
+"run_now_tooltip" = "Run this reservation now";
+"enable_autorun_tooltip" = "Enable or disable autorun for this configuration";
+"edit_tooltip" = "Edit this configuration";
+"delete_tooltip" = "Delete this configuration";
+"settings_tooltip" = "Configure user settings and integrations";
+"about_tooltip" = "About ODYSSEY";
+"quit_tooltip" = "Quit ODYSSEY";
+"add_config_tooltip" = "Add a new reservation configuration";
+"ODYSSEY" = "ODYSSEY";
+"about_app_subtitle" = "Ottawa Drop-in Your Sports & Schedule Easily Yourself";
+"about_section_title" = "About ODYSSEY";
+"about_app_description" = "ODYSSEY is a native macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities.";
+"about_feature_automated_booking" = "Automated reservation booking";
+"about_feature_scheduling" = "Smart scheduling system";
+"about_feature_webkit" = "Native WebKit automation";
+"about_feature_email" = "Email verification support";
+"about_feature_multi_config" = "Multiple configuration support"; 

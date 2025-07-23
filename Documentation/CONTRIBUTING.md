@@ -1,4 +1,4 @@
-# Contributing to ODYSSEY
+# 🤝 Contributing to ODYSSEY
 
 Thank you for your interest in contributing to ODYSSEY! This document provides guidelines and information for contributors.
 
@@ -10,6 +10,8 @@ Thank you for your interest in contributing to ODYSSEY! This document provides g
 - Search for `ODYSSEY` or `com.odyssey.app`
 - Look for emoji log messages for quick status identification
 - Sensitive data is masked or marked as private
+
+---
 
 ## 🐞 How to Report Bugs
 
@@ -24,63 +26,37 @@ Thank you for your interest in contributing to ODYSSEY! This document provides g
 
 ---
 
-## 🤝 How to Contribute
+## ✨ How to Suggest Features
 
-### Reporting Issues
+1. Go to [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
+2. Click 'New Issue' and use the feature request template
+3. Describe your idea, motivation, and possible solutions
 
-Before creating an issue, please:
+---
 
-1. **Check existing issues** - Search for similar issues that may already exist
-2. **Use the issue template** - Provide all requested information
-3. **Be specific** - Include steps to reproduce, expected vs actual behavior
-4. **Include system info** - macOS version, Xcode version, etc.
+## 🚀 Code Contributions
 
-### Feature Requests
-
-When suggesting new features:
-
-1. **Describe the problem** - What issue does this solve?
-2. **Propose a solution** - How should it work?
-3. **Consider alternatives** - Are there other ways to solve this?
-4. **Check existing features** - Is this already possible?
-
-### Code Contributions
-
-#### Getting Started
+### Getting Started
 
 1. **Fork the repository**
-2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
+2. **Create a feature branch**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
 3. **Make your changes** following the coding guidelines
 4. **Test thoroughly** - Ensure your changes work as expected
-5. **Commit with clear messages** - Use conventional commit format
-6. **Push to your branch** (`git push origin feature/amazing-feature`)
-7. **Open a Pull Request**
+5. **Commit with clear messages**
+6. **Push to your branch**
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+7. **Open a Pull Request** on GitHub
 
-#### Development Setup
+---
 
-```bash
-# Clone your fork
-git clone https://github.com/Amet13/ODYSSEY.git
-cd ODYSSEY
-
-# Add upstream remote
-git remote add upstream https://github.com/Amet13/ODYSSEY.git
-
-# Install dependencies
-brew install xcodegen
-
-# Generate Xcode project
-xcodegen
-
-# Build and run
-./build.sh
-```
-
-## 📋 Coding Guidelines
+## 🧑‍💻 Coding Guidelines
 
 ### Swift Style Guide
-
-#### General Principles
 
 - **Readability over brevity** - Code should be self-documenting
 - **Consistency** - Follow existing patterns in the codebase
@@ -125,17 +101,9 @@ struct ContentView: View {
 }
 
 private extension ContentView {
-    var headerView: some View {
-        // Header implementation
-    }
-
-    var mainContentView: some View {
-        // Main content implementation
-    }
-
-    var footerView: some View {
-        // Footer implementation
-    }
+    var headerView: some View { /* ... */ }
+    var mainContentView: some View { /* ... */ }
+    var footerView: some View { /* ... */ }
 }
 ```
 
@@ -167,10 +135,12 @@ func bookReservation() async -> Result<Void, ReservationError> {
 
 ### SwiftUI Guidelines
 
-#### View Structure
+- **Separate concerns** with focused views
+- **Use appropriate state management**
+
+#### Example: View Structure
 
 ```swift
-// ✅ Good: Separate concerns with focused views
 struct ConfigurationRowView: View {
     let config: ReservationConfig
     let onEdit: () -> Void
@@ -195,22 +165,20 @@ struct ConfigurationRowView: View {
 }
 ```
 
-#### State Management
+#### Example: State Management
 
 ```swift
-// ✅ Good: Use appropriate state management
 struct ConfigurationDetailView: View {
     @StateObject private var configManager = ConfigurationManager.shared
     @State private var showingAlert = false
     @State private var alertMessage = ""
-
-    // Implementation
+    // ...
 }
 ```
 
 ### Testing Guidelines
 
-#### Unit Tests
+- **Unit Tests:**
 
 ```swift
 import XCTest
@@ -244,7 +212,7 @@ class ConfigurationManagerTests: XCTestCase {
 }
 ```
 
-#### UI Tests
+- **UI Tests:**
 
 ```swift
 import XCTest
@@ -259,30 +227,40 @@ class ODYSSEYUITests: XCTestCase {
     }
 
     func testAddConfiguration() {
-        // Test adding a new configuration
         app.buttons["Add Configuration"].tap()
-
-        // Fill in form fields
         let urlField = app.textFields["Facility URL"]
         urlField.tap()
         urlField.typeText("https://test.com")
-
-        // Continue with other form fields as needed
+        // ...
     }
 }
 ```
 
-## 🔄 Pull Request Process
+---
 
-### Before Submitting
+## ✅ First PR Checklist
+
+- [ ] My code follows the style guidelines
+- [ ] I have self-reviewed my changes
+- [ ] I have tested my changes (unit/UI/manual)
+- [ ] I have updated documentation as needed
+- [ ] My code passes all linting and formatting checks
+- [ ] My PR includes a clear description and screenshots if applicable
+
+---
+
+## 🔄 Pull Request Process
 
 1. **Self-review** your changes
 2. **Ensure tests pass** locally
 3. **Update documentation** for any new features
-4. **Check for linting issues** (if SwiftLint is configured)
+4. **Check for linting issues** (run `./Scripts/build.sh`)
 5. **Test on different macOS versions** if possible
+6. **Open a Pull Request** and fill out the PR template
+7. **Address feedback** from reviewers
+8. **Wait for maintainer approval and merge**
 
-### Pull Request Template
+### PR Template Example
 
 ```markdown
 ## Description
@@ -291,15 +269,15 @@ Brief description of changes
 
 ## Type of Change
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
 - [ ] Documentation update
 
 ## Testing
 
 - [ ] Unit tests pass
-- [ ] UI tests pass (if applicable)
+- [ ] UI tests pass
 - [ ] Manual testing completed
 - [ ] Tested on macOS [version]
 
@@ -316,12 +294,17 @@ Brief description of changes
 Add screenshots for UI changes
 ```
 
-### Review Process
+---
 
-1. **Automated checks** must pass
-2. **Code review** by maintainers
-3. **Address feedback** and iterate if needed
-4. **Maintainer approval** required for merge
+## 🧐 Review Process
+
+- All PRs require at least one review from a maintainer
+- Automated checks (lint, build, tests) must pass
+- Reviewers may request changes or clarifications
+- Be responsive and address feedback promptly
+- PRs are merged after approval
+
+---
 
 ## 🐛 Bug Reports
 
@@ -358,45 +341,32 @@ What actually happened
 Add any other context, logs, or screenshots
 ```
 
-## 📚 Resources
+---
 
-### Documentation
+## 📚 Resources
 
 - [SwiftUI Documentation](https://developer.apple.com/documentation/swiftui/)
 - [AppKit Documentation](https://developer.apple.com/documentation/appkit/)
 - [WebKit Documentation](https://developer.apple.com/documentation/webkit/)
-
-### Tools
-
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen) - Project generation
 - [SwiftLint](https://github.com/realm/SwiftLint) - Code style enforcement
 - [create-dmg](https://github.com/create-dmg/create-dmg) - DMG creation
 
+---
+
 ## 🎯 Areas for Contribution
 
-### High Priority
+- **High Priority:** Bug fixes, performance improvements, error handling, testing
+- **Medium Priority:** UI/UX improvements, documentation, accessibility, localization
+- **Low Priority:** New features, integration with other systems, advanced scheduling
 
-- **Bug fixes** - Any issues reported by users
-- **Performance improvements** - Faster automation, better memory usage
-- **Error handling** - More robust error recovery
-- **Testing** - Additional unit and UI tests
-
-### Medium Priority
-
-- **UI/UX improvements** - Better user experience
-- **Documentation** - Code comments, user guides
-- **Accessibility** - VoiceOver support, keyboard navigation
-- **Localization** - Support for additional languages
-
-### Low Priority
-
-- **New features** - Additional automation capabilities
-- **Integration** - Support for other recreation systems
-- **Advanced scheduling** - More complex scheduling options
+---
 
 ## 📞 Getting Help
 
 - **GitHub Issues** - For bug reports and feature requests
+
+---
 
 ## 📄 License
 
@@ -405,3 +375,34 @@ By contributing to ODYSSEY, you agree that your contributions will be licensed u
 ---
 
 **Thank you for contributing to ODYSSEY! 🚀**
+
+---
+
+## 🌟 New Contributor Onboarding
+
+Welcome! If this is your first time contributing to ODYSSEY, here’s how to get started:
+
+1. **Read the README and DEVELOPMENT.md** for project context.
+2. **Fork the repository** and clone your fork locally.
+3. **Set up your environment** (see DEVELOPMENT.md for details).
+4. **Pick a good first issue** from [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+5. **Create a feature branch**:
+   ```bash
+   git checkout -b my-first-contribution
+   ```
+6. **Make your changes** and commit with a clear message.
+7. **Run all tests and linting**:
+   ```bash
+   ./Scripts/build.sh
+   ```
+8. **Push your branch** and open a Pull Request on GitHub.
+9. **Fill out the PR template** and request a review.
+10. **Respond to feedback** and iterate as needed.
+
+**Tips:**
+
+- Don’t hesitate to ask questions in your PR or on GitHub Issues! We’re here to help. 🙌
+- Start small—documentation, typo fixes, or good first issues are great ways to learn the codebase.
+- Be kind and respectful in all communications.
+
+Happy coding and welcome to the ODYSSEY community! 🚀

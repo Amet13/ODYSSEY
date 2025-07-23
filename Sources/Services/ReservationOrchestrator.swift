@@ -2,26 +2,44 @@ import Combine
 import Foundation
 import os.log
 
-// MARK: - Reservation Error (Top-level)
-
+/**
+ ReservationError defines all possible errors that can occur during the reservation automation process.
+ */
 public enum ReservationError: Error, Codable, LocalizedError {
+    /// Network error with a message
     case network(String)
+    /// Facility not found with a message
     case facilityNotFound(String)
+    /// Slot unavailable with a message
     case slotUnavailable(String)
+    /// Automation failed with a message
     case automationFailed(String)
+    /// Unknown error with a message
     case unknown(String)
+    /// Page failed to load in time
     case pageLoadTimeout
+    /// Group size page failed to load in time
     case groupSizePageLoadTimeout
+    /// Number of people field not found
     case numberOfPeopleFieldNotFound
+    /// Confirm button not found
     case confirmButtonNotFound
+    /// Failed to select time slot
     case timeSlotSelectionFailed
+    /// Contact info page failed to load in time
     case contactInfoPageLoadTimeout
+    /// Contact info field not found
     case contactInfoFieldNotFound
+    /// Contact info confirm button not found
     case contactInfoConfirmButtonNotFound
+    /// Email verification failed
     case emailVerificationFailed
+    /// Sport button not found
     case sportButtonNotFound
+    /// WebKit operation timed out
     case webKitTimeout
 
+    /// Human-readable error description for each case
     public var errorDescription: String? {
         switch self {
         case let .network(msg): return "Network error: \(msg)"
@@ -274,19 +292,17 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
     public func handleManualWindowClosure(runType _: ReservationRunType) async {
         logger.info("👤 Manual window closure detected - resetting reservation state.")
         await MainActor.run {
-            if statusManager.isRunning {
-                statusManager.isRunning = false
-                statusManager.lastRunStatus = .failed("Reservation cancelled - window was closed manually")
-                statusManager.currentTask = "Reservation cancelled by user"
-                statusManager.lastRunDate = Date()
-                if let config = self.currentConfig {
-                    statusManager.setLastRunInfo(
-                        for: config.id,
-                        status: .failed("Reservation cancelled - window was closed manually"),
-                        date: Date(),
-                        runType: .manual,
-                        )
-                }
+            statusManager.isRunning = false
+            statusManager.lastRunStatus = .failed("Reservation cancelled - window was closed manually")
+            statusManager.currentTask = "Reservation cancelled by user"
+            statusManager.lastRunDate = Date()
+            if let config = self.currentConfig {
+                statusManager.setLastRunInfo(
+                    for: config.id,
+                    status: .failed("Reservation cancelled - window was closed manually"),
+                    date: Date(),
+                    runType: .manual,
+                    )
             }
         }
         await webKitService.forceReset()
