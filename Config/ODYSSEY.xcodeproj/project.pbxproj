@@ -10,6 +10,7 @@
 		08E92B69040CED9308FAFC6D /* SportIconMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D2446632770BD464AB6F9FF /* SportIconMapper.swift */; };
 		0E70C434A5115D2792406E89 /* WebKitScriptManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92BBD57449782EDCECED3713 /* WebKitScriptManager.swift */; };
 		183F0E2E156DB04F2DEB8013 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F37E32A2DEAB7D80A5148F2 /* Configuration.swift */; };
+		238174C356ACF941BC29E7DB /* AuditLogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB7DDD1315F004FE49354782 /* AuditLogService.swift */; };
 		28755EA49FD31DFF91497043 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBDB0490C4EDFE8E4C23D5C0 /* AboutView.swift */; };
 		29D2C89D986A595CDA1C030E /* WebKitNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBE72B37B5F3E7A883443BF1 /* WebKitNavigation.swift */; };
 		2A9DC792EE6E7E2AB34E109C /* ValidationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CD0A611C34B6ED17316A214 /* ValidationService.swift */; };
@@ -26,8 +27,11 @@
 		87A323E74E31D54CDF5ED611 /* Protocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C6FA2694660A932F8CC5A /* Protocols.swift */; };
 		87BEA07219CB32EABEA725D0 /* EmailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3419A41E593FC7E578492598 /* EmailService.swift */; };
 		8B1ED020B66221020312C147 /* ReservationConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0EBA9D765D3068E55BA51C /* ReservationConfig.swift */; };
+		8DCACDBB4B92167C67C83298 /* EasterEggService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6E7CAD8A0980D579470C01B /* EasterEggService.swift */; };
 		905062F2527E06FEDA546FA1 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB48B132242AD260155FF55 /* KeychainService.swift */; };
+		9469FD36CAFA7DF38793AEC2 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E22A7B78066D8BC90818E37 /* NotificationService.swift */; };
 		9DD08B43DF3B58266C3DFA76 /* WebKitCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D2EBFB5C84EC50958D1ACF /* WebKitCore.swift */; };
+		A0CF402149998BD73EFF5534 /* PerformanceMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 399068745C1697572DC06A21 /* PerformanceMonitor.swift */; };
 		A1335E6664D5449F09663909 /* ReservationErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */; };
 		A9A2F3FB377649F3A070A9A4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 34C024E102B748548377EE51 /* Localizable.strings */; };
 		AA4730C31D341AD6C3669020 /* WebKitDebugWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4A3E2796AC58ABB58A6817 /* WebKitDebugWindowManager.swift */; };
@@ -55,12 +59,14 @@
 		3419A41E593FC7E578492598 /* EmailService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailService.swift; sourceTree = "<group>"; };
 		34C024E102B748548377EE51 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		34D958E5CB6EBC1B6F06E168 /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
+		399068745C1697572DC06A21 /* PerformanceMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceMonitor.swift; sourceTree = "<group>"; };
 		4032FBD046C7A84D2AB708F7 /* ConfigurationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationDetailView.swift; sourceTree = "<group>"; };
 		43D2EBFB5C84EC50958D1ACF /* WebKitCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitCore.swift; sourceTree = "<group>"; };
 		48D6507655544E5D9BC6CABF /* WebKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitService.swift; sourceTree = "<group>"; };
 		5CD0A611C34B6ED17316A214 /* ValidationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationService.swift; sourceTree = "<group>"; };
 		5F14DC9CCCBB581C4F030E51 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		6D876275C546C2EDF4733D3E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		6E22A7B78066D8BC90818E37 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		6ED502E37F16EC8776288AD0 /* ReservationOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationOrchestrator.swift; sourceTree = "<group>"; };
 		6FCC5DA7A130CA27C565988F /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		82530443D1540D732CEA17A3 /* LoadingStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingStateManager.swift; sourceTree = "<group>"; };
@@ -81,8 +87,10 @@
 		DFB48B132242AD260155FF55 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		E34B7DED97B75C8D92AE1A31 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		E4C0A077490B2B2685EBD99A /* SharedVerificationCodePool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedVerificationCodePool.swift; sourceTree = "<group>"; };
+		E6E7CAD8A0980D579470C01B /* EasterEggService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EasterEggService.swift; sourceTree = "<group>"; };
 		EF7F9263A160A352A9E2E0E7 /* EmailCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailCore.swift; sourceTree = "<group>"; };
 		F23E39878914FA1362DBDFB3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		FB7DDD1315F004FE49354782 /* AuditLogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuditLogService.swift; sourceTree = "<group>"; };
 		FBDB0490C4EDFE8E4C23D5C0 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -133,12 +141,16 @@
 		27D349A2FFC390DE40F1B02D /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				FB7DDD1315F004FE49354782 /* AuditLogService.swift */,
 				9F37E32A2DEAB7D80A5148F2 /* Configuration.swift */,
+				E6E7CAD8A0980D579470C01B /* EasterEggService.swift */,
 				EF7F9263A160A352A9E2E0E7 /* EmailCore.swift */,
 				3419A41E593FC7E578492598 /* EmailService.swift */,
 				D69C877E24F28F08FF142CE1 /* FacilityService.swift */,
 				DFB48B132242AD260155FF55 /* KeychainService.swift */,
 				82530443D1540D732CEA17A3 /* LoadingStateManager.swift */,
+				6E22A7B78066D8BC90818E37 /* NotificationService.swift */,
+				399068745C1697572DC06A21 /* PerformanceMonitor.swift */,
 				2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */,
 				6ED502E37F16EC8776288AD0 /* ReservationOrchestrator.swift */,
 				D816DD0E16D5EE6F9F3CD84A /* ReservationStatusManager.swift */,
@@ -302,17 +314,21 @@
 			files = (
 				28755EA49FD31DFF91497043 /* AboutView.swift in Sources */,
 				522F86CF5E10071C780E56B5 /* AppConstants.swift in Sources */,
+				238174C356ACF941BC29E7DB /* AuditLogService.swift in Sources */,
 				183F0E2E156DB04F2DEB8013 /* Configuration.swift in Sources */,
 				C31CF17307DDA59BA42606BC /* ConfigurationDetailView.swift in Sources */,
 				FDB4E4B45EF27FAEDEAA1CA6 /* ConfigurationValidator.swift in Sources */,
 				6CE722921ABA9CF63AF4D2AE /* ContentView.swift in Sources */,
+				8DCACDBB4B92167C67C83298 /* EasterEggService.swift in Sources */,
 				75DEE1A4DC3401DA8285BAD6 /* EmailCore.swift in Sources */,
 				87BEA07219CB32EABEA725D0 /* EmailService.swift in Sources */,
 				5C0D5006496F0363F46D5C9B /* Extensions.swift in Sources */,
 				AF9C5201A1EA357818523371 /* FacilityService.swift in Sources */,
 				905062F2527E06FEDA546FA1 /* KeychainService.swift in Sources */,
 				5CFE6AC761E865868F08AAC9 /* LoadingStateManager.swift in Sources */,
+				9469FD36CAFA7DF38793AEC2 /* NotificationService.swift in Sources */,
 				CB04374E216585BE1DBC7BF4 /* ODYSSEYApp.swift in Sources */,
+				A0CF402149998BD73EFF5534 /* PerformanceMonitor.swift in Sources */,
 				87A323E74E31D54CDF5ED611 /* Protocols.swift in Sources */,
 				8B1ED020B66221020312C147 /* ReservationConfig.swift in Sources */,
 				A1335E6664D5449F09663909 /* ReservationErrorHandler.swift in Sources */,

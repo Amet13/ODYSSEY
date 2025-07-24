@@ -3,6 +3,18 @@ import Foundation
 // MARK: - Application Constants
 
 /// Centralized constants for the ODYSSEY application
+/**
+ AppConstants provides centralized static constants for configuration, timeouts, URLs, and more.
+
+ ## Usage Example
+ ```swift
+ let timeout = AppConstants.defaultTimeout
+ let version = AppConstants.appVersion
+ let facilityURL = AppConstants.ottawaFacilitiesURL
+ let errorMsg = AppConstants.errorMessages["timeout"]
+ let pattern = AppConstants.patterns["email"]
+ ```
+ */
 public enum AppConstants {
     // MARK: - Application Info
 
@@ -141,6 +153,15 @@ public enum AppConstants {
     ]
 }
 
+/**
+ AppConstants extension for window and icon sizes.
+
+ ## Usage Example
+ ```swift
+ let mainWidth = AppConstants.windowMainWidth
+ let iconLarge = AppConstants.iconLarge
+ ```
+ */
 extension AppConstants {
     static let windowMainWidth: CGFloat = 440
     static let windowMainHeight: CGFloat = 600

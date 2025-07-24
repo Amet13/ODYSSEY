@@ -4,6 +4,8 @@ import os.log
 
 /**
  ReservationError defines all possible errors that can occur during the reservation automation process.
+
+ This enum is used throughout the automation flow to provide detailed, user-friendly error messages and to support structured error handling and logging.
  */
 public enum ReservationError: Error, Codable, LocalizedError {
     /// Network error with a message.
@@ -64,6 +66,7 @@ public enum ReservationError: Error, Codable, LocalizedError {
 
 // MARK: - ReservationRunStatusCodable (Top-level)
 
+// Codable wrapper for run status, used for persistence and status tracking
 public struct ReservationRunStatusCodable: Codable, Equatable {
     public let status: ReservationRunStatus
     public let date: Date?
@@ -72,6 +75,7 @@ public struct ReservationRunStatusCodable: Codable, Equatable {
 
 // MARK: - Reservation Run Types and Status (Top-level)
 
+// Run type for automation (manual, automatic, godmode)
 public enum ReservationRunType: String, Codable, Equatable, Sendable {
     case manual
     case automatic
@@ -85,6 +89,7 @@ public enum ReservationRunType: String, Codable, Equatable, Sendable {
     }
 }
 
+// Status of a reservation automation run, with Codable for persistence
 public enum ReservationRunStatus: Codable, Equatable, Sendable {
     case idle
     case running
@@ -144,6 +149,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
     public static let shared = ReservationOrchestrator()
     public var lastRunStatus: ReservationRunStatus { statusManager.lastRunStatus }
 
+    // Core dependencies for orchestrating automation runs
     private let statusManager: ReservationStatusManager
     private let errorHandler: ReservationErrorHandler
     private let logger: Logger

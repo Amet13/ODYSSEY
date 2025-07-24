@@ -41,11 +41,14 @@ struct JavaScriptResult: @unchecked Sendable {
 public final class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol, WebKitServiceProtocol,
                                   NSWindowDelegate,
                                   @unchecked Sendable {
+    // Singleton instance for app-wide use
     public static let shared = WebKitService()
+    // Register this service for dependency injection
     static let _registered: Void = {
         ServiceRegistry.shared.register(WebKitService.shared, for: WebKitServiceProtocol.self)
     }()
 
+    // Published properties for UI binding and automation state
     @Published public var isConnected = false
     @Published public var isRunning: Bool = false
     @Published public var currentURL: String?
@@ -53,23 +56,22 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     /// User-facing error message to be displayed in the UI.
     @Published var userError: String?
 
-    // Callback for window closure
+    // Callback for window closure (used for cleanup and UI updates)
     public var onWindowClosed: ((ReservationRunType) -> Void)?
 
     let logger: Logger
 
-    // WebKit components
+    // WebKit components for browser automation
     public var webView: WKWebView?
-
     private var navigationDelegate: WebKitNavigationDelegate?
     private var scriptMessageHandler: WebKitScriptMessageHandler?
     private var debugWindow: NSWindow?
     private var instanceId: String = "default"
 
-    // Configuration
+    // Configuration for the current automation run
     public var currentConfig: ReservationConfig? {
         didSet {
-            // Update window title when config changes
+            // Update window title when config changes (for debug window)
             if let config = currentConfig {
                 Task { @MainActor in
                     updateWindowTitle(with: config)
@@ -78,16 +80,17 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
     }
 
-    // Set a Chrome-like user agent
+    // User agent and language for anti-detection and compatibility
     var userAgent: String = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) " +
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     private var language: String = "en-US,en"
 
-    // Completion handlers for async operations
+    // Completion handlers for async navigation and script operations
     var navigationCompletions: [String: @Sendable (Bool) -> Void] = [:]
     private var scriptCompletions: [String: @Sendable (Any?) -> Void] = [:]
     private var elementCompletions: [String: @Sendable (String?) -> Void] = [:]
 
+    // Track live instances for debugging and anti-detection
     @MainActor private static var liveInstanceCount = 0
     @MainActor static func printLiveInstanceCount() {
         Logger(subsystem: "com.odyssey.app", category: "WebKitService")
@@ -122,6 +125,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             Self.liveInstanceCount += 1
             logger.info("🔄 WebKitService init. Live instances: \(Self.liveInstanceCount)")
         }
+        // If no webView provided, set up a new one
         if webView == nil {
             setupWebView()
         }
@@ -140,7 +144,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Do not show browser window at app launch
     }
 
-    /// Create a new WebKit service instance for parallel operations
+    /// Create a new WebKit service instance for parallel operations (e.g., for multiple bookings)
     convenience init(forParallelOperation _: Bool) {
         self.init()
     }

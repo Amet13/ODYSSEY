@@ -4,23 +4,29 @@ import SwiftUI
 // MARK: - Main Content View
 
 struct ContentView: View {
+    // Service singletons for automation, email, and secure storage
     private let webKitService: WebKitServiceProtocol = ServiceRegistry.shared.resolve(WebKitServiceProtocol.self)
     private let emailService: EmailServiceProtocol = ServiceRegistry.shared.resolve(EmailServiceProtocol.self)
     private let keychainService: KeychainServiceProtocol = ServiceRegistry.shared.resolve(KeychainServiceProtocol.self)
+    // State objects for app-wide managers (configuration, orchestration, status, user settings)
     @StateObject private var configManager = ConfigurationManager.shared
     @StateObject private var orchestrator = ReservationOrchestrator.shared
     @StateObject private var statusManager = ReservationStatusManager.shared
     @StateObject private var userSettingsManager = UserSettingsManager.shared
+    // UI state for modal and sheet presentation
     @State private var showingAddConfig = false
     @State private var selectedConfig: ReservationConfig?
     @State private var showingSettings = false
     @State private var showingAbout = false
     @State private var showingGodModeConfig = false
+    // Loading and progress state
     @ObservedObject private var loadingStateManager = LoadingStateManager.shared
     @State private var bannerTimer: AnyCancellable?
+    // God mode and error/help UI
     @State private var godModeUIEnabled = false
     @State private var showingUserError = false
     @State private var showingHelp = false
+    // Countdown refresh for autorun scheduling
     @State private var countdownRefreshTrigger = false
     @State private var countdownTimer: Timer?
 
@@ -44,10 +50,8 @@ struct ContentView: View {
             countdownRefreshTrigger: $countdownRefreshTrigger,
             )
         .onAppear {
-            // Force refresh countdown when view appears
+            // When the main view appears, start a timer to update the autorun countdown every 30 seconds
             countdownRefreshTrigger.toggle()
-
-            // Start timer to update countdown every 30 seconds
             countdownTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
                 DispatchQueue.main.async {
                     countdownRefreshTrigger.toggle()
@@ -55,7 +59,7 @@ struct ContentView: View {
             }
         }
         .onDisappear {
-            // Stop timer when view disappears
+            // Clean up timer when the view disappears
             countdownTimer?.invalidate()
             countdownTimer = nil
         }
@@ -63,6 +67,7 @@ struct ContentView: View {
 }
 
 private struct MainBody: View {
+    // All major state and bindings for the main UI
     @ObservedObject var configManager: ConfigurationManager
     @ObservedObject var orchestrator: ReservationOrchestrator
     @ObservedObject var statusManager: ReservationStatusManager
@@ -107,6 +112,7 @@ private struct MainBody: View {
             }
             .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
             .background(Color(NSColor.windowBackgroundColor))
+            // Sheet modals for configuration, settings, about, and god mode
             .sheet(isPresented: $showingAddConfig) {
                 ConfigurationDetailView(config: nil, onSave: { config in
                     configManager.addConfiguration(config)
@@ -131,6 +137,7 @@ private struct MainBody: View {
                     // You can define what saving in god mode does here
                 })
             }
+            // Keyboard shortcut for toggling god mode UI
             .onKeyPress("g", phases: .down) { press in
                 if press.modifiers.contains(.command) {
                     godModeUIEnabled.toggle()
@@ -142,38 +149,33 @@ private struct MainBody: View {
         }
     }
 
-    // Helper to get next autorun for a specific config
+    // Helper to get the next autorun time for a config, considering custom or default time
     func getNextCronRunTime(for config: ReservationConfig) -> NextAutorunInfo? {
         guard config.isEnabled else { return nil }
         let calendar = Calendar.current
         let now = Date()
         let userSettingsManager = UserSettingsManager.shared
-
         // Determine which time to use based on user settings
         let useCustomTime = userSettingsManager.userSettings.useCustomAutorunTime
         let autorunTime: Date
         let autorunHour: Int
         let autorunMinute: Int
         let autorunSecond: Int
-
         if useCustomTime {
-            // Use the custom time set by the user
             autorunTime = userSettingsManager.userSettings.customAutorunTime
             autorunHour = calendar.component(.hour, from: autorunTime)
             autorunMinute = calendar.component(.minute, from: autorunTime)
             autorunSecond = calendar.component(.second, from: autorunTime)
         } else {
-            // Use default 6:00 PM time
             autorunTime = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now
             autorunHour = 18
             autorunMinute = 0
             autorunSecond = 0
         }
-
+        // Find the next scheduled autorun for this config
         var nextCronTime: Date?
         var nextWeekday: ReservationConfig.Weekday?
         var nextTimeSlot: TimeSlot?
-
         for (weekday, timeSlots) in config.dayTimeSlots {
             for timeSlot in timeSlots {
                 for weekOffset in 0 ... 4 {
@@ -186,7 +188,6 @@ private struct MainBody: View {
                         second: autorunSecond,
                         of: cronTime,
                         ) ?? cronTime
-
                     if finalCronTime > now {
                         if let currentNextCronTime = nextCronTime {
                             if finalCronTime < currentNextCronTime {
@@ -211,6 +212,7 @@ private struct MainBody: View {
         }
     }
 
+    // Helper to get the next date for a given weekday from a base date
     func getNextWeekday(_ weekday: ReservationConfig.Weekday, from date: Date) -> Date {
         let calendar = Calendar.current
         let currentWeekday = calendar.component(.weekday, from: date)
@@ -222,6 +224,7 @@ private struct MainBody: View {
         return calendar.date(byAdding: .day, value: daysToAdd, to: date) ?? date
     }
 
+    // Formats a countdown string for the next autorun
     func formatCountdown(to targetDate: Date) -> String {
         let now = Date()
         let timeInterval = targetDate.timeIntervalSince(now)
@@ -254,11 +257,11 @@ private struct MainBody: View {
         }
     }
 
+    // Simulate autorun for all enabled configs for today (god mode)
     func simulateAutorunForToday() {
         let calendar = Calendar.current
         let now = Date()
         let currentWeekday = calendar.component(.weekday, from: now)
-
         // Convert Calendar weekday to our Weekday enum
         let weekday: ReservationConfig.Weekday
         switch currentWeekday {
@@ -272,10 +275,9 @@ private struct MainBody: View {
         default:
             return
         }
-
+        // Get all enabled configs for today
         let configsForToday = configManager.getConfigurationsForDay(weekday)
         let enabledConfigs = configsForToday.filter(\.isEnabled)
-
         if enabledConfigs.isEmpty {
             // If no enabled configs for today, run all enabled configs
             let allEnabledConfigs = configManager.settings.configurations.filter(\.isEnabled)
