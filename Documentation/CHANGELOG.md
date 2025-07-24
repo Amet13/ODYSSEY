@@ -1,24 +1,33 @@
 # 📋 Changelog
 
 All notable changes to ODYSSEY will be documented in this file.
+
 ## [1.1.0] - 2025-07-23
 
-### Added
-- New features and improvements
+### 🎉 Added
 
-### Changed
-- Updates and modifications
+- **Complete Advanced Settings in God Mode**: All advanced settings are now only visible in God Mode
+- **Browser Window Control**: New "Show browser window" setting in God Mode Advanced Settings
+- **Conditional UI**: "Automatically close browser window on failure" only appears when browser window is enabled
+- **Improved Captcha Bypass**: Browser window visibility now helps bypass captcha detection
 
-### Fixed
-- Bug fixes and improvements
+### 🛠️ Changed
 
-### Technical
-- Build system improvements
-- Code quality enhancements
-- Performance optimizations
+- **Default Behavior**: Browser window is now hidden by default (invisible automation)
+- **God Mode Only**: All advanced settings are now only visible in God Mode for advanced debugging
+- **UI Layout**: Advanced Settings section completely moved to God Mode with "(God Mode)" title
+- **Setting Name**: Changed from "Do not show browser window" to "Show browser window" for clarity
+- **Help Text**: Updated to explain captcha bypass benefits and default behavior
+- **Default Values**: Optimized defaults for regular users (sleep prevention enabled, invisible automation)
+- **User Documentation**: Cleaned up README.md to remove technical details from user-facing documentation
+
+### 🐛 Fixed
+
+- **Tray Icon Behavior**: Fixed premature tray icon unfilling during verification process
+- **Timeout Issues**: Increased completion tracking timeout from 10 seconds to 5 minutes
+- **Browser Window Logic**: Fixed multiple places where browser window was shown regardless of settings
 
 ---
-
 
 > **How to read this changelog:**
 >
