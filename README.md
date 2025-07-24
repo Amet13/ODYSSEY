@@ -1,5 +1,7 @@
 <div align="center">
-  <img src="Documentation/Images/logo.png" alt="ODYSSEY Logo" width="300" height="300">
+  <img src="Sources/Resources/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" alt="ODYSSEY Logo">
+  <h1>ODYSSEY</h1>
+  <p><strong>Ottawa Drop-in Your Sports & Schedule Easily Yourself</strong></p>
   <p>
     <a href="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml">
       <img src="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml/badge.svg" alt="CI Status">
@@ -82,7 +84,8 @@
 - **Delete Configuration** (optional)
 
 <div align="center">
-  <img src="Documentation/Images/main.png" width="300">
+  <img src="Documentation/Images/main_1.png" width="300">
+  <img src="Documentation/Images/main_2.png" width="300">
 </div>
 
 > **💡 Tip**: Keep your laptop awake during reservation automation. While ODYSSEY can prevent sleep before autorun, it's best to ensure your Mac doesn't go to sleep during the reservation process for optimal reliability.

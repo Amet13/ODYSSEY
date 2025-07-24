@@ -55,7 +55,7 @@ struct ConfigurationDetailView: View {
             Divider()
             footerButtonsSection
         }
-        .frame(width: 440, height: 580)
+        .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
         .navigationTitle(
             config == nil ? "Add Reservation Configuration" : "Edit Reservation Configuration",
             )
@@ -610,7 +610,7 @@ struct DayPickerView: View {
                 .padding()
             }
         }
-        .frame(width: 440, height: 400)
+        .frame(width: AppConstants.windowDayPickerWidth, height: AppConstants.windowDayPickerHeight)
     }
 }
 

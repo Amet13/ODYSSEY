@@ -76,7 +76,7 @@ struct SettingsFormView: View {
                 tempSettings: $tempSettings,
                 )
         }
-        .frame(width: 440, height: 600)
+        .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
         .alert("Validation Error", isPresented: $showingValidationAlert) {
             Button("OK") { }
         } message: {
@@ -698,7 +698,7 @@ private func settingsField(
         HStack {
             Image(systemName: icon)
                 .foregroundColor(.secondary)
-                .frame(width: 16)
+                .frame(width: AppConstants.iconSmall)
             Text(title)
                 .font(.subheadline)
                 .fontWeight(.medium)

@@ -140,3 +140,15 @@ public enum AppConstants {
         "email": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
     ]
 }
+
+extension AppConstants {
+    static let windowMainWidth: CGFloat = 440
+    static let windowMainHeight: CGFloat = 600
+    static let windowAboutWidth: CGFloat = 380
+    static let windowAboutHeight: CGFloat = 380
+    static let windowDayPickerWidth: CGFloat = 380
+    static let windowDayPickerHeight: CGFloat = 380
+    static let windowDeleteModalWidth: CGFloat = 340
+    static let iconLarge: CGFloat = 64
+    static let iconSmall: CGFloat = 14
+}

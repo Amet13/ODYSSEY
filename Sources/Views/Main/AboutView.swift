@@ -100,7 +100,7 @@ struct AboutView: View {
                 }
             }
         }
-        .frame(width: 380, height: 400)
+        .frame(width: AppConstants.windowAboutWidth, height: AppConstants.windowAboutHeight)
         .background(.clear)
         .onKeyPress(.escape) {
             dismiss()
@@ -117,7 +117,7 @@ struct FeatureRow: View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .foregroundColor(.blue)
-                .frame(width: 14)
+                .frame(width: AppConstants.iconSmall)
 
             Text(text)
                 .font(.caption)

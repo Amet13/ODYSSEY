@@ -221,19 +221,11 @@
 		B269953CE8ABAE06B30FD525 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				B57C1EBE44AFED1AF1A59B4C /* JavaScript */,
 				9F32A0A5C6C800FBB7769711 /* AppIcon.icns */,
 				6D876275C546C2EDF4733D3E /* Assets.xcassets */,
 				34C024E102B748548377EE51 /* Localizable.strings */,
 			);
 			path = Resources;
-			sourceTree = "<group>";
-		};
-		B57C1EBE44AFED1AF1A59B4C /* JavaScript */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = JavaScript;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
