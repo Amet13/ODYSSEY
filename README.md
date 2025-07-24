@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="Documentation/Images/logo.png" alt="ODYSSEY Logo" width="256" height="256">
+  <img src="Documentation/Images/logo.png" alt="ODYSSEY Logo" width="300" height="300">
   <p>
     <a href="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml">
       <img src="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml/badge.svg" alt="CI Status">
@@ -9,9 +9,6 @@
     </a>
     <a href="https://github.com/Amet13/ODYSSEY/blob/main/LICENSE">
       <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License">
-    </a>
-    <a href="https://github.com/Amet13/ODYSSEY/issues">
-      <img src="https://img.shields.io/badge/Support-GitHub%20Issues-orange" alt="GitHub Issues">
     </a>
   </p>
 </div>
