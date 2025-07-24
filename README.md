@@ -1,7 +1,5 @@
 <div align="center">
   <img src="Documentation/Images/logo.png" alt="ODYSSEY Logo" width="256" height="256">
-  <h1>ODYSSEY</h1>
-  <p><strong>Ottawa Drop-in Your Sports & Schedule Easily Yourself</strong></p>
   <p>
     <a href="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml">
       <img src="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml/badge.svg" alt="CI Status">
