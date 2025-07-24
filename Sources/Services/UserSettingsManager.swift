@@ -156,7 +156,7 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
             port: port,
             )
         if case let .failure(error) = result {
-            LoadingStateManager.shared.showErrorBanner(error.localizedDescription)
+            logger.error("❌ Keychain storage error: \(error.localizedDescription)")
         }
     }
 
@@ -168,7 +168,7 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
         guard !email.isEmpty, !server.isEmpty else { return }
         let result = KeychainService.shared.deleteEmailCredentials(email: email, server: server, port: port)
         if case let .failure(error) = result {
-            LoadingStateManager.shared.showErrorBanner(error.localizedDescription)
+            logger.error("❌ Keychain deletion error: \(error.localizedDescription)")
         }
     }
 

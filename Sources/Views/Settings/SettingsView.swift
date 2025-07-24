@@ -29,7 +29,6 @@ struct SettingsFormView: View {
     @State private var shouldClearTestResult = false
     let godModeEnabled: Bool
 
-    // Temporary settings for form state management
     @State private var tempSettings: UserSettings
 
     private let logger = Logger(subsystem: "com.odyssey.app", category: "SettingsView")
@@ -326,7 +325,6 @@ private struct AdvancedSettingsSection: View {
                         get: { tempSettings.preventSleepForAutorun },
                         set: { newValue in
                             tempSettings.preventSleepForAutorun = newValue
-                            print("🔧 Prevent sleep setting changed to: \(newValue)")
                         },
                         ))
                     Text("Prevent sleep before autorun (5 minutes prior)")
@@ -343,7 +341,6 @@ private struct AdvancedSettingsSection: View {
                             get: { tempSettings.showBrowserWindow },
                             set: { newValue in
                                 tempSettings.showBrowserWindow = newValue
-                                print("🔧 Show browser window setting changed to: \(newValue)")
                             },
                             ))
                         Text("Show browser window")
@@ -359,7 +356,6 @@ private struct AdvancedSettingsSection: View {
                                 get: { tempSettings.autoCloseDebugWindowOnFailure },
                                 set: { newValue in
                                     tempSettings.autoCloseDebugWindowOnFailure = newValue
-                                    print("🔧 Auto close browser window setting changed to: \(newValue)")
                                 },
                                 ))
                             Text("Automatically close browser window on failure")
@@ -378,7 +374,6 @@ private struct AdvancedSettingsSection: View {
                             get: { tempSettings.useCustomAutorunTime },
                             set: { newValue in
                                 tempSettings.useCustomAutorunTime = newValue
-                                print("🔧 Use custom autorun time setting changed to: \(newValue)")
                             },
                             ))
                         Text("Use custom autorun time")
@@ -406,7 +401,6 @@ private struct AdvancedSettingsSection: View {
                                             of: Date(),
                                             ) ?? newTime
                                         tempSettings.customAutorunTime = normalizedTime
-                                        print("🔧 Custom autorun time changed to: \(normalizedTime)")
                                     },
                                     ),
                                 displayedComponents: .hourAndMinute,
@@ -737,20 +731,3 @@ private func settingsField(
         }
     }
 }
-
-#if DEBUG
-final class PreviewSettingsMockEmailService: EmailServiceProtocol, ObservableObject {
-    @Published var isTesting: Bool = false
-    @Published var lastTestResult: EmailService.TestResult?
-    @Published var userFacingError: String?
-}
-
-struct SettingsView_Previews: PreviewProvider {
-    static var previews: some View {
-        Task { @MainActor in
-            ServiceRegistry.shared.register(PreviewSettingsMockEmailService(), for: EmailServiceProtocol.self)
-        }
-        return SettingsView(godModeEnabled: false)
-    }
-}
-#endif

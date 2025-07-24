@@ -21,7 +21,7 @@ public enum SleepManager {
             &assertionID,
             )
         if result == kIOReturnSuccess {
-            print("Sleep prevented: \(reason)")
+            // Sleep prevention successful
         }
     }
 
@@ -32,7 +32,7 @@ public enum SleepManager {
         if assertionID != 0 {
             IOPMAssertionRelease(assertionID)
             assertionID = 0
-            print("Sleep allowed")
+            // Sleep prevention released
         }
     }
 }

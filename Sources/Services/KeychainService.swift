@@ -218,7 +218,7 @@ public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol
         lastError = error
         logger.error("❌ Keychain error: \(error.localizedDescription)")
         onError?(error)
-        LoadingStateManager.shared.showErrorBanner(error.localizedDescription)
+        logger.error("❌ Keychain error: \(error.localizedDescription)")
     }
 
     public func clearAllOdysseyItems() -> Result<Void, KeychainError> {

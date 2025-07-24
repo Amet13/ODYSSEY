@@ -839,41 +839,6 @@ struct DeleteConfirmationModal: View {
     }
 }
 
-struct BannerView: View {
-    let notification: LoadingStateManager.BannerNotification
-    var body: some View {
-        HStack {
-            Image(systemName: iconName(for: notification.type))
-                .foregroundColor(.white)
-            Text(notification.message)
-                .foregroundColor(.white)
-                .font(.headline)
-        }
-        .padding()
-        .frame(maxWidth: .infinity)
-        .background(color(for: notification.type))
-        .cornerRadius(8)
-        .shadow(radius: 4)
-        .padding([.top, .horizontal])
-    }
-
-    func color(for type: LoadingStateManager.BannerNotification.BannerType) -> Color {
-        switch type {
-        case .success: return .odysseySuccess
-        case .error: return .odysseyError
-        case .info: return .odysseyInfo
-        }
-    }
-
-    func iconName(for type: LoadingStateManager.BannerNotification.BannerType) -> String {
-        switch type {
-        case .success: return "checkmark.circle.fill"
-        case .error: return "xmark.octagon.fill"
-        case .info: return "info.circle.fill"
-        }
-    }
-}
-
 // MARK: - Onboarding/Help View
 
 struct OnboardingHelpView: View {
@@ -907,60 +872,3 @@ struct OnboardingHelpView: View {
         }
     }
 }
-
-#if DEBUG
-final class PreviewMockWebKitService: WebKitServiceProtocol {
-    var isConnected: Bool = false
-    var isRunning: Bool = false
-    var currentURL: String?
-    var pageTitle: String?
-    func connect() async throws { }
-    func disconnect(closeWindow _: Bool) async { }
-    func navigateToURL(_: String) async throws { }
-    func forceReset() async { }
-    func isServiceValid() -> Bool { true }
-    func reset() async { }
-    var onWindowClosed: ((ReservationRunType) -> Void)?
-    var currentConfig: ReservationConfig?
-    func waitForDOMReady() async -> Bool { true }
-    func findAndClickElement(withText _: String) async -> Bool { true }
-    func waitForGroupSizePage() async -> Bool { true }
-    func fillNumberOfPeople(_: Int) async -> Bool { true }
-    func clickConfirmButton() async -> Bool { true }
-    func selectTimeSlot(dayName _: String, timeString _: String) async -> Bool { true }
-    func waitForContactInfoPage() async -> Bool { true }
-    func fillAllContactFieldsWithAutofillAndHumanMovements(
-        phoneNumber _: String,
-        email _: String,
-        name _: String,
-        ) async -> Bool { true }
-    func addQuickPause() async { }
-    func clickContactInfoConfirmButtonWithRetry() async -> Bool { true }
-    func detectRetryText() async -> Bool { false }
-    func isEmailVerificationRequired() async -> Bool { false }
-    func handleEmailVerification(verificationStart _: Date) async -> Bool { true }
-}
-
-final class PreviewMockEmailService: EmailServiceProtocol, ObservableObject {
-    @Published var isTesting: Bool = false
-    @Published var lastTestResult: EmailService.TestResult?
-    @Published var userFacingError: String?
-}
-
-final class PreviewMockKeychainService: KeychainServiceProtocol {
-    func savePassword(_: String, for _: String) throws { }
-    func getPassword(for _: String) throws -> String? { nil }
-    func deletePassword(for _: String) throws { }
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        Task { @MainActor in
-            ServiceRegistry.shared.register(PreviewMockWebKitService(), for: WebKitServiceProtocol.self)
-            ServiceRegistry.shared.register(PreviewMockEmailService(), for: EmailServiceProtocol.self)
-            ServiceRegistry.shared.register(PreviewMockKeychainService(), for: KeychainServiceProtocol.self)
-        }
-        return ContentView()
-    }
-}
-#endif

@@ -301,7 +301,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         logger.info("✅ EmailService: Email settings are configured")
 
         // Use the same NWConnection-based implementation that works for the test
-        // This replaces the old InputStream/OutputStream implementation
         // ---
         // The following function will aggregate all unique IDs from all search strategies
         return await fetchVerificationCodesWithSameConnection(since: searchSince)
@@ -341,12 +340,9 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
     /// Fetches verification codes using the same connection logic as the test
     private func fetchVerificationCodesWithSameConnection(since: Date) async -> [String] {
-        // Removed unused: let settings = userSettingsManager.userSettings
-
         logger.info("🔍 EmailService: Fetching verification codes with same connection logic")
 
         // Use the same NWConnection-based implementation that works for the test
-        // This replaces the old InputStream/OutputStream implementation
         return await fetchVerificationCodesWithNWConnection(since: since)
     }
 
@@ -1000,7 +996,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                             guard let self else { return }
                             switch result {
                             case let .success(loginResponse):
-                                // Log the full LOGIN response for debugging
                                 self.logger.info("[IMAP] LOGIN response: \(loginResponse)")
                                 // Parse response lines for the LOGIN tag (a002)
                                 let loginLines = loginResponse.components(separatedBy: .newlines)
@@ -1332,7 +1327,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     /// - Returns: Array of 4-digit verification codes found
     private func extractVerificationCodes(from body: String) async -> [String] {
         logger.info("🔍 Extracting verification codes from email body...")
-        logger.debug("📧 Full email body (first 1000 chars): \(body.prefix(1_000))")
 
         // Contextual patterns (case-insensitive, allow line breaks)
         let contextualPatterns: [(String, String)] = [
@@ -1358,7 +1352,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                         let range = Range(match.range(at: 1), in: body) else { return nil }
                     return String(body[range])
                 }
-                logger.debug("🔎 Pattern \(context) found \(codes.count) matches: \(codes)")
+
                 foundCodes.append(contentsOf: codes)
             } catch {
                 logger.error("❌ Regex error for pattern \(context): \(error.localizedDescription)")
@@ -1391,7 +1385,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             let filtered = codes.filter { code in
                 code != "0000" && code != "0004" && code != "1234" && code != "1111"
             }
-            logger.debug("🔎 Fallback pattern found \(filtered.count) matches: \(filtered)")
+
             if !filtered.isEmpty {
                 logger.info("📋 Extracted \(filtered.count) unique verification codes (fallback): \(filtered)")
                 return filtered
@@ -1417,7 +1411,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             let password = settings.currentPassword
             let fromAddress = "noreply@frontdesksuite.com"
 
-            // Log email configuration for debugging
             logger.info("📧 Email configuration - Email: \(email).")
             logger.info("📧 Email configuration - Is Gmail: \(settings.isGmailAccount(email)).")
 
@@ -1525,7 +1518,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                         if bytesRead > 0 {
                             if let part = String(bytes: buffer[0 ..< bytesRead], encoding: .utf8) {
                                 response += part
-                                logger.debug("📨 IMAP response chunk: \(part.prefix(100))")
                             }
                         } else if bytesRead == 0 {
                             // End of stream
@@ -1537,7 +1529,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                     if
                         response.contains("\(tag) OK") || response.contains("\(tag) BAD") || response
                             .contains("\(tag) NO") {
-                        logger.debug("✅ IMAP response complete for tag \(tag)")
                         return response
                     }
 
@@ -1567,12 +1558,11 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             sendCommand("a1 LOGIN \"\(email)\" \"\(password)\"")
             let loginResp = await expect("a1")
 
-            // Log the full login response for debugging (without privacy protection)
             logger.error("❌ IMAP login response: \(String(describing: loginResp)).")
 
             guard loginResp.contains("a1 OK") else {
                 logger.error("❌ IMAP login failed: \(String(describing: loginResp)).")
-                // Log response details for debugging
+
                 let lines = loginResp.components(separatedBy: "\n")
                 for (index, line) in lines.enumerated() {
                     logger.error("❌ Login response line \(index): \(String(describing: line)).")
@@ -1591,8 +1581,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                 return []
             }
             logger.info("✅ IMAP login successful, about to search for verification emails.")
-
-            // Note: Debug logging removed for production
 
             // Try multiple search strategies to find verification emails
             var ids: [Int] = []
@@ -1645,7 +1633,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                 ids.append(contentsOf: ids4)
             }
 
-            // After all search strategies, if no IDs found, log all recent emails for debugging
             if ids.isEmpty {
                 logger
                     .warning(
@@ -1934,7 +1921,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         case let .failure(error):
             Task { @MainActor in
                 self.userFacingError = error.localizedDescription
-                LoadingStateManager.shared.showErrorBanner(self.userFacingError!)
+                logger.error("❌ Email service error: \(self.userFacingError!)")
             }
             return nil
         }
