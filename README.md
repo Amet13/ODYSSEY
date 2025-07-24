@@ -141,7 +141,7 @@
 
 ## 🤝 Contributing
 
-See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution guidelines, roadmap, and good first issues.
+See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution guidelines, and good first issues.
 
 ## 🛡️ Security & Compliance
 
