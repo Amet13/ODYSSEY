@@ -1,24 +1,6 @@
 # 📋 Changelog
 
 All notable changes to ODYSSEY will be documented in this file.
-## [1.1.0] - 2025-07-23
-
-### Added
-- New features and improvements
-
-### Changed
-- Updates and modifications
-
-### Fixed
-- Bug fixes and improvements
-
-### Technical
-- Build system improvements
-- Code quality enhancements
-- Performance optimizations
-
----
-
 
 > **How to read this changelog:**
 >
