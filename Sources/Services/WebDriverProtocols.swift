@@ -3,23 +3,23 @@ import Foundation
 
 // MARK: - Web Automation Protocols (WebKit)
 
-/// Protocol for web automation service abstraction
+/// Protocol for web automation service abstraction.
 @MainActor
 public protocol WebAutomationServiceProtocol: ObservableObject, Sendable {
-    /// Indicates if the service is connected to a web automation session
+    /// Indicates if the service is connected to a web automation session.
     var isConnected: Bool { get }
-    /// Indicates if the service is currently running a web automation task
+    /// Indicates if the service is currently running a web automation task.
     var isRunning: Bool { get }
-    /// The current URL of the web page being displayed
+    /// The current URL of the web page being displayed.
     var currentURL: String? { get }
-    /// The title of the current web page
+    /// The title of the current web page.
     var pageTitle: String? { get }
 
-    /// Establishes a connection to a web automation session
+    /// Establishes a connection to a web automation session.
     func connect() async throws
-    /// Disconnects from the current web automation session
+    /// Disconnects from the current web automation session.
     func disconnect(closeWindow: Bool) async
-    /// Navigates the web browser to the specified URL
+    /// Navigates the web browser to the specified URL.
     func navigateToURL(_ url: String) async throws
     /// Retrieves the source code of the current web page
     func getPageSource() async throws -> String

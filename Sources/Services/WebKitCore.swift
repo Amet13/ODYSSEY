@@ -4,8 +4,8 @@ import Foundation
 import os.log
 import WebKit
 
-/// Core WebKit service functionality
-/// Handles initialization, setup, and basic navigation operations
+/// Core WebKit service functionality.
+/// Handles initialization, setup, and basic navigation operations.
 @MainActor
 @preconcurrency
 class WebKitCore: NSObject, ObservableObject {
@@ -156,12 +156,19 @@ class WebKitCore: NSObject, ObservableObject {
 
     // MARK: - Public Methods
 
-    /// Shows the debug window
+    /// Shows the browser window
     func showDebugWindow() {
-        debugWindowManager?.showDebugWindow(webView: webView, config: currentConfig)
+        // Check user settings to determine if browser window should be shown
+        let userSettings = UserSettingsManager.shared.userSettings
+        if userSettings.showBrowserWindow {
+            debugWindowManager?.showDebugWindow(webView: webView, config: currentConfig)
+            logger.info("🪟 Browser window shown (user setting: show window)")
+        } else {
+            logger.info("🪟 Browser window hidden (user setting: hide window - recommended to avoid captcha detection)")
+        }
     }
 
-    /// Hides the debug window
+    /// Hides the browser window
     func hideDebugWindow() {
         debugWindowManager?.hideDebugWindow()
     }
@@ -198,7 +205,7 @@ class WebKitCore: NSObject, ObservableObject {
 
 extension WebKitCore: NSWindowDelegate {
     func windowWillClose(_: Notification) {
-        logger.info("🪟 Debug window closing - notifying callback.")
+        logger.info("🪟 Browser window closing - notifying callback.")
         onWindowClosed?(ReservationRunType.godmode)
     }
 }

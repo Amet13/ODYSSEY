@@ -23,7 +23,9 @@ public final class ReservationErrorHandler: @unchecked Sendable {
             }
         }
         await MainActor.run {
-            if runType != .godmode { statusManager.isRunning = false }
+            // Only set isRunning = false for single reservations (manual runs)
+            // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
+            if runType == .manual { statusManager.isRunning = false }
             statusManager.lastRunStatus = ReservationRunStatus.failed(error.localizedDescription)
             statusManager.setLastRunInfo(
                 for: config.id,
@@ -44,7 +46,9 @@ public final class ReservationErrorHandler: @unchecked Sendable {
 
     public func handleError(_ error: String, configId: UUID?, runType: ReservationRunType = .manual) async {
         await MainActor.run {
-            if runType != .godmode { statusManager.isRunning = false }
+            // Only set isRunning = false for single reservations (manual runs)
+            // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
+            if runType == .manual { statusManager.isRunning = false }
             statusManager.lastRunStatus = ReservationRunStatus.failed(error)
             statusManager.currentTask = "Error: \(error)"
             statusManager.lastRunDate = Date()

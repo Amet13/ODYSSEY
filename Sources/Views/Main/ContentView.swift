@@ -21,6 +21,8 @@ struct ContentView: View {
     @State private var godModeUIEnabled = false
     @State private var showingUserError = false
     @State private var showingHelp = false
+    @State private var countdownRefreshTrigger = false
+    @State private var countdownTimer: Timer?
 
     var body: some View {
         MainBody(
@@ -39,7 +41,24 @@ struct ContentView: View {
             showingUserError: $showingUserError,
             showingHelp: $showingHelp,
             emailService: emailService,
+            countdownRefreshTrigger: $countdownRefreshTrigger,
             )
+        .onAppear {
+            // Force refresh countdown when view appears
+            countdownRefreshTrigger.toggle()
+
+            // Start timer to update countdown every 30 seconds
+            countdownTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
+                DispatchQueue.main.async {
+                    countdownRefreshTrigger.toggle()
+                }
+            }
+        }
+        .onDisappear {
+            // Stop timer when view disappears
+            countdownTimer?.invalidate()
+            countdownTimer = nil
+        }
     }
 }
 
@@ -59,6 +78,7 @@ private struct MainBody: View {
     @Binding var showingUserError: Bool
     @Binding var showingHelp: Bool
     let emailService: EmailServiceProtocol
+    @Binding var countdownRefreshTrigger: Bool
 
     var body: some View {
         ZStack {
@@ -77,6 +97,7 @@ private struct MainBody: View {
                     getNextCronRunTime: getNextCronRunTime,
                     formatCountdown: formatCountdown,
                     showingAddConfig: $showingAddConfig,
+                    countdownRefreshTrigger: countdownRefreshTrigger,
                     )
                 Divider()
                 FooterView(
@@ -97,7 +118,7 @@ private struct MainBody: View {
                 })
             }
             .sheet(isPresented: $showingSettings) {
-                SettingsView()
+                SettingsView(godModeEnabled: godModeUIEnabled)
             }
             .sheet(isPresented: $showingAbout) {
                 AboutView()
@@ -113,10 +134,7 @@ private struct MainBody: View {
             .onKeyPress("g", phases: .down) { press in
                 if press.modifiers.contains(.command) {
                     godModeUIEnabled.toggle()
-                    // Remove focus from the God Mode button if toggling off
-                    if !godModeUIEnabled {
-                        NSApp.keyWindow?.makeFirstResponder(nil)
-                    }
+                    // Don't remove focus - this was causing the key press issue
                     return .handled
                 }
                 return .ignored
@@ -129,16 +147,46 @@ private struct MainBody: View {
         guard config.isEnabled else { return nil }
         let calendar = Calendar.current
         let now = Date()
+        let userSettingsManager = UserSettingsManager.shared
+
+        // Determine which time to use based on user settings
+        let useCustomTime = userSettingsManager.userSettings.useCustomAutorunTime
+        let autorunTime: Date
+        let autorunHour: Int
+        let autorunMinute: Int
+        let autorunSecond: Int
+
+        if useCustomTime {
+            // Use the custom time set by the user
+            autorunTime = userSettingsManager.userSettings.customAutorunTime
+            autorunHour = calendar.component(.hour, from: autorunTime)
+            autorunMinute = calendar.component(.minute, from: autorunTime)
+            autorunSecond = calendar.component(.second, from: autorunTime)
+        } else {
+            // Use default 6:00 PM time
+            autorunTime = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now
+            autorunHour = 18
+            autorunMinute = 0
+            autorunSecond = 0
+        }
+
         var nextCronTime: Date?
         var nextWeekday: ReservationConfig.Weekday?
         var nextTimeSlot: TimeSlot?
+
         for (weekday, timeSlots) in config.dayTimeSlots {
             for timeSlot in timeSlots {
                 for weekOffset in 0 ... 4 {
                     let baseDate = calendar.date(byAdding: .weekOfYear, value: weekOffset, to: now) ?? now
                     let reservationDay = getNextWeekday(weekday, from: baseDate)
                     let cronTime = calendar.date(byAdding: .day, value: -2, to: reservationDay) ?? reservationDay
-                    let finalCronTime = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: cronTime) ?? cronTime
+                    let finalCronTime = calendar.date(
+                        bySettingHour: autorunHour,
+                        minute: autorunMinute,
+                        second: autorunSecond,
+                        of: cronTime,
+                        ) ?? cronTime
+
                     if finalCronTime > now {
                         if let currentNextCronTime = nextCronTime {
                             if finalCronTime < currentNextCronTime {
@@ -243,6 +291,7 @@ private struct HeaderView: View {
     @Binding var godModeUIEnabled: Bool
     @Binding var showingAddConfig: Bool
     let simulateAutorunForToday: () -> Void
+    @StateObject private var userSettingsManager = UserSettingsManager.shared
 
     var body: some View {
         VStack(spacing: 8) {
@@ -268,7 +317,7 @@ private struct HeaderView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(.odysseyAccent)
                     .controlSize(.small)
-                    .help("⚡ Simulate autorun for 6pm today (⌘+G)")
+                    .help("⚡ Simulate autorun for \(formatCustomTime()) today")
                     .accessibilityLabel("Simulate GOD MODE")
                 }
                 Button(action: { showingAddConfig = true }) {
@@ -290,6 +339,31 @@ private struct HeaderView: View {
         .padding(.top, 16)
         .padding(.bottom, 16)
     }
+
+    private func formatCustomTime() -> String {
+        let calendar = Calendar.current
+        let useCustomTime = userSettingsManager.userSettings.useCustomAutorunTime
+        let hour: Int
+        let minute: Int
+
+        if useCustomTime {
+            // Use the custom time set by the user
+            let customTime = userSettingsManager.userSettings.customAutorunTime
+            hour = calendar.component(.hour, from: customTime)
+            minute = calendar.component(.minute, from: customTime)
+        } else {
+            // Use default 6:00 PM time
+            hour = 18
+            minute = 0
+        }
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        formatter.locale = Locale(identifier: "en_US")
+
+        let timeDate = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: Date()) ?? Date()
+        return formatter.string(from: timeDate)
+    }
 }
 
 private struct MainContentView: View {
@@ -300,7 +374,7 @@ private struct MainContentView: View {
     let getNextCronRunTime: (ReservationConfig) -> NextAutorunInfo?
     let formatCountdown: (Date) -> String
     @Binding var showingAddConfig: Bool
-
+    let countdownRefreshTrigger: Bool
     var body: some View {
         if configManager.settings.configurations.isEmpty {
             EmptyStateView(showingAddConfig: $showingAddConfig)
@@ -312,6 +386,7 @@ private struct MainContentView: View {
                 orchestrator: orchestrator,
                 getNextCronRunTime: getNextCronRunTime,
                 formatCountdown: formatCountdown,
+                countdownRefreshTrigger: countdownRefreshTrigger,
                 )
         }
     }
@@ -354,6 +429,7 @@ private struct ConfigurationListView: View {
     @ObservedObject var orchestrator: ReservationOrchestrator
     let getNextCronRunTime: (ReservationConfig) -> NextAutorunInfo?
     let formatCountdown: (Date) -> String
+    let countdownRefreshTrigger: Bool
 
     var body: some View {
         List {
@@ -373,6 +449,7 @@ private struct ConfigurationListView: View {
                     )
                 .accessibilityElement()
                 .accessibilityLabel("Reservation configuration for \(config.name)")
+                .id("\(config.id)-\(countdownRefreshTrigger)") // Force refresh when countdown trigger changes
             }
             .onDelete(perform: { indices in
                 for index in indices {

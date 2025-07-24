@@ -2,7 +2,7 @@ import Combine
 import Foundation
 import os.log
 
-/// Manages application configuration and settings persistence
+/// Manages application configuration and settings persistence.
 @MainActor
 public final class ConfigurationManager: ObservableObject, @unchecked Sendable {
     public static let shared = ConfigurationManager()

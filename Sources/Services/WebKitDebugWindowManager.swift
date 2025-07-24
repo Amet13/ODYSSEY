@@ -1,4 +1,4 @@
-// The debug window is essential for development, troubleshooting, and user support.
+// The browser window is essential for development, troubleshooting, and user support.
 import AppKit
 import os.log
 import WebKit
@@ -10,7 +10,7 @@ class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
     @MainActor
     func showDebugWindow(webView: WKWebView?, config: ReservationConfig?) {
         if debugWindow != nil {
-            logger.info("🪟 Debug window already exists, reusing existing window.")
+            logger.info("🪟 Browser window already exists, reusing existing window.")
             debugWindow?.makeKeyAndOrderFront(nil)
             return
         }
@@ -36,7 +36,7 @@ class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
         debugWindow = window
         logger
             .info(
-                "Debug window for WKWebView created and shown with size: \(selectedSize.width)x\(selectedSize.height)",
+                "Browser window for WKWebView created and shown with size: \(selectedSize.width)x\(selectedSize.height)",
                 )
         if let config {
             updateWindowTitle(with: config)
@@ -55,12 +55,12 @@ class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
         let schedule = ReservationConfig.formatScheduleInfoInline(config: config)
         let newTitle = "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(schedule)"
         window.title = newTitle
-        logger.info("📝 Updated debug window title to: \(newTitle).")
+        logger.info("📝 Updated browser window title to: \(newTitle).")
     }
 
     @MainActor
     func windowWillClose(_: Notification) {
-        logger.info("🪟 Debug window closing - notifying callback.")
+        logger.info("🪟 Browser window closing - notifying callback.")
         debugWindow = nil
         // Optionally notify a delegate/callback if needed
     }

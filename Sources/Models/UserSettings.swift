@@ -34,8 +34,17 @@ public struct UserSettings: Codable, Equatable, Sendable {
         return Locale(identifier: "en")
     }
 
-    public var preventSleepForAutorun: Bool = true // New setting: default to true for safety
-    public var autoCloseDebugWindowOnFailure: Bool = false
+    public var preventSleepForAutorun: Bool = true // Default to true for safety
+    public var autoCloseDebugWindowOnFailure: Bool = false // Default to false
+    public var showBrowserWindow: Bool = false // Default to false (invisible automation)
+
+    // Custom autorun time settings
+    public var useCustomAutorunTime: Bool = false // Default to false (use 6:00 PM)
+    public var customAutorunTime: Date = {
+        let calendar = Calendar.current
+        let now = Date()
+        return calendar.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now
+    }()
 
     // MARK: - Equatable
 
@@ -48,7 +57,10 @@ public struct UserSettings: Codable, Equatable, Sendable {
             lhs.imapServer == rhs.imapServer &&
             lhs.language == rhs.language &&
             lhs.preventSleepForAutorun == rhs.preventSleepForAutorun &&
-            lhs.autoCloseDebugWindowOnFailure == rhs.autoCloseDebugWindowOnFailure
+            lhs.autoCloseDebugWindowOnFailure == rhs.autoCloseDebugWindowOnFailure &&
+            lhs.showBrowserWindow == rhs.showBrowserWindow &&
+            lhs.useCustomAutorunTime == rhs.useCustomAutorunTime &&
+            lhs.customAutorunTime == rhs.customAutorunTime
     }
 
     // MARK: - Validation

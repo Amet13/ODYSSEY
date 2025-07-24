@@ -52,13 +52,13 @@ public enum AppConstants {
 
     // MARK: - WebKit Configuration
 
-    /// Default width for WebKit debug window
+    /// Default width for WebKit browser window
     static let webKitWindowWidth = 1_440
-    /// Default height for WebKit debug window
+    /// Default height for WebKit browser window
     static let webKitWindowHeight = 900
-    /// Default X position for WebKit debug window
+    /// Default X position for WebKit browser window
     static let webKitDebugWindowX: CGFloat = 200
-    /// Default Y position for WebKit debug window
+    /// Default Y position for WebKit browser window
     static let webKitDebugWindowY: CGFloat = 200
 
     // MARK: - User Agent Strings

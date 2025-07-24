@@ -38,7 +38,6 @@
 | 🔒 Secure Storage           | Keychain integration for credentials                            |
 | 📧 Email Verification       | Automated IMAP/Gmail verification for reservation confirmations |
 | 🕵️‍♂️ Anti-Detection           | Human-like automation to avoid bot detection                    |
-| 🪟 Debug Window             | Live browser window for transparency and troubleshooting        |
 
 ## 📦 Installation
 
@@ -72,7 +71,7 @@
 - Fill in your name and phone
 - Fill in your email credentials
 - Click **Test Email**
-- Tune advanced settings (optional)
+- Configure your preferences and test email connection
 
 ![](Documentation/Images/settings.png)
 
@@ -85,8 +84,9 @@
 
 ![](Documentation/Images/main.png)
 
-> ⚠️ **Important:**
-> To avoid Google reCAPTCHA and other anti-bot detection, browser windows must remain visible during automation. Hiding or minimizing these windows may increase the risk of being flagged as a bot and cause reservations to fail. The automation simulates real user activity in a visible window for maximum reliability.
+> ⚠️ **Important:** > **Optimized Defaults**: ODYSSEY is configured with optimal settings for most users. Advanced options are available for developers.
+>
+> **💡 Tip**: Keep your laptop awake during reservation automation. While ODYSSEY can prevent sleep before autorun, it's best to ensure your Mac doesn't go to sleep during the reservation process for optimal reliability.
 
 ## 📊 Logs & Debugging
 
@@ -101,9 +101,9 @@
 
 #### ❌ Automation fails with reCAPTCHA or bot detection
 
-- Ensure browser windows remain visible during automation (do not minimize or hide)
 - Try running the app at a different time or with a different network
 - Make sure your configuration matches the facility's current website structure
+- For advanced troubleshooting, see the [developer documentation](Documentation/DEVELOPMENT.md)
 
 #### 📧 Email verification not working
 

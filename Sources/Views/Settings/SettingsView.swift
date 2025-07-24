@@ -7,11 +7,14 @@ struct SettingsView: View {
     @StateObject private var configurationManager = ConfigurationManager.shared
     @StateObject private var userSettingsManager = UserSettingsManager.shared
     @StateObject private var emailService = EmailService.shared
+    let godModeEnabled: Bool
+
     var body: some View {
         SettingsFormView(
             configurationManager: configurationManager,
             userSettingsManager: userSettingsManager,
             emailService: emailService,
+            godModeEnabled: godModeEnabled,
             )
     }
 }
@@ -24,6 +27,7 @@ struct SettingsFormView: View {
     @State private var showingValidationAlert = false
     @State private var validationMessage = ""
     @State private var shouldClearTestResult = false
+    let godModeEnabled: Bool
 
     // Temporary settings for form state management
     @State private var tempSettings: UserSettings
@@ -33,11 +37,13 @@ struct SettingsFormView: View {
     init(
         configurationManager: ConfigurationManager,
         userSettingsManager: UserSettingsManager,
-        emailService: EmailService
+        emailService: EmailService,
+        godModeEnabled: Bool
     ) {
         self.configurationManager = configurationManager
         self.userSettingsManager = userSettingsManager
         self.emailService = emailService
+        self.godModeEnabled = godModeEnabled
         // Initialize temp settings with current values
         self._tempSettings = State(initialValue: userSettingsManager.userSettings)
     }
@@ -57,6 +63,7 @@ struct SettingsFormView: View {
                 userSettingsManager: userSettingsManager,
                 emailService: emailService,
                 isGmailAccount: isGmailAccount,
+                godModeEnabled: godModeEnabled,
                 )
             Divider()
             SettingsFooter(
@@ -67,6 +74,7 @@ struct SettingsFormView: View {
                 validationMessage: $validationMessage,
                 saveSettings: saveSettings,
                 cancelSettings: cancelSettings,
+                tempSettings: $tempSettings,
                 )
         }
         .frame(width: 440, height: 600)
@@ -176,6 +184,7 @@ private struct SettingsContent: View {
     @ObservedObject var userSettingsManager: UserSettingsManager
     @ObservedObject var emailService: EmailService
     let isGmailAccount: (String) -> Bool
+    let godModeEnabled: Bool
 
     var body: some View {
         ScrollView {
@@ -192,8 +201,11 @@ private struct SettingsContent: View {
                     emailService: emailService,
                     isGmailAccount: isGmailAccount,
                     )
-                Divider().padding(.horizontal, 4)
-                AdvancedSettingsSection(tempSettings: $tempSettings)
+                // Advanced Settings Section (God Mode Only)
+                if godModeEnabled {
+                    Divider().padding(.horizontal, 4)
+                    AdvancedSettingsSection(tempSettings: $tempSettings, godModeEnabled: godModeEnabled)
+                }
             }
             .contentShape(Rectangle())
             .onTapGesture {
@@ -201,7 +213,7 @@ private struct SettingsContent: View {
                     emailService.lastTestResult = nil
                 }
             }
-            .padding()
+            .padding(.horizontal, 4)
         }
     }
 }
@@ -304,9 +316,10 @@ private struct EmailSettingsSection: View {
 
 private struct AdvancedSettingsSection: View {
     @Binding var tempSettings: UserSettings
+    let godModeEnabled: Bool
 
     var body: some View {
-        settingsSection(title: "Advanced Settings", icon: "gearshape") {
+        settingsSection(title: "Advanced Settings (God Mode)", icon: "gearshape") {
             VStack(alignment: .leading, spacing: 16) {
                 HStack {
                     Toggle("", isOn: Binding(
@@ -316,27 +329,102 @@ private struct AdvancedSettingsSection: View {
                             print("🔧 Prevent sleep setting changed to: \(newValue)")
                         },
                         ))
-                    Text("Prevent sleep before autorun (5:55pm)")
+                    Text("Prevent sleep before autorun (5 minutes prior)")
                     Spacer()
                 }
                 .help(
                     "If enabled, ODYSSEY will prevent your Mac from sleeping 5 minutes before autorun and allow sleep after reservations are done.",
                     )
 
-                HStack {
-                    Toggle("", isOn: Binding(
-                        get: { tempSettings.autoCloseDebugWindowOnFailure },
-                        set: { newValue in
-                            tempSettings.autoCloseDebugWindowOnFailure = newValue
-                            print("🔧 Auto close debug window setting changed to: \(newValue)")
-                        },
-                        ))
-                    Text("Automatically close debug window on failure")
-                    Spacer()
+                // Browser Window Controls
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Toggle("", isOn: Binding(
+                            get: { tempSettings.showBrowserWindow },
+                            set: { newValue in
+                                tempSettings.showBrowserWindow = newValue
+                                print("🔧 Show browser window setting changed to: \(newValue)")
+                            },
+                            ))
+                        Text("Show browser window")
+                        Spacer()
+                    }
+                    .help(
+                        "If enabled, the browser window will be visible during automation, which can help bypass captcha detection. If disabled, automation runs invisibly in the background.",
+                        )
+
+                    if tempSettings.showBrowserWindow {
+                        HStack {
+                            Toggle("", isOn: Binding(
+                                get: { tempSettings.autoCloseDebugWindowOnFailure },
+                                set: { newValue in
+                                    tempSettings.autoCloseDebugWindowOnFailure = newValue
+                                    print("🔧 Auto close browser window setting changed to: \(newValue)")
+                                },
+                                ))
+                            Text("Automatically close browser window on failure")
+                            Spacer()
+                        }
+                        .help(
+                            "If enabled, the browser window will close automatically after a reservation failure. If disabled, the window will remain open so you can inspect the error.",
+                            )
+                    }
                 }
-                .help(
-                    "If enabled, the debug window will close automatically after a reservation failure. If disabled, the window will remain open so you can inspect the error.",
-                    )
+
+                // Custom Autorun Time Section
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Toggle("", isOn: Binding(
+                            get: { tempSettings.useCustomAutorunTime },
+                            set: { newValue in
+                                tempSettings.useCustomAutorunTime = newValue
+                                print("🔧 Use custom autorun time setting changed to: \(newValue)")
+                            },
+                            ))
+                        Text("Use custom autorun time")
+                        Spacer()
+                    }
+                    .help(
+                        "If enabled, you can set a custom time for autorun. If disabled, the default time of 6:00 PM will be used.",
+                        )
+
+                    if tempSettings.useCustomAutorunTime {
+                        HStack {
+                            DatePicker(
+                                "Autorun Time",
+                                selection: Binding(
+                                    get: { tempSettings.customAutorunTime },
+                                    set: { newTime in
+                                        // Always set seconds to 0 for precise timing
+                                        let calendar = Calendar.current
+                                        let hour = calendar.component(.hour, from: newTime)
+                                        let minute = calendar.component(.minute, from: newTime)
+                                        let normalizedTime = calendar.date(
+                                            bySettingHour: hour,
+                                            minute: minute,
+                                            second: 0,
+                                            of: Date(),
+                                            ) ?? newTime
+                                        tempSettings.customAutorunTime = normalizedTime
+                                        print("🔧 Custom autorun time changed to: \(normalizedTime)")
+                                    },
+                                    ),
+                                displayedComponents: .hourAndMinute,
+                                )
+                            .labelsHidden()
+                            .frame(width: 120)
+
+                            Text("(Default: 6:00 PM)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+
+                            Spacer()
+                        }
+                        .help(
+                            "Set a custom time for autorun scheduling. This time will be used for all automatic reservation runs.",
+                            )
+                    }
+                }
             }
         }
     }
@@ -350,6 +438,7 @@ private struct SettingsFooter: View {
     @Binding var validationMessage: String
     let saveSettings: () -> Void
     let cancelSettings: () -> Void
+    @Binding var tempSettings: UserSettings
 
     var body: some View {
         VStack(spacing: 8) {
@@ -369,6 +458,7 @@ private struct SettingsFooter: View {
                 .controlSize(.regular)
                 .accessibilityLabel("Save Settings")
                 .keyboardShortcut("s", modifiers: .command)
+                .disabled(!tempSettings.isValid)
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .trailing)
@@ -660,7 +750,7 @@ struct SettingsView_Previews: PreviewProvider {
         Task { @MainActor in
             ServiceRegistry.shared.register(PreviewSettingsMockEmailService(), for: EmailServiceProtocol.self)
         }
-        return SettingsView()
+        return SettingsView(godModeEnabled: false)
     }
 }
 #endif

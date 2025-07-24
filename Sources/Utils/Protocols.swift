@@ -57,7 +57,7 @@ public protocol WebKitServiceProtocol: AnyObject {
     func connect() async throws
     /**
      Disconnects from the current web automation session.
-     - Parameter closeWindow: Whether to close the debug window.
+     - Parameter closeWindow: Whether to close the browser window.
      */
     func disconnect(closeWindow: Bool) async
     /**
@@ -80,7 +80,7 @@ public protocol WebKitServiceProtocol: AnyObject {
      Resets the service to a clean state.
      */
     func reset() async
-    /// Callback for when the debug window is closed
+    /// Callback for when the browser window is closed
     var onWindowClosed: ((ReservationRunType) -> Void)? { get set }
     /// The current reservation configuration being automated
     var currentConfig: ReservationConfig? { get set }
@@ -236,7 +236,7 @@ protocol UserSettingsManagerProtocol: AnyObject {
     /// Loads user settings from storage.
     func loadSettings()
     /// Validates the current user settings.
-    /// @return True if valid, false otherwise.
+    /// @returns True if valid, false otherwise.
     func validateSettings() -> Bool
 }
 
