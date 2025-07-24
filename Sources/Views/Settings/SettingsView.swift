@@ -425,45 +425,6 @@ private struct AdvancedSettingsSection: View {
     }
 }
 
-private struct AuditLogSection: View {
-    @ObservedObject private var auditLogService = AuditLogService.shared
-    var body: some View {
-        settingsSection(title: "Audit Log", icon: "doc.text.magnifyingglass") {
-            if auditLogService.auditLog.isEmpty {
-                Text("No audit log entries yet.")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            } else {
-                ScrollView(.vertical, showsIndicators: true) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(
-                            auditLogService.auditLog.sorted(by: { $0.timestamp > $1.timestamp })
-                                .prefix(50),
-                            ) { entry in
-                            HStack(alignment: .top, spacing: 8) {
-                                Text(entry.type.emoji)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(entry.type.displayName)
-                                        .font(.caption).bold()
-                                    Text(entry.message)
-                                        .font(.caption)
-                                        .foregroundColor(.primary)
-                                    Text(entry.timestamp, style: .date)
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
-                                }
-                                Spacer()
-                            }
-                            Divider()
-                        }
-                    }
-                }
-                .frame(maxHeight: 200)
-            }
-        }
-    }
-}
-
 private struct SettingsFooter: View {
     @ObservedObject var userSettingsManager: UserSettingsManager
     @ObservedObject var emailService: EmailService
