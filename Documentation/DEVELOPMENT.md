@@ -4,7 +4,6 @@
 
 - macOS 15.0 or later
 - Xcode 16.0 or later
-- Node.js and npm (for JavaScript linting)
 - Homebrew (for installing dependencies)
 
 ## 🚀 Quick Start (For Developers)
@@ -17,7 +16,6 @@
 2. **Install dependencies:**
    ```bash
    brew install xcodegen swiftlint
-   npm install
    ```
 3. **Generate Xcode project:**
    ```bash
@@ -34,7 +32,6 @@
 6. **Run code quality checks:**
    ```bash
    swiftlint lint
-   npm run lint
    ```
 
 ## 🏗️ Architecture Principles

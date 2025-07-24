@@ -78,17 +78,6 @@ if ! command_exists swiftformat; then
     brew install swiftformat
 fi
 
-# Check for Node.js and npm for JavaScript linting
-if ! command_exists node; then
-    print_status "warning" "Node.js not found. Installing..."
-    brew install node
-fi
-
-if ! command_exists npm; then
-    print_status "warning" "npm not found. Installing..."
-    brew install npm
-fi
-
 print_status "success" "All prerequisites satisfied"
 
 # Generate Xcode project
@@ -122,19 +111,6 @@ if command_exists swiftlint; then
     fi
 else
     print_status "warning" "SwiftLint not found. Skipping linting."
-fi
-
-# Lint JavaScript code
-if command_exists npm && [ -f "package.json" ]; then
-    print_status "info" "Linting JavaScript code with ESLint..."
-    if npm run lint:check >/dev/null 2>&1; then
-        print_status "success" "JavaScript linting passed"
-    else
-        print_status "warning" "JavaScript linting issues found (non-blocking)"
-        print_status "info" "Run 'npm run lint:fix' to auto-fix issues"
-    fi
-else
-    print_status "warning" "npm or package.json not found. Skipping JavaScript linting."
 fi
 
 # Build project
