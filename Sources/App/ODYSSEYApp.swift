@@ -35,6 +35,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var timer: Timer?
     private let logger = Logger(subsystem: "com.odyssey.app", category: "AppDelegate")
     private let orchestrator = ReservationOrchestrator.shared
+    private let notificationService = NotificationService.shared
 
     override init() {
         super.init()
@@ -49,6 +50,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Set up scheduling timer
         setupSchedulingTimer()
+
+        // Initialize services
+        initializeServices()
 
         // Listen for custom autorun time changes
         NotificationCenter.default.addObserver(
@@ -76,6 +80,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     // MARK: - Private Methods
+
+    private func initializeServices() {
+        logger.info("🔧 Initializing services...")
+
+        // Don't auto-check notification status on startup
+        // Let user manually request permission when needed
+
+        logger.info("✅ Services initialized")
+    }
 
     @objc private func customAutorunTimeChanged() {
         logger.info("🕕 Custom autorun time changed - re-scheduling autorun")

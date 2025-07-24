@@ -1,6 +1,6 @@
 import Foundation
 import os.log
-import UserNotifications
+@preconcurrency import UserNotifications
 
 /**
  NotificationService handles native macOS notifications for ODYSSEY.
@@ -31,7 +31,66 @@ public final class NotificationService: NSObject, ObservableObject, @unchecked S
     override private init() {
         super.init()
         notificationCenter.delegate = self
-        checkPermissionStatus()
+        setupNotificationCategories()
+        // Don't auto-check permission on init to avoid issues
+    }
+
+    // MARK: - Setup Methods
+
+    /**
+     Sets up notification categories for different types of notifications.
+     */
+    private func setupNotificationCategories() {
+        // Reservation Success Category
+        let successCategory = UNNotificationCategory(
+            identifier: "RESERVATION_SUCCESS",
+            actions: [],
+            intentIdentifiers: [],
+            options: [],
+            )
+
+        // Reservation Failure Category
+        let failureCategory = UNNotificationCategory(
+            identifier: "RESERVATION_FAILURE",
+            actions: [],
+            intentIdentifiers: [],
+            options: [],
+            )
+
+        // Autorun Reminder Category
+        let autorunCategory = UNNotificationCategory(
+            identifier: "AUTORUN_REMINDER",
+            actions: [],
+            intentIdentifiers: [],
+            options: [],
+            )
+
+        // System Error Category
+        let errorCategory = UNNotificationCategory(
+            identifier: "SYSTEM_ERROR",
+            actions: [],
+            intentIdentifiers: [],
+            options: [],
+            )
+
+        // Status Update Category
+        let statusCategory = UNNotificationCategory(
+            identifier: "STATUS_UPDATE",
+            actions: [],
+            intentIdentifiers: [],
+            options: [],
+            )
+
+        // Register all categories
+        notificationCenter.setNotificationCategories([
+            successCategory,
+            failureCategory,
+            autorunCategory,
+            errorCategory,
+            statusCategory
+        ])
+
+        logger.info("🔔 Notification categories set up.")
     }
 
     // MARK: - Permission Management
@@ -45,10 +104,26 @@ public final class NotificationService: NSObject, ObservableObject, @unchecked S
         logger.info("🔔 Requesting notification permission.")
 
         do {
-            let granted = try await notificationCenter.requestAuthorization(options: [.alert, .sound, .badge])
-            await MainActor.run {
-                self.isPermissionGranted = granted
+            // First check current status
+            let settings = await notificationCenter.notificationSettings()
+
+            // If already authorized, don't request again
+            if settings.authorizationStatus == .authorized {
+                self.isPermissionGranted = true
+                logger.info("✅ Notification permission already granted.")
+                return true
             }
+
+            // If denied, don't request again
+            if settings.authorizationStatus == .denied {
+                self.isPermissionGranted = false
+                logger.warning("⚠️ Notification permission previously denied.")
+                return false
+            }
+
+            // Request permission
+            let granted = try await notificationCenter.requestAuthorization(options: [.alert, .sound, .badge])
+            self.isPermissionGranted = granted
 
             if granted {
                 logger.info("✅ Notification permission granted.")
@@ -59,6 +134,7 @@ public final class NotificationService: NSObject, ObservableObject, @unchecked S
             return granted
         } catch {
             logger.error("❌ Failed to request notification permission: \(error.localizedDescription).")
+            logger.error("❌ Error details: \(error)")
             return false
         }
     }
@@ -66,15 +142,13 @@ public final class NotificationService: NSObject, ObservableObject, @unchecked S
     /**
      Checks the current notification permission status.
      */
-    private func checkPermissionStatus() {
-        notificationCenter.getNotificationSettings { settings in
-            let isAuthorized = settings.authorizationStatus == .authorized
-            let statusRawValue = settings.authorizationStatus.rawValue
-            Task { @MainActor in
-                self.isPermissionGranted = isAuthorized
-                self.logger.info("🔔 Notification permission status: \(statusRawValue).")
-            }
-        }
+    @MainActor
+    public func checkPermissionStatus() async {
+        let settings = await notificationCenter.notificationSettings()
+        let isAuthorized = settings.authorizationStatus == .authorized
+        let statusRawValue = settings.authorizationStatus.rawValue
+        self.isPermissionGranted = isAuthorized
+        self.logger.info("🔔 Notification permission status: \(statusRawValue).")
     }
 
     // MARK: - Notification Methods
@@ -266,6 +340,32 @@ public final class NotificationService: NSObject, ObservableObject, @unchecked S
         notificationCenter.removePendingNotificationRequests(withIdentifiers: identifiers)
         notificationCenter.removeDeliveredNotifications(withIdentifiers: identifiers)
         logger.info("🧹 Notifications cleared for config \(configId).")
+    }
+
+    /**
+     Sends a test notification to verify the system is working.
+     */
+    @MainActor
+    public func sendTestNotification() async {
+        let content = UNMutableNotificationContent()
+        content.title = "🧪 Test Notification"
+        content.body = "This is a test notification from ODYSSEY"
+        content.sound = .default
+        content.categoryIdentifier = "STATUS_UPDATE"
+
+        let request = UNNotificationRequest(
+            identifier: "test-notification-\(UUID().uuidString)",
+            content: content,
+            trigger: nil,
+            )
+
+        do {
+            try await notificationCenter.add(request)
+            logger.info("✅ Test notification sent successfully.")
+        } catch {
+            logger.error("❌ Failed to send test notification: \(error.localizedDescription).")
+            logger.error("❌ Error details: \(error)")
+        }
     }
 }
 

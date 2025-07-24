@@ -21,7 +21,7 @@ We use the following labels to help contributors find suitable tasks:
 - `good first issue` - Perfect for new contributors
 - `documentation` - Documentation improvements
 - `ui/ux` - User interface improvements (including dark mode polish)
-- `fun/polish` - Add or improve easter eggs, UI delight, or polish
+- `fun/polish` - Add or improve UI delight, animations, or polish
 
 ### 🟡 Intermediate Issues
 

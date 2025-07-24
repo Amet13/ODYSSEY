@@ -37,7 +37,6 @@
 | 🕵️‍♂️ Anti-Detection           | Human-like automation to avoid bot detection                                                    |
 | 🛎️ Native Notifications     | Get macOS notifications for reservation success, failures, upcoming autoruns, and system errors |
 | 🎨 Dark Mode Polish         | Fully adaptive UI for both light and dark appearances                                           |
-| 🥚 Easter Eggs              | Discover hidden features and fun surprises for power users                                      |
 
 ## 📦 Installation
 

@@ -98,8 +98,6 @@ struct AboutView: View {
                 .onTapGesture {
                     // Prevent tap from propagating to background when clicking on content
                 }
-                // --- New Sections ---
-                EasterEggsSection()
             }
         }
         .frame(width: AppConstants.windowAboutWidth, height: AppConstants.windowAboutHeight)
@@ -108,39 +106,6 @@ struct AboutView: View {
             dismiss()
             return .handled
         }
-    }
-}
-
-private struct EasterEggsSection: View {
-    @ObservedObject private var eggService = EasterEggService.shared
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Easter Eggs")
-                .font(.headline)
-                .padding(.top, 8)
-            if eggService.easterEggs.filter(\.isDiscovered).isEmpty {
-                Text("No easter eggs discovered yet. Keep exploring!")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            } else {
-                ForEach(eggService.easterEggs.filter(\.isDiscovered)) { egg in
-                    HStack(alignment: .top, spacing: 8) {
-                        Image(systemName: "sparkles")
-                            .foregroundColor(.yellow)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(egg.name)
-                                .font(.caption).bold()
-                            Text(egg.description)
-                                .font(.caption)
-                                .foregroundColor(.primary)
-                        }
-                        Spacer()
-                    }
-                    Divider()
-                }
-            }
-        }
-        .padding(.top, 8)
     }
 }
 

@@ -14,6 +14,7 @@ class StatusBarController: NSObject {
     private let configurationManager = ConfigurationManager.shared
     private let orchestrator = ReservationOrchestrator.shared
     private let statusManager = ReservationStatusManager.shared
+
     private var cancellables = Set<AnyCancellable>()
     private let logger = Logger(subsystem: "com.odyssey.app", category: "StatusBarController")
 
@@ -39,6 +40,7 @@ class StatusBarController: NSObject {
             button.image = image
             button.action = #selector(togglePopover)
             button.target = self
+
         } else {
             logger.error("Status bar button is nil")
         }

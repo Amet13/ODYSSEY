@@ -200,6 +200,8 @@ private struct SettingsContent: View {
                     emailService: emailService,
                     isGmailAccount: isGmailAccount,
                     )
+                Divider().padding(.horizontal, 4)
+                NotificationsSection()
                 // Advanced Settings Section (God Mode Only)
                 if godModeEnabled {
                     Divider().padding(.horizontal, 4)
@@ -660,6 +662,111 @@ private struct TestEmailButton: View {
                 .onTapGesture {
                     emailService.lastTestResult = nil
                 }
+            }
+        }
+    }
+}
+
+// MARK: - Notifications Section
+
+private struct NotificationsSection: View {
+    @StateObject private var notificationService = NotificationService.shared
+
+    var body: some View {
+        settingsSection(
+            title: "Notifications",
+            icon: "bell.circle",
+            ) {
+            VStack(spacing: 16) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Native macOS Notifications")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Text("Receive notifications for reservation success, failures, and system updates")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Button("Request Permission") {
+                        Task {
+                            await notificationService.requestPermission()
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(notificationService.isPermissionGranted)
+
+                    Button("Test Notification") {
+                        Task {
+                            await notificationService.sendTestNotification()
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(!notificationService.isPermissionGranted)
+                }
+
+                HStack {
+                    Image(
+                        systemName: notificationService
+                            .isPermissionGranted ? "checkmark.circle.fill" : "xmark.circle.fill",
+                        )
+                    .foregroundColor(notificationService.isPermissionGranted ? .green : .red)
+                    Text(notificationService.isPermissionGranted ? "Notifications enabled" : "Notifications disabled")
+                        .font(.caption)
+                        .foregroundColor(notificationService.isPermissionGranted ? .green : .red)
+                    Spacer()
+                }
+
+                if notificationService.isPermissionGranted {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Notification Types:")
+                            .font(.caption)
+                            .fontWeight(.medium)
+
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.caption)
+                            Text("Reservation success/failure")
+                                .font(.caption)
+                            Spacer()
+                        }
+
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.caption)
+                            Text("Upcoming autorun reminders")
+                                .font(.caption)
+                            Spacer()
+                        }
+
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.caption)
+                            Text("System errors and warnings")
+                                .font(.caption)
+                            Spacer()
+                        }
+
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                                .font(.caption)
+                            Text("Status updates")
+                                .font(.caption)
+                            Spacer()
+                        }
+                    }
+                    .padding(.top, 8)
+                }
+            }
+        }
+        .onAppear {
+            // Check current permission status when view appears
+            Task {
+                await notificationService.checkPermissionStatus()
             }
         }
     }
