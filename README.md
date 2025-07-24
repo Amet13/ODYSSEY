@@ -59,7 +59,7 @@
 - Fill in the facility URL, select sport name, and daytime slot
 
 <div align="center">
-  <img src="Documentation/Images/add_config.png" width="300" height="300">
+  <img src="Documentation/Images/add_config.png" width="300">
 </div>
 
 ### 2️⃣ Set Up Contact Data
@@ -71,7 +71,7 @@
 - Configure your preferences and test email connection
 
 <div align="center">
-  <img src="Documentation/Images/settings.png" width="300" height="300">
+  <img src="Documentation/Images/settings.png" width="300">
 </div>
 
 ### 3️⃣ Configure Reservations
@@ -82,7 +82,7 @@
 - **Delete Configuration** (optional)
 
 <div align="center">
-  <img src="Documentation/Images/main.png" width="300" height="300">
+  <img src="Documentation/Images/main.png" width="300">
 </div>
 
 > **💡 Tip**: Keep your laptop awake during reservation automation. While ODYSSEY can prevent sleep before autorun, it's best to ensure your Mac doesn't go to sleep during the reservation process for optimal reliability.
