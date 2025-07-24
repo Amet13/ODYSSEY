@@ -31,8 +31,8 @@ struct JavaScriptResult: @unchecked Sendable {
     }
 }
 
-/// WebKit service for native web automation
-/// Handles web navigation and automation using WKWebView
+/// WebKit service for native web automation.
+/// Handles web navigation and automation using WKWebView.
 ///
 /// - Supports dependency injection for testability and flexibility.
 /// - Use the default initializer for app use, or inject dependencies for testing/mocking.
@@ -137,7 +137,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             logger.info("🔄 WebKitService init. Live instances: \(Self.liveInstanceCount)")
         }
         setupWebView()
-        // Do not show debug window at app launch
+        // Do not show browser window at app launch
     }
 
     /// Create a new WebKit service instance for parallel operations
@@ -248,9 +248,16 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     @MainActor
     private func setupDebugWindow() {
-        // Check if debug window already exists
+        // Check user settings to determine if browser window should be shown
+        let userSettings = UserSettingsManager.shared.userSettings
+        if !userSettings.showBrowserWindow {
+            logger.info("🪟 Browser window hidden (user setting: hide window - recommended to avoid captcha detection)")
+            return
+        }
+
+        // Check if browser window already exists
         if debugWindow != nil {
-            logger.info("🪟 Debug window already exists, reusing existing window.")
+            logger.info("🪟 Browser window already exists, reusing existing window.")
             debugWindow?.makeKeyAndOrderFront(nil)
             return
         }
@@ -278,7 +285,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         debugWindow = window
         logger
             .info(
-                "Debug window for WKWebView created and shown with size: \(selectedSize.width)x\(selectedSize.height)",
+                "Browser window for WKWebView created and shown with size: \(selectedSize.width)x\(selectedSize.height)",
                 )
     }
 
@@ -289,7 +296,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         let schedule = ReservationConfig.formatScheduleInfoInline(config: config)
         let newTitle = "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(schedule)"
         window.title = newTitle
-        logger.info("📝 Updated debug window title to: \(newTitle).")
+        logger.info("📝 Updated browser window title to: \(newTitle).")
     }
 
     private func injectAutomationScripts() {
@@ -1023,7 +1030,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
         // Use the new async cleanup function
         await cleanupWebView()
-        // Only close debug window if requested
+        // Only close browser window if requested
         if closeWindow {
             await MainActor.run {
                 if let window = self.debugWindow {
@@ -1089,7 +1096,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Force cleanup
         await cleanupWebView()
 
-        // Close debug window
+        // Close browser window
         await MainActor.run {
             self.debugWindow?.close()
             self.debugWindow = nil
@@ -4235,7 +4242,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return
         }
 
-        logger.info("🪟 Debug window closed by user - resetting WebKit service state")
+        logger.info("🪟 Browser window closed by user - resetting WebKit service state")
 
         // Reset service state when window is manually closed
         Task {

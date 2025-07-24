@@ -6,11 +6,11 @@ import os.log
  ReservationError defines all possible errors that can occur during the reservation automation process.
  */
 public enum ReservationError: Error, Codable, LocalizedError {
-    /// Network error with a message
+    /// Network error with a message.
     case network(String)
-    /// Facility not found with a message
+    /// Facility not found with a message.
     case facilityNotFound(String)
-    /// Slot unavailable with a message
+    /// Slot unavailable with a message.
     case slotUnavailable(String)
     /// Automation failed with a message
     case automationFailed(String)
@@ -254,6 +254,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             logger.warning("🚨 Emergency cleanup triggered - capturing screenshot and sending notification.")
             logger.error("🚨 Emergency cleanup triggered for \(config.name): automation was interrupted unexpectedly.")
             await MainActor.run {
+                // Always set isRunning = false for emergency cleanup
                 statusManager.isRunning = false
                 statusManager.lastRunStatus = .failed("Emergency cleanup - automation was interrupted unexpectedly")
                 statusManager.currentTask = "Emergency cleanup completed"
@@ -274,6 +275,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             logger.warning("🚨 Emergency cleanup triggered - capturing screenshot and sending notification.")
             logger.error("🚨 Emergency cleanup triggered for \(config.name): automation was interrupted unexpectedly.")
             await MainActor.run {
+                // Always set isRunning = false for emergency cleanup
                 statusManager.isRunning = false
                 statusManager.lastRunStatus = .failed("Emergency cleanup - automation was interrupted unexpectedly")
                 statusManager.currentTask = "Emergency cleanup completed"
@@ -289,10 +291,14 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         await webKitService.disconnect(closeWindow: false)
     }
 
-    public func handleManualWindowClosure(runType _: ReservationRunType) async {
+    public func handleManualWindowClosure(runType: ReservationRunType) async {
         logger.info("👤 Manual window closure detected - resetting reservation state.")
         await MainActor.run {
-            statusManager.isRunning = false
+            // Only set isRunning = false for single reservations (manual runs)
+            // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
+            if runType == .manual {
+                statusManager.isRunning = false
+            }
             statusManager.lastRunStatus = .failed("Reservation cancelled - window was closed manually")
             statusManager.currentTask = "Reservation cancelled by user"
             statusManager.lastRunDate = Date()
@@ -301,7 +307,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     for: config.id,
                     status: .failed("Reservation cancelled - window was closed manually"),
                     date: Date(),
-                    runType: .manual,
+                    runType: runType,
                     )
             }
         }
@@ -482,7 +488,9 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             await updateTask("Finishing reservation...")
             logger.info("🎉 Reservation completed successfully - all steps completed.")
             await MainActor.run {
-                if runType != .godmode {
+                // Only set isRunning = false for single reservations (manual runs)
+                // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
+                if runType == .manual {
                     statusManager.isRunning = false
                 }
                 statusManager.lastRunStatus = .success
@@ -673,6 +681,11 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                                 date: Date(),
                                 runType: runType,
                                 )
+                            // Only set isRunning = false for single reservations (manual runs)
+                            // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
+                            if runType == .manual {
+                                statusManager.isRunning = false
+                            }
                         }
                         let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
                         await separateWebKitService.disconnect(closeWindow: shouldClose)
@@ -695,7 +708,9 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 logger.info("🎉 Reservation completed successfully for \(config.name) - all steps completed.")
                 await MainActor.run {
                     statusManager.setLastRunInfo(for: config.id, status: .success, date: Date(), runType: runType)
-                    if runType != .godmode {
+                    // Only set isRunning = false for single reservations (manual runs)
+                    // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
+                    if runType == .manual {
                         statusManager.isRunning = false
                     }
                 }
@@ -713,6 +728,11 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     date: Date(),
                     runType: runType,
                     )
+                // Only set isRunning = false for single reservations (manual runs)
+                // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
+                if runType == .manual {
+                    statusManager.isRunning = false
+                }
             }
             let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
             await separateWebKitService.disconnect(closeWindow: shouldClose)
@@ -815,14 +835,42 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                                 )
                     }
                     self.statusManager.lastRunDate = Date()
-                    logger.info("🔄 ReservationOrchestrator: Keeping icon filled for 3 seconds to show completion.")
+                    logger.info("🔄 ReservationOrchestrator: Keeping icon filled until all statuses are finalized.")
                     Task {
-                        try? await Task.sleep(nanoseconds: 3_000_000_000)
+                        // Wait for all configurations to have final status (not running)
+                        var allFinalized = false
+                        var waitTime: TimeInterval = 0
+                        let maxWaitTime: TimeInterval = 300 // Maximum 5 minutes (increased from 10 seconds)
+                        let checkInterval: TimeInterval = 0.5
+
+                        while !allFinalized, waitTime < maxWaitTime {
+                            try? await Task.sleep(nanoseconds: UInt64(checkInterval * 1_000_000_000))
+                            waitTime += checkInterval
+
+                            // Check if all configurations have final status
+                            allFinalized = configs.allSatisfy { config in
+                                if let lastRunInfo = self.statusManager.lastRunInfo[config.id] {
+                                    switch lastRunInfo.status {
+                                    case .success, .failed: return true
+                                    case .idle, .running: return false
+                                    }
+                                }
+                                return false
+                            }
+
+                            if !allFinalized {
+                                logger.info("🔄 Waiting for all statuses to finalize... (\(waitTime)s)")
+                            }
+                        }
+
+                        // Additional 2 seconds to ensure UI updates are visible
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+
                         await MainActor.run {
                             self.statusManager.isRunning = false
                             logger
                                 .info(
-                                    "🔄 ReservationOrchestrator: Final God Mode status - isRunning: \(self.statusManager.isRunning), status: \(self.statusManager.lastRunStatus.description)",
+                                    "🔄 ReservationOrchestrator: Final multiple reservation status - isRunning: \(self.statusManager.isRunning), status: \(self.statusManager.lastRunStatus.description)",
                                     )
                             // Allow sleep after autorun (automatic) reservations are done
                             if completionRunType == .automatic {

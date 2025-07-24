@@ -1,8 +1,3 @@
----
-name: "Pull Request"
-about: "Submit a pull request to improve ODYSSEY."
----
-
 ## 🚀 Description
 
 Please describe your changes in detail:
@@ -12,9 +7,7 @@ Please describe your changes in detail:
 
 ## 🧪 Testing
 
-- [ ] I have tested these changes locally
-- [ ] All tests pass (`swift test`)
-- [ ] The app builds and runs successfully
+- [ ] The app builds and runs successfully locally
 
 ## 📸 Screenshots (if applicable)
 
@@ -24,8 +17,7 @@ _Add screenshots or screen recordings to help explain your changes._
 
 - [ ] I have read the [contributing guidelines](Documentation/CONTRIBUTING.md)
 - [ ] I have updated documentation as needed
-- [ ] I have added tests as needed
-- [ ] I have added a descriptive title and summary
+- [ ] I have added a descriptive PR title and description
 - [ ] I have linked relevant issues (if any)
 
 ## 🔗 Related Issues

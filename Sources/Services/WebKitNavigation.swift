@@ -20,8 +20,15 @@ extension WebKitCore {
         isRunning = true
         isConnected = false
 
-        // Show debug window for visibility
-        showDebugWindow()
+        // Check user settings to determine if browser window should be shown
+        let userSettings = UserSettingsManager.shared.userSettings
+        if userSettings.showBrowserWindow {
+            // Show browser window for visibility
+            showDebugWindow()
+            logger.info("🪟 Browser window shown (user setting: show window)")
+        } else {
+            logger.info("🪟 Browser window hidden (user setting: hide window - recommended to avoid captcha detection)")
+        }
 
         logger.info("✅ WebKit service connected successfully.")
     }
@@ -60,7 +67,7 @@ extension WebKitCore {
     }
 
     /// Disconnects from the WebKit service
-    /// - Parameter closeWindow: Whether to close the debug window
+    /// - Parameter closeWindow: Whether to close the browser window
     func disconnect(closeWindow: Bool = true) async {
         logger.info("🔌 Disconnecting from WebKit service.")
 

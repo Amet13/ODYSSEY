@@ -6,16 +6,7 @@ import os.log
 public final class ReservationStatusManager: ObservableObject, @unchecked Sendable {
     public static let shared = ReservationStatusManager()
 
-    @Published public var isRunning = false {
-        didSet {
-            if isRunning == false {
-                logger
-                    .info(
-                        "⏹️ isRunning set to false. Tray icon should revert to idle. Call stack: \(Thread.callStackSymbols.joined(separator: "\n"))",
-                        )
-            }
-        }
-    }
+    @Published public var isRunning = false
 
     @Published var lastRunDate: Date?
     @Published public var lastRunStatus: ReservationRunStatus = .idle

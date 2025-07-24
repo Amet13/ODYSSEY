@@ -19,7 +19,7 @@ public final class JavaScriptService: @unchecked Sendable {
      * @param userAgent Optional user agent string.
      * @param language Optional language string.
      * @param instanceId Optional instance identifier for unique fingerprinting.
-     * @return The anti-detection JavaScript as a string.
+     * @returns The anti-detection JavaScript as a string.
      *
      * Example usage:
      * ```swift
@@ -168,7 +168,7 @@ public final class JavaScriptService: @unchecked Sendable {
      * @param phoneNumber The phone number to fill.
      * @param email The email address to fill.
      * @param name The name to fill.
-     * @return The JavaScript as a string.
+     * @returns The JavaScript as a string.
      */
     public func generateContactFormFillingScript(phoneNumber: String, email: String, name: String) -> String {
         return """

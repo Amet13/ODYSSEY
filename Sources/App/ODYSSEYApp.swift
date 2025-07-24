@@ -50,6 +50,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Set up scheduling timer
         setupSchedulingTimer()
 
+        // Listen for custom autorun time changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(customAutorunTimeChanged),
+            name: customAutorunTimeChangedNotification,
+            object: nil,
+            )
+
         // Initialize complete
     }
 
@@ -58,6 +66,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         timer?.invalidate()
         timer = nil
 
+        // Remove notification observer
+        NotificationCenter.default.removeObserver(self)
+
         // Emergency cleanup for any running automation
         Task {
             await orchestrator.emergencyCleanup(runType: .manual)
@@ -65,6 +76,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     // MARK: - Private Methods
+
+    @objc private func customAutorunTimeChanged() {
+        logger.info("🕕 Custom autorun time changed - re-scheduling autorun")
+        // Cancel any existing timer and re-schedule
+        schedulePreciseAutorun()
+    }
 
     private func setupSchedulingTimer() {
         // Schedule precise autorun at exactly 6:00:00 PM
@@ -79,26 +96,45 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 let currentMinute = calendar.component(.minute, from: now)
                 let currentSecond = calendar.component(.second, from: now)
 
-                // At 5:55pm, check if autorun is needed and prevent sleep if enabled
-                if currentHour == 17, currentMinute == 55 {
+                // Check if we're 5 minutes before the autorun time and prevent sleep if enabled
+                let userSettingsManager = UserSettingsManager.shared
+                let useCustomTime = userSettingsManager.userSettings.useCustomAutorunTime
+                let autorunTime: Date = if useCustomTime {
+                    // Use the custom time set by the user
+                    userSettingsManager.userSettings.customAutorunTime
+                } else {
+                    // Use default 6:00 PM time
+                    calendar.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now
+                }
+
+                let autorunHour = calendar.component(.hour, from: autorunTime)
+                let autorunMinute = calendar.component(.minute, from: autorunTime)
+
+                // Calculate 5 minutes before autorun time
+                let sleepPreventionTime = calendar.date(byAdding: .minute, value: -5, to: autorunTime) ?? autorunTime
+                let sleepPreventionHour = calendar.component(.hour, from: sleepPreventionTime)
+                let sleepPreventionMinute = calendar.component(.minute, from: sleepPreventionTime)
+
+                if currentHour == sleepPreventionHour, currentMinute == sleepPreventionMinute {
                     let configManager = ConfigurationManager.shared
-                    let userSettings = UserSettingsManager.shared.userSettings
+                    let userSettings = userSettingsManager.userSettings
                     if userSettings.preventSleepForAutorun {
                         // Check if any configs are scheduled for autorun today
                         let hasAutorun = configManager.settings.configurations.contains { config in
-                            self.shouldRunReservation(
-                                config: config,
-                                at: calendar.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now,
-                                )
+                            self.shouldRunReservation(config: config, at: autorunTime)
                         }
                         if hasAutorun {
-                            SleepManager.preventSleep(reason: "ODYSSEY: Preparing for 6pm autorun reservations")
+                            let timeString = String(format: "%02d:%02d", autorunHour, autorunMinute)
+                            SleepManager
+                                .preventSleep(reason: "ODYSSEY: Preparing for \(timeString) autorun reservations")
                         }
                     }
                 }
 
-                // Backup check: if we're at exactly 6:00:00 PM and haven't run yet
-                if currentHour == 18, currentMinute == 0, currentSecond == 0 {
+                // Backup check: if we're at exactly the autorun time and haven't run yet
+                let autorunSecond = calendar.component(.second, from: autorunTime)
+
+                if currentHour == autorunHour, currentMinute == autorunMinute, currentSecond == autorunSecond {
                     self.checkScheduledReservations()
                 }
             }
@@ -108,23 +144,50 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func schedulePreciseAutorun() {
         let calendar = Calendar.current
         let now = Date()
+        let userSettingsManager = UserSettingsManager.shared
 
-        // Calculate the next 6:00:00 PM
-        var nextAutorun = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now
+        // Determine which time to use based on user settings
+        let useCustomTime = userSettingsManager.userSettings.useCustomAutorunTime
+        let autorunTime: Date = if useCustomTime {
+            // Use the custom time set by the user
+            userSettingsManager.userSettings.customAutorunTime
+        } else {
+            // Use default 6:00 PM time
+            calendar.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now
+        }
 
-        // If it's already past 6:00 PM today, schedule for tomorrow
+        let autorunHour = calendar.component(.hour, from: autorunTime)
+        let autorunMinute = calendar.component(.minute, from: autorunTime)
+        let autorunSecond = calendar.component(.second, from: autorunTime)
+
+        // Debug: Log the current autorun time
+        let timeType = useCustomTime ? "custom" : "default"
+        logger
+            .info(
+                "🔍 DEBUG: Current autorun time is set to \(autorunHour):\(autorunMinute):\(autorunSecond) (\(timeType))",
+                )
+
+        // Calculate the next autorun time using the determined time
+        var nextAutorun = calendar
+            .date(bySettingHour: autorunHour, minute: autorunMinute, second: autorunSecond, of: now) ?? now
+
+        // If it's already past the autorun time today, schedule for tomorrow
         if nextAutorun <= now {
             nextAutorun = calendar.date(byAdding: .day, value: 1, to: nextAutorun) ?? nextAutorun
         }
 
         let timeUntilAutorun = nextAutorun.timeIntervalSince(now)
+        let timeString = String(format: "%02d:%02d:%02d", autorunHour, autorunMinute, autorunSecond)
 
-        logger.info("🕕 Scheduling precise autorun for \(nextAutorun) (in \(timeUntilAutorun) seconds)")
+        logger
+            .info(
+                "🕕 Scheduling precise autorun for \(nextAutorun) (custom time: \(timeString), in \(timeUntilAutorun) seconds)",
+                )
 
         // Schedule the precise timer
         DispatchQueue.main.asyncAfter(deadline: .now() + timeUntilAutorun) { [self] in
             Task { @MainActor in
-                logger.info("🕕 PRECISE 6:00:00 PM autorun triggered!")
+                logger.info("🕕 PRECISE \(timeString) autorun triggered!")
                 self.checkScheduledReservations()
 
                 // Schedule the next day's autorun
@@ -141,16 +204,45 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        // Collect all configurations that should run at 6:00 PM today
+        let configurations = configManager.settings.configurations
+
+        // Debug: Log all configurations
+        logger.info("🔍 DEBUG: Found \(configurations.count) total configurations")
+        for config in configurations {
+            logger.info("🔍 DEBUG: Config '\(config.name)' - enabled days: \(config.dayTimeSlots.keys.map(\.rawValue))")
+        }
+
+        // Collect all configurations that should run at the custom autorun time today
         var configsToRun: [ReservationConfig] = []
 
         for config in configManager.settings.configurations where shouldRunReservation(config: config, at: Date()) {
             configsToRun.append(config)
         }
 
+        // Debug: Log which configurations were selected
+        logger.info("🔍 DEBUG: Selected \(configsToRun.count) configurations for autorun")
+        for config in configsToRun {
+            logger.info("🔍 DEBUG: Will run config '\(config.name)'")
+        }
+
         // Run all eligible configurations simultaneously (like God Mode)
         if !configsToRun.isEmpty {
-            logger.info("🕕 6:00 PM automatic run: Starting \(configsToRun.count) configurations simultaneously")
+            let userSettingsManager = UserSettingsManager.shared
+            let calendar = Calendar.current
+            let useCustomTime = userSettingsManager.userSettings.useCustomAutorunTime
+            let autorunTime: Date = if useCustomTime {
+                // Use the custom time set by the user
+                userSettingsManager.userSettings.customAutorunTime
+            } else {
+                // Use default 6:00 PM time
+                calendar.date(bySettingHour: 18, minute: 0, second: 0, of: Date()) ?? Date()
+            }
+
+            let autorunHour = calendar.component(.hour, from: autorunTime)
+            let autorunMinute = calendar.component(.minute, from: autorunTime)
+            let autorunSecond = calendar.component(.second, from: autorunTime)
+            let timeString = String(format: "%02d:%02d:%02d", autorunHour, autorunMinute, autorunSecond)
+            logger.info("🕕 \(timeString) automatic run: Starting \(configsToRun.count) configurations simultaneously")
             DispatchQueue.main.async {
                 orchestrator.runMultipleReservations(for: configsToRun, runType: .automatic)
             }
@@ -158,19 +250,44 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func shouldRunReservation(config: ReservationConfig, at date: Date) -> Bool {
+        logger.info("🔍 DEBUG: shouldRunReservation called for config '\(config.name)' at \(date)")
         let calendar = Calendar.current
-        let currentTime = calendar.dateComponents([.hour, .minute], from: date)
+        let currentTime = calendar.dateComponents([.hour, .minute, .second], from: date)
 
         guard
             let currentHour = currentTime.hour,
-            let currentMinute = currentTime.minute
+            let currentMinute = currentTime.minute,
+            let currentSecond = currentTime.second
         else {
             logger.warning("Could not extract time components from date")
             return false
         }
 
-        // Only trigger at exactly 6:00pm
-        if currentHour != 18 || currentMinute != 0 {
+        // Only trigger at exactly the autorun time (including seconds)
+        let userSettingsManager = UserSettingsManager.shared
+        let useCustomTime = userSettingsManager.userSettings.useCustomAutorunTime
+        let autorunTime: Date = if useCustomTime {
+            // Use the custom time set by the user
+            userSettingsManager.userSettings.customAutorunTime
+        } else {
+            // Use default 6:00 PM time
+            calendar.date(bySettingHour: 18, minute: 0, second: 0, of: date) ?? date
+        }
+
+        let autorunHour = calendar.component(.hour, from: autorunTime)
+        let autorunMinute = calendar.component(.minute, from: autorunTime)
+        let autorunSecond = calendar.component(.second, from: autorunTime)
+
+        // Allow a 2-second window for autorun triggering (minimal tolerance for system timing)
+        let currentTimeInSeconds = currentHour * 3_600 + currentMinute * 60 + currentSecond
+        let autorunTimeInSeconds = autorunHour * 3_600 + autorunMinute * 60 + autorunSecond
+        let timeDifference = abs(currentTimeInSeconds - autorunTimeInSeconds)
+
+        if timeDifference > 2 {
+            logger
+                .info(
+                    "🔍 DEBUG: Time mismatch - current: \(currentHour):\(currentMinute):\(currentSecond), autorun: \(autorunHour):\(autorunMinute):\(autorunSecond), difference: \(timeDifference)s",
+                    )
             return false
         }
 
@@ -186,7 +303,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let reservationDay = calendar.date(byAdding: .day, value: daysUntilTarget, to: today) ?? today
             // Autorun should be 2 days before reservation day
             let autorunDay = calendar.date(byAdding: .day, value: -2, to: reservationDay) ?? reservationDay
+
+            // Debug logging
+            logger
+                .info(
+                    "🔍 DEBUG: Config '\(config.name)' - Day: \(day.rawValue), targetWeekday: \(targetWeekday), currentWeekday: \(currentWeekday), daysUntilTarget: \(daysUntilTarget), reservationDay: \(reservationDay), autorunDay: \(autorunDay), today: \(today)",
+                    )
+
             if calendar.isDate(today, inSameDayAs: autorunDay) {
+                logger.info("🔍 DEBUG: Config '\(config.name)' - MATCH FOUND!")
                 return true
             }
         }

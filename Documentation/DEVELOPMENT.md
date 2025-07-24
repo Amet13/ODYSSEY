@@ -53,7 +53,7 @@
 
 ## 🐞 Debugging & Troubleshooting
 
-- **Debug Window:** Essential for development and support. Use it to monitor automation and diagnose issues.
+- **Browser Window:** Optional for development and support. By default, automation runs invisibly. All advanced settings (including browser window controls) are only available in God Mode. Enable "Show browser window" in God Mode Advanced Settings to monitor automation and diagnose issues.
 - **Logs:** All logs use `os.log` with emoji indicators. Sensitive data is masked or marked as private.
 - **Console.app:** View logs by searching for `ODYSSEY` or `com.odyssey.app`.
 - **Error Handling:** All errors are logged with context and user-friendly messages are shown in the UI.
@@ -125,11 +125,15 @@ let config = ConfigurationManager.shared.settings.configurations.first!
 ReservationOrchestrator.shared.runReservation(for: config, runType: .manual)
 ```
 
-### Show the Debug Window
+### Show the Browser Window
 
 ```swift
-let webKitService = ServiceRegistry.shared.resolve(WebKitServiceProtocol.self)
-Task { await webKitService.connect() }
+// Browser window visibility is controlled by user settings
+let userSettings = UserSettingsManager.shared.userSettings
+if userSettings.showBrowserWindow {
+    let webKitService = ServiceRegistry.shared.resolve(WebKitServiceProtocol.self)
+    Task { await webKitService.connect() }
+}
 ```
 
 ### Access User Settings
@@ -159,7 +163,7 @@ print(userSettings.emailProvider)
 
 - Open an issue on [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
 - See the [README](../README.md) for user-facing instructions
-- For advanced troubleshooting, check the logs in Console.app and review the Debug Window
+- For advanced troubleshooting, check the logs in Console.app and enable "Show browser window" in God Mode Advanced Settings to monitor automation
 
 ## 🛡️ Security Best Practices
 

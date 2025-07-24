@@ -12,7 +12,7 @@ All notable changes to ODYSSEY will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.0.0] - 2025-07-22
+## [1.0.0] - 2025-08-01
 
 ### 🎉 Added
 
@@ -27,7 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Extensive validation and error handling
 - Multi-configuration and scheduling support
 - Human-like anti-detection for web automation
-- Debug window for live automation monitoring
+- Browser window for live automation monitoring
 - User-friendly onboarding and configuration flows
 - In-app and Console log guidance for troubleshooting
 - Full documentation for users and developers
