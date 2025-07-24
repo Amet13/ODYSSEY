@@ -36,7 +36,6 @@
 | 📧 Email Verification       | Automated IMAP/Gmail verification for reservation confirmations                                 |
 | 🕵️‍♂️ Anti-Detection           | Human-like automation to avoid bot detection                                                    |
 | 🛎️ Native Notifications     | Get macOS notifications for reservation success, failures, upcoming autoruns, and system errors |
-| 📝 Audit Logging            | View a history of automation runs, errors, and configuration changes                            |
 | 🎨 Dark Mode Polish         | Fully adaptive UI for both light and dark appearances                                           |
 | 🥚 Easter Eggs              | Discover hidden features and fun surprises for power users                                      |
 
