@@ -105,7 +105,7 @@ private struct MainBody: View {
                     showingAbout: $showingAbout,
                     )
             }
-            .frame(width: 440, height: 600)
+            .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
             .background(Color(NSColor.windowBackgroundColor))
             .sheet(isPresented: $showingAddConfig) {
                 ConfigurationDetailView(config: nil, onSave: { config in
@@ -801,10 +801,9 @@ struct DeleteConfirmationModal: View {
     @StateObject private var userSettingsManager = UserSettingsManager.shared
     var body: some View {
         VStack(spacing: 20) {
-            Image("logo")
-                .resizable()
-                .frame(width: 64, height: 64)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+            Image(systemName: "sportscourt.fill")
+                .font(.system(size: AppConstants.iconLarge))
+                .foregroundColor(.odysseyAccent)
                 .padding(.top, 24)
             Text("Delete Configuration")
                 .font(.title3)
@@ -829,7 +828,7 @@ struct DeleteConfirmationModal: View {
             }
             .padding(.bottom, 24)
         }
-        .frame(width: 340)
+        .frame(width: AppConstants.windowDeleteModalWidth)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(NSColor.windowBackgroundColor))
@@ -841,34 +840,4 @@ struct DeleteConfirmationModal: View {
 
 // MARK: - Onboarding/Help View
 
-struct OnboardingHelpView: View {
-    @Environment(\.dismiss) private var dismiss
-    var body: some View {
-        ZStack {
-            Color.clear.contentShape(Rectangle())
-                .onTapGesture { dismiss() }
-            VStack(spacing: 20) {
-                Image(systemName: "questionmark.circle.fill")
-                    .font(.system(size: 40))
-                    .foregroundColor(.accentColor)
-                Text("Welcome to ODYSSEY!")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .multilineTextAlignment(.center)
-                Text(
-                    "ODYSSEY automates sports reservation bookings for Ottawa Recreation facilities.\n\nGet started by adding your first reservation configuration. Use the Settings to enter your contact and email info. For more help, see the documentation below.",
-                    )
-                .font(.body)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: 340)
-                Link("Read the Documentation", destination: URL(string: "https://github.com/Amet13/ODYSSEY#readme")!)
-                    .font(.body)
-                    .foregroundColor(.blue)
-                Spacer()
-            }
-            .padding()
-            .frame(width: 400, height: 340)
-        }
-    }
-}
+// (OnboardingHelpView struct and its implementation removed)
