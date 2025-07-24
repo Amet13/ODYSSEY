@@ -1,7 +1,5 @@
 # ODYSSEY Development Guide
 
-**Ottawa Drop-in Your Sports & Schedule Easily Yourself**
-
 ## 🖥️ System Requirements
 
 - macOS 15.0 or later
@@ -102,46 +100,6 @@
 - 🔑 **Keychain issues:** If you see credential errors, re-enter credentials in Settings and restart the app.
 - 📝 **Documentation:** Always update docs and comments when making changes.
 - 🧹 **Clean builds:** If you encounter strange build errors, try cleaning the build folder in Xcode (`Shift+Cmd+K`).
-
-## 🛠️ Common Code Samples
-
-### Add a Reservation Configuration
-
-```swift
-let config = ReservationConfig(
-    name: "Evening Badminton",
-    facilityURL: "https://ottawa.ca/facility/123",
-    sportName: "Badminton",
-    numberOfPeople: 2,
-    isEnabled: true
-)
-ConfigurationManager.shared.addConfiguration(config)
-```
-
-### Run a Reservation Manually
-
-```swift
-let config = ConfigurationManager.shared.settings.configurations.first!
-ReservationOrchestrator.shared.runReservation(for: config, runType: .manual)
-```
-
-### Show the Browser Window
-
-```swift
-// Browser window visibility is controlled by user settings
-let userSettings = UserSettingsManager.shared.userSettings
-if userSettings.showBrowserWindow {
-    let webKitService = ServiceRegistry.shared.resolve(WebKitServiceProtocol.self)
-    Task { await webKitService.connect() }
-}
-```
-
-### Access User Settings
-
-```swift
-let userSettings = UserSettingsManager.shared.userSettings
-print(userSettings.emailProvider)
-```
 
 ## 📦 Related Documentation
 

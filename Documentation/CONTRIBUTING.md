@@ -170,7 +170,7 @@ struct ConfigurationDetailView: View {
 
 - [ ] My code follows the style guidelines
 - [ ] I have self-reviewed my changes
-- [ ] I have tested my changes (unit/UI/manual)
+- [ ] I have tested my changes (UI)
 - [ ] I have updated documentation as needed
 - [ ] My code passes all linting and formatting checks
 - [ ] My PR includes a clear description and screenshots if applicable
@@ -178,7 +178,7 @@ struct ConfigurationDetailView: View {
 ## 🔄 Pull Request Process
 
 1. **Self-review** your changes
-2. **Ensure tests pass** locally
+2. **Ensure app builds** locally
 3. **Update documentation** for any new features
 4. **Check for linting issues** (run `./Scripts/build.sh`)
 5. **Test on different macOS versions** if possible
@@ -186,80 +186,13 @@ struct ConfigurationDetailView: View {
 7. **Address feedback** from reviewers
 8. **Wait for maintainer approval and merge**
 
-### PR Template Example
-
-```markdown
-## Description
-
-Brief description of changes
-
-## Type of Change
-
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
-
-## Testing
-
-- [ ] Manual testing completed
-- [ ] Tested on macOS [version]
-
-## Checklist
-
-- [ ] Code follows the style guidelines
-- [ ] Self-review completed
-- [ ] Documentation updated
-- [ ] No new warnings introduced
-- [ ] No breaking changes (or breaking changes documented)
-
-## Screenshots (if applicable)
-
-Add screenshots for UI changes
-```
-
 ## 🧐 Review Process
 
 - All PRs require at least one review from a maintainer
-- Automated checks (lint, build, tests) must pass
+- Automated checks (lint, build) must pass
 - Reviewers may request changes or clarifications
 - Be responsive and address feedback promptly
 - PRs are merged after approval
-
-## 🐛 Bug Reports
-
-### Issue Template
-
-```markdown
-## Bug Description
-
-Clear and concise description of the bug
-
-## Steps to Reproduce
-
-1. Go to the settings page
-2. Click on the configuration button
-3. Scroll down to the form section
-4. See error
-
-## Expected Behavior
-
-What you expected to happen
-
-## Actual Behavior
-
-What actually happened
-
-## Environment
-
-- macOS Version: [e.g., 12.0]
-- ODYSSEY Version: [e.g., 1.0.0]
-- Xcode Version: [e.g., 14.0]
-
-## Additional Context
-
-Add any other context, logs, or screenshots
-```
 
 ## 📚 Resources
 
@@ -285,32 +218,3 @@ Add any other context, logs, or screenshots
 By contributing to ODYSSEY, you agree that your contributions will be licensed under the MIT License.
 
 **Thank you for contributing to ODYSSEY! 🚀**
-
-## 🌟 New Contributor Onboarding
-
-Welcome! If this is your first time contributing to ODYSSEY, here’s how to get started:
-
-1. **Read the README and DEVELOPMENT.md** for project context.
-2. **Fork the repository** and clone your fork locally.
-3. **Set up your environment** (see DEVELOPMENT.md for details).
-4. **Pick a good first issue** from [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
-5. **Create a feature branch**:
-   ```bash
-   git checkout -b my-first-contribution
-   ```
-6. **Make your changes** and commit with a clear message.
-7. **Run all tests and linting**:
-   ```bash
-   ./Scripts/build.sh
-   ```
-8. **Push your branch** and open a Pull Request on GitHub.
-9. **Fill out the PR template** and request a review.
-10. **Respond to feedback** and iterate as needed.
-
-**Tips:**
-
-- Don’t hesitate to ask questions in your PR or on GitHub Issues! We’re here to help. 🙌
-- Start small—documentation, typo fixes, or good first issues are great ways to learn the codebase.
-- Be kind and respectful in all communications.
-
-Happy coding and welcome to the ODYSSEY community! 🚀

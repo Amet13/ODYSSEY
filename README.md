@@ -84,8 +84,6 @@
 
 ![](Documentation/Images/main.png)
 
-> ⚠️ **Important:** > **Optimized Defaults**: ODYSSEY is configured with optimal settings for most users. Advanced options are available for developers.
->
 > **💡 Tip**: Keep your laptop awake during reservation automation. While ODYSSEY can prevent sleep before autorun, it's best to ensure your Mac doesn't go to sleep during the reservation process for optimal reliability.
 
 ## 📊 Logs & Debugging
@@ -110,7 +108,7 @@
 - Double-check your IMAP/Gmail credentials and App Password (for Gmail)
 - Test your email connection in Settings
 - Check for typos in your email address or server
-- For Gmail, ensure 2FA is enabled and you are using an App Password
+- For Gmail, ensure 2FA is enabled and you are using an [App Password](https://support.google.com/accounts/answer/185833?hl=en)
 
 #### 🔒 Keychain or credential errors
 
@@ -144,10 +142,6 @@ See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution g
 - 📝 The app is code signed for distribution, but is **not notarized by Apple** (no Apple Developer account). To enable notarization, see [DEVELOPMENT.md](Documentation/DEVELOPMENT.md) and `Scripts/create-release.sh`
 - 🚫 No user data is ever sent externally without your explicit consent. All automation runs locally
 - See [DEVELOPMENT.md](Documentation/DEVELOPMENT.md) for full security and compliance details
-
-## 💬 Support
-
-- [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
 
 ## 📄 License
 
