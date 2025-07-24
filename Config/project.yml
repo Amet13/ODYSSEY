@@ -91,8 +91,7 @@ targets:
     resources:
       - path: ../Sources/Resources/AppIcon.icns
       - path: ../Sources/Resources/Assets.xcassets
-    entitlements:
-      path: entitlements.plist
+
     info:
       path: ../Sources/App/Info.plist
       properties:

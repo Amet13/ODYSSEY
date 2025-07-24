@@ -44,7 +44,6 @@ public final class LoadingStateManager: ObservableObject, @unchecked Sendable {
     @Published var isLoading: Bool = false
     @Published var progress: Progress?
     @Published var message: String = ""
-    @Published public var notification: BannerNotification? // New: for in-app banners
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -94,13 +93,13 @@ public final class LoadingStateManager: ObservableObject, @unchecked Sendable {
                 case .idle:
                     return nil
                 case let .loading(message):
-                    return Progress(current: 0, total: 100, message: message) // Placeholder for loading progress
+                    return Progress(current: 0, total: 100, message: message)
                 case let .progress(progress):
                     return progress
                 case let .success(message):
-                    return Progress(current: 100, total: 100, message: message) // Placeholder for success progress
+                    return Progress(current: 100, total: 100, message: message)
                 case let .error(message):
-                    return Progress(current: 0, total: 100, message: message) // Placeholder for error progress
+                    return Progress(current: 0, total: 100, message: message)
                 }
             }
             .assign(to: \.progress, on: self)
@@ -191,47 +190,6 @@ public final class LoadingStateManager: ObservableObject, @unchecked Sendable {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             self.setSuccess(message)
         }
-    }
-
-    // MARK: - Notification Banner Support
-
-    public struct BannerNotification: Identifiable {
-        public enum BannerType { case success, error, info }
-        public let id = UUID()
-        public let type: BannerType
-        public let message: String
-
-        public init(type: BannerType, message: String) {
-            self.type = type
-            self.message = message
-        }
-    }
-
-    /**
-     Shows a success banner notification with the given message.
-     - Parameter message: The message to display.
-     */
-    public func showSuccessBanner(_ message: String) {
-        notification = BannerNotification(type: .success, message: message)
-        logger.info("✅ Success banner: \(message)")
-    }
-
-    /**
-     Shows an error banner notification with the given message.
-     - Parameter message: The message to display.
-     */
-    public func showErrorBanner(_ message: String) {
-        notification = BannerNotification(type: .error, message: message)
-        logger.error("❌ Error banner: \(message)")
-    }
-
-    /**
-     Shows an info banner notification with the given message.
-     - Parameter message: The message to display.
-     */
-    public func showInfoBanner(_ message: String) {
-        notification = BannerNotification(type: .info, message: message)
-        logger.info("ℹ️ Info banner: \(message)")
     }
 
     // MARK: - Convenience Methods

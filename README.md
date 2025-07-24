@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="logo.svg" alt="ODYSSEY Logo" width="120" height="120">
+  <img src="Documentation/Images/logo.png" alt="ODYSSEY Logo" width="120" height="120">
   <h1>ODYSSEY</h1>
   <p><strong>Ottawa Drop-in Your Sports & Schedule Easily Yourself</strong></p>
   <p>

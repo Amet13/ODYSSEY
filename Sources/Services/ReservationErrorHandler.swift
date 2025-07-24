@@ -14,7 +14,7 @@ public final class ReservationErrorHandler: @unchecked Sendable {
         runType: ReservationRunType,
         ) async {
         logger.error("❌ Reservation error: \(error.localizedDescription).")
-        // Attempt to capture DOM snapshot for debugging
+
         if let webKitService = try? await getWebKitServiceIfAvailable() {
             if let pageSource = try? await webKitService.getPageSource() {
                 logger.error("📄 DOM Snapshot (first 1000 chars): \(pageSource.prefix(1_000))")
@@ -36,7 +36,7 @@ public final class ReservationErrorHandler: @unchecked Sendable {
             statusManager.lastRunDate = Date()
             statusManager.currentTask = "Reservation failed: \(error.localizedDescription)"
             // Show user-facing error banner
-            LoadingStateManager.shared.showErrorBanner("Reservation failed: \(error.localizedDescription)")
+            logger.error("❌ Reservation failed: \(error.localizedDescription)")
         }
         logger.error("❌ Reservation failed for \(config.name): \(error.localizedDescription).")
         logger.info("🧹 Cleaning up WebKit session after error.")

@@ -1652,7 +1652,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
     }
 
-    // MARK: - Additional Reservation Methods (Placeholders)
+    // MARK: - Additional Reservation Methods
 
     public func waitForGroupSizePage() async -> Bool {
         guard let webView else {
@@ -3323,21 +3323,19 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             .info(
                 "Instance \(self.instanceId): Starting systematic verification code trial with \(codes.count) codes: \(codes)",
                 )
-        // logger.debug("[DEBUG] Codes array at start: \(codes)")
+
         let emailService = EmailService.shared
         for (index, code) in codes.enumerated() {
-            // logger.info("[DEBUG] About to try verification code: \(code) (index: \(index)) in codes: \(codes)")
-            // logger.debug("[DEBUG] Loop iteration: index=\(index), code=\(code), instanceId=\(self.instanceId)")
             // Validate code: must be 4 digits and not '0000'
             if code.count != 4 || !code.allSatisfy(\.isNumber) || code == "0000" {
                 logger.warning("Instance \(self.instanceId): Skipping invalid code: \(code)")
-                // logger.debug("[DEBUG] Continue after invalid code at index=\(index)")
+
                 continue
             }
             if !codes.contains(code) {
                 logger
                     .warning("Instance \(self.instanceId): Code \(code) not in extracted set for this round, skipping.")
-                // logger.debug("[DEBUG] Continue after code not in set at index=\(index)")
+
                 continue
             }
             logger
@@ -3348,7 +3346,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             let fillSuccess = await fillVerificationCode(code)
             if !fillSuccess {
                 logger.warning("Instance \(self.instanceId): Failed to fill verification code \(index + 1)")
-                // logger.debug("[DEBUG] Continue after failed fill at index=\(index)")
+
                 continue
             }
             await updateTask("Waiting for form to process verification code...")
@@ -3360,7 +3358,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                     .warning(
                         "Instance \(self.instanceId): Failed to click verification submit button for code \(index + 1)",
                         )
-                // logger.debug("[DEBUG] Continue after failed click at index=\(index)")
+
                 continue
             }
             await updateTask("Waiting for verification response...")
@@ -3378,7 +3376,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                     .info(
                         "Instance \(self.instanceId): ✅ Verification successful or terminal state on attempt \(index + 1)",
                         )
-                logger.debug("[DEBUG] Return true after verification success or terminal state at index=\(index)")
+
                 return true // TERMINATE IMMEDIATELY ON SUCCESS OR TERMINAL STATE
             }
             logger.warning("Instance \(self.instanceId): ❌ Verification code \(index + 1) was rejected")
@@ -3386,7 +3384,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             if stillOnVerificationPage {
                 logger.info("Instance \(self.instanceId): Still on verification page - continuing to next code...")
                 await clearVerificationInput()
-                // logger.debug("[DEBUG] Continue after still on verification page at index=\(index)")
+
                 continue
             } else {
                 logger
@@ -3397,20 +3395,20 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 if finalCheck {
                     logger.info("Instance \(self.instanceId): ✅ Final check confirms verification success!")
                     await emailService.markCodeAsConsumed(code, byInstanceId: self.instanceId)
-                    logger.debug("[DEBUG] Return true after final check at index=\(index)")
+
                     return true
                 }
                 logger.warning("Instance \(self.instanceId): Final check failed, continuing to next code...")
-                // logger.debug("[DEBUG] Continue after final check failed at index=\(index)")
+
                 continue
             }
         }
-        logger.debug("[DEBUG] Exiting loop after all codes tried for instanceId=\(self.instanceId)")
+
         logger
             .error(
                 "Instance \(self.instanceId): All \(codes.count) verification codes failed or were rejected. Failing gracefully.",
                 )
-        logger.debug("[DEBUG] Return false after all codes tried for instanceId=\(self.instanceId)")
+
         return false
     }
 
@@ -3484,7 +3482,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 const bodyText = document.body.textContent || '';
                 const bodyTextLower = bodyText.toLowerCase();
 
-                // Debug: Print the first 1000 characters of the page
+
                 console.log('[ODYSSEY] Checking verification result. Page content preview:', bodyText.substring(0, 1000));
 
                 // Check for robust confirmation page indicators
@@ -3590,15 +3588,13 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             if let dict = result as? [String: Any] {
                 let success = dict["success"] as? Bool ?? false
                 let reason = dict["reason"] as? String ?? "unknown"
-                let pageText = dict["pageText"] as? String ?? ""
+                _ = dict["pageText"] as? String ?? ""
 
                 logger
                     .info(
                         "Instance \(self.instanceId): Verification check result: \(success ? "SUCCESS" : "FAILED") - \(reason)",
                         )
-                logger.debug("[DEBUG] Verification page text (first 1000 chars): \(pageText)")
 
-                // Add more detailed logging for debugging
                 if success {
                     logger.info("Instance \(self.instanceId): 🎉 SUCCESS detected - reason: \(reason)")
                 } else {
@@ -3792,7 +3788,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             (function() {
                 console.log('[ODYSSEY] Starting button detection...');
 
-                // First, log all buttons on the page for debugging
+
                 const allButtons = document.querySelectorAll('button, input[type="submit"], a');
                 console.log('[ODYSSEY] Found', allButtons.length, 'total buttons/inputs');
 
@@ -3992,7 +3988,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             let result = try await webView
                 .evaluateJavaScript(script) as? String ??
                 "[ODYSSEY] No result from clickVerificationSubmitButton script"
-            logger.debug("[Verification] clickVerificationSubmitButton result: \(result)")
+
             return result.contains("Clicked")
         } catch {
             logger.error("Error in clickVerificationSubmitButton: \(error.localizedDescription)")
@@ -4884,9 +4880,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 public class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
     weak var delegate: WebKitService?
 
-    public func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation!) {
-        // Removed: delegate?.logger.info("[Navigation] Started loading: \(webView.url?.absoluteString ?? "unknown")")
-    }
+    public func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation!) { }
 
     public func webView(_ webView: WKWebView, didFinish _: WKNavigation!) {
         delegate?.currentURL = webView.url?.absoluteString
@@ -4902,8 +4896,6 @@ public class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
     }
 
     public func webView(_: WKWebView, didFail _: WKNavigation!, withError _: Error) {
-        // Removed: delegate?.logger.error("[Navigation] Failed: \(error.localizedDescription)")
-
         // Notify any waiting navigation completions
         if let delegate {
             for (_, completion) in delegate.navigationCompletions {
@@ -4913,16 +4905,13 @@ public class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
         }
     }
 
-    public func webView(_: WKWebView, didFailProvisionalNavigation _: WKNavigation!, withError _: Error) {
-        // Removed: delegate?.logger.error("[Navigation] Provisional navigation failed: \(error.localizedDescription)")
-    }
+    public func webView(_: WKWebView, didFailProvisionalNavigation _: WKNavigation!, withError _: Error) { }
 
     public func webView(
         _: WKWebView,
         decidePolicyFor _: WKNavigationAction,
         decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void,
         ) {
-        // Removed: delegate?.logger.info("[Navigation] Policy decision for: \(navigationAction.request.url?.absoluteString ?? "unknown")")
         decisionHandler(.allow)
     }
 }

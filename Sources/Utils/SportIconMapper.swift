@@ -77,15 +77,6 @@ public enum SportIconMapper {
 
         "squash": "squash.racket",
 
-        // MARK: - Legacy Sports
-
-        "tennis": "tennis.racket",
-        "badminton": "tennis.racket",
-        "pickleball": "tennis.racket",
-        "hockey": "hockey.puck",
-        "running": "figure.run",
-        "run": "figure.run",
-
         // MARK: - Martial Arts
 
         "martial": "figure.martial.arts",
