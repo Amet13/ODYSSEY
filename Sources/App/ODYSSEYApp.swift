@@ -67,8 +67,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    deinit {
-    }
+    deinit { }
 
     // MARK: - Private Methods
 
