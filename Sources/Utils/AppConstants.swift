@@ -69,7 +69,7 @@ extension AppConstants {
     static let windowAboutWidth: CGFloat = 300
     static let windowAboutHeight: CGFloat = 300
     static let windowDayPickerWidth: CGFloat = 300
-    static let windowDayPickerHeight: CGFloat = 300
+    static let windowDayPickerHeight: CGFloat = 370
     static let windowDeleteModalWidth: CGFloat = 300
 
     // MARK: - Icon Sizes
