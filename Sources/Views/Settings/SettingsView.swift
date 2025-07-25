@@ -643,9 +643,9 @@ private struct TestEmailButton: View {
                 }) {
                     HStack(spacing: AppConstants.spacingSmall) {
                         Image(systemName: "envelope.badge")
-                            .font(.system(size: AppConstants.fontSubheadline))
+                            .font(.system(size: AppConstants.fontBody))
                         Text("Test Email")
-                            .font(.system(size: AppConstants.fontCaption))
+                            .font(.system(size: AppConstants.fontBody))
                     }
                 }
                 .buttonStyle(.bordered)

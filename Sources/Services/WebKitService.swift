@@ -3787,103 +3787,61 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             logger.error("WebView not initialized")
             return false
         }
-        do {
-            let script = """
-            (function() {
-                console.log('[ODYSSEY] Starting button detection...');
-
-
-                const allButtons = document.querySelectorAll('button, input[type="submit"], a');
-                console.log('[ODYSSEY] Found', allButtons.length, 'total buttons/inputs');
-
-                for (let i = 0; i < allButtons.length; i++) {
-                    const btn = allButtons[i];
-                    const text = (btn.textContent || '').trim();
-                    const ariaLabel = btn.getAttribute('aria-label') || '';
-                    const title = btn.getAttribute('title') || '';
-                    const className = btn.className || '';
-                    const id = btn.id || '';
-                    const isVisible = btn.offsetParent !== null;
-                    const isEnabled = !btn.disabled;
-
-                    console.log('[ODYSSEY] Button', i, ':', {
-                        text: text,
-                        ariaLabel: ariaLabel,
-                        title: title,
-                        className: className,
-                        id: id,
-                        visible: isVisible,
-                        enabled: isEnabled,
-                        tagName: btn.tagName
-                    });
-                }
-
-                // Try to find the ripple element
-                const ripple = document.querySelector('.mdc-button__ripple');
-                if (ripple) {
-                    console.log('[ODYSSEY] Found ripple element');
-                    // Try to click the parent button
-                    let parent = ripple.closest('button');
-                    if (parent) {
-                        console.log('[ODYSSEY] Found parent button of ripple element');
-                        // Try MouseEvent first
+        let maxAttempts = 10
+        for attempt in 1 ... maxAttempts {
+            do {
+                let script = """
+                (function() {
+                    // --- ODYSSEY PATCH: Always check for Final Confirmation button after verification submit ---
+                    var finalBtn = document.querySelector('#submit-btn');
+                    if (finalBtn && (finalBtn.innerText || '').toLowerCase().includes('final confirmation')) {
                         try {
-                            const rect = parent.getBoundingClientRect();
-                            const event = new MouseEvent('click', {
-                                view: window,
-                                bubbles: true,
-                                cancelable: true,
-                                clientX: rect.left + rect.width / 2,
-                                clientY: rect.top + rect.height / 2
-                            });
-                            parent.dispatchEvent(event);
-                            console.log('[ODYSSEY] Clicked parent button via MouseEvent');
-                            return '[ODYSSEY] Clicked parent button via MouseEvent';
+                            finalBtn.click();
+                            console.log('[ODYSSEY] Clicked Final Confirmation button (id=submit-btn)');
+                            return '[ODYSSEY] Clicked Final Confirmation button (id=submit-btn)';
                         } catch (e) {
-                            console.log('[ODYSSEY] MouseEvent failed, trying .click()');
-                            try {
-                                parent.click();
-                                console.log('[ODYSSEY] Clicked parent button via .click()');
-                                return '[ODYSSEY] Clicked parent button via .click()';
-                            } catch (e2) {
-                                console.log('[ODYSSEY] .click() also failed');
-                            }
+                            console.log('[ODYSSEY] Failed to click Final Confirmation button:', e);
                         }
                     }
+                    // --- END PATCH ---
+                    console.log('[ODYSSEY] Starting button detection...');
 
-                    // Fallback: try clicking the ripple itself
-                    try {
-                        const rect = ripple.getBoundingClientRect();
-                        const event = new MouseEvent('click', {
-                            view: window,
-                            bubbles: true,
-                            cancelable: true,
-                            clientX: rect.left + rect.width / 2,
-                            clientY: rect.top + rect.height / 2
+                    const allButtons = document.querySelectorAll('button, input[type="submit"], a');
+                    console.log('[ODYSSEY] Found', allButtons.length, 'total buttons/inputs');
+
+                    for (let i = 0; i < allButtons.length; i++) {
+                        const btn = allButtons[i];
+                        const text = (btn.textContent || '').trim();
+                        const ariaLabel = btn.getAttribute('aria-label') || '';
+                        const title = btn.getAttribute('title') || '';
+                        const className = btn.className || '';
+                        const id = btn.id || '';
+                        const isVisible = btn.offsetParent !== null;
+                        const isEnabled = !btn.disabled;
+
+                        console.log('[ODYSSEY] Button', i, ':', {
+                            text: text,
+                            ariaLabel: ariaLabel,
+                            title: title,
+                            className: className,
+                            id: id,
+                            visible: isVisible,
+                            enabled: isEnabled,
+                            tagName: btn.tagName
                         });
-                        ripple.dispatchEvent(event);
-                        console.log('[ODYSSEY] Clicked ripple element via MouseEvent');
-                        return '[ODYSSEY] Clicked ripple element via MouseEvent';
-                    } catch (e) {
-                        console.log('[ODYSSEY] Ripple click failed');
                     }
-                } else {
-                    console.log('[ODYSSEY] No ripple element found');
-                }
 
-                // Look for Material Design buttons by class
-                const mdcButtons = document.querySelectorAll('.mdc-button, [class*="mdc-button"]');
-                console.log('[ODYSSEY] Found', mdcButtons.length, 'Material Design buttons');
-
-                for (const btn of mdcButtons) {
-                    if (btn.offsetParent !== null && !btn.disabled) {
-                        const text = (btn.textContent || '').trim().toLowerCase();
-                        console.log('[ODYSSEY] Checking MDC button:', text);
-
-                        if (text.includes('confirm') || text.includes('submit') || text.includes('verify')) {
-                            console.log('[ODYSSEY] Found matching MDC button:', text);
+                    // Try to find the ripple element
+                    const ripple = document.querySelector('.mdc-button__ripple');
+                    if (ripple) {
+                        console.log('[ODYSSEY] Found ripple element');
+                        // Try to click the parent button
+                        let parent = ripple.closest('button');
+                        if (parent) {
+                            console.log('[ODYSSEY] Found parent button of ripple element');
+                            // Try MouseEvent first
                             try {
-                                const rect = btn.getBoundingClientRect();
+                                const rect = parent.getBoundingClientRect();
                                 const event = new MouseEvent('click', {
                                     view: window,
                                     bubbles: true,
@@ -3891,38 +3849,52 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                                     clientX: rect.left + rect.width / 2,
                                     clientY: rect.top + rect.height / 2
                                 });
-                                btn.dispatchEvent(event);
-                                console.log('[ODYSSEY] Clicked MDC button via MouseEvent:', text);
-                                return '[ODYSSEY] Clicked MDC button via MouseEvent: ' + text;
+                                parent.dispatchEvent(event);
+                                console.log('[ODYSSEY] Clicked parent button via MouseEvent');
+                                return '[ODYSSEY] Clicked parent button via MouseEvent';
                             } catch (e) {
-                                console.log('[ODYSSEY] MouseEvent failed for MDC button:', text);
+                                console.log('[ODYSSEY] MouseEvent failed, trying .click()');
                                 try {
-                                    btn.click();
-                                    console.log('[ODYSSEY] Clicked MDC button via .click():', text);
-                                    return '[ODYSSEY] Clicked MDC button via .click(): ' + text;
+                                    parent.click();
+                                    console.log('[ODYSSEY] Clicked parent button via .click()');
+                                    return '[ODYSSEY] Clicked parent button via .click()';
                                 } catch (e2) {
-                                    console.log('[ODYSSEY] .click() also failed for MDC button:', text);
+                                    console.log('[ODYSSEY] .click() also failed');
                                 }
                             }
                         }
+
+                        // Fallback: try clicking the ripple itself
+                        try {
+                            const rect = ripple.getBoundingClientRect();
+                            const event = new MouseEvent('click', {
+                                view: window,
+                                bubbles: true,
+                                cancelable: true,
+                                clientX: rect.left + rect.width / 2,
+                                clientY: rect.top + rect.height / 2
+                            });
+                            ripple.dispatchEvent(event);
+                            console.log('[ODYSSEY] Clicked ripple element via MouseEvent');
+                            return '[ODYSSEY] Clicked ripple element via MouseEvent';
+                        } catch (e) {
+                            console.log('[ODYSSEY] Ripple click failed');
+                        }
+                    } else {
+                        console.log('[ODYSSEY] No ripple element found');
                     }
-                }
 
-                // Fallback: find all visible buttons and look for submit/verify/confirm/continue text
-                const submitKeywords = ['confirm'];
+                    // Look for Material Design buttons by class
+                    const mdcButtons = document.querySelectorAll('.mdc-button, [class*="mdc-button"]');
+                    console.log('[ODYSSEY] Found', mdcButtons.length, 'Material Design buttons');
 
-                for (const btn of allButtons) {
-                    if (btn.offsetParent !== null && !btn.disabled) { // visible and enabled
-                        const text = (btn.textContent || '').trim().toLowerCase();
-                        const ariaLabel = (btn.getAttribute('aria-label') || '').toLowerCase();
-                        const title = (btn.getAttribute('title') || '').toLowerCase();
+                    for (const btn of mdcButtons) {
+                        if (btn.offsetParent !== null && !btn.disabled) {
+                            const text = (btn.textContent || '').trim().toLowerCase();
+                            console.log('[ODYSSEY] Checking MDC button:', text);
 
-                        console.log('[ODYSSEY] Checking button:', text, 'aria-label:', ariaLabel, 'title:', title);
-
-                        // Check for partial matches with submit keywords in text, aria-label, or title
-                        for (const keyword of submitKeywords) {
-                            if (text.includes(keyword) || ariaLabel.includes(keyword) || title.includes(keyword)) {
-                                console.log('[ODYSSEY] Found matching button with keyword:', keyword);
+                            if (text.includes('confirm') || text.includes('submit') || text.includes('verify')) {
+                                console.log('[ODYSSEY] Found matching MDC button:', text);
                                 try {
                                     const rect = btn.getBoundingClientRect();
                                     const event = new MouseEvent('click', {
@@ -3933,71 +3905,120 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                                         clientY: rect.top + rect.height / 2
                                     });
                                     btn.dispatchEvent(event);
-                                    console.log('[ODYSSEY] Clicked button via MouseEvent:', text);
-                                    return '[ODYSSEY] Clicked button via MouseEvent: ' + text;
+                                    console.log('[ODYSSEY] Clicked MDC button via MouseEvent:', text);
+                                    return '[ODYSSEY] Clicked MDC button via MouseEvent: ' + text;
                                 } catch (e) {
-                                    console.log('[ODYSSEY] MouseEvent failed for button:', text);
+                                    console.log('[ODYSSEY] MouseEvent failed for MDC button:', text);
                                     try {
                                         btn.click();
-                                        console.log('[ODYSSEY] Clicked button via .click():', text);
-                                        return '[ODYSSEY] Clicked button via .click(): ' + text;
+                                        console.log('[ODYSSEY] Clicked MDC button via .click():', text);
+                                        return '[ODYSSEY] Clicked MDC button via .click(): ' + text;
                                     } catch (e2) {
-                                        console.log('[ODYSSEY] .click() also failed for button:', text);
+                                        console.log('[ODYSSEY] .click() also failed for MDC button:', text);
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                // Last resort: try clicking the last visible button (often the submit button)
-                const visibleButtons = Array.from(allButtons).filter(btn =>
-                    btn.offsetParent !== null && !btn.disabled
-                );
+                    // Fallback: find all visible buttons and look for submit/verify/confirm/continue text
+                    const submitKeywords = ['confirm'];
 
-                if (visibleButtons.length > 0) {
-                    const lastButton = visibleButtons[visibleButtons.length - 1];
-                    const text = (lastButton.textContent || '').trim();
-                    console.log('[ODYSSEY] Trying last visible button:', text);
+                    for (const btn of allButtons) {
+                        if (btn.offsetParent !== null && !btn.disabled) { // visible and enabled
+                            const text = (btn.textContent || '').trim().toLowerCase();
+                            const ariaLabel = (btn.getAttribute('aria-label') || '').toLowerCase();
+                            const title = (btn.getAttribute('title') || '').toLowerCase();
 
-                    try {
-                        const rect = lastButton.getBoundingClientRect();
-                        const event = new MouseEvent('click', {
-                            view: window,
-                            bubbles: true,
-                            cancelable: true,
-                            clientX: rect.left + rect.width / 2,
-                            clientY: rect.top + rect.height / 2
-                        });
-                        lastButton.dispatchEvent(event);
-                        console.log('[ODYSSEY] Clicked last visible button via MouseEvent:', text);
-                        return '[ODYSSEY] Clicked last visible button via MouseEvent: ' + text;
-                    } catch (e) {
-                        console.log('[ODYSSEY] MouseEvent failed for last button:', text);
-                        try {
-                            lastButton.click();
-                            console.log('[ODYSSEY] Clicked last visible button via .click():', text);
-                            return '[ODYSSEY] Clicked last visible button via .click(): ' + text;
-                        } catch (e2) {
-                            console.log('[ODYSSEY] .click() also failed for last button:', text);
+                            console.log('[ODYSSEY] Checking button:', text, 'aria-label:', ariaLabel, 'title:', title);
+
+                            // Check for partial matches with submit keywords in text, aria-label, or title
+                            for (const keyword of submitKeywords) {
+                                if (text.includes(keyword) || ariaLabel.includes(keyword) || title.includes(keyword)) {
+                                    console.log('[ODYSSEY] Found matching button with keyword:', keyword);
+                                    try {
+                                        const rect = btn.getBoundingClientRect();
+                                        const event = new MouseEvent('click', {
+                                            view: window,
+                                            bubbles: true,
+                                            cancelable: true,
+                                            clientX: rect.left + rect.width / 2,
+                                            clientY: rect.top + rect.height / 2
+                                        });
+                                        btn.dispatchEvent(event);
+                                        console.log('[ODYSSEY] Clicked button via MouseEvent:', text);
+                                        return '[ODYSSEY] Clicked button via MouseEvent: ' + text;
+                                    } catch (e) {
+                                        console.log('[ODYSSEY] MouseEvent failed for button:', text);
+                                        try {
+                                            btn.click();
+                                            console.log('[ODYSSEY] Clicked button via .click():', text);
+                                            return '[ODYSSEY] Clicked button via .click(): ' + text;
+                                        } catch (e2) {
+                                            console.log('[ODYSSEY] .click() also failed for button:', text);
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
+
+                    // Last resort: try clicking the last visible button (often the submit button)
+                    const visibleButtons = Array.from(allButtons).filter(btn =>
+                        btn.offsetParent !== null && !btn.disabled
+                    );
+
+                    if (visibleButtons.length > 0) {
+                        const lastButton = visibleButtons[visibleButtons.length - 1];
+                        const text = (lastButton.textContent || '').trim();
+                        console.log('[ODYSSEY] Trying last visible button:', text);
+
+                        try {
+                            const rect = lastButton.getBoundingClientRect();
+                            const event = new MouseEvent('click', {
+                                view: window,
+                                bubbles: true,
+                                cancelable: true,
+                                clientX: rect.left + rect.width / 2,
+                                clientY: rect.top + rect.height / 2
+                            });
+                            lastButton.dispatchEvent(event);
+                            console.log('[ODYSSEY] Clicked last visible button via MouseEvent:', text);
+                            return '[ODYSSEY] Clicked last visible button via MouseEvent: ' + text;
+                        } catch (e) {
+                            console.log('[ODYSSEY] MouseEvent failed for last button:', text);
+                            try {
+                                lastButton.click();
+                                console.log('[ODYSSEY] Clicked last visible button via .click():', text);
+                                return '[ODYSSEY] Clicked last visible button via .click(): ' + text;
+                            } catch (e2) {
+                                console.log('[ODYSSEY] .click() also failed for last button:', text);
+                            }
+                        }
+                    }
+
+                    console.log('[ODYSSEY] No suitable button found');
+                    return '[ODYSSEY] No suitable button found';
+                })();
+                """
+                let result = try await webView
+                    .evaluateJavaScript(script) as? String ??
+                    "[ODYSSEY] No result from clickVerificationSubmitButton script"
+                if result.contains("Clicked Final Confirmation button") || result.contains("Clicked") {
+                    logger.info("✅ [ConfirmClick] Success on attempt \(attempt): \(result)")
+                    return true
+                } else {
+                    logger.info("🔄 [ConfirmClick] Attempt \(attempt) did not find/click button: \(result)")
                 }
-
-                console.log('[ODYSSEY] No suitable button found');
-                return '[ODYSSEY] No suitable button found';
-            })();
-            """
-
-            let result = try await webView
-                .evaluateJavaScript(script) as? String ??
-                "[ODYSSEY] No result from clickVerificationSubmitButton script"
-
-            return result.contains("Clicked")
-        } catch {
-            logger.error("Error in clickVerificationSubmitButton: \(error.localizedDescription)")
-            return false
+            } catch {
+                logger
+                    .error("Error in clickVerificationSubmitButton (attempt \(attempt)): \(error.localizedDescription)")
+            }
+            // Wait 0.5s before next attempt
+            try? await Task.sleep(nanoseconds: 500_000_000)
         }
+        logger.error("❌ [ConfirmClick] Failed to click Final Confirmation button after \(maxAttempts) attempts")
+        return false
     }
 
     /// Detects if "Retry" text appears on the page (indicating reCAPTCHA failure)
