@@ -10,12 +10,16 @@ struct SettingsView: View {
     let godModeEnabled: Bool
 
     var body: some View {
-        SettingsFormView(
-            configurationManager: configurationManager,
-            userSettingsManager: userSettingsManager,
-            emailService: emailService,
-            godModeEnabled: godModeEnabled,
-            )
+        ZStack {
+            Color(NSColor.windowBackgroundColor).ignoresSafeArea()
+            SettingsFormView(
+                configurationManager: configurationManager,
+                userSettingsManager: userSettingsManager,
+                emailService: emailService,
+                godModeEnabled: godModeEnabled,
+                )
+        }
+        .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
     }
 }
 
@@ -174,15 +178,16 @@ private struct SettingsHeader: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "sportscourt.fill")
-                .font(.title2)
+                .font(.system(size: AppConstants.fontTitle))
                 .foregroundColor(.accentColor)
             Text("Settings")
-                .font(.title2)
+                .font(.system(size: AppConstants.fontTitle))
                 .fontWeight(.semibold)
             Spacer()
         }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor))
+        .padding(.horizontal, AppConstants.paddingHorizontalSettings)
+        .padding(.vertical, AppConstants.paddingVertical)
+        // Removed background for transparency
     }
 }
 
@@ -271,7 +276,7 @@ private struct ContactInformationSection: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundColor(.orange)
                         Text("Phone number must be exactly 10 digits")
-                            .font(.caption)
+                            .font(.system(size: AppConstants.fontCaption))
                             .foregroundColor(.orange)
                         Spacer()
                     }
@@ -641,9 +646,9 @@ private struct TestEmailButton: View {
                 }) {
                     HStack(spacing: 6) {
                         Image(systemName: "envelope.badge")
-                            .font(.system(size: 14))
+                            .font(.system(size: AppConstants.fontSubheadline))
                         Text("Test Email")
-                            .font(.system(size: 13))
+                            .font(.system(size: AppConstants.fontCaption))
                     }
                 }
                 .buttonStyle(.bordered)
@@ -657,7 +662,7 @@ private struct TestEmailButton: View {
                     ProgressView()
                         .scaleEffect(0.8)
                     Text("Testing email connection...")
-                        .font(.caption)
+                        .font(.system(size: AppConstants.fontCaption))
                         .foregroundColor(.secondary)
                     Spacer()
                 }
@@ -668,7 +673,7 @@ private struct TestEmailButton: View {
                     Image(systemName: result.isSuccess ? "checkmark.circle.fill" : "xmark.circle.fill")
                         .foregroundColor(result.isSuccess ? .green : .red)
                     Text(result.description)
-                        .font(.caption)
+                        .font(.system(size: AppConstants.fontCaption))
                         .foregroundColor(result.isSuccess ? .green : .red)
                     Spacer()
                 }
@@ -690,14 +695,15 @@ private func settingsSection(title: String, icon: String, @ViewBuilder content: 
             Image(systemName: icon)
                 .foregroundColor(.accentColor)
             Text(title)
-                .font(.headline)
+                .font(.system(size: AppConstants.fontSubheadline))
+                .fontWeight(.semibold)
             Spacer()
         }
 
         content()
     }
-    .padding(AppConstants.paddingHorizontalSettings)
-    .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+    .padding(.horizontal, AppConstants.paddingHorizontalSettings)
+    .padding(.vertical, AppConstants.paddingVerticalForm)
     .cornerRadius(8)
 }
 
@@ -717,7 +723,7 @@ private func settingsField(
                 .foregroundColor(.secondary)
                 .frame(width: AppConstants.iconSmall)
             Text(title)
-                .font(.subheadline)
+                .font(.system(size: AppConstants.fontSubheadline))
                 .fontWeight(.medium)
             Spacer()
         }

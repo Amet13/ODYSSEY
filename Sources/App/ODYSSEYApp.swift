@@ -53,14 +53,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Initialize services
         initializeServices()
 
-        // Listen for custom autorun time changes
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(customAutorunTimeChanged),
-            name: customAutorunTimeChangedNotification,
-            object: nil,
-            )
-
+        // Removed NotificationCenter.default.addObserver for customAutorunTimeChangedNotification
         // Initialize complete
     }
 
@@ -76,8 +69,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     deinit {
-        // Remove notification observer
-        NotificationCenter.default.removeObserver(self)
+        // Removed NotificationCenter.default.removeObserver(self)
     }
 
     // MARK: - Private Methods
@@ -89,12 +81,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Let user manually request permission when needed
 
         logger.info("✅ Services initialized")
-    }
-
-    @objc private func customAutorunTimeChanged() {
-        logger.info("🕕 Custom autorun time changed - re-scheduling autorun")
-        // Cancel any existing timer and re-schedule
-        schedulePreciseAutorun()
     }
 
     private func setupSchedulingTimer() {

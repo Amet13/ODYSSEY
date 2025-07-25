@@ -21,7 +21,9 @@ struct ContentView: View {
     @State private var showingGodModeConfig = false
     // Loading and progress state
     @ObservedObject private var loadingStateManager = LoadingStateManager.shared
-    @State private var bannerTimer: AnyCancellable?
+    // Removed bannerTimer property and all banner-related code
+    // Removed any white background or overlay from the UI, so all backgrounds are transparent or inherit the window
+    // background
     // God mode and error/help UI
     @State private var godModeUIEnabled = false
     @State private var showingUserError = false
@@ -42,7 +44,6 @@ struct ContentView: View {
             showingAbout: $showingAbout,
             showingGodModeConfig: $showingGodModeConfig,
             loadingStateManager: loadingStateManager,
-            bannerTimer: $bannerTimer,
             godModeUIEnabled: $godModeUIEnabled,
             showingUserError: $showingUserError,
             showingHelp: $showingHelp,
@@ -78,7 +79,9 @@ private struct MainBody: View {
     @Binding var showingAbout: Bool
     @Binding var showingGodModeConfig: Bool
     @ObservedObject var loadingStateManager: LoadingStateManager
-    @Binding var bannerTimer: AnyCancellable?
+    // Removed bannerTimer property and all banner-related code
+    // Removed any white background or overlay from the UI, so all backgrounds are transparent or inherit the window
+    // background
     @Binding var godModeUIEnabled: Bool
     @Binding var showingUserError: Bool
     @Binding var showingHelp: Bool
@@ -299,10 +302,10 @@ private struct HeaderView: View {
         VStack(spacing: 8) {
             HStack(spacing: 12) {
                 Image(systemName: "sportscourt.fill")
-                    .font(.title2)
+                    .font(.system(size: AppConstants.iconLarge))
                     .foregroundColor(.odysseyAccent)
                 Text("ODYSSEY")
-                    .font(.title2)
+                    .font(.system(size: AppConstants.fontTitle))
                     .fontWeight(.bold)
                 Spacer()
                 if godModeUIEnabled {
@@ -311,7 +314,7 @@ private struct HeaderView: View {
                             Image(systemName: "bolt.fill")
                                 .foregroundColor(.odysseyWarning)
                             Text("GOD MODE")
-                                .font(.caption)
+                                .font(.system(size: AppConstants.fontCaption))
                                 .fontWeight(.bold)
                                 .foregroundColor(.odysseyWarning)
                         }
@@ -401,13 +404,13 @@ private struct EmptyStateView: View {
         VStack(spacing: 20) {
             Spacer()
             Image(systemName: "sportscourt")
-                .font(.system(size: 60))
+                .font(.system(size: AppConstants.iconLarge))
                 .foregroundColor(.secondary)
             Text("No Reservations Configured")
-                .font(.title3)
+                .font(.system(size: AppConstants.fontTitle3))
                 .fontWeight(.medium)
             Text("Add your first reservation configuration to get started with automated booking.")
-                .font(.body)
+                .font(.system(size: AppConstants.fontBody))
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, AppConstants.paddingHorizontal)
@@ -473,9 +476,9 @@ private struct FooterView: View {
                 Button(action: { showingSettings = true }) {
                     HStack(spacing: 6) {
                         Image(systemName: "gearshape.fill")
-                            .font(.system(size: 14))
+                            .font(.system(size: AppConstants.fontCaption))
                         Text("Settings")
-                            .font(.system(size: 13))
+                            .font(.system(size: AppConstants.fontCaption))
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -490,9 +493,9 @@ private struct FooterView: View {
                 Button(action: { showingAbout = true }) {
                     HStack(spacing: 6) {
                         Image(systemName: "info.circle.fill")
-                            .font(.system(size: 14))
+                            .font(.system(size: AppConstants.fontCaption))
                         Text("About")
-                            .font(.system(size: 13))
+                            .font(.system(size: AppConstants.fontCaption))
                     }
                 }
                 .buttonStyle(.bordered)
@@ -505,9 +508,9 @@ private struct FooterView: View {
                 Button(action: { NSApp.terminate(nil) }) {
                     HStack(spacing: 6) {
                         Image(systemName: "power")
-                            .font(.system(size: 14))
+                            .font(.system(size: AppConstants.fontCaption))
                         Text("Quit")
-                            .font(.system(size: 13))
+                            .font(.system(size: AppConstants.fontCaption))
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -557,7 +560,7 @@ struct ConfigurationRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .top, spacing: 8) {
                 Text(config.name)
-                    .font(.headline)
+                    .font(.system(size: AppConstants.fontTitle3))
                     .foregroundColor(.primary)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -617,7 +620,7 @@ struct ConfigurationRowView: View {
                 Text(
                     "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(formatScheduleInfoInline())",
                     )
-                .font(.subheadline)
+                .font(.system(size: AppConstants.fontSubheadline))
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             }
@@ -625,13 +628,13 @@ struct ConfigurationRowView: View {
                 if let next = nextAutorunInfo {
                     HStack(spacing: 2) {
                         Image(systemName: "clock")
-                            .font(.caption)
+                            .font(.system(size: AppConstants.fontCaption))
                             .foregroundColor(.odysseyAccent)
                         Text("Next autorun in:")
-                            .font(.caption)
+                            .font(.system(size: AppConstants.fontCaption))
                             .foregroundColor(.odysseyAccent)
                         Text(formatCountdown(next.date))
-                            .font(.caption)
+                            .font(.system(size: AppConstants.fontCaption))
                             .foregroundColor(.odysseyAccent)
                     }
                 }
@@ -765,19 +768,19 @@ struct ConfigurationRowView: View {
                 HStack(spacing: 2) {
                     Image(systemName: statusInfo.iconName)
                         .foregroundColor(statusInfo.statusColor)
-                        .font(.caption)
+                        .font(.system(size: AppConstants.fontCaption))
                     Text("Last run:")
-                        .font(.caption)
+                        .font(.system(size: AppConstants.fontCaption))
                         .foregroundColor(statusInfo.statusColor)
                     Text(statusInfo.statusKey + runTypeKey)
-                        .font(.caption)
+                        .font(.system(size: AppConstants.fontCaption))
                         .foregroundColor(statusInfo.statusColor)
                     if let date = lastRun.date {
                         Text(date, style: .date)
-                            .font(.caption2)
+                            .font(.system(size: AppConstants.fontCaption))
                             .foregroundColor(statusInfo.statusColor)
                         Text(date, style: .time)
-                            .font(.caption2)
+                            .font(.system(size: AppConstants.fontCaption))
                             .foregroundColor(statusInfo.statusColor)
                     }
                 },
@@ -788,12 +791,12 @@ struct ConfigurationRowView: View {
                 HStack(spacing: 2) {
                     Image(systemName: "questionmark.circle")
                         .foregroundColor(.gray)
-                        .font(.caption)
+                        .font(.system(size: AppConstants.fontCaption))
                     Text("Last run:")
-                        .font(.caption)
+                        .font(.system(size: AppConstants.fontCaption))
                         .foregroundColor(.gray)
                     Text("never")
-                        .font(.caption)
+                        .font(.system(size: AppConstants.fontCaption))
                         .foregroundColor(.gray)
                 },
                 )
@@ -813,13 +816,13 @@ struct DeleteConfirmationModal: View {
                 .foregroundColor(.odysseyAccent)
                 .padding(.top, AppConstants.paddingVerticalForm)
             Text("Delete Configuration")
-                .font(.title3)
+                .font(.system(size: AppConstants.fontTitle3))
                 .fontWeight(.semibold)
             let deleteMessage = "Are you sure you want to delete '"
             let undoMessage = "'? This action cannot be undone."
             Text(deleteMessage + configName + undoMessage)
                 .multilineTextAlignment(.center)
-                .font(.body)
+                .font(.system(size: AppConstants.fontBody))
                 .foregroundColor(.secondary)
                 .padding(.horizontal, AppConstants.paddingHorizontalForm)
             HStack(spacing: 20) {

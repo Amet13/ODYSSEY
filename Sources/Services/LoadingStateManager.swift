@@ -278,7 +278,7 @@ struct LoadingOverlayView: View {
                 .scaleEffect(1.2)
 
             Text(message)
-                .font(.headline)
+                .font(.system(size: AppConstants.fontSubheadline))
                 .foregroundColor(.primary)
         }
         .padding(AppConstants.paddingOverlay)
@@ -302,11 +302,11 @@ struct ProgressOverlayView: View {
                 .frame(width: 200)
 
             Text("Progress: \(Int(progress.percentage * 100))%")
-                .font(.headline)
+                .font(.system(size: AppConstants.fontSubheadline))
                 .foregroundColor(.primary)
 
             Text("\(progress.current) of \(progress.total)")
-                .font(.caption)
+                .font(.system(size: AppConstants.fontCaption))
                 .foregroundColor(.secondary)
         }
         .padding(AppConstants.paddingOverlay)
@@ -330,7 +330,7 @@ struct SuccessOverlayView: View {
                 .foregroundColor(.green)
 
             Text(message)
-                .font(.headline)
+                .font(.system(size: AppConstants.fontSubheadline))
                 .foregroundColor(.primary)
         }
         .padding(AppConstants.paddingOverlay)
@@ -354,7 +354,7 @@ struct ErrorOverlayView: View {
                 .foregroundColor(.red)
 
             Text(message)
-                .font(.headline)
+                .font(.system(size: AppConstants.fontSubheadline))
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.center)
         }

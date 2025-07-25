@@ -1,9 +1,6 @@
 import Foundation
 import os.log
 
-/// Notification name for when custom autorun time changes
-public let customAutorunTimeChangedNotification = Notification.Name("customAutorunTimeChanged")
-
 /// Manages user settings and configuration data
 ///
 /// Provides centralized access to user information including contact details,
@@ -15,16 +12,6 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
     @Published public var userSettings: UserSettings {
         didSet {
             saveSettings()
-            // Check if custom autorun time settings changed
-            if
-                oldValue.customAutorunTime != self.userSettings.customAutorunTime ||
-                    oldValue.useCustomAutorunTime != self.userSettings.useCustomAutorunTime {
-                logger
-                    .info(
-                        "🕕 Autorun time settings changed - useCustom: \(self.userSettings.useCustomAutorunTime), time: \(self.userSettings.customAutorunTime)",
-                        )
-                NotificationCenter.default.post(name: customAutorunTimeChangedNotification, object: nil)
-            }
         }
     }
 

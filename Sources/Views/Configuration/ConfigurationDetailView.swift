@@ -28,32 +28,35 @@ struct ConfigurationDetailView: View {
     @State private var validationErrors: [String] = []
 
     var body: some View {
-        VStack(spacing: 0) {
-            if !validationErrors.isEmpty {
-                HStack {
-                    Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange)
-                    Text(validationErrors.first ?? "Validation error.")
-                        .foregroundColor(.orange)
-                        .font(.subheadline)
-                    Spacer()
+        ZStack {
+            Color(NSColor.windowBackgroundColor).ignoresSafeArea()
+            VStack(spacing: 0) {
+                if !validationErrors.isEmpty {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange)
+                        Text(validationErrors.first ?? "Validation error.")
+                            .foregroundColor(.orange)
+                            .font(.system(size: AppConstants.fontSubheadline))
+                        Spacer()
+                    }
+                    .padding(.horizontal, AppConstants.paddingHorizontalForm)
+                    .padding(.top, AppConstants.paddingVerticalTiny)
                 }
-                .padding(.horizontal, AppConstants.paddingHorizontalForm)
-                .padding(.top, AppConstants.paddingVerticalTiny)
-            }
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    basicSettingsSection
-                    sportPickerSection
-                    numberOfPeopleSection
-                    configNameSection
-                    Divider().padding(.vertical, AppConstants.paddingVerticalSmall)
-                    schedulingSection
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        basicSettingsSection
+                        sportPickerSection
+                        numberOfPeopleSection
+                        configNameSection
+                        Divider().padding(.vertical, AppConstants.paddingVerticalSmall)
+                        schedulingSection
+                    }
+                    .padding(.horizontal, AppConstants.paddingHorizontalForm)
+                    .padding(.vertical, AppConstants.paddingVerticalForm)
                 }
-                .padding(.horizontal, AppConstants.paddingHorizontalForm)
-                .padding(.vertical, AppConstants.paddingVerticalForm)
+                Divider()
+                footerButtonsSection
             }
-            Divider()
-            footerButtonsSection
         }
         .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
         .navigationTitle(
@@ -81,7 +84,7 @@ struct ConfigurationDetailView: View {
     private var basicSettingsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Facility URL")
-                .font(.headline)
+                .font(.system(size: AppConstants.fontSubheadline))
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
             TextField("Enter facility URL", text: $facilityURL)
@@ -94,7 +97,7 @@ struct ConfigurationDetailView: View {
                         .foregroundColor(.orange)
                     HStack(spacing: 0) {
                         Text("Please enter a ")
-                            .font(.caption)
+                            .font(.system(size: AppConstants.fontCaption))
                             .foregroundColor(.orange)
                         Button("valid") {
                             if let url = URL(string: AppConstants.ottawaFacilitiesURL) {
@@ -103,9 +106,9 @@ struct ConfigurationDetailView: View {
                         }
                         .buttonStyle(.plain)
                         .foregroundColor(.blue)
-                        .font(.caption)
+                        .font(.system(size: AppConstants.fontCaption))
                         Text(" Ottawa Recreation URL.")
-                            .font(.caption)
+                            .font(.system(size: AppConstants.fontCaption))
                             .foregroundColor(.orange)
                     }
                     Spacer()
@@ -116,7 +119,7 @@ struct ConfigurationDetailView: View {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundColor(.orange)
                     Text("Please enter your facility URL.")
-                        .font(.caption)
+                        .font(.system(size: AppConstants.fontCaption))
                         .foregroundColor(.orange)
                     Spacer()
                 }
@@ -129,7 +132,7 @@ struct ConfigurationDetailView: View {
     private var sportPickerSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Sport Name")
-                .font(.headline)
+                .font(.system(size: AppConstants.fontSubheadline))
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
             HStack {
@@ -159,7 +162,8 @@ struct ConfigurationDetailView: View {
                         Text(sportName.isEmpty ? "Select Sport" : sportName)
                             .foregroundColor(sportName.isEmpty ? .secondary : .primary)
                         Spacer()
-                        Image(systemName: "chevron.down").foregroundColor(.secondary).font(.caption)
+                        Image(systemName: "chevron.down").foregroundColor(.secondary)
+                            .font(.system(size: AppConstants.fontCaption))
                     }
                 }
                 .accessibilityLabel("Select Sport")
@@ -175,20 +179,20 @@ struct ConfigurationDetailView: View {
             if isFetchingSports {
                 HStack {
                     ProgressView().scaleEffect(0.8)
-                    Text("Fetching available sports...").font(.caption)
+                    Text("Fetching available sports...").font(.system(size: AppConstants.fontCaption))
                         .foregroundColor(.secondary)
                 }
             }
             if !availableSports.isEmpty {
                 Text("\(availableSports.count) sports found")
-                    .font(.caption).foregroundColor(.secondary)
+                    .font(.system(size: AppConstants.fontCaption)).foregroundColor(.secondary)
             }
             if validationErrors.contains(where: { $0.contains("Sport name") }) {
                 HStack(spacing: 4) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundColor(.orange)
                     Text("Sport name is required.")
-                        .font(.caption)
+                        .font(.system(size: AppConstants.fontCaption))
                         .foregroundColor(.orange)
                     Spacer()
                 }
@@ -201,7 +205,7 @@ struct ConfigurationDetailView: View {
     private var numberOfPeopleSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Number of People")
-                .font(.headline)
+                .font(.system(size: AppConstants.fontSubheadline))
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
             HStack(spacing: 20) {
@@ -235,7 +239,7 @@ struct ConfigurationDetailView: View {
     private var configNameSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Configuration Name")
-                .font(.headline)
+                .font(.system(size: AppConstants.fontSubheadline))
                 .fontWeight(.semibold)
                 .foregroundColor(.primary)
             TextField("Configuration Name", text: $name)
@@ -253,7 +257,7 @@ struct ConfigurationDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("Time Slot")
-                    .font(.headline)
+                    .font(.system(size: AppConstants.fontSubheadline))
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
                 Spacer()
@@ -264,11 +268,11 @@ struct ConfigurationDetailView: View {
                 }
             }
             Text("Select one day and one time slot for your reservation")
-                .font(.caption)
+                .font(.system(size: AppConstants.fontCaption))
                 .foregroundColor(.secondary)
             if dayTimeSlots.isEmpty {
                 Text("No day selected. Click 'Add Day' to start scheduling.")
-                    .font(.caption)
+                    .font(.system(size: AppConstants.fontCaption))
                     .foregroundColor(.secondary)
                     .padding(.vertical, AppConstants.paddingVerticalSmall)
             } else {
@@ -284,7 +288,7 @@ struct ConfigurationDetailView: View {
                     VStack(alignment: .leading) {
                         HStack {
                             Text(day.localizedShortName)
-                                .font(.subheadline)
+                                .font(.system(size: AppConstants.fontSubheadline))
                                 .foregroundColor(.primary)
                             Spacer()
                             Button(action: { removeDay(day) }) {
@@ -578,7 +582,7 @@ struct DayPickerView: View {
 
             if availableDays.isEmpty {
                 Text("A day is already selected. Remove the current day to select a different one.")
-                    .font(.caption)
+                    .font(.system(size: AppConstants.fontCaption))
                     .foregroundColor(.secondary)
                     .padding(AppConstants.paddingHorizontalForm)
             } else {

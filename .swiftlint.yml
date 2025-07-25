@@ -88,14 +88,6 @@ implicitly_unwrapped_optional:
   severity: error
   mode: all_except_iboutlets
 
-# Custom rule: Enforce documentation for public APIs (temporarily disabled)
-# custom_rules:
-#   public_api_documentation:
-#     name: "Public API Documentation"
-#     regex: "^(?!.*///).*public.*func|^(?!.*///).*public.*var|^(?!.*///).*public.*class|^(?!.*///).*public.*struct|^(?!.*///).*public.*enum"
-#     message: "Public APIs should be documented with /// comments"
-#     severity: error
-
 # Exclude patterns
 excluded:
   - Sources/Resources

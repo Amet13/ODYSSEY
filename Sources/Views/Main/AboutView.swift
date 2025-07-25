@@ -13,6 +13,7 @@ struct AboutView: View {
 
     var body: some View {
         ZStack {
+            Color(NSColor.windowBackgroundColor).ignoresSafeArea()
             // Background that closes the window when tapped
             Color.white // Solid white background
                 .contentShape(Rectangle())
@@ -101,7 +102,6 @@ struct AboutView: View {
             }
         }
         .frame(width: AppConstants.windowAboutWidth, height: AppConstants.windowAboutHeight)
-        .background(.clear)
         .onKeyPress(.escape) {
             dismiss()
             return .handled
