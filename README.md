@@ -25,18 +25,17 @@
 
 ## ✨ Features
 
-| Feature                     | Description                                                                                     |
-| --------------------------- | ----------------------------------------------------------------------------------------------- |
-| 🖥️ Native macOS Integration | Runs quietly in the menu bar, not the Dock                                                      |
-| 🛡️ WebKit Automation        | Uses native Swift WebKit (WKWebView) for robust automation                                      |
-| 🎨 Modern SwiftUI Interface | Beautiful, responsive UI for easy configuration                                                 |
-| ⏰ Automated Scheduling     | Schedules runs based on your configured time slots                                              |
-| ⚙️ Multiple Configurations  | Supports different sports and facilities                                                        |
-| 🔒 Secure Storage           | Keychain integration for credentials                                                            |
-| 📧 Email Verification       | Automated IMAP/Gmail verification for reservation confirmations                                 |
-| 🕵️‍♂️ Anti-Detection           | Human-like automation to avoid bot detection                                                    |
-| 🛎️ Native Notifications     | Get macOS notifications for reservation success, failures, upcoming autoruns, and system errors |
-| 🎨 Dark Mode Polish         | Fully adaptive UI for both light and dark appearances                                           |
+| Feature                     | Description                                                     |
+| --------------------------- | --------------------------------------------------------------- |
+| 🖥️ Native macOS Integration | Runs quietly in the menu bar, not the Dock                      |
+| 🛡️ WebKit Automation        | Uses native Swift WebKit (WKWebView) for robust automation      |
+| 🎨 Modern SwiftUI Interface | Beautiful, responsive UI for easy configuration                 |
+| ⏰ Automated Scheduling     | Schedules runs based on your configured time slots              |
+| ⚙️ Multiple Configurations  | Supports different sports and facilities                        |
+| 🔒 Secure Storage           | Keychain integration for credentials                            |
+| 📧 Email Verification       | Automated IMAP/Gmail verification for reservation confirmations |
+| 🕵️‍♂️ Anti-Detection           | Human-like automation to avoid bot detection                    |
+| 🎨 Dark Mode Polish         | Fully adaptive UI for both light and dark appearances           |
 
 ## 📦 Installation
 

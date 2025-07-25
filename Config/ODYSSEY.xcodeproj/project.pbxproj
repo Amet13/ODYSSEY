@@ -27,7 +27,6 @@
 		87BEA07219CB32EABEA725D0 /* EmailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3419A41E593FC7E578492598 /* EmailService.swift */; };
 		8B1ED020B66221020312C147 /* ReservationConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0EBA9D765D3068E55BA51C /* ReservationConfig.swift */; };
 		905062F2527E06FEDA546FA1 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB48B132242AD260155FF55 /* KeychainService.swift */; };
-		9469FD36CAFA7DF38793AEC2 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E22A7B78066D8BC90818E37 /* NotificationService.swift */; };
 		9DD08B43DF3B58266C3DFA76 /* WebKitCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D2EBFB5C84EC50958D1ACF /* WebKitCore.swift */; };
 		A1335E6664D5449F09663909 /* ReservationErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */; };
 		A9A2F3FB377649F3A070A9A4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 34C024E102B748548377EE51 /* Localizable.strings */; };
@@ -62,7 +61,6 @@
 		5CD0A611C34B6ED17316A214 /* ValidationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationService.swift; sourceTree = "<group>"; };
 		5F14DC9CCCBB581C4F030E51 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		6D876275C546C2EDF4733D3E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		6E22A7B78066D8BC90818E37 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		6ED502E37F16EC8776288AD0 /* ReservationOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationOrchestrator.swift; sourceTree = "<group>"; };
 		6FCC5DA7A130CA27C565988F /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		82530443D1540D732CEA17A3 /* LoadingStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingStateManager.swift; sourceTree = "<group>"; };
@@ -70,6 +68,7 @@
 		8915E7585918FC6CC1F694E5 /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
 		9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebDriverProtocols.swift; sourceTree = "<group>"; };
 		92BBD57449782EDCECED3713 /* WebKitScriptManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitScriptManager.swift; sourceTree = "<group>"; };
+		98AFD497DCEAEC0366D2268F /* ODYSSEY.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ODYSSEY.entitlements; sourceTree = "<group>"; };
 		9F32A0A5C6C800FBB7769711 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		9F37E32A2DEAB7D80A5148F2 /* Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		A7A301E1B3374676F73BCE2C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -141,7 +140,6 @@
 				D69C877E24F28F08FF142CE1 /* FacilityService.swift */,
 				DFB48B132242AD260155FF55 /* KeychainService.swift */,
 				82530443D1540D732CEA17A3 /* LoadingStateManager.swift */,
-				6E22A7B78066D8BC90818E37 /* NotificationService.swift */,
 				2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */,
 				6ED502E37F16EC8776288AD0 /* ReservationOrchestrator.swift */,
 				D816DD0E16D5EE6F9F3CD84A /* ReservationStatusManager.swift */,
@@ -187,6 +185,7 @@
 			isa = PBXGroup;
 			children = (
 				A7A301E1B3374676F73BCE2C /* Info.plist */,
+				98AFD497DCEAEC0366D2268F /* ODYSSEY.entitlements */,
 				D401C9E0BDAD61E6DECC196A /* ODYSSEYApp.swift */,
 			);
 			path = App;
@@ -315,7 +314,6 @@
 				AF9C5201A1EA357818523371 /* FacilityService.swift in Sources */,
 				905062F2527E06FEDA546FA1 /* KeychainService.swift in Sources */,
 				5CFE6AC761E865868F08AAC9 /* LoadingStateManager.swift in Sources */,
-				9469FD36CAFA7DF38793AEC2 /* NotificationService.swift in Sources */,
 				CB04374E216585BE1DBC7BF4 /* ODYSSEYApp.swift in Sources */,
 				87A323E74E31D54CDF5ED611 /* Protocols.swift in Sources */,
 				8B1ED020B66221020312C147 /* ReservationConfig.swift in Sources */,
@@ -349,7 +347,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 11;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = ../Sources/App/Info.plist;
@@ -376,7 +374,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 11;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = ../Sources/App/Info.plist;
@@ -431,6 +429,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = ../Sources/App/ODYSSEY.entitlements;
 				CODE_SIGN_IDENTITY = "";
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
@@ -515,6 +514,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = ../Sources/App/ODYSSEY.entitlements;
 				CODE_SIGN_IDENTITY = "";
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;

@@ -35,7 +35,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var timer: Timer?
     private let logger = Logger(subsystem: "com.odyssey.app", category: "AppDelegate")
     private let orchestrator = ReservationOrchestrator.shared
-    private let notificationService = NotificationService.shared
 
     override init() {
         super.init()

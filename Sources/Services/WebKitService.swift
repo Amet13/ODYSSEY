@@ -204,11 +204,12 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         configuration.websiteDataStore = websiteDataStore
 
         // Clear all data for this instance
+        let currentInstanceId = self.instanceId
         websiteDataStore.removeData(
             ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
             modifiedSince: Date(timeIntervalSince1970: 0),
             ) { [self] in
-            logger.info("🧹 Cleared website data for instance: \(self.instanceId).")
+            logger.info("🧹 Cleared website data for instance: \(currentInstanceId).")
         }
 
         // Create web view
