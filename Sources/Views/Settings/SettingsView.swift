@@ -273,7 +273,7 @@ private struct ContactInformationSection: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundColor(.orange)
                         Text("Phone number must be exactly 10 digits")
-                            .font(.system(size: AppConstants.tertiaryFont))
+                            .font(.system(size: AppConstants.fontBody))
                             .foregroundColor(.orange)
                         Spacer()
                     }
@@ -659,7 +659,7 @@ private struct TestEmailButton: View {
                     ProgressView()
                         .scaleEffect(AppConstants.scaleEffectSmall)
                     Text("Testing email connection...")
-                        .font(.system(size: AppConstants.tertiaryFont))
+                        .font(.system(size: AppConstants.fontBody))
                         .foregroundColor(.secondary)
                     Spacer()
                 }
@@ -670,7 +670,7 @@ private struct TestEmailButton: View {
                     Image(systemName: result.isSuccess ? "checkmark.circle.fill" : "xmark.circle.fill")
                         .foregroundColor(result.isSuccess ? .green : .red)
                     Text(result.description)
-                        .font(.system(size: AppConstants.tertiaryFont))
+                        .font(.system(size: AppConstants.fontBody))
                         .foregroundColor(result.isSuccess ? .green : .red)
                     Spacer()
                 }

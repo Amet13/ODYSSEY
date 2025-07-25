@@ -306,7 +306,7 @@ private struct HeaderView: View {
                             Image(systemName: "bolt.fill")
                                 .foregroundColor(.odysseyWarning)
                             Text("GOD MODE")
-                                .font(.system(size: AppConstants.tertiaryFont))
+                                .font(.system(size: AppConstants.fontBody))
                                 .fontWeight(.bold)
                                 .foregroundColor(.odysseyWarning)
                         }
@@ -468,9 +468,9 @@ private struct FooterView: View {
                 Button(action: { showingSettings = true }) {
                     HStack(spacing: AppConstants.spacingSmall) {
                         Image(systemName: "gearshape.fill")
-                            .font(.system(size: AppConstants.tertiaryFont))
+                            .font(.system(size: AppConstants.fontBody))
                         Text("Settings")
-                            .font(.system(size: AppConstants.tertiaryFont))
+                            .font(.system(size: AppConstants.fontBody))
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -485,9 +485,9 @@ private struct FooterView: View {
                 Button(action: { showingAbout = true }) {
                     HStack(spacing: AppConstants.spacingSmall) {
                         Image(systemName: "info.circle.fill")
-                            .font(.system(size: AppConstants.tertiaryFont))
+                            .font(.system(size: AppConstants.fontBody))
                         Text("About")
-                            .font(.system(size: AppConstants.tertiaryFont))
+                            .font(.system(size: AppConstants.fontBody))
                     }
                 }
                 .buttonStyle(.bordered)
@@ -500,9 +500,9 @@ private struct FooterView: View {
                 Button(action: { NSApp.terminate(nil) }) {
                     HStack(spacing: AppConstants.spacingSmall) {
                         Image(systemName: "power")
-                            .font(.system(size: AppConstants.tertiaryFont))
+                            .font(.system(size: AppConstants.fontBody))
                         Text("Quit")
-                            .font(.system(size: AppConstants.tertiaryFont))
+                            .font(.system(size: AppConstants.fontBody))
                     }
                 }
                 .buttonStyle(.borderedProminent)

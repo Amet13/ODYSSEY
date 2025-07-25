@@ -112,7 +112,7 @@ struct ConfigurationDetailView: View {
                         .foregroundColor(.odysseyWarning)
                     HStack(spacing: AppConstants.spacingNone) {
                         Text("Please enter a ")
-                            .font(.system(size: AppConstants.tertiaryFont))
+                            .font(.system(size: AppConstants.fontBody))
                             .foregroundColor(.odysseyWarning)
                         Button("valid") {
                             if let url = URL(string: AppConstants.ottawaFacilitiesURL) {
@@ -121,9 +121,9 @@ struct ConfigurationDetailView: View {
                         }
                         .buttonStyle(.plain)
                         .foregroundColor(.odysseyPrimary)
-                        .font(.system(size: AppConstants.tertiaryFont))
+                        .font(.system(size: AppConstants.fontBody))
                         Text(" Ottawa Recreation URL.")
-                            .font(.system(size: AppConstants.tertiaryFont))
+                            .font(.system(size: AppConstants.fontBody))
                             .foregroundColor(.odysseyWarning)
                     }
                     Spacer()
@@ -134,7 +134,7 @@ struct ConfigurationDetailView: View {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundColor(.odysseyWarning)
                     Text("Please enter your facility URL.")
-                        .font(.system(size: AppConstants.tertiaryFont))
+                        .font(.system(size: AppConstants.fontBody))
                         .foregroundColor(.odysseyWarning)
                     Spacer()
                 }
@@ -178,7 +178,7 @@ struct ConfigurationDetailView: View {
                             .foregroundColor(sportName.isEmpty ? .odysseySecondaryText : .odysseyText)
                         Spacer()
                         Image(systemName: "chevron.down").foregroundColor(.odysseySecondaryText)
-                            .font(.system(size: AppConstants.tertiaryFont))
+                            .font(.system(size: AppConstants.fontBody))
                     }
                 }
                 .accessibilityLabel("Select Sport")
@@ -194,20 +194,20 @@ struct ConfigurationDetailView: View {
             if isFetchingSports {
                 HStack {
                     ProgressView().scaleEffect(AppConstants.scaleEffectSmall)
-                    Text("Fetching available sports...").font(.system(size: AppConstants.tertiaryFont))
+                    Text("Fetching available sports...").font(.system(size: AppConstants.fontBody))
                         .foregroundColor(.odysseySecondaryText)
                 }
             }
             if !availableSports.isEmpty {
                 Text("\(availableSports.count) sports found")
-                    .font(.system(size: AppConstants.tertiaryFont)).foregroundColor(.odysseySecondaryText)
+                    .font(.system(size: AppConstants.fontBody)).foregroundColor(.odysseySecondaryText)
             }
             if validationErrors.contains(where: { $0.contains("Sport name") }) {
                 HStack(spacing: AppConstants.spacingTiny) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundColor(.odysseyWarning)
                     Text("Sport name is required.")
-                        .font(.system(size: AppConstants.tertiaryFont))
+                        .font(.system(size: AppConstants.fontBody))
                         .foregroundColor(.odysseyWarning)
                     Spacer()
                 }
@@ -283,11 +283,11 @@ struct ConfigurationDetailView: View {
                 }
             }
             Text("Select one day and one time slot for your reservation")
-                .font(.system(size: AppConstants.tertiaryFont))
+                .font(.system(size: AppConstants.fontBody))
                 .foregroundColor(.odysseySecondaryText)
             if dayTimeSlots.isEmpty {
                 Text("No day selected. Click 'Add Day' to start scheduling.")
-                    .font(.system(size: AppConstants.tertiaryFont))
+                    .font(.system(size: AppConstants.fontBody))
                     .foregroundColor(.odysseySecondaryText)
                     .padding(.vertical, AppConstants.paddingSmall)
             } else {
