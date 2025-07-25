@@ -4,23 +4,26 @@ import SwiftUI
 // MARK: - Main Content View
 
 struct ContentView: View {
+    // Service singletons for automation, email, and secure storage
     private let webKitService: WebKitServiceProtocol = ServiceRegistry.shared.resolve(WebKitServiceProtocol.self)
     private let emailService: EmailServiceProtocol = ServiceRegistry.shared.resolve(EmailServiceProtocol.self)
     private let keychainService: KeychainServiceProtocol = ServiceRegistry.shared.resolve(KeychainServiceProtocol.self)
+    // State objects for app-wide managers (configuration, orchestration, status, user settings)
     @StateObject private var configManager = ConfigurationManager.shared
     @StateObject private var orchestrator = ReservationOrchestrator.shared
     @StateObject private var statusManager = ReservationStatusManager.shared
     @StateObject private var userSettingsManager = UserSettingsManager.shared
+    // UI state for modal and sheet presentation
     @State private var showingAddConfig = false
     @State private var selectedConfig: ReservationConfig?
     @State private var showingSettings = false
     @State private var showingAbout = false
     @State private var showingGodModeConfig = false
-    @ObservedObject private var loadingStateManager = LoadingStateManager.shared
-    @State private var bannerTimer: AnyCancellable?
+    // God mode and error/help UI
     @State private var godModeUIEnabled = false
     @State private var showingUserError = false
     @State private var showingHelp = false
+    // Countdown refresh for autorun scheduling
     @State private var countdownRefreshTrigger = false
     @State private var countdownTimer: Timer?
 
@@ -35,8 +38,6 @@ struct ContentView: View {
             showingSettings: $showingSettings,
             showingAbout: $showingAbout,
             showingGodModeConfig: $showingGodModeConfig,
-            loadingStateManager: loadingStateManager,
-            bannerTimer: $bannerTimer,
             godModeUIEnabled: $godModeUIEnabled,
             showingUserError: $showingUserError,
             showingHelp: $showingHelp,
@@ -44,10 +45,8 @@ struct ContentView: View {
             countdownRefreshTrigger: $countdownRefreshTrigger,
             )
         .onAppear {
-            // Force refresh countdown when view appears
+            // When the main view appears, start a timer to update the autorun countdown every 30 seconds
             countdownRefreshTrigger.toggle()
-
-            // Start timer to update countdown every 30 seconds
             countdownTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
                 DispatchQueue.main.async {
                     countdownRefreshTrigger.toggle()
@@ -55,7 +54,7 @@ struct ContentView: View {
             }
         }
         .onDisappear {
-            // Stop timer when view disappears
+            // Clean up timer when the view disappears
             countdownTimer?.invalidate()
             countdownTimer = nil
         }
@@ -63,6 +62,7 @@ struct ContentView: View {
 }
 
 private struct MainBody: View {
+    // All major state and bindings for the main UI
     @ObservedObject var configManager: ConfigurationManager
     @ObservedObject var orchestrator: ReservationOrchestrator
     @ObservedObject var statusManager: ReservationStatusManager
@@ -72,8 +72,8 @@ private struct MainBody: View {
     @Binding var showingSettings: Bool
     @Binding var showingAbout: Bool
     @Binding var showingGodModeConfig: Bool
-    @ObservedObject var loadingStateManager: LoadingStateManager
-    @Binding var bannerTimer: AnyCancellable?
+    // Removed any white background or overlay from the UI, so all backgrounds are transparent or inherit the window
+    // background
     @Binding var godModeUIEnabled: Bool
     @Binding var showingUserError: Bool
     @Binding var showingHelp: Bool
@@ -82,7 +82,7 @@ private struct MainBody: View {
 
     var body: some View {
         ZStack {
-            VStack(spacing: 0) {
+            VStack(spacing: AppConstants.spacingNone) {
                 HeaderView(
                     godModeUIEnabled: $godModeUIEnabled,
                     showingAddConfig: $showingAddConfig,
@@ -107,6 +107,7 @@ private struct MainBody: View {
             }
             .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
             .background(Color(NSColor.windowBackgroundColor))
+            // Sheet modals for configuration, settings, about, and god mode
             .sheet(isPresented: $showingAddConfig) {
                 ConfigurationDetailView(config: nil, onSave: { config in
                     configManager.addConfiguration(config)
@@ -131,6 +132,7 @@ private struct MainBody: View {
                     // You can define what saving in god mode does here
                 })
             }
+            // Keyboard shortcut for toggling god mode UI
             .onKeyPress("g", phases: .down) { press in
                 if press.modifiers.contains(.command) {
                     godModeUIEnabled.toggle()
@@ -142,38 +144,33 @@ private struct MainBody: View {
         }
     }
 
-    // Helper to get next autorun for a specific config
+    // Helper to get the next autorun time for a config, considering custom or default time
     func getNextCronRunTime(for config: ReservationConfig) -> NextAutorunInfo? {
         guard config.isEnabled else { return nil }
         let calendar = Calendar.current
         let now = Date()
         let userSettingsManager = UserSettingsManager.shared
-
         // Determine which time to use based on user settings
         let useCustomTime = userSettingsManager.userSettings.useCustomAutorunTime
         let autorunTime: Date
         let autorunHour: Int
         let autorunMinute: Int
         let autorunSecond: Int
-
         if useCustomTime {
-            // Use the custom time set by the user
             autorunTime = userSettingsManager.userSettings.customAutorunTime
             autorunHour = calendar.component(.hour, from: autorunTime)
             autorunMinute = calendar.component(.minute, from: autorunTime)
             autorunSecond = calendar.component(.second, from: autorunTime)
         } else {
-            // Use default 6:00 PM time
             autorunTime = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now
             autorunHour = 18
             autorunMinute = 0
             autorunSecond = 0
         }
-
+        // Find the next scheduled autorun for this config
         var nextCronTime: Date?
         var nextWeekday: ReservationConfig.Weekday?
         var nextTimeSlot: TimeSlot?
-
         for (weekday, timeSlots) in config.dayTimeSlots {
             for timeSlot in timeSlots {
                 for weekOffset in 0 ... 4 {
@@ -186,7 +183,6 @@ private struct MainBody: View {
                         second: autorunSecond,
                         of: cronTime,
                         ) ?? cronTime
-
                     if finalCronTime > now {
                         if let currentNextCronTime = nextCronTime {
                             if finalCronTime < currentNextCronTime {
@@ -211,6 +207,7 @@ private struct MainBody: View {
         }
     }
 
+    // Helper to get the next date for a given weekday from a base date
     func getNextWeekday(_ weekday: ReservationConfig.Weekday, from date: Date) -> Date {
         let calendar = Calendar.current
         let currentWeekday = calendar.component(.weekday, from: date)
@@ -222,6 +219,7 @@ private struct MainBody: View {
         return calendar.date(byAdding: .day, value: daysToAdd, to: date) ?? date
     }
 
+    // Formats a countdown string for the next autorun
     func formatCountdown(to targetDate: Date) -> String {
         let now = Date()
         let timeInterval = targetDate.timeIntervalSince(now)
@@ -254,11 +252,11 @@ private struct MainBody: View {
         }
     }
 
+    // Simulate autorun for all enabled configs for today (god mode)
     func simulateAutorunForToday() {
         let calendar = Calendar.current
         let now = Date()
         let currentWeekday = calendar.component(.weekday, from: now)
-
         // Convert Calendar weekday to our Weekday enum
         let weekday: ReservationConfig.Weekday
         switch currentWeekday {
@@ -272,10 +270,9 @@ private struct MainBody: View {
         default:
             return
         }
-
+        // Get all enabled configs for today
         let configsForToday = configManager.getConfigurationsForDay(weekday)
         let enabledConfigs = configsForToday.filter(\.isEnabled)
-
         if enabledConfigs.isEmpty {
             // If no enabled configs for today, run all enabled configs
             let allEnabledConfigs = configManager.settings.configurations.filter(\.isEnabled)
@@ -294,35 +291,35 @@ private struct HeaderView: View {
     @StateObject private var userSettingsManager = UserSettingsManager.shared
 
     var body: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 12) {
+        VStack(spacing: AppConstants.spacingMedium) {
+            HStack(spacing: AppConstants.spacingLarge) {
                 Image(systemName: "sportscourt.fill")
-                    .font(.title2)
+                    .font(.system(size: AppConstants.iconLarge))
                     .foregroundColor(.odysseyAccent)
                 Text("ODYSSEY")
-                    .font(.title2)
+                    .font(.system(size: AppConstants.primaryFont))
                     .fontWeight(.bold)
                 Spacer()
                 if godModeUIEnabled {
                     Button(action: simulateAutorunForToday) {
-                        HStack(spacing: 6) {
+                        HStack(spacing: AppConstants.spacingSmall) {
                             Image(systemName: "bolt.fill")
                                 .foregroundColor(.odysseyWarning)
                             Text("GOD MODE")
-                                .font(.caption)
+                                .font(.system(size: AppConstants.tertiaryFont))
                                 .fontWeight(.bold)
                                 .foregroundColor(.odysseyWarning)
                         }
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.odysseyAccent)
-                    .controlSize(.small)
+                    .controlSize(.regular)
                     .help("⚡ Simulate autorun for \(formatCustomTime()) today")
                     .accessibilityLabel("Simulate GOD MODE")
                 }
                 Button(action: { showingAddConfig = true }) {
                     Image(systemName: "plus")
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.odysseyCardBackground)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.regular)
@@ -335,9 +332,9 @@ private struct HeaderView: View {
                 .keyboardShortcut("n", modifiers: .command)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 16)
+        .padding(.horizontal, AppConstants.contentPadding)
+        .padding(.top, AppConstants.contentPadding)
+        .padding(.bottom, AppConstants.contentPadding)
     }
 
     private func formatCustomTime() -> String {
@@ -396,19 +393,19 @@ private struct EmptyStateView: View {
     @Binding var showingAddConfig: Bool
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: AppConstants.sectionSpacing) {
             Spacer()
             Image(systemName: "sportscourt")
-                .font(.system(size: 60))
-                .foregroundColor(.secondary)
+                .font(.system(size: AppConstants.iconLarge))
+                .foregroundColor(Color.odysseySecondaryText)
             Text("No Reservations Configured")
-                .font(.title3)
+                .font(.system(size: AppConstants.primaryFont))
                 .fontWeight(.medium)
             Text("Add your first reservation configuration to get started with automated booking.")
-                .font(.body)
-                .foregroundColor(.secondary)
+                .font(.system(size: AppConstants.secondaryFont))
+                .foregroundColor(Color.odysseySecondaryText)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal)
+                .padding(.horizontal, AppConstants.contentPadding)
             Button("Add Configuration") {
                 showingAddConfig = true
             }
@@ -418,7 +415,7 @@ private struct EmptyStateView: View {
             .keyboardShortcut("n", modifiers: .command)
             Spacer()
         }
-        .padding()
+        .padding(AppConstants.contentPadding)
     }
 }
 
@@ -432,33 +429,32 @@ private struct ConfigurationListView: View {
     let countdownRefreshTrigger: Bool
 
     var body: some View {
-        List {
-            ForEach(
-                Array(configManager.settings.configurations.enumerated()),
-                id: \.element.id,
-                ) { index, config in
-                ConfigurationRowView(
-                    config: config,
-                    nextAutorunInfo: getNextCronRunTime(config),
-                    formatCountdown: formatCountdown,
-                    lastRunInfo: statusManager.getLastRunInfo(for: config.id),
-                    onEdit: { selectedConfig = config },
-                    onDelete: { configManager.removeConfiguration(config) },
-                    onToggle: { configManager.toggleConfiguration(at: index) },
-                    onRun: { orchestrator.runReservation(for: config, runType: .manual) },
-                    )
-                .accessibilityElement()
-                .accessibilityLabel("Reservation configuration for \(config.name)")
-                .id("\(config.id)-\(countdownRefreshTrigger)") // Force refresh when countdown trigger changes
-            }
-            .onDelete(perform: { indices in
-                for index in indices {
-                    let config = configManager.settings.configurations[index]
-                    configManager.removeConfiguration(config)
+        ScrollView {
+            LazyVStack(spacing: AppConstants.spacingNone) {
+                ForEach(
+                    Array(configManager.settings.configurations.enumerated()),
+                    id: \.element.id,
+                    ) { index, config in
+                    ConfigurationRowView(
+                        config: config,
+                        nextAutorunInfo: getNextCronRunTime(config),
+                        formatCountdown: formatCountdown,
+                        lastRunInfo: statusManager.getLastRunInfo(for: config.id),
+                        onEdit: { selectedConfig = config },
+                        onDelete: { configManager.removeConfiguration(config) },
+                        onToggle: { configManager.toggleConfiguration(at: index) },
+                        onRun: { orchestrator.runReservation(for: config, runType: .manual) },
+                        )
+                    .accessibilityElement()
+                    .accessibilityLabel("Reservation configuration for \(config.name)")
+                    .id("\(config.id)-\(countdownRefreshTrigger)") // Force refresh when countdown trigger changes
+                    if index < configManager.settings.configurations.count - 1 {
+                        Divider()
+                    }
                 }
-            })
+            }
         }
-        .listStyle(.inset)
+        .padding(.horizontal, AppConstants.contentPadding)
     }
 }
 
@@ -467,14 +463,14 @@ private struct FooterView: View {
     @Binding var showingAbout: Bool
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: AppConstants.spacingMedium) {
             HStack {
                 Button(action: { showingSettings = true }) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: AppConstants.spacingSmall) {
                         Image(systemName: "gearshape.fill")
-                            .font(.system(size: 14))
+                            .font(.system(size: AppConstants.tertiaryFont))
                         Text("Settings")
-                            .font(.system(size: 13))
+                            .font(.system(size: AppConstants.tertiaryFont))
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -487,11 +483,11 @@ private struct FooterView: View {
                 Spacer()
 
                 Button(action: { showingAbout = true }) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: AppConstants.spacingSmall) {
                         Image(systemName: "info.circle.fill")
-                            .font(.system(size: 14))
+                            .font(.system(size: AppConstants.tertiaryFont))
                         Text("About")
-                            .font(.system(size: 13))
+                            .font(.system(size: AppConstants.tertiaryFont))
                     }
                 }
                 .buttonStyle(.bordered)
@@ -502,11 +498,11 @@ private struct FooterView: View {
                 Spacer()
 
                 Button(action: { NSApp.terminate(nil) }) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: AppConstants.spacingSmall) {
                         Image(systemName: "power")
-                            .font(.system(size: 14))
+                            .font(.system(size: AppConstants.tertiaryFont))
                         Text("Quit")
-                            .font(.system(size: 13))
+                            .font(.system(size: AppConstants.tertiaryFont))
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -515,9 +511,9 @@ private struct FooterView: View {
                 .help(NSLocalizedString("quit_tooltip", comment: "Quit ODYSSEY"))
                 .accessibilityLabel(NSLocalizedString("quit", comment: "Quit"))
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 16)
-            .padding(.top, 16)
+            .padding(.horizontal, AppConstants.contentPadding)
+            .padding(.bottom, AppConstants.contentPadding)
+            .padding(.top, AppConstants.contentPadding)
         }
     }
 }
@@ -553,11 +549,11 @@ struct ConfigurationRowView: View {
     @State private var showingDeleteConfirmation = false
     @StateObject private var userSettingsManager = UserSettingsManager.shared
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .top, spacing: 8) {
+        VStack(alignment: .leading, spacing: AppConstants.spacingTiny) {
+            HStack(alignment: .top, spacing: AppConstants.spacingMedium) {
                 Text(config.name)
-                    .font(.headline)
-                    .foregroundColor(.primary)
+                    .font(.system(size: AppConstants.primaryFont))
+                    .foregroundColor(Color.odysseyText)
                     .lineLimit(1)
                     .truncationMode(.tail)
                 Spacer()
@@ -607,37 +603,42 @@ struct ConfigurationRowView: View {
             .accessibilityElement()
             .accessibilityLabel("Reservation configuration for \(config.name)")
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
-            HStack(spacing: 4) {
+            HStack(spacing: AppConstants.spacingTiny) {
                 SportIconView(
                     symbolName: SportIconMapper.iconForSport(config.sportName),
                     color: .odysseyAccent,
-                    size: 12,
+                    size: AppConstants.iconTiny,
                     )
                 Text(
                     "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(formatScheduleInfoInline())",
                     )
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+                .font(.system(size: AppConstants.secondaryFont))
+                .foregroundColor(Color.odysseySecondaryText)
                 .fixedSize(horizontal: false, vertical: true)
             }
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: AppConstants.spacingTiny) {
                 if let next = nextAutorunInfo {
-                    HStack(spacing: 2) {
+                    HStack(spacing: AppConstants.spacingTiny) {
                         Image(systemName: "clock")
-                            .font(.caption)
+                            .font(.system(size: AppConstants.tertiaryFont))
                             .foregroundColor(.odysseyAccent)
                         Text("Next autorun in:")
-                            .font(.caption)
+                            .font(.system(size: AppConstants.tertiaryFont))
                             .foregroundColor(.odysseyAccent)
                         Text(formatCountdown(next.date))
-                            .font(.caption)
+                            .font(.system(size: AppConstants.tertiaryFont))
                             .foregroundColor(.odysseyAccent)
                     }
                 }
                 lastRunStatusView(for: lastRunInfo)
             }
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, AppConstants.paddingSmall)
+        .background(
+            RoundedRectangle(cornerRadius: AppConstants.cardCornerRadius)
+                .fill(Color(NSColor.controlBackgroundColor).opacity(AppConstants.opacitySubtle)),
+            )
+        .padding(.vertical, AppConstants.paddingTiny)
         .alert(
             "Delete Configuration",
             isPresented: $showingDeleteConfirmation,
@@ -755,22 +756,22 @@ struct ConfigurationRowView: View {
             case .godmode: " (god mode)"
             }
             return AnyView(
-                HStack(spacing: 2) {
+                HStack(spacing: AppConstants.spacingTiny) {
                     Image(systemName: statusInfo.iconName)
                         .foregroundColor(statusInfo.statusColor)
-                        .font(.caption)
+                        .font(.system(size: AppConstants.tertiaryFont))
                     Text("Last run:")
-                        .font(.caption)
+                        .font(.system(size: AppConstants.tertiaryFont))
                         .foregroundColor(statusInfo.statusColor)
                     Text(statusInfo.statusKey + runTypeKey)
-                        .font(.caption)
+                        .font(.system(size: AppConstants.tertiaryFont))
                         .foregroundColor(statusInfo.statusColor)
                     if let date = lastRun.date {
                         Text(date, style: .date)
-                            .font(.caption2)
+                            .font(.system(size: AppConstants.tertiaryFont))
                             .foregroundColor(statusInfo.statusColor)
                         Text(date, style: .time)
-                            .font(.caption2)
+                            .font(.system(size: AppConstants.tertiaryFont))
                             .foregroundColor(statusInfo.statusColor)
                     }
                 },
@@ -778,16 +779,16 @@ struct ConfigurationRowView: View {
         } else {
             // Configuration has never been run - show in grey
             return AnyView(
-                HStack(spacing: 2) {
+                HStack(spacing: AppConstants.spacingTiny) {
                     Image(systemName: "questionmark.circle")
-                        .foregroundColor(.gray)
-                        .font(.caption)
+                        .foregroundColor(Color.odysseyGray)
+                        .font(.system(size: AppConstants.tertiaryFont))
                     Text("Last run:")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                        .font(.system(size: AppConstants.tertiaryFont))
+                        .foregroundColor(Color.odysseyGray)
                     Text("never")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                        .font(.system(size: AppConstants.tertiaryFont))
+                        .foregroundColor(Color.odysseyGray)
                 },
                 )
         }
@@ -800,22 +801,22 @@ struct DeleteConfirmationModal: View {
     let onCancel: () -> Void
     @StateObject private var userSettingsManager = UserSettingsManager.shared
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: AppConstants.sectionSpacing) {
             Image(systemName: "sportscourt.fill")
                 .font(.system(size: AppConstants.iconLarge))
                 .foregroundColor(.odysseyAccent)
-                .padding(.top, 24)
+                .padding(.top, AppConstants.sectionPadding)
             Text("Delete Configuration")
-                .font(.title3)
+                .font(.system(size: AppConstants.primaryFont))
                 .fontWeight(.semibold)
             let deleteMessage = "Are you sure you want to delete '"
             let undoMessage = "'? This action cannot be undone."
             Text(deleteMessage + configName + undoMessage)
                 .multilineTextAlignment(.center)
-                .font(.body)
-                .foregroundColor(.secondary)
-                .padding(.horizontal)
-            HStack(spacing: 20) {
+                .font(.system(size: AppConstants.secondaryFont))
+                .foregroundColor(Color.odysseySecondaryText)
+                .padding(.horizontal, AppConstants.sectionPadding)
+            HStack(spacing: AppConstants.sectionSpacing) {
                 Button("Cancel") {
                     onCancel()
                 }
@@ -826,15 +827,15 @@ struct DeleteConfirmationModal: View {
                 .buttonStyle(.borderedProminent)
                 .tint(.red)
             }
-            .padding(.bottom, 24)
+            .padding(.bottom, AppConstants.sectionPadding)
         }
         .frame(width: AppConstants.windowDeleteModalWidth)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: AppConstants.modalCornerRadius)
                 .fill(Color(NSColor.windowBackgroundColor))
-                .shadow(radius: 20),
+                .shadow(radius: AppConstants.shadowRadiusXXLarge),
             )
-        .padding()
+        .padding(AppConstants.sectionPadding)
     }
 }
 

@@ -85,7 +85,9 @@ class WebKitCore: NSObject, ObservableObject {
 
         // Add script message handler
         scriptMessageHandler = WebKitScriptMessageHandler()
-        configuration.userContentController.add(scriptMessageHandler!, name: "odysseyHandler")
+        if let scriptMessageHandler {
+            configuration.userContentController.add(scriptMessageHandler, name: "odysseyHandler")
+        }
 
         // Enhanced anti-detection measures
         configuration.applicationNameForUserAgent =
@@ -109,11 +111,12 @@ class WebKitCore: NSObject, ObservableObject {
         configuration.websiteDataStore = websiteDataStore
 
         // Clear all data for this instance
+        let currentInstanceId = self.instanceId
         websiteDataStore.removeData(
             ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
             modifiedSince: Date(timeIntervalSince1970: 0),
             ) { [self] in
-            logger.info("🧹 Cleared website data for instance: \(self.instanceId).")
+            logger.info("🧹 Cleared website data for instance: \(currentInstanceId).")
         }
 
         // Create web view
@@ -136,11 +139,7 @@ class WebKitCore: NSObject, ObservableObject {
         webView?.navigationDelegate = navigationDelegate
 
         // Set realistic window size with unique positioning for each instance
-        let windowSizes = [
-            (width: 1_440, height: 900), // MacBook Air 13"
-            (width: 1_680, height: 1_050) // MacBook Pro 15"
-        ]
-        let selectedSize = windowSizes.randomElement() ?? windowSizes[0]
+        let selectedSize = AppConstants.windowSizes.randomElement() ?? AppConstants.windowSizes[0]
 
         // Generate unique window position based on instance ID
         let hash = abs(instanceId.hashValue)
@@ -148,8 +147,10 @@ class WebKitCore: NSObject, ObservableObject {
         let yOffset = ((hash / 200) % 200) + 50
         webView?.frame = CGRect(x: xOffset, y: yOffset, width: selectedSize.width, height: selectedSize.height)
 
-        WebKitScriptManager.shared.injectAutomationScripts(into: webView!)
-        WebKitScriptManager.shared.injectAntiDetectionScripts(into: webView!, instanceId: instanceId)
+        if let webView {
+            WebKitScriptManager.shared.injectAutomationScripts(into: webView)
+            WebKitScriptManager.shared.injectAntiDetectionScripts(into: webView, instanceId: instanceId)
+        }
 
         logger.info("✅ WebView setup completed successfully for instance: \(self.instanceId).")
     }

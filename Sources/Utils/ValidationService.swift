@@ -3,6 +3,18 @@ import os.log
 
 /**
  ValidationService is responsible for centralized validation logic for user input, configuration, and data integrity throughout the app.
+
+ ## Usage Example
+ ```swift
+ let isValid = ValidationService.shared.validateEmail("user@example.com")
+ let isGmail = ValidationService.shared.isGmailAccount("user@gmail.com")
+ let isValidPassword = ValidationService.shared.validateGmailAppPassword("abcd efgh ijkl mnop")
+ let isValidURL = ValidationService.shared.validateFacilityURL("https://reservation.frontdesksuite.ca/rcfs/somefacility/")
+ let isValidPhone = ValidationService.shared.validatePhoneNumber("+16135551234")
+ let errors = ValidationService.shared.validateReservationConfig(config)
+ let result = ValidationService.shared.validateUserSettings(settings)
+ if !result.isValid { print(result.errorMessage) }
+ ```
  */
 @MainActor
 final class ValidationService {
@@ -188,7 +200,19 @@ final class ValidationService {
 
 // MARK: - Validation Result
 
-/// Result of validation operations
+/**
+ Result of validation operations
+
+ ## Usage Example
+ ```swift
+ let result = ValidationService.shared.validateUserSettings(settings)
+ if result.isValid {
+ print("Settings are valid!")
+ } else {
+ print("Validation errors: \(result.errorMessage)")
+ }
+ ```
+ */
 struct ValidationResult {
     let isValid: Bool
     let errors: [String]

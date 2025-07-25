@@ -35,6 +35,7 @@
 | 🔒 Secure Storage           | Keychain integration for credentials                            |
 | 📧 Email Verification       | Automated IMAP/Gmail verification for reservation confirmations |
 | 🕵️‍♂️ Anti-Detection           | Human-like automation to avoid bot detection                    |
+| 🎨 Dark Mode Polish         | Fully adaptive UI for both light and dark appearances           |
 
 ## 📦 Installation
 
@@ -137,7 +138,7 @@
 
 ## 🤝 Contributing
 
-See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution guidelines.
+See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution guidelines, and good first issues.
 
 ## 🛡️ Security & Compliance
 

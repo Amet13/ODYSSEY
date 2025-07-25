@@ -11,7 +11,7 @@ import SwiftUI
 struct ODYSSEYApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     init() {
-        _ = WebKitService._registered
+        _ = WebKitService.registered
         WebKitService.registerForDI()
         EmailService.registerForDI()
         KeychainService.registerForDI()
@@ -50,13 +50,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Set up scheduling timer
         setupSchedulingTimer()
 
-        // Listen for custom autorun time changes
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(customAutorunTimeChanged),
-            name: customAutorunTimeChangedNotification,
-            object: nil,
-            )
+        // Initialize services
+        initializeServices()
 
         // Initialize complete
     }
@@ -66,21 +61,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         timer?.invalidate()
         timer = nil
 
-        // Remove notification observer
-        NotificationCenter.default.removeObserver(self)
-
         // Emergency cleanup for any running automation
         Task {
             await orchestrator.emergencyCleanup(runType: .manual)
         }
     }
 
+    deinit { }
+
     // MARK: - Private Methods
 
-    @objc private func customAutorunTimeChanged() {
-        logger.info("🕕 Custom autorun time changed - re-scheduling autorun")
-        // Cancel any existing timer and re-schedule
-        schedulePreciseAutorun()
+    private func initializeServices() {
+        logger.info("🔧 Initializing services...")
+
+        // Don't auto-check notification status on startup
+        // Let user manually request permission when needed
+
+        logger.info("✅ Services initialized")
     }
 
     private func setupSchedulingTimer() {

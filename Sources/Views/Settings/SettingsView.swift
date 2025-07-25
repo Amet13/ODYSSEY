@@ -10,12 +10,16 @@ struct SettingsView: View {
     let godModeEnabled: Bool
 
     var body: some View {
-        SettingsFormView(
-            configurationManager: configurationManager,
-            userSettingsManager: userSettingsManager,
-            emailService: emailService,
-            godModeEnabled: godModeEnabled,
-            )
+        ZStack {
+            Color.odysseyBackground.ignoresSafeArea()
+            SettingsFormView(
+                configurationManager: configurationManager,
+                userSettingsManager: userSettingsManager,
+                emailService: emailService,
+                godModeEnabled: godModeEnabled,
+                )
+        }
+        .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
     }
 }
 
@@ -53,10 +57,16 @@ struct SettingsFormView: View {
         return domain == "gmail.com" || domain.hasSuffix(".gmail.com")
     }
 
+    // Computed property for Gmail help URL
+    private var gmailHelpURL: URL {
+        URL(string: "https://support.google.com/accounts/answer/185833") ??
+            URL(string: "https://google.com")!
+    }
+
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: AppConstants.spacingNone) {
             SettingsHeader()
-            Divider()
+            Divider().padding(.horizontal, AppConstants.contentPadding)
             SettingsContent(
                 tempSettings: $tempSettings,
                 userSettingsManager: userSettingsManager,
@@ -64,7 +74,7 @@ struct SettingsFormView: View {
                 isGmailAccount: isGmailAccount,
                 godModeEnabled: godModeEnabled,
                 )
-            Divider()
+            Divider().padding(.horizontal, AppConstants.contentPadding)
             SettingsFooter(
                 userSettingsManager: userSettingsManager,
                 emailService: emailService,
@@ -164,17 +174,17 @@ struct SettingsFormView: View {
 
 private struct SettingsHeader: View {
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: AppConstants.spacingLarge) {
             Image(systemName: "sportscourt.fill")
-                .font(.title2)
+                .font(.system(size: AppConstants.primaryFont))
                 .foregroundColor(.accentColor)
             Text("Settings")
-                .font(.title2)
+                .font(.system(size: AppConstants.primaryFont))
                 .fontWeight(.semibold)
             Spacer()
         }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor))
+        .padding(.horizontal, AppConstants.contentPadding)
+        .padding(.vertical, AppConstants.contentPadding)
     }
 }
 
@@ -187,13 +197,13 @@ private struct SettingsContent: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 12) {
+            VStack(spacing: AppConstants.contentSpacing) {
                 ContactInformationSection(
                     tempSettings: $tempSettings,
                     userSettingsManager: userSettingsManager,
                     emailService: emailService,
                     )
-                Divider().padding(.horizontal, 4)
+                Divider().padding(.horizontal, AppConstants.contentPadding)
                 EmailSettingsSection(
                     tempSettings: $tempSettings,
                     userSettingsManager: userSettingsManager,
@@ -202,9 +212,10 @@ private struct SettingsContent: View {
                     )
                 // Advanced Settings Section (God Mode Only)
                 if godModeEnabled {
-                    Divider().padding(.horizontal, 4)
+                    Divider().padding(.horizontal, AppConstants.contentPadding)
                     AdvancedSettingsSection(tempSettings: $tempSettings, godModeEnabled: godModeEnabled)
                 }
+                // AuditLogSection removed
             }
             .contentShape(Rectangle())
             .onTapGesture {
@@ -212,7 +223,7 @@ private struct SettingsContent: View {
                     emailService.lastTestResult = nil
                 }
             }
-            .padding(.horizontal, 4)
+            .padding(.horizontal, AppConstants.contentPadding)
         }
     }
 }
@@ -227,7 +238,7 @@ private struct ContactInformationSection: View {
             title: "Contact Information",
             icon: "person.circle",
             ) {
-            VStack(spacing: 16) {
+            VStack(spacing: AppConstants.spacingLarge) {
                 settingsField(
                     title: "Full Name",
                     value: $tempSettings.name,
@@ -262,7 +273,7 @@ private struct ContactInformationSection: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundColor(.orange)
                         Text("Phone number must be exactly 10 digits")
-                            .font(.caption)
+                            .font(.system(size: AppConstants.tertiaryFont))
                             .foregroundColor(.orange)
                         Spacer()
                     }
@@ -283,7 +294,7 @@ private struct EmailSettingsSection: View {
             title: "Email Settings",
             icon: "envelope.circle",
             ) {
-            VStack(spacing: 16) {
+            VStack(spacing: AppConstants.spacingLarge) {
                 EmailAddressField(
                     tempSettings: $tempSettings,
                     userSettingsManager: userSettingsManager,
@@ -319,7 +330,7 @@ private struct AdvancedSettingsSection: View {
 
     var body: some View {
         settingsSection(title: "Advanced Settings (God Mode)", icon: "gearshape") {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: AppConstants.spacingLarge) {
                 HStack {
                     Toggle("", isOn: Binding(
                         get: { tempSettings.preventSleepForAutorun },
@@ -335,7 +346,7 @@ private struct AdvancedSettingsSection: View {
                     )
 
                 // Browser Window Controls
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: AppConstants.spacingMedium) {
                     HStack {
                         Toggle("", isOn: Binding(
                             get: { tempSettings.showBrowserWindow },
@@ -368,7 +379,7 @@ private struct AdvancedSettingsSection: View {
                 }
 
                 // Custom Autorun Time Section
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: AppConstants.spacingMedium) {
                     HStack {
                         Toggle("", isOn: Binding(
                             get: { tempSettings.useCustomAutorunTime },
@@ -406,7 +417,7 @@ private struct AdvancedSettingsSection: View {
                                 displayedComponents: .hourAndMinute,
                                 )
                             .labelsHidden()
-                            .frame(width: 120)
+                            .frame(width: AppConstants.buttonHeightXLarge * 3)
 
                             Text("(Default: 6:00 PM)")
                                 .font(.caption)
@@ -435,7 +446,7 @@ private struct SettingsFooter: View {
     @Binding var tempSettings: UserSettings
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: AppConstants.spacingMedium) {
             HStack {
                 Spacer()
                 Button("Cancel") {
@@ -454,7 +465,7 @@ private struct SettingsFooter: View {
                 .keyboardShortcut("s", modifiers: .command)
                 .disabled(!tempSettings.isValid)
             }
-            .padding()
+            .padding(AppConstants.contentPadding)
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
     }
@@ -468,7 +479,7 @@ private struct EmailAddressField: View {
     let isGmailAccount: (String) -> Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: AppConstants.spacingTiny) {
             settingsField(
                 title: "Email Address",
                 value: $tempSettings.imapEmail,
@@ -530,8 +541,16 @@ private struct PasswordField: View {
     @ObservedObject var emailService: EmailService
     let isGmailAccount: (String) -> Bool
 
+    // Computed property for Gmail help URL
+    private var gmailHelpURL: URL {
+        URL(string: "https://support.google.com/accounts/answer/185833") ??
+            URL(string: "https://google.com") ??
+            URL(string: "https://example.com") ??
+            URL(string: "https://httpbin.org")!
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: AppConstants.spacingTiny) {
             settingsField(
                 title: isGmailAccount(tempSettings.imapEmail) ?
                     "Gmail App Password" : "Password",
@@ -558,7 +577,7 @@ private struct PasswordField: View {
                         Spacer()
                         Link(
                             "How to create Gmail app password?",
-                            destination: URL(string: "https://support.google.com/accounts/answer/185833")!,
+                            destination: gmailHelpURL,
                             )
                         .font(.caption)
                         .foregroundColor(.blue)
@@ -585,7 +604,7 @@ private struct TestEmailButton: View {
     let isGmailAccount: (String) -> Bool
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: AppConstants.spacingMedium) {
             if tempSettings.hasEmailConfigured {
                 Button(action: {
                     // Temporarily update the actual settings for testing
@@ -622,11 +641,11 @@ private struct TestEmailButton: View {
                         }
                     }
                 }) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: AppConstants.spacingSmall) {
                         Image(systemName: "envelope.badge")
-                            .font(.system(size: 14))
+                            .font(.system(size: AppConstants.fontSubheadline))
                         Text("Test Email")
-                            .font(.system(size: 13))
+                            .font(.system(size: AppConstants.fontCaption))
                     }
                 }
                 .buttonStyle(.bordered)
@@ -638,9 +657,9 @@ private struct TestEmailButton: View {
             if emailService.isTesting {
                 HStack {
                     ProgressView()
-                        .scaleEffect(0.8)
+                        .scaleEffect(AppConstants.scaleEffectSmall)
                     Text("Testing email connection...")
-                        .font(.caption)
+                        .font(.system(size: AppConstants.tertiaryFont))
                         .foregroundColor(.secondary)
                     Spacer()
                 }
@@ -651,11 +670,11 @@ private struct TestEmailButton: View {
                     Image(systemName: result.isSuccess ? "checkmark.circle.fill" : "xmark.circle.fill")
                         .foregroundColor(result.isSuccess ? .green : .red)
                     Text(result.description)
-                        .font(.caption)
+                        .font(.system(size: AppConstants.tertiaryFont))
                         .foregroundColor(result.isSuccess ? .green : .red)
                     Spacer()
                 }
-                .padding(.top, 4)
+                .padding(.top, AppConstants.paddingTiny)
                 .onTapGesture {
                     emailService.lastTestResult = nil
                 }
@@ -668,20 +687,21 @@ private struct TestEmailButton: View {
 
 @MainActor
 private func settingsSection(title: String, icon: String, @ViewBuilder content: () -> some View) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: AppConstants.contentSpacing) {
         HStack {
             Image(systemName: icon)
                 .foregroundColor(.accentColor)
             Text(title)
-                .font(.headline)
+                .font(.system(size: AppConstants.secondaryFont))
+                .fontWeight(.semibold)
             Spacer()
         }
 
         content()
     }
-    .padding()
-    .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-    .cornerRadius(8)
+    .padding(.horizontal, AppConstants.contentPadding)
+    .padding(.vertical, AppConstants.sectionPadding)
+    .cornerRadius(AppConstants.inputCornerRadius)
 }
 
 @MainActor
@@ -694,13 +714,13 @@ private func settingsField(
     maxLength: Int? = nil,
     isReadOnly: Bool = false,
     ) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
+    VStack(alignment: .leading, spacing: AppConstants.spacingTiny) {
         HStack {
             Image(systemName: icon)
                 .foregroundColor(.secondary)
                 .frame(width: AppConstants.iconSmall)
             Text(title)
-                .font(.subheadline)
+                .font(.system(size: AppConstants.secondaryFont))
                 .fontWeight(.medium)
             Spacer()
         }

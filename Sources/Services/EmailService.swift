@@ -1820,25 +1820,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
     // MARK: - Notification Methods
 
-    /// Sends a success notification email when a reservation is completed
-    /// - Parameter config: The reservation configuration that was successfully executed
-    func sendSuccessNotification(for config: ReservationConfig) async {
-        guard userSettingsManager.userSettings.hasEmailConfigured else {
-            logger.info("Email notifications are disabled")
-            return
-        }
-
-        await MainActor.run {
-            self.logger.info("Sending success notification email for \(config.name, privacy: .private)")
-            // For now, just log the success
-            // In a full implementation, this would send an actual email
-            let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
-            self.logger.info(
-                "Success notification would be sent for \(config.name, privacy: .private) at \(facilityName, privacy: .private) to \(self.userSettingsManager.userSettings.imapEmail, privacy: .private)",
-                )
-        }
-    }
-
     /// Validates Gmail App Password format
     /// Gmail App Password must be 16 characters in format "xxxx xxxx xxxx xxxx"
     static func validateGmailAppPassword(_ password: String) -> Bool {
@@ -1921,7 +1902,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         case let .failure(error):
             Task { @MainActor in
                 self.userFacingError = error.localizedDescription
-                logger.error("❌ Email service error: \(self.userFacingError!)")
+                logger.error("❌ Email service error: \(error.localizedDescription)")
             }
             return nil
         }

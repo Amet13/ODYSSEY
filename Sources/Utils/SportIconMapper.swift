@@ -2,6 +2,14 @@ import Foundation
 import SwiftUI
 
 /// Maps sport names to appropriate SF Symbols icons
+/**
+ SportIconMapper maps sport names to SF Symbol icon names for consistent UI representation.
+
+ ## Usage Example
+ ```swift
+ let iconName = SportIconMapper.iconForSport("basketball") // Output: "basketball.fill"
+ ```
+ */
 public enum SportIconMapper {
     // MARK: - Sport Icon Mappings
 
@@ -159,6 +167,14 @@ public enum SportIconMapper {
 }
 
 /// A SwiftUI view that displays a sport icon with fallback if the symbol is unavailable
+/**
+ SportIconView displays a SwiftUI icon for a given sport, with fallback and color options.
+
+ ## Usage Example
+ ```swift
+ SportIconView(symbolName: SportIconMapper.iconForSport("swimming"), color: .odysseyPrimary, size: 24)
+ ```
+ */
 public struct SportIconView: View {
     public let symbolName: String
     public let fallback: String

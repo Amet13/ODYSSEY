@@ -22,8 +22,6 @@
 "add_config_tooltip" = "Add a new reservation configuration";
 "ODYSSEY" = "ODYSSEY";
 "about_app_subtitle" = "Ottawa Drop-in Your Sports & Schedule Easily Yourself";
-"about_section_title" = "About ODYSSEY";
-"about_app_description" = "ODYSSEY is a native macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities.";
 "about_feature_automated_booking" = "Automated reservation booking";
 "about_feature_scheduling" = "Smart scheduling system";
 "about_feature_webkit" = "Native WebKit automation";

@@ -464,29 +464,3 @@ protocol ErrorHandlingServiceProtocol {
     /// Shows a user-friendly error message.
     func showUserFriendlyError(_ error: Error)
 }
-
-// MARK: - Performance Monitoring Protocol
-
-/**
- * Protocol defining the interface for performance monitoring.
- *
- * Example:
- * ```swift
- * class MyPerformanceMonitor: PerformanceMonitoringProtocol {
- *   func startTimer(for operation: String) { ... }
- *   func endTimer(for operation: String) -> TimeInterval { ... }
- *   func logPerformance(operation: String, duration: TimeInterval) { ... }
- *   func getAverageTime(for operation: String) -> TimeInterval? { ... }
- * }
- * ```
- */
-protocol PerformanceMonitoringProtocol {
-    /// Starts a timer for the given operation.
-    func startTimer(for operation: String)
-    /// Ends the timer and returns the duration.
-    func endTimer(for operation: String) -> TimeInterval
-    /// Logs the performance of an operation.
-    func logPerformance(operation: String, duration: TimeInterval)
-    /// Gets the average time for an operation.
-    func getAverageTime(for operation: String) -> TimeInterval?
-}

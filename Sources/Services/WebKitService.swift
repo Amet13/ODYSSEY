@@ -41,11 +41,14 @@ struct JavaScriptResult: @unchecked Sendable {
 public final class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol, WebKitServiceProtocol,
                                   NSWindowDelegate,
                                   @unchecked Sendable {
+    // Singleton instance for app-wide use
     public static let shared = WebKitService()
-    static let _registered: Void = {
+    // Register this service for dependency injection
+    static let registered: Void = {
         ServiceRegistry.shared.register(WebKitService.shared, for: WebKitServiceProtocol.self)
     }()
 
+    // Published properties for UI binding and automation state
     @Published public var isConnected = false
     @Published public var isRunning: Bool = false
     @Published public var currentURL: String?
@@ -53,23 +56,22 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     /// User-facing error message to be displayed in the UI.
     @Published var userError: String?
 
-    // Callback for window closure
+    // Callback for window closure (used for cleanup and UI updates)
     public var onWindowClosed: ((ReservationRunType) -> Void)?
 
     let logger: Logger
 
-    // WebKit components
+    // WebKit components for browser automation
     public var webView: WKWebView?
-
     private var navigationDelegate: WebKitNavigationDelegate?
     private var scriptMessageHandler: WebKitScriptMessageHandler?
     private var debugWindow: NSWindow?
     private var instanceId: String = "default"
 
-    // Configuration
+    // Configuration for the current automation run
     public var currentConfig: ReservationConfig? {
         didSet {
-            // Update window title when config changes
+            // Update window title when config changes (for debug window)
             if let config = currentConfig {
                 Task { @MainActor in
                     updateWindowTitle(with: config)
@@ -78,16 +80,17 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
     }
 
-    // Set a Chrome-like user agent
+    // User agent and language for anti-detection and compatibility
     var userAgent: String = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) " +
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     private var language: String = "en-US,en"
 
-    // Completion handlers for async operations
+    // Completion handlers for async navigation and script operations
     var navigationCompletions: [String: @Sendable (Bool) -> Void] = [:]
     private var scriptCompletions: [String: @Sendable (Any?) -> Void] = [:]
     private var elementCompletions: [String: @Sendable (String?) -> Void] = [:]
 
+    // Track live instances for debugging and anti-detection
     @MainActor private static var liveInstanceCount = 0
     @MainActor static func printLiveInstanceCount() {
         Logger(subsystem: "com.odyssey.app", category: "WebKitService")
@@ -122,6 +125,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             Self.liveInstanceCount += 1
             logger.info("🔄 WebKitService init. Live instances: \(Self.liveInstanceCount)")
         }
+        // If no webView provided, set up a new one
         if webView == nil {
             setupWebView()
         }
@@ -140,7 +144,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Do not show browser window at app launch
     }
 
-    /// Create a new WebKit service instance for parallel operations
+    /// Create a new WebKit service instance for parallel operations (e.g., for multiple bookings)
     convenience init(forParallelOperation _: Bool) {
         self.init()
     }
@@ -175,7 +179,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Add script message handler
         scriptMessageHandler = WebKitScriptMessageHandler()
         scriptMessageHandler?.delegate = self
-        configuration.userContentController.add(scriptMessageHandler!, name: "odysseyHandler")
+        if let scriptMessageHandler {
+            configuration.userContentController.add(scriptMessageHandler, name: "odysseyHandler")
+        }
 
         // Enhanced anti-detection measures
         configuration
@@ -200,11 +206,12 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         configuration.websiteDataStore = websiteDataStore
 
         // Clear all data for this instance
+        let currentInstanceId = self.instanceId
         websiteDataStore.removeData(
             ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
             modifiedSince: Date(timeIntervalSince1970: 0),
             ) { [self] in
-            logger.info("🧹 Cleared website data for instance: \(self.instanceId).")
+            logger.info("🧹 Cleared website data for instance: \(currentInstanceId).")
         }
 
         // Create web view
@@ -228,10 +235,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         webView?.navigationDelegate = navigationDelegate
 
         // Set realistic window size with unique positioning for each instance
-        let windowSizes = [
-            (width: 1_440, height: 900), // MacBook Air 13"
-            (width: 1_680, height: 1_050) // MacBook Pro 15"
-        ]
+        let windowSizes = AppConstants.windowSizes
         let selectedSize = windowSizes.randomElement() ?? windowSizes[0]
 
         // Generate unique window position based on instance ID
@@ -262,10 +266,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return
         }
         // Set realistic window size (random from common MacBook resolutions)
-        let windowSizes = [
-            (width: 1_440, height: 900), // MacBook Air 13"
-            (width: 1_680, height: 1_050) // MacBook Pro 15"
-        ]
+        let windowSizes = AppConstants.windowSizes
         let selectedSize = windowSizes.randomElement() ?? windowSizes[0]
         // Create a visible window for debugging
         let window = NSWindow(
@@ -1208,8 +1209,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         let script = "return document.querySelector('\(selector)');"
         let result = try await executeScriptInternal(script)?.value
 
-        if let elementId = result as? String, !elementId.isEmpty {
-            return WebKitElement(id: elementId, webView: webView!, service: self)
+        if let elementId = result as? String, !elementId.isEmpty, let webView {
+            return WebKitElement(id: elementId, webView: webView, service: self)
         } else {
             throw WebDriverError.elementNotFound("Element not found: \(selector)")
         }
@@ -1228,7 +1229,10 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
         let result = try await executeScriptInternal(script)?.value
         let elementIds = result as? [String] ?? []
-        return elementIds.map { WebKitElement(id: $0, webView: webView!, service: self) }
+        guard let webView else {
+            throw WebDriverError.elementNotFound("WebView not initialized")
+        }
+        return elementIds.map { WebKitElement(id: $0, webView: webView, service: self) }
     }
 
     @MainActor
@@ -4880,9 +4884,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 public class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
     weak var delegate: WebKitService?
 
-    public func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation!) { }
+    public func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation?) { }
 
-    public func webView(_ webView: WKWebView, didFinish _: WKNavigation!) {
+    public func webView(_ webView: WKWebView, didFinish _: WKNavigation?) {
         delegate?.currentURL = webView.url?.absoluteString
         delegate?.pageTitle = webView.title
 
@@ -4895,7 +4899,7 @@ public class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
         }
     }
 
-    public func webView(_: WKWebView, didFail _: WKNavigation!, withError _: Error) {
+    public func webView(_: WKWebView, didFail _: WKNavigation?, withError _: Error) {
         // Notify any waiting navigation completions
         if let delegate {
             for (_, completion) in delegate.navigationCompletions {
@@ -4905,7 +4909,7 @@ public class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
         }
     }
 
-    public func webView(_: WKWebView, didFailProvisionalNavigation _: WKNavigation!, withError _: Error) { }
+    public func webView(_: WKWebView, didFailProvisionalNavigation _: WKNavigation?, withError _: Error) { }
 
     public func webView(
         _: WKWebView,

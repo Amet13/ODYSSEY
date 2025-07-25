@@ -3,6 +3,13 @@ import IOKit.pwr_mgt
 
 /**
  SleepManager provides static methods to prevent and allow system sleep, used for keeping the Mac awake during critical operations (e.g., autorun reservations).
+
+ ## Usage Example
+ ```swift
+ SleepManager.preventSleep(reason: "Automating reservation")
+ // ... perform critical task ...
+ SleepManager.allowSleep()
+ ```
  */
 @MainActor
 public enum SleepManager {
