@@ -11,7 +11,7 @@ import SwiftUI
 struct ODYSSEYApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     init() {
-        _ = WebKitService._registered
+        _ = WebKitService.registered
         WebKitService.registerForDI()
         EmailService.registerForDI()
         KeychainService.registerForDI()
@@ -69,13 +69,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         timer?.invalidate()
         timer = nil
 
-        // Remove notification observer
-        NotificationCenter.default.removeObserver(self)
-
         // Emergency cleanup for any running automation
         Task {
             await orchestrator.emergencyCleanup(runType: .manual)
         }
+    }
+
+    deinit {
+        // Remove notification observer
+        NotificationCenter.default.removeObserver(self)
     }
 
     // MARK: - Private Methods

@@ -337,9 +337,9 @@ private struct HeaderView: View {
                 .keyboardShortcut("n", modifiers: .command)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 16)
+        .padding(.horizontal, AppConstants.paddingHorizontal)
+        .padding(.top, AppConstants.paddingVertical)
+        .padding(.bottom, AppConstants.paddingVertical)
     }
 
     private func formatCustomTime() -> String {
@@ -410,7 +410,7 @@ private struct EmptyStateView: View {
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal)
+                .padding(.horizontal, AppConstants.paddingHorizontal)
             Button("Add Configuration") {
                 showingAddConfig = true
             }
@@ -420,7 +420,7 @@ private struct EmptyStateView: View {
             .keyboardShortcut("n", modifiers: .command)
             Spacer()
         }
-        .padding()
+        .padding(AppConstants.paddingHorizontal)
     }
 }
 
@@ -434,33 +434,32 @@ private struct ConfigurationListView: View {
     let countdownRefreshTrigger: Bool
 
     var body: some View {
-        List {
-            ForEach(
-                Array(configManager.settings.configurations.enumerated()),
-                id: \.element.id,
-                ) { index, config in
-                ConfigurationRowView(
-                    config: config,
-                    nextAutorunInfo: getNextCronRunTime(config),
-                    formatCountdown: formatCountdown,
-                    lastRunInfo: statusManager.getLastRunInfo(for: config.id),
-                    onEdit: { selectedConfig = config },
-                    onDelete: { configManager.removeConfiguration(config) },
-                    onToggle: { configManager.toggleConfiguration(at: index) },
-                    onRun: { orchestrator.runReservation(for: config, runType: .manual) },
-                    )
-                .accessibilityElement()
-                .accessibilityLabel("Reservation configuration for \(config.name)")
-                .id("\(config.id)-\(countdownRefreshTrigger)") // Force refresh when countdown trigger changes
-            }
-            .onDelete(perform: { indices in
-                for index in indices {
-                    let config = configManager.settings.configurations[index]
-                    configManager.removeConfiguration(config)
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(
+                    Array(configManager.settings.configurations.enumerated()),
+                    id: \.element.id,
+                    ) { index, config in
+                    ConfigurationRowView(
+                        config: config,
+                        nextAutorunInfo: getNextCronRunTime(config),
+                        formatCountdown: formatCountdown,
+                        lastRunInfo: statusManager.getLastRunInfo(for: config.id),
+                        onEdit: { selectedConfig = config },
+                        onDelete: { configManager.removeConfiguration(config) },
+                        onToggle: { configManager.toggleConfiguration(at: index) },
+                        onRun: { orchestrator.runReservation(for: config, runType: .manual) },
+                        )
+                    .accessibilityElement()
+                    .accessibilityLabel("Reservation configuration for \(config.name)")
+                    .id("\(config.id)-\(countdownRefreshTrigger)") // Force refresh when countdown trigger changes
+                    if index < configManager.settings.configurations.count - 1 {
+                        Divider()
+                    }
                 }
-            })
+            }
         }
-        .listStyle(.inset)
+        .padding(.horizontal, AppConstants.paddingHorizontal)
     }
 }
 
@@ -517,9 +516,9 @@ private struct FooterView: View {
                 .help(NSLocalizedString("quit_tooltip", comment: "Quit ODYSSEY"))
                 .accessibilityLabel(NSLocalizedString("quit", comment: "Quit"))
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 16)
-            .padding(.top, 16)
+            .padding(.horizontal, AppConstants.paddingHorizontal)
+            .padding(.bottom, AppConstants.paddingVertical)
+            .padding(.top, AppConstants.paddingVertical)
         }
     }
 }
@@ -639,7 +638,13 @@ struct ConfigurationRowView: View {
                 lastRunStatusView(for: lastRunInfo)
             }
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, AppConstants.paddingVerticalSmall)
+        // Removed border and overlay, keep background only if needed in future
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color(NSColor.controlBackgroundColor).opacity(0.1)),
+            )
+        .padding(.vertical, 4)
         .alert(
             "Delete Configuration",
             isPresented: $showingDeleteConfirmation,
@@ -806,7 +811,7 @@ struct DeleteConfirmationModal: View {
             Image(systemName: "sportscourt.fill")
                 .font(.system(size: AppConstants.iconLarge))
                 .foregroundColor(.odysseyAccent)
-                .padding(.top, 24)
+                .padding(.top, AppConstants.paddingVerticalForm)
             Text("Delete Configuration")
                 .font(.title3)
                 .fontWeight(.semibold)
@@ -816,7 +821,7 @@ struct DeleteConfirmationModal: View {
                 .multilineTextAlignment(.center)
                 .font(.body)
                 .foregroundColor(.secondary)
-                .padding(.horizontal)
+                .padding(.horizontal, AppConstants.paddingHorizontalForm)
             HStack(spacing: 20) {
                 Button("Cancel") {
                     onCancel()
@@ -828,7 +833,7 @@ struct DeleteConfirmationModal: View {
                 .buttonStyle(.borderedProminent)
                 .tint(.red)
             }
-            .padding(.bottom, 24)
+            .padding(.bottom, AppConstants.paddingVerticalForm)
         }
         .frame(width: AppConstants.windowDeleteModalWidth)
         .background(
@@ -836,7 +841,7 @@ struct DeleteConfirmationModal: View {
                 .fill(Color(NSColor.windowBackgroundColor))
                 .shadow(radius: 20),
             )
-        .padding()
+        .padding(AppConstants.paddingHorizontalForm)
     }
 }
 

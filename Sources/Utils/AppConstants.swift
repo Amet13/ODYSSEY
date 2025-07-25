@@ -163,6 +163,8 @@ public enum AppConstants {
  ```
  */
 extension AppConstants {
+    // MARK: - Window Sizes
+
     static let windowMainWidth: CGFloat = 440
     static let windowMainHeight: CGFloat = 600
     static let windowAboutWidth: CGFloat = 380
@@ -170,6 +172,32 @@ extension AppConstants {
     static let windowDayPickerWidth: CGFloat = 380
     static let windowDayPickerHeight: CGFloat = 380
     static let windowDeleteModalWidth: CGFloat = 340
+
+    // MARK: - Icon Sizes
+
     static let iconLarge: CGFloat = 64
     static let iconSmall: CGFloat = 14
+
+    // MARK: - Standardized Padding System
+
+    /// Standard horizontal padding for main content areas
+    static let paddingHorizontal: CGFloat = 20
+    /// Standard horizontal padding for configuration forms
+    static let paddingHorizontalForm: CGFloat = 32
+    /// Standard horizontal padding for settings content
+    static let paddingHorizontalSettings: CGFloat = 16
+    /// Standard vertical padding for sections
+    static let paddingVertical: CGFloat = 16
+    /// Standard vertical padding for forms
+    static let paddingVerticalForm: CGFloat = 24
+    /// Standard vertical padding for small elements
+    static let paddingVerticalSmall: CGFloat = 8
+    /// Standard vertical padding for tiny elements
+    static let paddingVerticalTiny: CGFloat = 4
+    /// Standard padding for dividers
+    static let paddingDivider: CGFloat = 4
+    /// Standard padding for buttons
+    static let paddingButton: CGFloat = 12
+    /// Standard padding for overlays
+    static let paddingOverlay: CGFloat = 24
 }

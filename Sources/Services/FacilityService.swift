@@ -246,7 +246,7 @@ public final class FacilityService: NSObject, @unchecked Sendable, FacilityServi
 // MARK: - WKNavigationDelegate
 
 extension FacilityService: WKNavigationDelegate {
-    public func webView(_: WKWebView, didFinish _: WKNavigation!) {
+    public func webView(_: WKWebView, didFinish _: WKNavigation?) {
         logger.info("✅ Facility page loaded successfully.")
 
         // Execute sports detection script after page is loaded
@@ -263,7 +263,7 @@ extension FacilityService: WKNavigationDelegate {
         }
     }
 
-    public func webView(_: WKWebView, didFail _: WKNavigation!, withError error: Error) {
+    public func webView(_: WKWebView, didFail _: WKNavigation?, withError error: Error) {
         logger.error("❌ Failed to load facility page: \(error.localizedDescription).")
         isLoading = false
         self.error = error.localizedDescription

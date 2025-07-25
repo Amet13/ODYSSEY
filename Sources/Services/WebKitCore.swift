@@ -85,7 +85,9 @@ class WebKitCore: NSObject, ObservableObject {
 
         // Add script message handler
         scriptMessageHandler = WebKitScriptMessageHandler()
-        configuration.userContentController.add(scriptMessageHandler!, name: "odysseyHandler")
+        if let scriptMessageHandler {
+            configuration.userContentController.add(scriptMessageHandler, name: "odysseyHandler")
+        }
 
         // Enhanced anti-detection measures
         configuration.applicationNameForUserAgent =
@@ -149,8 +151,10 @@ class WebKitCore: NSObject, ObservableObject {
         let yOffset = ((hash / 200) % 200) + 50
         webView?.frame = CGRect(x: xOffset, y: yOffset, width: selectedSize.width, height: selectedSize.height)
 
-        WebKitScriptManager.shared.injectAutomationScripts(into: webView!)
-        WebKitScriptManager.shared.injectAntiDetectionScripts(into: webView!, instanceId: instanceId)
+        if let webView {
+            WebKitScriptManager.shared.injectAutomationScripts(into: webView)
+            WebKitScriptManager.shared.injectAntiDetectionScripts(into: webView, instanceId: instanceId)
+        }
 
         logger.info("✅ WebView setup completed successfully for instance: \(self.instanceId).")
     }

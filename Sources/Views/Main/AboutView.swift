@@ -57,7 +57,7 @@ struct AboutView: View {
                         Text(NSLocalizedString("about_section_title", comment: "About ODYSSEY"))
                             .font(.headline)
                             .fontWeight(.semibold)
-                            .padding(.bottom, 2)
+                            .padding(.bottom, AppConstants.paddingVerticalTiny)
                         Text(NSLocalizedString("about_app_description", comment: "App description"))
                             .font(.body)
                             .foregroundColor(.primary)
@@ -93,8 +93,8 @@ struct AboutView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 20)
+                .padding(.horizontal, AppConstants.paddingHorizontalForm)
+                .padding(.vertical, AppConstants.paddingVertical)
                 .onTapGesture {
                     // Prevent tap from propagating to background when clicking on content
                 }

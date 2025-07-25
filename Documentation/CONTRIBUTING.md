@@ -212,24 +212,6 @@ UserDefaults.standard.set(password, forKey: "password")
 4. **Documentation** - Update documentation as needed
 5. **Merge** - Merge after approval
 
-## 🎉 Recognition
-
-### Contributors
-
-We recognize contributors in several ways:
-
-- **Contributor List** - Added to README.md
-- **Release Notes** - Mentioned in release notes
-- **GitHub Stars** - Star the repository
-- **Community** - Join our community discussions
-
-### Contribution Levels
-
-- **🌱 Newcomer** - First contribution
-- **🌿 Regular** - Multiple contributions
-- **🌳 Core** - Significant contributions
-- **🏆 Maintainer** - Project maintainer
-
 ## 🤝 Community Guidelines
 
 ### Communication

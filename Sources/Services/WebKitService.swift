@@ -44,7 +44,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     // Singleton instance for app-wide use
     public static let shared = WebKitService()
     // Register this service for dependency injection
-    static let _registered: Void = {
+    static let registered: Void = {
         ServiceRegistry.shared.register(WebKitService.shared, for: WebKitServiceProtocol.self)
     }()
 
@@ -179,7 +179,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Add script message handler
         scriptMessageHandler = WebKitScriptMessageHandler()
         scriptMessageHandler?.delegate = self
-        configuration.userContentController.add(scriptMessageHandler!, name: "odysseyHandler")
+        if let scriptMessageHandler {
+            configuration.userContentController.add(scriptMessageHandler, name: "odysseyHandler")
+        }
 
         // Enhanced anti-detection measures
         configuration
@@ -1213,8 +1215,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         let script = "return document.querySelector('\(selector)');"
         let result = try await executeScriptInternal(script)?.value
 
-        if let elementId = result as? String, !elementId.isEmpty {
-            return WebKitElement(id: elementId, webView: webView!, service: self)
+        if let elementId = result as? String, !elementId.isEmpty, let webView {
+            return WebKitElement(id: elementId, webView: webView, service: self)
         } else {
             throw WebDriverError.elementNotFound("Element not found: \(selector)")
         }
@@ -1233,7 +1235,10 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
         let result = try await executeScriptInternal(script)?.value
         let elementIds = result as? [String] ?? []
-        return elementIds.map { WebKitElement(id: $0, webView: webView!, service: self) }
+        guard let webView else {
+            throw WebDriverError.elementNotFound("WebView not initialized")
+        }
+        return elementIds.map { WebKitElement(id: $0, webView: webView, service: self) }
     }
 
     @MainActor
@@ -4885,9 +4890,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 public class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
     weak var delegate: WebKitService?
 
-    public func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation!) { }
+    public func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation?) { }
 
-    public func webView(_ webView: WKWebView, didFinish _: WKNavigation!) {
+    public func webView(_ webView: WKWebView, didFinish _: WKNavigation?) {
         delegate?.currentURL = webView.url?.absoluteString
         delegate?.pageTitle = webView.title
 
@@ -4900,7 +4905,7 @@ public class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
         }
     }
 
-    public func webView(_: WKWebView, didFail _: WKNavigation!, withError _: Error) {
+    public func webView(_: WKWebView, didFail _: WKNavigation?, withError _: Error) {
         // Notify any waiting navigation completions
         if let delegate {
             for (_, completion) in delegate.navigationCompletions {
@@ -4910,7 +4915,7 @@ public class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
         }
     }
 
-    public func webView(_: WKWebView, didFailProvisionalNavigation _: WKNavigation!, withError _: Error) { }
+    public func webView(_: WKWebView, didFailProvisionalNavigation _: WKNavigation?, withError _: Error) { }
 
     public func webView(
         _: WKWebView,

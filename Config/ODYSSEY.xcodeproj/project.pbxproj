@@ -68,7 +68,6 @@
 		8915E7585918FC6CC1F694E5 /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
 		9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebDriverProtocols.swift; sourceTree = "<group>"; };
 		92BBD57449782EDCECED3713 /* WebKitScriptManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitScriptManager.swift; sourceTree = "<group>"; };
-		98AFD497DCEAEC0366D2268F /* ODYSSEY.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ODYSSEY.entitlements; sourceTree = "<group>"; };
 		9F32A0A5C6C800FBB7769711 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		9F37E32A2DEAB7D80A5148F2 /* Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		A7A301E1B3374676F73BCE2C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -185,7 +184,6 @@
 			isa = PBXGroup;
 			children = (
 				A7A301E1B3374676F73BCE2C /* Info.plist */,
-				98AFD497DCEAEC0366D2268F /* ODYSSEY.entitlements */,
 				D401C9E0BDAD61E6DECC196A /* ODYSSEYApp.swift */,
 			);
 			path = App;
@@ -347,7 +345,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 11;
-				ENABLE_APP_SANDBOX = NO;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = ../Sources/App/Info.plist;
@@ -374,7 +372,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 11;
-				ENABLE_APP_SANDBOX = NO;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = ../Sources/App/Info.plist;
@@ -429,13 +427,12 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_ENTITLEMENTS = ../Sources/App/ODYSSEY.entitlements;
 				CODE_SIGN_IDENTITY = "";
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -514,13 +511,12 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_ENTITLEMENTS = ../Sources/App/ODYSSEY.entitlements;
 				CODE_SIGN_IDENTITY = "";
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_PREVIEWS = YES;

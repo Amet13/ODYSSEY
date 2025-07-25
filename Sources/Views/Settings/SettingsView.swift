@@ -53,6 +53,14 @@ struct SettingsFormView: View {
         return domain == "gmail.com" || domain.hasSuffix(".gmail.com")
     }
 
+    // Computed property for Gmail help URL
+    private var gmailHelpURL: URL {
+        URL(string: "https://support.google.com/accounts/answer/185833") ??
+            URL(string: "https://google.com") ??
+            URL(string: "https://example.com") ??
+            URL(string: "https://httpbin.org")!
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             SettingsHeader()
@@ -193,17 +201,16 @@ private struct SettingsContent: View {
                     userSettingsManager: userSettingsManager,
                     emailService: emailService,
                     )
-                Divider().padding(.horizontal, 4)
+                Divider().padding(.horizontal, AppConstants.paddingDivider)
                 EmailSettingsSection(
                     tempSettings: $tempSettings,
                     userSettingsManager: userSettingsManager,
                     emailService: emailService,
                     isGmailAccount: isGmailAccount,
                     )
-                Divider().padding(.horizontal, 4)
                 // Advanced Settings Section (God Mode Only)
                 if godModeEnabled {
-                    Divider().padding(.horizontal, 4)
+                    Divider().padding(.horizontal, AppConstants.paddingDivider)
                     AdvancedSettingsSection(tempSettings: $tempSettings, godModeEnabled: godModeEnabled)
                 }
                 // AuditLogSection removed
@@ -214,7 +221,7 @@ private struct SettingsContent: View {
                     emailService.lastTestResult = nil
                 }
             }
-            .padding(.horizontal, 4)
+            .padding(.horizontal, AppConstants.paddingHorizontalSettings)
         }
     }
 }
@@ -456,7 +463,7 @@ private struct SettingsFooter: View {
                 .keyboardShortcut("s", modifiers: .command)
                 .disabled(!tempSettings.isValid)
             }
-            .padding()
+            .padding(AppConstants.paddingHorizontalSettings)
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
     }
@@ -532,6 +539,14 @@ private struct PasswordField: View {
     @ObservedObject var emailService: EmailService
     let isGmailAccount: (String) -> Bool
 
+    // Computed property for Gmail help URL
+    private var gmailHelpURL: URL {
+        URL(string: "https://support.google.com/accounts/answer/185833") ??
+            URL(string: "https://google.com") ??
+            URL(string: "https://example.com") ??
+            URL(string: "https://httpbin.org")!
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             settingsField(
@@ -560,7 +575,7 @@ private struct PasswordField: View {
                         Spacer()
                         Link(
                             "How to create Gmail app password?",
-                            destination: URL(string: "https://support.google.com/accounts/answer/185833")!,
+                            destination: gmailHelpURL,
                             )
                         .font(.caption)
                         .foregroundColor(.blue)
@@ -657,7 +672,7 @@ private struct TestEmailButton: View {
                         .foregroundColor(result.isSuccess ? .green : .red)
                     Spacer()
                 }
-                .padding(.top, 4)
+                .padding(.top, AppConstants.paddingVerticalTiny)
                 .onTapGesture {
                     emailService.lastTestResult = nil
                 }
@@ -681,7 +696,7 @@ private func settingsSection(title: String, icon: String, @ViewBuilder content: 
 
         content()
     }
-    .padding()
+    .padding(AppConstants.paddingHorizontalSettings)
     .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
     .cornerRadius(8)
 }

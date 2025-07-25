@@ -1921,7 +1921,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         case let .failure(error):
             Task { @MainActor in
                 self.userFacingError = error.localizedDescription
-                logger.error("❌ Email service error: \(self.userFacingError!)")
+                logger.error("❌ Email service error: \(error.localizedDescription)")
             }
             return nil
         }

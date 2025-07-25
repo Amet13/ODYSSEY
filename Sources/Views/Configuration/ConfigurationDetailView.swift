@@ -37,8 +37,8 @@ struct ConfigurationDetailView: View {
                         .font(.subheadline)
                     Spacer()
                 }
-                .padding(.horizontal, 32)
-                .padding(.top, 8)
+                .padding(.horizontal, AppConstants.paddingHorizontalForm)
+                .padding(.top, AppConstants.paddingVerticalTiny)
             }
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
@@ -46,11 +46,11 @@ struct ConfigurationDetailView: View {
                     sportPickerSection
                     numberOfPeopleSection
                     configNameSection
-                    Divider().padding(.vertical, 8)
+                    Divider().padding(.vertical, AppConstants.paddingVerticalSmall)
                     schedulingSection
                 }
-                .padding(.horizontal, 32)
-                .padding(.vertical, 24)
+                .padding(.horizontal, AppConstants.paddingHorizontalForm)
+                .padding(.vertical, AppConstants.paddingVerticalForm)
             }
             Divider()
             footerButtonsSection
@@ -120,10 +120,10 @@ struct ConfigurationDetailView: View {
                         .foregroundColor(.orange)
                     Spacer()
                 }
-                .padding(.top, 2)
+                .padding(.top, AppConstants.paddingVerticalTiny)
             }
         }
-        .padding(.bottom, 20)
+        .padding(.bottom, AppConstants.paddingVertical)
     }
 
     private var sportPickerSection: some View {
@@ -192,10 +192,10 @@ struct ConfigurationDetailView: View {
                         .foregroundColor(.orange)
                     Spacer()
                 }
-                .padding(.top, 2)
+                .padding(.top, AppConstants.paddingVerticalTiny)
             }
         }
-        .padding(.bottom, 20)
+        .padding(.bottom, AppConstants.paddingVertical)
     }
 
     private var numberOfPeopleSection: some View {
@@ -229,7 +229,7 @@ struct ConfigurationDetailView: View {
                 .controlSize(.regular)
             }
         }
-        .padding(.bottom, 20)
+        .padding(.bottom, AppConstants.paddingVertical)
     }
 
     private var configNameSection: some View {
@@ -246,7 +246,7 @@ struct ConfigurationDetailView: View {
                     }
                 }
         }
-        .padding(.bottom, 20)
+        .padding(.bottom, AppConstants.paddingVertical)
     }
 
     private var schedulingSection: some View {
@@ -270,7 +270,7 @@ struct ConfigurationDetailView: View {
                 Text("No day selected. Click 'Add Day' to start scheduling.")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, AppConstants.paddingVerticalSmall)
             } else {
                 let weekdayOrder: [ReservationConfig.Weekday] = [
                     .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday
@@ -298,11 +298,11 @@ struct ConfigurationDetailView: View {
                             set: { newValue in dayTimeSlots[day] = newValue },
                             ))
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, AppConstants.paddingVerticalTiny)
                 }
             }
         }
-        .padding(.bottom, 20)
+        .padding(.bottom, AppConstants.paddingVertical)
     }
 
     private var footerButtonsSection: some View {
@@ -320,8 +320,8 @@ struct ConfigurationDetailView: View {
             .buttonStyle(.borderedProminent)
             .disabled(!isValidConfiguration)
         }
-        .padding(.horizontal, 32)
-        .padding(.vertical, 12)
+        .padding(.horizontal, AppConstants.paddingHorizontalForm)
+        .padding(.vertical, AppConstants.paddingButton)
     }
 
     // MARK: - Private Methods
@@ -574,13 +574,13 @@ struct DayPickerView: View {
         VStack {
             Text("Add Day")
                 .font(.headline)
-                .padding()
+                .padding(AppConstants.paddingHorizontalForm)
 
             if availableDays.isEmpty {
                 Text("A day is already selected. Remove the current day to select a different one.")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                    .padding()
+                    .padding(AppConstants.paddingHorizontalForm)
             } else {
                 List(availableDays, id: \.self) { day in
                     Button(action: {
@@ -607,7 +607,7 @@ struct DayPickerView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.regular)
-                .padding()
+                .padding(AppConstants.paddingHorizontalForm)
             }
         }
         .frame(width: AppConstants.windowDayPickerWidth, height: AppConstants.windowDayPickerHeight)

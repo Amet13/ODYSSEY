@@ -281,7 +281,7 @@ struct LoadingOverlayView: View {
                 .font(.headline)
                 .foregroundColor(.primary)
         }
-        .padding(24)
+        .padding(AppConstants.paddingOverlay)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(.regularMaterial)
@@ -309,7 +309,7 @@ struct ProgressOverlayView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
-        .padding(24)
+        .padding(AppConstants.paddingOverlay)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(.regularMaterial)
@@ -333,7 +333,7 @@ struct SuccessOverlayView: View {
                 .font(.headline)
                 .foregroundColor(.primary)
         }
-        .padding(24)
+        .padding(AppConstants.paddingOverlay)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(.regularMaterial)
@@ -358,7 +358,7 @@ struct ErrorOverlayView: View {
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.center)
         }
-        .padding(24)
+        .padding(AppConstants.paddingOverlay)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(.regularMaterial)
