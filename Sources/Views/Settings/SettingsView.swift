@@ -60,9 +60,7 @@ struct SettingsFormView: View {
     // Computed property for Gmail help URL
     private var gmailHelpURL: URL {
         URL(string: "https://support.google.com/accounts/answer/185833") ??
-            URL(string: "https://google.com") ??
-            URL(string: "https://example.com") ??
-            URL(string: "https://httpbin.org")!
+            URL(string: "https://google.com")!
     }
 
     var body: some View {

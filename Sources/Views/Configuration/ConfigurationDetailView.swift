@@ -31,6 +31,21 @@ struct ConfigurationDetailView: View {
         ZStack {
             Color.odysseyBackground.ignoresSafeArea()
             VStack(spacing: AppConstants.spacingNone) {
+                // Add header for Add Configuration page, styled like SettingsHeader
+                if config == nil {
+                    HStack(spacing: AppConstants.spacingLarge) {
+                        Image(systemName: "sportscourt.fill")
+                            .font(.system(size: AppConstants.primaryFont))
+                            .foregroundColor(.accentColor)
+                        Text("Add Configuration")
+                            .font(.system(size: AppConstants.primaryFont))
+                            .fontWeight(.semibold)
+                        Spacer()
+                    }
+                    .padding(.horizontal, AppConstants.contentPadding)
+                    .padding(.vertical, AppConstants.contentPadding)
+                    Divider().padding(.horizontal, AppConstants.contentPadding)
+                }
                 if !validationErrors.isEmpty {
                     HStack {
                         Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.odysseyWarning)
