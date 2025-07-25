@@ -235,10 +235,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         webView?.navigationDelegate = navigationDelegate
 
         // Set realistic window size with unique positioning for each instance
-        let windowSizes = [
-            (width: 1_440, height: 900), // MacBook Air 13"
-            (width: 1_680, height: 1_050) // MacBook Pro 15"
-        ]
+        let windowSizes = AppConstants.windowSizes
         let selectedSize = windowSizes.randomElement() ?? windowSizes[0]
 
         // Generate unique window position based on instance ID
@@ -269,10 +266,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return
         }
         // Set realistic window size (random from common MacBook resolutions)
-        let windowSizes = [
-            (width: 1_440, height: 900), // MacBook Air 13"
-            (width: 1_680, height: 1_050) // MacBook Pro 15"
-        ]
+        let windowSizes = AppConstants.windowSizes
         let selectedSize = windowSizes.randomElement() ?? windowSizes[0]
         // Create a visible window for debugging
         let window = NSWindow(

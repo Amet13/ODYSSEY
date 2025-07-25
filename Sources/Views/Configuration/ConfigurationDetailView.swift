@@ -29,30 +29,30 @@ struct ConfigurationDetailView: View {
 
     var body: some View {
         ZStack {
-            Color(NSColor.windowBackgroundColor).ignoresSafeArea()
-            VStack(spacing: 0) {
+            Color.odysseyBackground.ignoresSafeArea()
+            VStack(spacing: AppConstants.spacingNone) {
                 if !validationErrors.isEmpty {
                     HStack {
-                        Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange)
+                        Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.odysseyWarning)
                         Text(validationErrors.first ?? "Validation error.")
-                            .foregroundColor(.orange)
-                            .font(.system(size: AppConstants.fontSubheadline))
+                            .foregroundColor(.odysseyWarning)
+                            .font(.system(size: AppConstants.secondaryFont))
                         Spacer()
                     }
-                    .padding(.horizontal, AppConstants.paddingHorizontalForm)
-                    .padding(.top, AppConstants.paddingVerticalTiny)
+                    .padding(.horizontal, AppConstants.sectionPadding)
+                    .padding(.top, AppConstants.paddingTiny)
                 }
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
+                    VStack(alignment: .leading, spacing: AppConstants.spacingNone) {
                         basicSettingsSection
                         sportPickerSection
                         numberOfPeopleSection
                         configNameSection
-                        Divider().padding(.vertical, AppConstants.paddingVerticalSmall)
+                        Divider().padding(.vertical, AppConstants.paddingSmall)
                         schedulingSection
                     }
-                    .padding(.horizontal, AppConstants.paddingHorizontalForm)
-                    .padding(.vertical, AppConstants.paddingVerticalForm)
+                    .padding(.horizontal, AppConstants.sectionPadding)
+                    .padding(.vertical, AppConstants.sectionPadding)
                 }
                 Divider()
                 footerButtonsSection
@@ -82,11 +82,11 @@ struct ConfigurationDetailView: View {
     }
 
     private var basicSettingsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: AppConstants.spacingLarge) {
             Text("Facility URL")
-                .font(.system(size: AppConstants.fontSubheadline))
+                .font(.system(size: AppConstants.secondaryFont))
                 .fontWeight(.semibold)
-                .foregroundColor(.primary)
+                .foregroundColor(.odysseyText)
             TextField("Enter facility URL", text: $facilityURL)
                 .onChange(of: facilityURL) { _, _ in
                     updateConfigurationName()
@@ -94,52 +94,52 @@ struct ConfigurationDetailView: View {
             if !facilityURL.isEmpty, !isValidFacilityURL(facilityURL) {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
-                    HStack(spacing: 0) {
+                        .foregroundColor(.odysseyWarning)
+                    HStack(spacing: AppConstants.spacingNone) {
                         Text("Please enter a ")
-                            .font(.system(size: AppConstants.fontCaption))
-                            .foregroundColor(.orange)
+                            .font(.system(size: AppConstants.tertiaryFont))
+                            .foregroundColor(.odysseyWarning)
                         Button("valid") {
                             if let url = URL(string: AppConstants.ottawaFacilitiesURL) {
                                 NSWorkspace.shared.open(url)
                             }
                         }
                         .buttonStyle(.plain)
-                        .foregroundColor(.blue)
-                        .font(.system(size: AppConstants.fontCaption))
+                        .foregroundColor(.odysseyPrimary)
+                        .font(.system(size: AppConstants.tertiaryFont))
                         Text(" Ottawa Recreation URL.")
-                            .font(.system(size: AppConstants.fontCaption))
-                            .foregroundColor(.orange)
+                            .font(.system(size: AppConstants.tertiaryFont))
+                            .foregroundColor(.odysseyWarning)
                     }
                     Spacer()
                 }
             }
             if facilityURL.isEmpty {
-                HStack(spacing: 4) {
+                HStack(spacing: AppConstants.spacingTiny) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
+                        .foregroundColor(.odysseyWarning)
                     Text("Please enter your facility URL.")
-                        .font(.system(size: AppConstants.fontCaption))
-                        .foregroundColor(.orange)
+                        .font(.system(size: AppConstants.tertiaryFont))
+                        .foregroundColor(.odysseyWarning)
                     Spacer()
                 }
-                .padding(.top, AppConstants.paddingVerticalTiny)
+                .padding(.top, AppConstants.paddingTiny)
             }
         }
-        .padding(.bottom, AppConstants.paddingVertical)
+        .padding(.bottom, AppConstants.contentPadding)
     }
 
     private var sportPickerSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: AppConstants.spacingLarge) {
             Text("Sport Name")
-                .font(.system(size: AppConstants.fontSubheadline))
+                .font(.system(size: AppConstants.secondaryFont))
                 .fontWeight(.semibold)
-                .foregroundColor(.primary)
+                .foregroundColor(.odysseyText)
             HStack {
                 Menu {
                     if availableSports.isEmpty {
                         Text("No sports available")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.odysseySecondaryText)
                     } else {
                         ForEach(availableSports, id: \.self) { sport in
                             Button(action: {
@@ -151,7 +151,7 @@ struct ConfigurationDetailView: View {
                                     Text(sport)
                                     if sportName == sport {
                                         Spacer()
-                                        Image(systemName: "checkmark").foregroundColor(.accentColor)
+                                        Image(systemName: "checkmark").foregroundColor(.odysseyAccent)
                                     }
                                 }
                             }
@@ -160,10 +160,10 @@ struct ConfigurationDetailView: View {
                 } label: {
                     HStack {
                         Text(sportName.isEmpty ? "Select Sport" : sportName)
-                            .foregroundColor(sportName.isEmpty ? .secondary : .primary)
+                            .foregroundColor(sportName.isEmpty ? .odysseySecondaryText : .odysseyText)
                         Spacer()
-                        Image(systemName: "chevron.down").foregroundColor(.secondary)
-                            .font(.system(size: AppConstants.fontCaption))
+                        Image(systemName: "chevron.down").foregroundColor(.odysseySecondaryText)
+                            .font(.system(size: AppConstants.tertiaryFont))
                     }
                 }
                 .accessibilityLabel("Select Sport")
@@ -178,45 +178,45 @@ struct ConfigurationDetailView: View {
             }
             if isFetchingSports {
                 HStack {
-                    ProgressView().scaleEffect(0.8)
-                    Text("Fetching available sports...").font(.system(size: AppConstants.fontCaption))
-                        .foregroundColor(.secondary)
+                    ProgressView().scaleEffect(AppConstants.scaleEffectSmall)
+                    Text("Fetching available sports...").font(.system(size: AppConstants.tertiaryFont))
+                        .foregroundColor(.odysseySecondaryText)
                 }
             }
             if !availableSports.isEmpty {
                 Text("\(availableSports.count) sports found")
-                    .font(.system(size: AppConstants.fontCaption)).foregroundColor(.secondary)
+                    .font(.system(size: AppConstants.tertiaryFont)).foregroundColor(.odysseySecondaryText)
             }
             if validationErrors.contains(where: { $0.contains("Sport name") }) {
-                HStack(spacing: 4) {
+                HStack(spacing: AppConstants.spacingTiny) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
+                        .foregroundColor(.odysseyWarning)
                     Text("Sport name is required.")
-                        .font(.system(size: AppConstants.fontCaption))
-                        .foregroundColor(.orange)
+                        .font(.system(size: AppConstants.tertiaryFont))
+                        .foregroundColor(.odysseyWarning)
                     Spacer()
                 }
-                .padding(.top, AppConstants.paddingVerticalTiny)
+                .padding(.top, AppConstants.paddingTiny)
             }
         }
-        .padding(.bottom, AppConstants.paddingVertical)
+        .padding(.bottom, AppConstants.contentPadding)
     }
 
     private var numberOfPeopleSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: AppConstants.spacingLarge) {
             Text("Number of People")
-                .font(.system(size: AppConstants.fontSubheadline))
+                .font(.system(size: AppConstants.secondaryFont))
                 .fontWeight(.semibold)
-                .foregroundColor(.primary)
-            HStack(spacing: 20) {
+                .foregroundColor(.odysseyText)
+            HStack(spacing: AppConstants.sectionSpacing) {
                 Button(action: {
                     numberOfPeople = 1
                     updateConfigurationName()
                 }) {
                     HStack {
                         Image(systemName: numberOfPeople == 1 ? "largecircle.fill.circle" : "circle")
-                            .foregroundColor(numberOfPeople == 1 ? .accentColor : .secondary)
-                        Text("1 Person").foregroundColor(.primary)
+                            .foregroundColor(numberOfPeople == 1 ? .odysseyAccent : .odysseySecondaryText)
+                        Text("1 Person").foregroundColor(.odysseyText)
                     }
                 }.buttonStyle(.bordered)
                 .controlSize(.regular)
@@ -226,22 +226,22 @@ struct ConfigurationDetailView: View {
                 }) {
                     HStack {
                         Image(systemName: numberOfPeople == 2 ? "largecircle.fill.circle" : "circle")
-                            .foregroundColor(numberOfPeople == 2 ? .accentColor : .secondary)
-                        Text("2 People").foregroundColor(.primary)
+                            .foregroundColor(numberOfPeople == 2 ? .odysseyAccent : .odysseySecondaryText)
+                        Text("2 People").foregroundColor(.odysseyText)
                     }
                 }.buttonStyle(.bordered)
                 .controlSize(.regular)
             }
         }
-        .padding(.bottom, AppConstants.paddingVertical)
+        .padding(.bottom, AppConstants.contentPadding)
     }
 
     private var configNameSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: AppConstants.spacingLarge) {
             Text("Configuration Name")
-                .font(.system(size: AppConstants.fontSubheadline))
+                .font(.system(size: AppConstants.secondaryFont))
                 .fontWeight(.semibold)
-                .foregroundColor(.primary)
+                .foregroundColor(.odysseyText)
             TextField("Configuration Name", text: $name)
                 .accessibilityLabel("Configuration Name")
                 .onChange(of: name) { _, newValue in
@@ -250,31 +250,31 @@ struct ConfigurationDetailView: View {
                     }
                 }
         }
-        .padding(.bottom, AppConstants.paddingVertical)
+        .padding(.bottom, AppConstants.contentPadding)
     }
 
     private var schedulingSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: AppConstants.spacingLarge) {
             HStack {
                 Text("Time Slot")
-                    .font(.system(size: AppConstants.fontSubheadline))
+                    .font(.system(size: AppConstants.secondaryFont))
                     .fontWeight(.semibold)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.odysseyText)
                 Spacer()
                 if dayTimeSlots.isEmpty {
                     Button("Add Day") { showDayPicker = true }
                         .buttonStyle(.bordered)
-                        .controlSize(.small)
+                        .controlSize(.regular)
                 }
             }
             Text("Select one day and one time slot for your reservation")
-                .font(.system(size: AppConstants.fontCaption))
-                .foregroundColor(.secondary)
+                .font(.system(size: AppConstants.tertiaryFont))
+                .foregroundColor(.odysseySecondaryText)
             if dayTimeSlots.isEmpty {
                 Text("No day selected. Click 'Add Day' to start scheduling.")
-                    .font(.system(size: AppConstants.fontCaption))
-                    .foregroundColor(.secondary)
-                    .padding(.vertical, AppConstants.paddingVerticalSmall)
+                    .font(.system(size: AppConstants.tertiaryFont))
+                    .foregroundColor(.odysseySecondaryText)
+                    .padding(.vertical, AppConstants.paddingSmall)
             } else {
                 let weekdayOrder: [ReservationConfig.Weekday] = [
                     .monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday
@@ -288,12 +288,12 @@ struct ConfigurationDetailView: View {
                     VStack(alignment: .leading) {
                         HStack {
                             Text(day.localizedShortName)
-                                .font(.system(size: AppConstants.fontSubheadline))
-                                .foregroundColor(.primary)
+                                .font(.system(size: AppConstants.secondaryFont))
+                                .foregroundColor(.odysseyText)
                             Spacer()
                             Button(action: { removeDay(day) }) {
                                 Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.red)
+                                    .foregroundColor(.odysseyError)
                             }
                             .buttonStyle(.bordered)
                         }
@@ -302,11 +302,11 @@ struct ConfigurationDetailView: View {
                             set: { newValue in dayTimeSlots[day] = newValue },
                             ))
                     }
-                    .padding(.vertical, AppConstants.paddingVerticalTiny)
+                    .padding(.vertical, AppConstants.paddingTiny)
                 }
             }
         }
-        .padding(.bottom, AppConstants.paddingVertical)
+        .padding(.bottom, AppConstants.contentPadding)
     }
 
     private var footerButtonsSection: some View {
@@ -324,8 +324,8 @@ struct ConfigurationDetailView: View {
             .buttonStyle(.borderedProminent)
             .disabled(!isValidConfiguration)
         }
-        .padding(.horizontal, AppConstants.paddingHorizontalForm)
-        .padding(.vertical, AppConstants.paddingButton)
+        .padding(.horizontal, AppConstants.sectionPadding)
+        .padding(.vertical, AppConstants.buttonPadding)
     }
 
     // MARK: - Private Methods
@@ -578,13 +578,13 @@ struct DayPickerView: View {
         VStack {
             Text("Add Day")
                 .font(.headline)
-                .padding(AppConstants.paddingHorizontalForm)
+                .padding(AppConstants.sectionPadding)
 
             if availableDays.isEmpty {
                 Text("A day is already selected. Remove the current day to select a different one.")
                     .font(.system(size: AppConstants.fontCaption))
-                    .foregroundColor(.secondary)
-                    .padding(AppConstants.paddingHorizontalForm)
+                    .foregroundColor(.odysseySecondaryText)
+                    .padding(AppConstants.sectionPadding)
             } else {
                 List(availableDays, id: \.self) { day in
                     Button(action: {
@@ -593,10 +593,10 @@ struct DayPickerView: View {
                     }) {
                         HStack {
                             Text(day.localizedShortName)
-                                .foregroundColor(.primary)
+                                .foregroundColor(.odysseyText)
                             Spacer()
                             Image(systemName: "plus.circle")
-                                .foregroundColor(.accentColor)
+                                .foregroundColor(.odysseyAccent)
                         }
                     }
                     .buttonStyle(.bordered)
@@ -611,7 +611,7 @@ struct DayPickerView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.regular)
-                .padding(AppConstants.paddingHorizontalForm)
+                .padding(AppConstants.sectionPadding)
             }
         }
         .frame(width: AppConstants.windowDayPickerWidth, height: AppConstants.windowDayPickerHeight)

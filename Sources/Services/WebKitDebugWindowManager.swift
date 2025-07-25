@@ -14,11 +14,8 @@ class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
             debugWindow?.makeKeyAndOrderFront(nil)
             return
         }
-        let windowSizes = [
-            (width: 1_440, height: 900),
-            (width: 1_680, height: 1_050)
-        ]
-        let selectedSize = windowSizes.randomElement() ?? windowSizes[0]
+        // Use AppConstants.windowSizes for window sizing
+        let selectedSize = AppConstants.windowSizes.randomElement() ?? AppConstants.windowSizes[0]
         let window = NSWindow(
             contentRect: NSRect(x: 200, y: 200, width: selectedSize.width, height: selectedSize.height),
             styleMask: [.titled, .closable, .resizable],

@@ -133,9 +133,9 @@ extension View {
             Group {
                 if isLoading {
                     ProgressView()
-                        .scaleEffect(1.5)
+                        .scaleEffect(AppConstants.scaleEffectLarge)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color.black.opacity(0.3))
+                        .background(Color.black.opacity(AppConstants.opacityLight))
                 }
             },
             )
@@ -171,7 +171,7 @@ public extension Color {
     static let odysseyError = Color.red
 
     /// Warning color - adapts to dark mode
-    static let odysseyWarning = Color.yellow
+    static let odysseyWarning = Color.orange
 
     /// Background color - adapts to system appearance
     static let odysseyBackground = Color(NSColor.windowBackgroundColor)
@@ -193,6 +193,9 @@ public extension Color {
 
     /// Secondary text color - adapts to system appearance
     static let odysseySecondaryText = Color(NSColor.secondaryLabelColor)
+
+    /// Gray color - adapts to dark mode
+    static let odysseyGray = Color.gray
 }
 
 // MARK: - Logger Extensions

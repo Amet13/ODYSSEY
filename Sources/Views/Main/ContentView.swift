@@ -19,9 +19,7 @@ struct ContentView: View {
     @State private var showingSettings = false
     @State private var showingAbout = false
     @State private var showingGodModeConfig = false
-    // Loading and progress state
-    @ObservedObject private var loadingStateManager = LoadingStateManager.shared
-    // Removed bannerTimer property and all banner-related code
+    // Remove all usages of LoadingStateManager and related UI
     // Removed any white background or overlay from the UI, so all backgrounds are transparent or inherit the window
     // background
     // God mode and error/help UI
@@ -43,7 +41,6 @@ struct ContentView: View {
             showingSettings: $showingSettings,
             showingAbout: $showingAbout,
             showingGodModeConfig: $showingGodModeConfig,
-            loadingStateManager: loadingStateManager,
             godModeUIEnabled: $godModeUIEnabled,
             showingUserError: $showingUserError,
             showingHelp: $showingHelp,
@@ -78,7 +75,6 @@ private struct MainBody: View {
     @Binding var showingSettings: Bool
     @Binding var showingAbout: Bool
     @Binding var showingGodModeConfig: Bool
-    @ObservedObject var loadingStateManager: LoadingStateManager
     // Removed bannerTimer property and all banner-related code
     // Removed any white background or overlay from the UI, so all backgrounds are transparent or inherit the window
     // background
@@ -90,7 +86,7 @@ private struct MainBody: View {
 
     var body: some View {
         ZStack {
-            VStack(spacing: 0) {
+            VStack(spacing: AppConstants.spacingNone) {
                 HeaderView(
                     godModeUIEnabled: $godModeUIEnabled,
                     showingAddConfig: $showingAddConfig,
@@ -299,35 +295,35 @@ private struct HeaderView: View {
     @StateObject private var userSettingsManager = UserSettingsManager.shared
 
     var body: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 12) {
+        VStack(spacing: AppConstants.spacingMedium) {
+            HStack(spacing: AppConstants.spacingLarge) {
                 Image(systemName: "sportscourt.fill")
                     .font(.system(size: AppConstants.iconLarge))
                     .foregroundColor(.odysseyAccent)
                 Text("ODYSSEY")
-                    .font(.system(size: AppConstants.fontTitle))
+                    .font(.system(size: AppConstants.primaryFont))
                     .fontWeight(.bold)
                 Spacer()
                 if godModeUIEnabled {
                     Button(action: simulateAutorunForToday) {
-                        HStack(spacing: 6) {
+                        HStack(spacing: AppConstants.spacingSmall) {
                             Image(systemName: "bolt.fill")
                                 .foregroundColor(.odysseyWarning)
                             Text("GOD MODE")
-                                .font(.system(size: AppConstants.fontCaption))
+                                .font(.system(size: AppConstants.tertiaryFont))
                                 .fontWeight(.bold)
                                 .foregroundColor(.odysseyWarning)
                         }
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.odysseyAccent)
-                    .controlSize(.small)
+                    .controlSize(.regular)
                     .help("⚡ Simulate autorun for \(formatCustomTime()) today")
                     .accessibilityLabel("Simulate GOD MODE")
                 }
                 Button(action: { showingAddConfig = true }) {
                     Image(systemName: "plus")
-                        .foregroundColor(.white)
+                        .foregroundColor(Color.odysseyCardBackground)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.regular)
@@ -340,9 +336,9 @@ private struct HeaderView: View {
                 .keyboardShortcut("n", modifiers: .command)
             }
         }
-        .padding(.horizontal, AppConstants.paddingHorizontal)
-        .padding(.top, AppConstants.paddingVertical)
-        .padding(.bottom, AppConstants.paddingVertical)
+        .padding(.horizontal, AppConstants.contentPadding)
+        .padding(.top, AppConstants.contentPadding)
+        .padding(.bottom, AppConstants.contentPadding)
     }
 
     private func formatCustomTime() -> String {
@@ -401,19 +397,19 @@ private struct EmptyStateView: View {
     @Binding var showingAddConfig: Bool
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: AppConstants.sectionSpacing) {
             Spacer()
             Image(systemName: "sportscourt")
                 .font(.system(size: AppConstants.iconLarge))
-                .foregroundColor(.secondary)
+                .foregroundColor(Color.odysseySecondaryText)
             Text("No Reservations Configured")
-                .font(.system(size: AppConstants.fontTitle3))
+                .font(.system(size: AppConstants.primaryFont))
                 .fontWeight(.medium)
             Text("Add your first reservation configuration to get started with automated booking.")
-                .font(.system(size: AppConstants.fontBody))
-                .foregroundColor(.secondary)
+                .font(.system(size: AppConstants.secondaryFont))
+                .foregroundColor(Color.odysseySecondaryText)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, AppConstants.paddingHorizontal)
+                .padding(.horizontal, AppConstants.contentPadding)
             Button("Add Configuration") {
                 showingAddConfig = true
             }
@@ -423,7 +419,7 @@ private struct EmptyStateView: View {
             .keyboardShortcut("n", modifiers: .command)
             Spacer()
         }
-        .padding(AppConstants.paddingHorizontal)
+        .padding(AppConstants.contentPadding)
     }
 }
 
@@ -438,7 +434,7 @@ private struct ConfigurationListView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 0) {
+            LazyVStack(spacing: AppConstants.spacingNone) {
                 ForEach(
                     Array(configManager.settings.configurations.enumerated()),
                     id: \.element.id,
@@ -462,7 +458,7 @@ private struct ConfigurationListView: View {
                 }
             }
         }
-        .padding(.horizontal, AppConstants.paddingHorizontal)
+        .padding(.horizontal, AppConstants.contentPadding)
     }
 }
 
@@ -471,14 +467,14 @@ private struct FooterView: View {
     @Binding var showingAbout: Bool
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: AppConstants.spacingMedium) {
             HStack {
                 Button(action: { showingSettings = true }) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: AppConstants.spacingSmall) {
                         Image(systemName: "gearshape.fill")
-                            .font(.system(size: AppConstants.fontCaption))
+                            .font(.system(size: AppConstants.tertiaryFont))
                         Text("Settings")
-                            .font(.system(size: AppConstants.fontCaption))
+                            .font(.system(size: AppConstants.tertiaryFont))
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -491,11 +487,11 @@ private struct FooterView: View {
                 Spacer()
 
                 Button(action: { showingAbout = true }) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: AppConstants.spacingSmall) {
                         Image(systemName: "info.circle.fill")
-                            .font(.system(size: AppConstants.fontCaption))
+                            .font(.system(size: AppConstants.tertiaryFont))
                         Text("About")
-                            .font(.system(size: AppConstants.fontCaption))
+                            .font(.system(size: AppConstants.tertiaryFont))
                     }
                 }
                 .buttonStyle(.bordered)
@@ -506,11 +502,11 @@ private struct FooterView: View {
                 Spacer()
 
                 Button(action: { NSApp.terminate(nil) }) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: AppConstants.spacingSmall) {
                         Image(systemName: "power")
-                            .font(.system(size: AppConstants.fontCaption))
+                            .font(.system(size: AppConstants.tertiaryFont))
                         Text("Quit")
-                            .font(.system(size: AppConstants.fontCaption))
+                            .font(.system(size: AppConstants.tertiaryFont))
                     }
                 }
                 .buttonStyle(.borderedProminent)
@@ -519,9 +515,9 @@ private struct FooterView: View {
                 .help(NSLocalizedString("quit_tooltip", comment: "Quit ODYSSEY"))
                 .accessibilityLabel(NSLocalizedString("quit", comment: "Quit"))
             }
-            .padding(.horizontal, AppConstants.paddingHorizontal)
-            .padding(.bottom, AppConstants.paddingVertical)
-            .padding(.top, AppConstants.paddingVertical)
+            .padding(.horizontal, AppConstants.contentPadding)
+            .padding(.bottom, AppConstants.contentPadding)
+            .padding(.top, AppConstants.contentPadding)
         }
     }
 }
@@ -557,11 +553,11 @@ struct ConfigurationRowView: View {
     @State private var showingDeleteConfirmation = false
     @StateObject private var userSettingsManager = UserSettingsManager.shared
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .top, spacing: 8) {
+        VStack(alignment: .leading, spacing: AppConstants.spacingTiny) {
+            HStack(alignment: .top, spacing: AppConstants.spacingMedium) {
                 Text(config.name)
-                    .font(.system(size: AppConstants.fontTitle3))
-                    .foregroundColor(.primary)
+                    .font(.system(size: AppConstants.primaryFont))
+                    .foregroundColor(Color.odysseyText)
                     .lineLimit(1)
                     .truncationMode(.tail)
                 Spacer()
@@ -611,43 +607,43 @@ struct ConfigurationRowView: View {
             .accessibilityElement()
             .accessibilityLabel("Reservation configuration for \(config.name)")
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
-            HStack(spacing: 4) {
+            HStack(spacing: AppConstants.spacingTiny) {
                 SportIconView(
                     symbolName: SportIconMapper.iconForSport(config.sportName),
                     color: .odysseyAccent,
-                    size: 12,
+                    size: AppConstants.iconTiny,
                     )
                 Text(
                     "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(formatScheduleInfoInline())",
                     )
-                .font(.system(size: AppConstants.fontSubheadline))
-                .foregroundColor(.secondary)
+                .font(.system(size: AppConstants.secondaryFont))
+                .foregroundColor(Color.odysseySecondaryText)
                 .fixedSize(horizontal: false, vertical: true)
             }
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: AppConstants.spacingTiny) {
                 if let next = nextAutorunInfo {
-                    HStack(spacing: 2) {
+                    HStack(spacing: AppConstants.spacingTiny) {
                         Image(systemName: "clock")
-                            .font(.system(size: AppConstants.fontCaption))
+                            .font(.system(size: AppConstants.tertiaryFont))
                             .foregroundColor(.odysseyAccent)
                         Text("Next autorun in:")
-                            .font(.system(size: AppConstants.fontCaption))
+                            .font(.system(size: AppConstants.tertiaryFont))
                             .foregroundColor(.odysseyAccent)
                         Text(formatCountdown(next.date))
-                            .font(.system(size: AppConstants.fontCaption))
+                            .font(.system(size: AppConstants.tertiaryFont))
                             .foregroundColor(.odysseyAccent)
                     }
                 }
                 lastRunStatusView(for: lastRunInfo)
             }
         }
-        .padding(.vertical, AppConstants.paddingVerticalSmall)
+        .padding(.vertical, AppConstants.paddingSmall)
         // Removed border and overlay, keep background only if needed in future
         .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color(NSColor.controlBackgroundColor).opacity(0.1)),
+            RoundedRectangle(cornerRadius: AppConstants.cardCornerRadius)
+                .fill(Color(NSColor.controlBackgroundColor).opacity(AppConstants.opacitySubtle)),
             )
-        .padding(.vertical, 4)
+        .padding(.vertical, AppConstants.paddingTiny)
         .alert(
             "Delete Configuration",
             isPresented: $showingDeleteConfirmation,
@@ -765,22 +761,22 @@ struct ConfigurationRowView: View {
             case .godmode: " (god mode)"
             }
             return AnyView(
-                HStack(spacing: 2) {
+                HStack(spacing: AppConstants.spacingTiny) {
                     Image(systemName: statusInfo.iconName)
                         .foregroundColor(statusInfo.statusColor)
-                        .font(.system(size: AppConstants.fontCaption))
+                        .font(.system(size: AppConstants.tertiaryFont))
                     Text("Last run:")
-                        .font(.system(size: AppConstants.fontCaption))
+                        .font(.system(size: AppConstants.tertiaryFont))
                         .foregroundColor(statusInfo.statusColor)
                     Text(statusInfo.statusKey + runTypeKey)
-                        .font(.system(size: AppConstants.fontCaption))
+                        .font(.system(size: AppConstants.tertiaryFont))
                         .foregroundColor(statusInfo.statusColor)
                     if let date = lastRun.date {
                         Text(date, style: .date)
-                            .font(.system(size: AppConstants.fontCaption))
+                            .font(.system(size: AppConstants.tertiaryFont))
                             .foregroundColor(statusInfo.statusColor)
                         Text(date, style: .time)
-                            .font(.system(size: AppConstants.fontCaption))
+                            .font(.system(size: AppConstants.tertiaryFont))
                             .foregroundColor(statusInfo.statusColor)
                     }
                 },
@@ -788,16 +784,16 @@ struct ConfigurationRowView: View {
         } else {
             // Configuration has never been run - show in grey
             return AnyView(
-                HStack(spacing: 2) {
+                HStack(spacing: AppConstants.spacingTiny) {
                     Image(systemName: "questionmark.circle")
-                        .foregroundColor(.gray)
-                        .font(.system(size: AppConstants.fontCaption))
+                        .foregroundColor(Color.odysseyGray)
+                        .font(.system(size: AppConstants.tertiaryFont))
                     Text("Last run:")
-                        .font(.system(size: AppConstants.fontCaption))
-                        .foregroundColor(.gray)
+                        .font(.system(size: AppConstants.tertiaryFont))
+                        .foregroundColor(Color.odysseyGray)
                     Text("never")
-                        .font(.system(size: AppConstants.fontCaption))
-                        .foregroundColor(.gray)
+                        .font(.system(size: AppConstants.tertiaryFont))
+                        .foregroundColor(Color.odysseyGray)
                 },
                 )
         }
@@ -810,22 +806,22 @@ struct DeleteConfirmationModal: View {
     let onCancel: () -> Void
     @StateObject private var userSettingsManager = UserSettingsManager.shared
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: AppConstants.sectionSpacing) {
             Image(systemName: "sportscourt.fill")
                 .font(.system(size: AppConstants.iconLarge))
                 .foregroundColor(.odysseyAccent)
-                .padding(.top, AppConstants.paddingVerticalForm)
+                .padding(.top, AppConstants.sectionPadding)
             Text("Delete Configuration")
-                .font(.system(size: AppConstants.fontTitle3))
+                .font(.system(size: AppConstants.primaryFont))
                 .fontWeight(.semibold)
             let deleteMessage = "Are you sure you want to delete '"
             let undoMessage = "'? This action cannot be undone."
             Text(deleteMessage + configName + undoMessage)
                 .multilineTextAlignment(.center)
-                .font(.system(size: AppConstants.fontBody))
-                .foregroundColor(.secondary)
-                .padding(.horizontal, AppConstants.paddingHorizontalForm)
-            HStack(spacing: 20) {
+                .font(.system(size: AppConstants.secondaryFont))
+                .foregroundColor(Color.odysseySecondaryText)
+                .padding(.horizontal, AppConstants.sectionPadding)
+            HStack(spacing: AppConstants.sectionSpacing) {
                 Button("Cancel") {
                     onCancel()
                 }
@@ -836,15 +832,15 @@ struct DeleteConfirmationModal: View {
                 .buttonStyle(.borderedProminent)
                 .tint(.red)
             }
-            .padding(.bottom, AppConstants.paddingVerticalForm)
+            .padding(.bottom, AppConstants.sectionPadding)
         }
         .frame(width: AppConstants.windowDeleteModalWidth)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: AppConstants.modalCornerRadius)
                 .fill(Color(NSColor.windowBackgroundColor))
-                .shadow(radius: 20),
+                .shadow(radius: AppConstants.shadowRadiusXXLarge),
             )
-        .padding(AppConstants.paddingHorizontalForm)
+        .padding(AppConstants.sectionPadding)
     }
 }
 

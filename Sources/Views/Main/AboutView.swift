@@ -13,58 +13,45 @@ struct AboutView: View {
 
     var body: some View {
         ZStack {
-            Color(NSColor.windowBackgroundColor).ignoresSafeArea()
-            // Background that closes the window when tapped
-            Color.white // Solid white background
+            Color.odysseyBackground.ignoresSafeArea()
+            Color.white
                 .contentShape(Rectangle())
                 .onTapGesture {
                     dismiss()
                 }
 
-            // Content area
-            VStack(spacing: 0) {
-                VStack(spacing: 16) {
-                    // Header
-                    VStack(spacing: 8) {
+            VStack(spacing: AppConstants.spacingNone) {
+                VStack(spacing: AppConstants.spacingLarge) {
+                    VStack(spacing: AppConstants.spacingMedium) {
                         Image(systemName: "sportscourt.fill")
-                            .font(.system(size: 32))
-                            .foregroundColor(.blue)
+                            .font(.system(size: AppConstants.fontColossal))
+                            .foregroundColor(.odysseyPrimary)
 
                         Text(NSLocalizedString("ODYSSEY", comment: "App name"))
-                            .font(.title2)
+                            .font(.system(size: AppConstants.accentFont))
                             .fontWeight(.bold)
 
                         Text(NSLocalizedString("about_app_subtitle", comment: "App subtitle"))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.system(size: AppConstants.tertiaryFont))
+                            .foregroundColor(.odysseySecondaryText)
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
 
                         if let githubURL = URL(string: "https://github.com/Amet13/ODYSSEY") {
                             Link("Version \(appVersion)", destination: githubURL)
-                                .font(.caption2)
-                                .foregroundColor(.blue)
+                                .font(.system(size: AppConstants.tertiaryFont))
+                                .foregroundColor(.odysseyPrimary)
                         } else {
                             Text("Version \(appVersion)")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
+                                .font(.system(size: AppConstants.tertiaryFont))
+                                .foregroundColor(.odysseySecondaryText)
                         }
                     }
 
                     Divider()
 
-                    // Description
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(NSLocalizedString("about_section_title", comment: "About ODYSSEY"))
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .padding(.bottom, AppConstants.paddingVerticalTiny)
-                        Text(NSLocalizedString("about_app_description", comment: "App description"))
-                            .font(.body)
-                            .foregroundColor(.primary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .multilineTextAlignment(.leading)
-                        VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: AppConstants.contentSpacing) {
+                        VStack(alignment: .leading, spacing: AppConstants.spacingSmall) {
                             FeatureRow(
                                 icon: "sportscourt",
                                 text: NSLocalizedString(
@@ -94,8 +81,8 @@ struct AboutView: View {
                         }
                     }
                 }
-                .padding(.horizontal, AppConstants.paddingHorizontalForm)
-                .padding(.vertical, AppConstants.paddingVertical)
+                .padding(.horizontal, AppConstants.sectionPadding)
+                .padding(.vertical, AppConstants.contentPadding)
                 .onTapGesture {
                     // Prevent tap from propagating to background when clicking on content
                 }
@@ -114,14 +101,14 @@ struct FeatureRow: View {
     let text: String
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: AppConstants.spacingMedium) {
             Image(systemName: icon)
-                .foregroundColor(.blue)
+                .foregroundColor(.odysseyPrimary)
                 .frame(width: AppConstants.iconSmall)
 
             Text(text)
-                .font(.caption)
-                .foregroundColor(.primary)
+                .font(.system(size: AppConstants.tertiaryFont))
+                .foregroundColor(.odysseyText)
 
             Spacer()
         }
