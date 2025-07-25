@@ -19,9 +19,6 @@ struct ContentView: View {
     @State private var showingSettings = false
     @State private var showingAbout = false
     @State private var showingGodModeConfig = false
-    // Remove all usages of LoadingStateManager and related UI
-    // Removed any white background or overlay from the UI, so all backgrounds are transparent or inherit the window
-    // background
     // God mode and error/help UI
     @State private var godModeUIEnabled = false
     @State private var showingUserError = false
@@ -75,7 +72,6 @@ private struct MainBody: View {
     @Binding var showingSettings: Bool
     @Binding var showingAbout: Bool
     @Binding var showingGodModeConfig: Bool
-    // Removed bannerTimer property and all banner-related code
     // Removed any white background or overlay from the UI, so all backgrounds are transparent or inherit the window
     // background
     @Binding var godModeUIEnabled: Bool
@@ -638,7 +634,6 @@ struct ConfigurationRowView: View {
             }
         }
         .padding(.vertical, AppConstants.paddingSmall)
-        // Removed border and overlay, keep background only if needed in future
         .background(
             RoundedRectangle(cornerRadius: AppConstants.cardCornerRadius)
                 .fill(Color(NSColor.controlBackgroundColor).opacity(AppConstants.opacitySubtle)),

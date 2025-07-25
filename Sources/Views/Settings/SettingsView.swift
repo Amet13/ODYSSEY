@@ -187,7 +187,6 @@ private struct SettingsHeader: View {
         }
         .padding(.horizontal, AppConstants.contentPadding)
         .padding(.vertical, AppConstants.contentPadding)
-        // Removed background for transparency
     }
 }
 

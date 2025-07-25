@@ -53,7 +53,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Initialize services
         initializeServices()
 
-        // Removed NotificationCenter.default.addObserver for customAutorunTimeChangedNotification
         // Initialize complete
     }
 
@@ -69,7 +68,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     deinit {
-        // Removed NotificationCenter.default.removeObserver(self)
     }
 
     // MARK: - Private Methods
