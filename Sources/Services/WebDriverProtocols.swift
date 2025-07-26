@@ -1,7 +1,7 @@
 import Combine
 import Foundation
 
-// MARK: - Web Automation Protocols (WebKit)
+// MARK: - Web Automation Protocols (WebKit).
 
 /// Protocol for web automation service abstraction.
 @MainActor
@@ -21,14 +21,14 @@ public protocol WebAutomationServiceProtocol: ObservableObject, Sendable {
     func disconnect(closeWindow: Bool) async
     /// Navigates the web browser to the specified URL.
     func navigateToURL(_ url: String) async throws
-    /// Retrieves the source code of the current web page
+    /// Retrieves the source code of the current web page.
     func getPageSource() async throws -> String
-    /// Retrieves the current URL of the web page
+    /// Retrieves the current URL of the web page.
     func getCurrentURL() async throws -> String
-    /// Retrieves the title of the current web page
+    /// Retrieves the title of the current web page.
     func getTitle() async throws -> String
 
-    // --- Extended API for ODYSSEY automation ---
+    // --- Extended API for ODYSSEY automation ---.
     func forceReset() async
     func isServiceValid() -> Bool
     func reset() async
@@ -50,66 +50,66 @@ public protocol WebAutomationServiceProtocol: ObservableObject, Sendable {
     func handleEmailVerification(verificationStart: Date) async -> Bool
 }
 
-// MARK: - Web Element Protocol
+// MARK: - Web Element Protocol.
 
-/// Protocol for web element abstraction
+/// Protocol for web element abstraction.
 @preconcurrency
 public protocol WebElementProtocol {
-    /// Unique identifier for the web element
+    /// Unique identifier for the web element.
     var id: String { get }
-    /// The HTML tag name of the element
+    /// The HTML tag name of the element.
     var tagName: String { get }
-    /// The type of the element (e.g., "input", "button")
+    /// The type of the element (e.g., "input", "button").
     var type: String? { get }
-    /// The value of the element
+    /// The value of the element.
     var value: String { get set }
-    /// Indicates if the element is currently displayed on the page
+    /// Indicates if the element is currently displayed on the page.
     var isDisplayed: Bool { get }
-    /// Indicates if the element is enabled and can be interacted with
+    /// Indicates if the element is enabled and can be interacted with.
     var isEnabled: Bool { get }
-    /// Indicates if the element is selected
+    /// Indicates if the element is selected.
     var isSelected: Bool { get }
 
-    /// Clicks the web element
+    /// Clicks the web element.
     func click() async throws
-    /// Types text into the web element
+    /// Types text into the web element.
     func type(_ text: String) async throws
-    /// Clears the text from the web element
+    /// Clears the text from the web element.
     func clear() async throws
-    /// Retrieves the value of a specific attribute of the element
+    /// Retrieves the value of a specific attribute of the element.
     func getAttribute(_ name: String) async throws -> String?
-    /// Retrieves the text content of the web element
+    /// Retrieves the text content of the web element.
     func getText() async throws -> String
-    /// Checks if the element is currently displayed on the page
+    /// Checks if the element is currently displayed on the page.
     func isDisplayed() async throws -> Bool
-    /// Checks if the element is enabled and can be interacted with
+    /// Checks if the element is enabled and can be interacted with.
     func isEnabled() async throws -> Bool
 }
 
-// MARK: - Web Driver Error Types
+// MARK: - Web Driver Error Types.
 
-/// Errors thrown by the web driver
+/// Errors thrown by the web driver.
 public enum WebDriverError: Error, LocalizedError {
-    /// Navigation to a URL failed
+    /// Navigation to a URL failed.
     case navigationFailed(String)
-    /// The requested web element was not found
+    /// The requested web element was not found.
     case elementNotFound(String)
-    /// Clicking on the web element failed
+    /// Clicking on the web element failed.
     case clickFailed(String)
-    /// Typing text into the web element failed
+    /// Typing text into the web element failed.
     case typeFailed(String)
-    /// Script execution failed
+    /// Script execution failed.
     case scriptExecutionFailed(String)
-    /// Operation timed out
+    /// Operation timed out.
     case timeout(String)
-    /// Failed to establish a connection to the web automation session
+    /// Failed to establish a connection to the web automation session.
     case connectionFailed(String)
-    /// The provided selector is invalid
+    /// The provided selector is invalid.
     case invalidSelector(String)
-    /// The web element is no longer valid (stale)
+    /// The web element is no longer valid (stale).
     case staleElement(String)
 
-    /// Human-readable error description
+    /// Human-readable error description.
     public var errorDescription: String? {
         switch self {
         case let .navigationFailed(message):
@@ -134,21 +134,21 @@ public enum WebDriverError: Error, LocalizedError {
     }
 }
 
-// MARK: - Configuration Type
+// MARK: - Configuration Type.
 
-/// Configuration for a web driver session
+/// Configuration for a web driver session.
 public struct Configuration: Equatable {
-    /// Unique identifier for the configuration
+    /// Unique identifier for the configuration.
     public let id: UUID
-    /// Name of the configuration
+    /// Name of the configuration.
     public let name: String
-    /// Facility URL
+    /// Facility URL.
     public let facilityURL: String
-    /// Sport name
+    /// Sport name.
     public let sportName: String
-    /// Whether the configuration is enabled
+    /// Whether the configuration is enabled.
     public let isEnabled: Bool
-    /// Initialize a new configuration
+    /// Initialize a new configuration.
     public init(id: UUID = UUID(), name: String, facilityURL: String, sportName: String, isEnabled: Bool = true) {
         self.id = id
         self.name = name
@@ -157,7 +157,7 @@ public struct Configuration: Equatable {
         self.isEnabled = isEnabled
     }
 
-    /// Equatable conformance
+    /// Equatable conformance.
     public static func == (lhs: Configuration, rhs: Configuration) -> Bool {
         return lhs.id == rhs.id &&
             lhs.name == rhs.name &&

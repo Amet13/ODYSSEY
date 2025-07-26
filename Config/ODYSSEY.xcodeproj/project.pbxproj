@@ -39,6 +39,7 @@
 		CD28D84649639DDF5D9281B7 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23E39878914FA1362DBDFB3 /* SettingsView.swift */; };
 		D0D38869F2FD5CFC3BE0DC22 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F14DC9CCCBB581C4F030E51 /* StatusBarController.swift */; };
 		DC6BD4AFB504DDB4F2D9BD47 /* WebDriverProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */; };
+		DD43208043CCB4AFD742447C /* GodModeStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2D953F23B3F12AD69F00F1 /* GodModeStateManager.swift */; };
 		E2CDCC931C7C13AD6F4D8DD4 /* UserSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88087B5FF17E55461F2F9181 /* UserSettingsManager.swift */; };
 		EA6EEFF8B30707E8E262F49C /* SleepManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D0B7AB72792B20FDA3B016F /* SleepManager.swift */; };
 		FA8FDED3BB6BF7B43C24F5B5 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9F32A0A5C6C800FBB7769711 /* AppIcon.icns */; };
@@ -71,6 +72,7 @@
 		9F32A0A5C6C800FBB7769711 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		9F37E32A2DEAB7D80A5148F2 /* Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		A7A301E1B3374676F73BCE2C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		AE2D953F23B3F12AD69F00F1 /* GodModeStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GodModeStateManager.swift; sourceTree = "<group>"; };
 		D401C9E0BDAD61E6DECC196A /* ODYSSEYApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ODYSSEYApp.swift; sourceTree = "<group>"; };
 		D69C877E24F28F08FF142CE1 /* FacilityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FacilityService.swift; sourceTree = "<group>"; };
 		D816DD0E16D5EE6F9F3CD84A /* ReservationStatusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationStatusManager.swift; sourceTree = "<group>"; };
@@ -137,6 +139,7 @@
 				EF7F9263A160A352A9E2E0E7 /* EmailCore.swift */,
 				3419A41E593FC7E578492598 /* EmailService.swift */,
 				D69C877E24F28F08FF142CE1 /* FacilityService.swift */,
+				AE2D953F23B3F12AD69F00F1 /* GodModeStateManager.swift */,
 				DFB48B132242AD260155FF55 /* KeychainService.swift */,
 				82530443D1540D732CEA17A3 /* LoadingStateManager.swift */,
 				2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */,
@@ -310,6 +313,7 @@
 				87BEA07219CB32EABEA725D0 /* EmailService.swift in Sources */,
 				5C0D5006496F0363F46D5C9B /* Extensions.swift in Sources */,
 				AF9C5201A1EA357818523371 /* FacilityService.swift in Sources */,
+				DD43208043CCB4AFD742447C /* GodModeStateManager.swift in Sources */,
 				905062F2527E06FEDA546FA1 /* KeychainService.swift in Sources */,
 				5CFE6AC761E865868F08AAC9 /* LoadingStateManager.swift in Sources */,
 				CB04374E216585BE1DBC7BF4 /* ODYSSEYApp.swift in Sources */,

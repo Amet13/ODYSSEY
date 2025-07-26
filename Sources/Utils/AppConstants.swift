@@ -24,7 +24,6 @@ public enum AppConstants {
 
     static let gmailImapServer = "imap.gmail.com"
     static let gmailImapPort: UInt16 = 993
-    static let defaultImapPort: UInt16 = 993
     static let verificationEmailFrom = "noreply@frontdesksuite.com"
     static let verificationEmailSubject = "Verify your email"
 
@@ -49,6 +48,11 @@ public enum AppConstants {
     static let configurationsKey = "ConfigurationManager.configurations"
     static let loggingSubsystem = "com.odyssey.app"
 
+    // MARK: - Notification Names
+
+    static let addConfigurationNotification = Notification.Name("addConfiguration")
+    static let openSettingsNotification = Notification.Name("openSettings")
+
     // MARK: - Validation Patterns
 
     static let patterns = [
@@ -57,6 +61,34 @@ public enum AppConstants {
         "phoneNumber": "^\\+?[1-9]\\d{1,14}$",
         "email": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
     ]
+
+    // MARK: - Magic Numbers and Limits
+
+    // Time-related constants
+    static let verificationCodeTimeoutSeconds: TimeInterval = 300.0
+    static let emailSearchWindowMinutes: TimeInterval = 10.0
+    static let codePoolRefreshIntervalSeconds: TimeInterval = 300.0
+    static let maxWaitTimeForGodModeSeconds: TimeInterval = 300.0
+    static let additionalWaitTimeForUIUpdatesSeconds: TimeInterval = 2.0
+
+    // Validation limits
+    static let maxNumberOfPeople: Int = 2
+    static let minNumberOfPeople: Int = 1
+    static let maxVerificationCodeLength: Int = 4
+    static let maxPhoneNumberLength: Int = 10
+    static let maxEmailLength: Int = 254
+
+    // UI limits
+    static let maxConfigurationNameLength: Int = 30
+    static let maxSportNameLength: Int = 50
+    static let maxFacilityNameLength: Int = 30
+
+    // Default values
+    public static let defaultNumberOfPeople: Int = 1
+    public static let defaultAutorunHour: Int = 18
+    public static let defaultAutorunMinute: Int = 0
+    public static let defaultGmailPort: UInt16 = 993
+    public static let defaultImapPort: UInt16 = 993
 }
 
 // MARK: - UI Constants
@@ -104,6 +136,8 @@ extension AppConstants {
 
     // MARK: - Legacy Padding (for backward compatibility)
 
+    // These are kept for backward compatibility with existing code
+    // Consider migrating to the new padding system in future updates
     static let paddingHorizontal: CGFloat = paddingXLarge
     static let paddingHorizontalForm: CGFloat = paddingXXXLarge
     static let paddingHorizontalSettings: CGFloat = paddingLarge
@@ -132,6 +166,8 @@ extension AppConstants {
 
     // MARK: - Legacy Font Sizes (for backward compatibility)
 
+    // These are kept for backward compatibility with existing code
+    // Consider migrating to the new typography system in future updates
     static let fontTitle: CGFloat = fontXXXLarge
     static let fontTitle2: CGFloat = fontXXLarge
     static let fontTitle3: CGFloat = fontXLarge

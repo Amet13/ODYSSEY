@@ -33,7 +33,7 @@ public struct ReservationConfig: Identifiable, Equatable, Codable, Sendable {
         name: String,
         facilityURL: String,
         sportName: String,
-        numberOfPeople: Int = 1,
+        numberOfPeople: Int = AppConstants.defaultNumberOfPeople,
         isEnabled: Bool = true,
         dayTimeSlots: [Weekday: [TimeSlot]] = [:]
     ) {

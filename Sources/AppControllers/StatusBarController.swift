@@ -105,6 +105,38 @@ class StatusBarController: NSObject {
         popover.performClose(sender)
     }
 
+    func toggleGodModeUI() {
+        logger.info("⌨️ StatusBarController: Toggling God Mode UI via global keyboard shortcut.")
+
+        // Use the shared God Mode state manager
+        GodModeStateManager.shared.toggleGodModeUI()
+    }
+
+    func addConfiguration() {
+        logger.info("⌨️ StatusBarController: Adding configuration via global keyboard shortcut.")
+
+        // Show the popover if it's not already shown
+        if !popover.isShown {
+            showPopover()
+        }
+
+        // Trigger add configuration through the ContentView
+        // This will be handled by the ContentView when it receives the notification
+        NotificationCenter.default.post(name: AppConstants.addConfigurationNotification, object: nil)
+    }
+
+    func openSettings() {
+        logger.info("⌨️ StatusBarController: Opening settings via global keyboard shortcut.")
+
+        // Show the popover if it's not already shown
+        if !popover.isShown {
+            showPopover()
+        }
+
+        // Trigger settings opening through the ContentView
+        NotificationCenter.default.post(name: AppConstants.openSettingsNotification, object: nil)
+    }
+
     // MARK: - Private Methods
 
     private func updateStatusBarIcon(isRunning: Bool) {

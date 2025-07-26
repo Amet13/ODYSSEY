@@ -1,8 +1,8 @@
 import Foundation
 import os.log
 
-/// Core email service functionality
-/// Handles email testing and verification code management
+/// Core email service functionality.
+/// Handles email testing and verification code management.
 @MainActor
 public final class EmailCore: ObservableObject {
     // MARK: - Published Properties
@@ -24,15 +24,15 @@ public final class EmailCore: ObservableObject {
 
     // MARK: - Public Methods
 
-    /// Resets the service state
+    /// Resets the service state.
     func reset() {
         isTesting = false
         lastTestResult = nil
         logger.info("🔄 EmailCore service reset.")
     }
 
-    /// Updates the test result
-    /// - Parameter result: The test result to set
+    /// Updates the test result.
+    /// - Parameter result: The test result to set.
     func updateTestResult(_ result: EmailService.TestResult) {
         lastTestResult = result
         isTesting = false
@@ -44,8 +44,8 @@ public final class EmailCore: ObservableObject {
         }
     }
 
-    /// Sets the testing state
-    /// - Parameter testing: Whether the service is currently testing
+    /// Sets the testing state.
+    /// - Parameter testing: Whether the service is currently testing.
     func setTesting(_ testing: Bool) {
         isTesting = testing
         if testing {

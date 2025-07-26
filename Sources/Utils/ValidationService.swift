@@ -3,18 +3,6 @@ import os.log
 
 /**
  ValidationService is responsible for centralized validation logic for user input, configuration, and data integrity throughout the app.
-
- ## Usage Example
- ```swift
- let isValid = ValidationService.shared.validateEmail("user@example.com")
- let isGmail = ValidationService.shared.isGmailAccount("user@gmail.com")
- let isValidPassword = ValidationService.shared.validateGmailAppPassword("abcd efgh ijkl mnop")
- let isValidURL = ValidationService.shared.validateFacilityURL("https://reservation.frontdesksuite.ca/rcfs/somefacility/")
- let isValidPhone = ValidationService.shared.validatePhoneNumber("+16135551234")
- let errors = ValidationService.shared.validateReservationConfig(config)
- let result = ValidationService.shared.validateUserSettings(settings)
- if !result.isValid { print(result.errorMessage) }
- ```
  */
 @MainActor
 final class ValidationService {
@@ -130,8 +118,13 @@ final class ValidationService {
         }
 
         // Validate number of people
-        if config.numberOfPeople <= 0 || config.numberOfPeople > 20 {
-            errors.append("Number of people must be between 1 and 20")
+        if
+            config.numberOfPeople < AppConstants.minNumberOfPeople || config.numberOfPeople > AppConstants
+                .maxNumberOfPeople {
+            errors
+                .append(
+                    "Number of people must be between \(AppConstants.minNumberOfPeople) and \(AppConstants.maxNumberOfPeople)",
+                    )
         }
 
         // Validate time slots
@@ -202,16 +195,6 @@ final class ValidationService {
 
 /**
  Result of validation operations
-
- ## Usage Example
- ```swift
- let result = ValidationService.shared.validateUserSettings(settings)
- if result.isValid {
- print("Settings are valid!")
- } else {
- print("Validation errors: \(result.errorMessage)")
- }
- ```
  */
 struct ValidationResult {
     let isValid: Bool

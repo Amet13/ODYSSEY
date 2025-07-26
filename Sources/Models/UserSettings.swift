@@ -43,7 +43,12 @@ public struct UserSettings: Codable, Equatable, Sendable {
     public var customAutorunTime: Date = {
         let calendar = Calendar.current
         let now = Date()
-        return calendar.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now
+        return calendar.date(
+            bySettingHour: AppConstants.defaultAutorunHour,
+            minute: AppConstants.defaultAutorunMinute,
+            second: 0,
+            of: now,
+            ) ?? now
     }()
 
     // MARK: - Equatable

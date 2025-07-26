@@ -190,7 +190,10 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         }
 
         // Use the existing IMAP connection to fetch verification codes
-        let codes = await fetchVerificationCodesForToday(since: Date().addingTimeInterval(-300)) // Last 5 minutes
+        let codes = await fetchVerificationCodesForToday(
+            since: Date()
+                .addingTimeInterval(-AppConstants.verificationCodeTimeoutSeconds),
+            ) // Last 5 minutes
 
         if let latestCode = codes.last {
             logger.info("✅ Found verification code: \(latestCode).")
@@ -242,7 +245,10 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
         // For now, we'll use the existing fetchVerificationCodesForToday method
         // and look for the most recent email that matches our criteria
-        let codes = await fetchVerificationCodesForToday(since: Date().addingTimeInterval(-300)) // Last 5 minutes
+        let codes = await fetchVerificationCodesForToday(
+            since: Date()
+                .addingTimeInterval(-AppConstants.verificationCodeTimeoutSeconds),
+            ) // Last 5 minutes
 
         if let latestCode = codes.last {
             // Create a mock email message with the verification code
@@ -269,8 +275,8 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         return nil
     }
 
-    /// Fetches all verification codes from emails from noreply@frontdesksuite.com received in the last 15 minutes
-    /// - Returns: Array of 4-digit codes (oldest to newest)
+    /// Fetches all verification codes from emails from noreply@frontdesksuite.com received in the last 15 minutes.
+    /// - Returns: Array of 4-digit codes (oldest to newest).
     func fetchVerificationCodesForToday(since: Date) async -> [String] {
         let connectionID = UUID().uuidString
         let now = Date()
@@ -1402,7 +1408,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     /// Fetches verification codes from emails using IMAP
     /// - Returns: Array of verification codes found
     private func fetchVerificationCodesFromEmails(since: Date) async -> [String] {
-        // Remove timeout wrapper to allow IMAP operation to complete
+        // Remove timeout wrapper to allow IMAP operation to complete.
         return await { [self] in
             let settings = self.userSettingsManager.userSettings
             let port: UInt16 = 993
@@ -1653,7 +1659,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                 }
             }
 
-            // Remove duplicates
+            // Remove duplicates.
             ids = Array(Set(ids)).sorted()
 
             if ids.isEmpty {
@@ -1704,7 +1710,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                     continue
                 }
 
-                // Skip emails older than the provided timestamp
+                // Skip emails older than the provided timestamp.
                 if emailDate < since {
                     logger.info("⏰ Skipping email ID \(id): Too old (\(emailDate))")
                     continue

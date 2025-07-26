@@ -33,6 +33,7 @@ struct ODYSSEYApp: App {
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusBarController: StatusBarController?
     private var timer: Timer?
+    private var globalKeyMonitor: Any?
     private let logger = Logger(subsystem: "com.odyssey.app", category: "AppDelegate")
     private let orchestrator = ReservationOrchestrator.shared
 
@@ -47,6 +48,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Initialize status bar controller
         statusBarController = StatusBarController()
 
+        // Set up global keyboard shortcuts
+        setupGlobalKeyboardShortcuts()
+
         // Set up scheduling timer
         setupSchedulingTimer()
 
@@ -60,6 +64,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Clean up
         timer?.invalidate()
         timer = nil
+
+        // Remove global keyboard monitor
+        if let monitor = globalKeyMonitor {
+            NSEvent.removeMonitor(monitor)
+            globalKeyMonitor = nil
+        }
 
         // Emergency cleanup for any running automation
         Task {
@@ -78,6 +88,53 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Let user manually request permission when needed
 
         logger.info("✅ Services initialized")
+    }
+
+    private func setupGlobalKeyboardShortcuts() {
+        logger.info("⌨️ Setting up global keyboard shortcuts...")
+
+        // Set up global keyboard monitor for various shortcuts
+        globalKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            // Check for Command+G (God Mode toggle)
+            if event.modifierFlags.contains(.command), event.keyCode == 5 { // keyCode 5 is 'g'
+                self?.logger.info("⌨️ Global Command+G detected - toggling God Mode UI.")
+
+                // Toggle God Mode UI through the status bar controller
+                DispatchQueue.main.async {
+                    self?.statusBarController?.toggleGodModeUI()
+                }
+
+                return nil // Consume the event
+            }
+
+            // Check for Command+N (Add Configuration)
+            if event.modifierFlags.contains(.command), event.keyCode == 45 { // keyCode 45 is 'n'
+                self?.logger.info("⌨️ Global Command+N detected - adding configuration.")
+
+                // Add configuration through the status bar controller
+                DispatchQueue.main.async {
+                    self?.statusBarController?.addConfiguration()
+                }
+
+                return nil // Consume the event
+            }
+
+            // Check for Command+, (Settings)
+            if event.modifierFlags.contains(.command), event.keyCode == 43 { // keyCode 43 is ','
+                self?.logger.info("⌨️ Global Command+, detected - opening settings.")
+
+                // Open settings through the status bar controller
+                DispatchQueue.main.async {
+                    self?.statusBarController?.openSettings()
+                }
+
+                return nil // Consume the event
+            }
+
+            return event // Pass through other events
+        }
+
+        logger.info("✅ Global keyboard shortcuts initialized")
     }
 
     private func setupSchedulingTimer() {

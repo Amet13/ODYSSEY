@@ -4081,10 +4081,10 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                     });
                 }
 
-                // Remove common automation indicators
-                if (window.cdc_adoQpoasnfa76pfcZLmcfl_Array) {
-                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
-                }
+                        // Remove common automation indicators.
+        if (window.cdc_adoQpoasnfa76pfcZLmcfl_Array) {
+            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
+        }
                 if (window.cdc_adoQpoasnfa76pfcZLmcfl_Promise) {
                     delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
                 }

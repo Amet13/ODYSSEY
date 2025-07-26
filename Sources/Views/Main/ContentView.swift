@@ -20,7 +20,7 @@ struct ContentView: View {
     @State private var showingAbout = false
     @State private var showingGodModeConfig = false
     // God mode and error/help UI
-    @State private var godModeUIEnabled = false
+    @StateObject private var godModeStateManager = GodModeStateManager.shared
     @State private var showingUserError = false
     @State private var showingHelp = false
     // Countdown refresh for autorun scheduling
@@ -38,7 +38,7 @@ struct ContentView: View {
             showingSettings: $showingSettings,
             showingAbout: $showingAbout,
             showingGodModeConfig: $showingGodModeConfig,
-            godModeUIEnabled: $godModeUIEnabled,
+            godModeStateManager: godModeStateManager,
             showingUserError: $showingUserError,
             showingHelp: $showingHelp,
             emailService: emailService,
@@ -52,12 +52,47 @@ struct ContentView: View {
                     countdownRefreshTrigger.toggle()
                 }
             }
+
+            // Set up notification observers for global keyboard shortcuts
+            setupNotificationObservers()
         }
         .onDisappear {
             // Clean up timer when the view disappears
             countdownTimer?.invalidate()
             countdownTimer = nil
+
+            // Remove notification observers.
+            removeNotificationObservers()
         }
+    }
+
+    // MARK: - Notification Handling
+
+    private func setupNotificationObservers() {
+        NotificationCenter.default.addObserver(
+            forName: AppConstants.addConfigurationNotification,
+            object: nil,
+            queue: .main,
+            ) { _ in
+            Task { @MainActor in
+                showingAddConfig = true
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: AppConstants.openSettingsNotification,
+            object: nil,
+            queue: .main,
+            ) { _ in
+            Task { @MainActor in
+                showingSettings = true
+            }
+        }
+    }
+
+    private func removeNotificationObservers() {
+        NotificationCenter.default.removeObserver(self, name: AppConstants.addConfigurationNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: AppConstants.openSettingsNotification, object: nil)
     }
 }
 
@@ -72,9 +107,9 @@ private struct MainBody: View {
     @Binding var showingSettings: Bool
     @Binding var showingAbout: Bool
     @Binding var showingGodModeConfig: Bool
-    // Removed any white background or overlay from the UI, so all backgrounds are transparent or inherit the window
+    // Removed any white background or overlay from the UI, so all backgrounds are transparent or inherit the window.
     // background
-    @Binding var godModeUIEnabled: Bool
+    @ObservedObject var godModeStateManager: GodModeStateManager
     @Binding var showingUserError: Bool
     @Binding var showingHelp: Bool
     let emailService: EmailServiceProtocol
@@ -84,7 +119,7 @@ private struct MainBody: View {
         ZStack {
             VStack(spacing: AppConstants.spacingNone) {
                 HeaderView(
-                    godModeUIEnabled: $godModeUIEnabled,
+                    godModeUIEnabled: $godModeStateManager.isGodModeUIEnabled,
                     showingAddConfig: $showingAddConfig,
                     simulateAutorunForToday: simulateAutorunForToday,
                     )
@@ -119,7 +154,7 @@ private struct MainBody: View {
                 })
             }
             .sheet(isPresented: $showingSettings) {
-                SettingsView(godModeEnabled: godModeUIEnabled)
+                SettingsView(godModeEnabled: godModeStateManager.isGodModeUIEnabled)
             }
             .sheet(isPresented: $showingAbout) {
                 AboutView()
@@ -132,10 +167,10 @@ private struct MainBody: View {
                     // You can define what saving in god mode does here
                 })
             }
-            // Keyboard shortcut for toggling god mode UI
+            // Keyboard shortcut for toggling god mode UI (local fallback)
             .onKeyPress("g", phases: .down) { press in
                 if press.modifiers.contains(.command) {
-                    godModeUIEnabled.toggle()
+                    godModeStateManager.toggleGodModeUI()
                     // Don't remove focus - this was causing the key press issue
                     return .handled
                 }
@@ -306,7 +341,7 @@ private struct HeaderView: View {
                             Image(systemName: "bolt.fill")
                                 .foregroundColor(.odysseyWarning)
                             Text("GOD MODE")
-                                .font(.system(size: AppConstants.fontBody))
+                                .font(.system(size: AppConstants.fontLarge))
                                 .fontWeight(.bold)
                                 .foregroundColor(.odysseyWarning)
                         }

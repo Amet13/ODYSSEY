@@ -846,7 +846,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                         // Wait for all configurations to have final status (not running)
                         var allFinalized = false
                         var waitTime: TimeInterval = 0
-                        let maxWaitTime: TimeInterval = 300 // Maximum 5 minutes (increased from 10 seconds)
+                        let maxWaitTime: TimeInterval = AppConstants.maxWaitTimeForGodModeSeconds
                         let checkInterval: TimeInterval = 0.5
 
                         while !allFinalized, waitTime < maxWaitTime {
@@ -869,8 +869,12 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                             }
                         }
 
-                        // Additional 2 seconds to ensure UI updates are visible
-                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        // Additional wait time to ensure UI updates are visible
+                        try? await Task
+                            .sleep(nanoseconds: UInt64(
+                                AppConstants
+                                    .additionalWaitTimeForUIUpdatesSeconds * 1_000_000_000,
+                                ))
 
                         await MainActor.run {
                             self.statusManager.isRunning = false

@@ -6,17 +6,7 @@ import SwiftUI
 /**
  Extension for String utilities.
 
- ## Usage Example
- ```swift
- let email = "user@example.com"
- print(email.maskedForLogging) // Output: us***om
-
- let password = "abcd efgh ijkl mnop"
- print(password.isValidGmailAppPassword) // Output: true
-
- let text = "Your code is 1234."
- print(text.extractVerificationCode) // Output: Optional("1234")
- ```
+ Provides masking, validation, and extraction capabilities for strings used throughout the application.
  */
 extension String {
     /// Returns a masked version of the string for logging (shows first 2 and last 2 characters)
@@ -55,12 +45,7 @@ extension String {
 /**
  Extension for Date utilities.
 
- ## Usage Example
- ```swift
- let date = Date()
- print(date.imapSearchFormat) // Output: "7-Jun-2024"
- print(date.isWithinLast(10)) // Output: true/false
- ```
+ Provides date formatting and validation capabilities for IMAP operations and time-based checks.
  */
 extension Date {
     /// Returns a formatted string for IMAP search (dd-MMM-yyyy format)
@@ -83,12 +68,7 @@ extension Date {
 /**
  Extension for [String] utilities.
 
- ## Usage Example
- ```swift
- let codes = ["1234", "5678", "1234"]
- print(codes.mostRecentCode) // Output: Optional("1234")
- print(codes.uniqueCodes)    // Output: ["1234", "5678"]
- ```
+ Provides verification code management and deduplication capabilities for email verification workflows.
  */
 extension [String] {
     /// Returns the most recent verification code from an array of codes
@@ -107,14 +87,7 @@ extension [String] {
 /**
  Extension for SwiftUI View utilities.
 
- ## Usage Example
- ```swift
- Text("Loading...")
- .loadingOverlay(true)
-
- Text("Conditional")
- .if(true) { $0.foregroundColor(.red) }
- ```
+ Provides conditional modifiers and loading overlay capabilities for enhanced UI interactions.
  */
 extension View {
     /// Adds a conditional modifier based on a boolean condition
@@ -147,16 +120,11 @@ extension View {
 /**
  Extension for custom ODYSSEY colors with dark mode support.
 
- ## Usage Example
- ```swift
- Rectangle()
- .fill(Color.odysseyPrimary)
- ```
+ Provides a consistent color palette for the ODYSSEY application with automatic dark mode adaptation.
  */
 public extension Color {
     /// Custom colors for the ODYSSEY app with dark mode support
     /// Use these for consistent branding and status feedback throughout the UI.
-    /// Example: .odysseyPrimary, .odysseySuccess, .odysseyError
 
     /// Primary brand color - adapts to dark mode
     static let odysseyPrimary = Color.blue
@@ -204,13 +172,6 @@ import os.log
 
 /**
  Extension for Logger utilities.
-
- ## Usage Example
- ```swift
- let logger = Logger(subsystem: "com.odyssey.app", category: "Test")
- logger.infoMasked("Logging email", sensitiveData: "user@example.com")
- logger.errorWithContext("Failed operation", error: MyError(), context: "Reservation")
- ```
  */
 extension Logger {
     /// Logs a masked version of sensitive data

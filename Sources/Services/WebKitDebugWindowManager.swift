@@ -14,7 +14,7 @@ class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
             debugWindow?.makeKeyAndOrderFront(nil)
             return
         }
-        // Use AppConstants.windowSizes for window sizing
+        // Use AppConstants.windowSizes for window sizing.
         let selectedSize = AppConstants.windowSizes.randomElement() ?? AppConstants.windowSizes[0]
         let window = NSWindow(
             contentRect: NSRect(x: 200, y: 200, width: selectedSize.width, height: selectedSize.height),
@@ -59,6 +59,6 @@ class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
     func windowWillClose(_: Notification) {
         logger.info("🪟 Browser window closing - notifying callback.")
         debugWindow = nil
-        // Optionally notify a delegate/callback if needed
+        // Optionally notify a delegate/callback if needed.
     }
 }

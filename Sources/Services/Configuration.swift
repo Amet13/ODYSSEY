@@ -19,9 +19,9 @@ public final class ConfigurationManager: ObservableObject, @unchecked Sendable {
 
     /// Main initializer supporting dependency injection for logger and userDefaults.
     /// - Parameters:
-    ///   - logger: Logger instance (default: ODYSSEY ConfigurationManager logger)
-    ///   - userDefaults: UserDefaults instance (default: .standard)
-    ///   - settingsKey: Key for storing settings (default: "ODYSSEY_Settings")
+    ///   - logger: Logger instance (default: ODYSSEY ConfigurationManager logger).
+    ///   - userDefaults: UserDefaults instance (default: .standard).
+    ///   - settingsKey: Key for storing settings (default: "ODYSSEY_Settings").
     public init(
         logger: Logger = Logger(subsystem: "com.odyssey.app", category: "ConfigurationManager"),
         userDefaults: UserDefaults = .standard,
@@ -30,7 +30,7 @@ public final class ConfigurationManager: ObservableObject, @unchecked Sendable {
         self.logger = logger
         self.userDefaults = userDefaults
         self.settingsKey = settingsKey
-        // Load saved settings or use defaults
+        // Load saved settings or use defaults.
         if let data = userDefaults.data(forKey: settingsKey) {
             if let savedSettings = try? JSONDecoder().decode(AppSettings.self, from: data) {
                 settings = savedSettings
@@ -42,7 +42,7 @@ public final class ConfigurationManager: ObservableObject, @unchecked Sendable {
         }
     }
 
-    // Keep the default singleton for app use
+    // Keep the default singleton for app use.
     private convenience init() {
         self.init(
             logger: Logger(subsystem: "com.odyssey.app", category: "ConfigurationManager"),

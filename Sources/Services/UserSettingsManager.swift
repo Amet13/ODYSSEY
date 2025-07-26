@@ -75,7 +75,7 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
     public func updateSettings(_ settings: UserSettings) {
         userSettings = settings
         storeCredentialsInKeychain()
-        // Remove password from UserDefaults after storing in Keychain
+        // Remove password from UserDefaults after storing in Keychain.
         userSettings.imapPassword = ""
         saveSettings()
     }

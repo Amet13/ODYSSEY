@@ -14,7 +14,7 @@ struct ConfigurationDetailView: View {
     @State private var name: String = ""
     @State private var facilityURL: String = ""
     @State private var sportName: String = ""
-    @State private var numberOfPeople: Int = 1
+    @State private var numberOfPeople: Int = AppConstants.defaultNumberOfPeople
     @State private var isEnabled: Bool = true
     @State private var dayTimeSlots: [ReservationConfig.Weekday: [Date]] = [:]
     @State private var didInitializeSlots = false
@@ -32,7 +32,7 @@ struct ConfigurationDetailView: View {
         ZStack {
             Color.odysseyBackground.ignoresSafeArea()
             VStack(spacing: AppConstants.spacingNone) {
-                // Add header for Add/Edit Configuration page, styled like SettingsHeader
+                // Add header for Add/Edit Configuration page, styled like SettingsHeader.
                 HStack(spacing: AppConstants.spacingLarge) {
                     Image(systemName: "sportscourt.fill")
                         .font(.system(size: AppConstants.primaryFont))
@@ -229,7 +229,7 @@ struct ConfigurationDetailView: View {
                 .foregroundColor(.odysseyText)
             HStack(spacing: AppConstants.sectionSpacing) {
                 Button(action: {
-                    numberOfPeople = 1
+                    numberOfPeople = AppConstants.defaultNumberOfPeople
                     updateConfigurationName()
                 }) {
                     HStack {
@@ -355,12 +355,12 @@ struct ConfigurationDetailView: View {
      */
     private func loadConfiguration() {
         guard let config else {
-            // Creating a new configuration
+            // Creating a new configuration.
             isEditingExistingConfig = false
             return
         }
 
-        // Editing an existing configuration
+        // Editing an existing configuration.
         isEditingExistingConfig = true
         name = config.name
         facilityURL = config.facilityURL
@@ -369,7 +369,7 @@ struct ConfigurationDetailView: View {
         isEnabled = config.isEnabled
 
         // Don't update the name when editing an existing configuration
-        // to preserve custom names that users have set
+        // to preserve custom names that users have set.
     }
 
     /**
@@ -412,9 +412,9 @@ struct ConfigurationDetailView: View {
     private func trimFacilityURL(_ url: String) -> String {
         guard !url.isEmpty else { return url }
 
-        // Find the position of "Home/..." in the URL
+        // Find the position of "Home/..." in the URL.
         if let homeIndex = url.range(of: "Home")?.lowerBound {
-            // Return everything up to (but not including) "Home/..."
+            // Return everything up to (but not including) "Home/...".
             let trimmedURL = String(url[..<homeIndex])
             Logger(subsystem: "com.odyssey.app", category: "ConfigurationDetailView")
                 .info("✂️ Trimmed facility URL from '\(url)' to '\(trimmedURL)'.")
@@ -458,8 +458,8 @@ struct ConfigurationDetailView: View {
      - Returns: Void
      */
     private func updateConfigurationName() {
-        // Only update the name if we're creating a new configuration or if the name is empty
-        // This preserves custom names when editing existing configurations
+        // Only update the name if we're creating a new configuration or if the name is empty.
+        // This preserves custom names when editing existing configurations.
         if !isEditingExistingConfig || name.isEmpty {
             let facilityName = extractFacilityName(from: facilityURL)
             name = "\(facilityName) - \(sportName)"
@@ -494,7 +494,7 @@ struct ConfigurationDetailView: View {
             let defaultTime = Self.normalizeTime(hour: 18, minute: 0)
             dayTimeSlots[day] = [defaultTime]
         }
-        // Only allow one timeslot per day - no additional timeslots
+        // Only allow one timeslot per day - no additional timeslots.
     }
 
     /**
@@ -564,7 +564,7 @@ struct ConfigurationDetailView: View {
         sportName = imported.sportName
         numberOfPeople = imported.numberOfPeople
         isEnabled = imported.isEnabled
-        // Convert [TimeSlot] to [Date]
+        // Convert [TimeSlot] to [Date].
         dayTimeSlots = imported.dayTimeSlots.mapValues { $0.map(\.time) }
     }
 

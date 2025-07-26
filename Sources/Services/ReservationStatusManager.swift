@@ -53,9 +53,9 @@ public final class ReservationStatusManager: ObservableObject, @unchecked Sendab
         runType: ReservationRunType,
         ) {
         if let existing = lastRunInfo[configId] {
-            // Prevent overwriting .success with .failed for the same runType and date (within 5 minutes window)
+            // Prevent overwriting .success with .failed for the same runType and date (within 5 minutes window).
             if existing.status == .success, case .failed = status {
-                let timeWindow: TimeInterval = 5 * 60 // 5 minutes
+                let timeWindow: TimeInterval = 5 * 60 // 5 minutes.
                 if
                     let existingDate = existing.date, let newDate = date,
                     abs(existingDate.timeIntervalSince(newDate)) < timeWindow, existing.runType == runType {

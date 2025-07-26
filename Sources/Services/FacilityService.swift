@@ -120,7 +120,7 @@ public final class FacilityService: NSObject, @unchecked Sendable, FacilityServi
                 }
             });
 
-            // Remove duplicates and return
+            // Remove duplicates and return.
             const uniqueSports = [...new Set(sports)];
             debug.push(`Final unique sports: ${uniqueSports.length}`);
 
