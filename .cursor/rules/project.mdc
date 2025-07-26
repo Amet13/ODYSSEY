@@ -7,7 +7,6 @@ alwaysApply: true
 You are an expert assistant working on the **ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself**, a sophisticated macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities.
 
 You should immediately perform the required work based on the user’s request without seeking permission or confirmation.
-
 This rule applies to all interactions and tasks unless overridden by a more specific rule.
 
 ## 🎯 Project Overview
@@ -15,10 +14,10 @@ This rule applies to all interactions and tasks unless overridden by a more spec
 ODYSSEY is a native macOS application that:
 
 - Requires **macOS 15.0 or later** for users (see README for details)
-- For development: requires **Xcode 16.0+**, Homebrew, Node.js/npm
+- For development: requires **Xcode 16.0+**, Homebrew
 - Runs quietly in the menu bar (not dock) using `LSUIElement = true`
 - Automates web-based reservation booking for Ottawa Recreation facilities
-- Uses **Swift WebKit (WKWebView)** for robust, native web automation (no ChromeDriver, no Chrome, no external browsers)
+- Uses **Swift WebKit (WKWebView)** for robust, native web automation
 - Provides a modern SwiftUI interface for configuration management
 - Schedules automatic runs based on configured time slots
 - Supports multiple configurations for different sports and facilities
@@ -106,7 +105,7 @@ ODYSSEY is a native macOS application that:
 ### Build Process
 
 - **Always rebuild app using `./Scripts/build.sh` after changing or fixing code**
-- The build process includes: `swiftlint`, `swiftformat`, and `npm run lint:check` for JavaScript
+- The build process includes: `swiftlint`, `swiftformat`
 - Never skip the build step after making changes
 - Verify the app launches successfully after each build
 - Check for any build warnings or errors
@@ -123,20 +122,11 @@ ODYSSEY is a native macOS application that:
 - **All code must pass SwiftLint with zero errors and minimal warnings before pushing or releasing**
 - All linter violations must be fixed or explicitly justified in code review
 - Do not push or release code with unresolved SwiftLint errors
-- All JavaScript code must pass `npm run lint:check` (ESLint)
 - Keep the repository clean by removing duplicate information
 - **Protocol-Oriented Design**: Use protocols for better testability and maintainability
 - **Extensions**: Use Swift extensions for code organization and reusability
 - **Validation**: Use centralized validation for consistency
 - **Constants**: Use centralized constants for maintainability
-
-### JavaScript Code Quality
-
-- **Linting**: All JavaScript code must be linted using ESLint or similar tools
-- **Validation**: Validate JavaScript syntax and best practices
-- **Security**: Sanitize all user inputs in JavaScript code
-- **Error Handling**: Implement proper error handling in JavaScript functions
-- **Documentation**: Document complex JavaScript functions and their parameters
 
 ### User Experience
 
@@ -175,28 +165,6 @@ ODYSSEY is a native macOS application that:
 
 - **Emoji Usage:** **ALWAYS use emojis in log messages** for better readability and quick visual identification
 - **Consistent Format:** All log messages must follow the pattern: `logger.level("emoji message.")`
-- **Emoji Categories:**
-  - **Success Operations**: ✅ (green checkmark)
-  - **Error Conditions**: ❌ (red X)
-  - **Warnings**: ⚠️ (warning triangle)
-  - **Progress/Status**: 🔄 (rotating arrows)
-  - **Setup/Init**: 🔧 (wrench)
-  - **Navigation**: 🌐 (globe)
-  - **Cleanup**: 🧹 (broom)
-  - **User Actions**: 👤 (person)
-  - **Timeouts**: ⏰ (alarm clock)
-  - **Waiting**: ⏳ (hourglass)
-  - **Form Filling**: 📝 (memo)
-  - **Time Selection**: 📅 (calendar)
-  - **Email Operations**: 📧 (envelope)
-  - **Anti-Detection**: 🛡️ (shield)
-  - **Browser Windows**: 🪟 (window)
-  - **Progress Tracking**: 📊 (bar chart)
-  - **Crashes/Errors**: 💥 (collision)
-  - **Emergency**: 🚨 (rotating light)
-  - **Searching**: 🔍 (magnifying glass)
-  - **Skipping**: ⏭️ (fast forward)
-  - **Completion**: 🎉 (party popper)
 - **Punctuation:** Always end log messages with periods (.) for completed statements
 - **Privacy:** Use `privacy: .private` for sensitive data in logs
 
@@ -235,7 +203,6 @@ ODYSSEY is a native macOS application that:
 
 - **Code Signing Setup:**
 
-  - Use Developer ID certificate for distribution
   - Sign all binaries and frameworks
   - Implement proper provisioning profiles
   - Test signed builds thoroughly
@@ -245,21 +212,6 @@ ODYSSEY is a native macOS application that:
   - Implement secure credential retrieval
   - Handle credential updates securely
   - Provide user-friendly credential management
-
-### JavaScript Quality Assurance
-
-- **ESLint Configuration:**
-
-  - Set up `.eslintrc` with appropriate rules
-  - Validate JavaScript in build process
-  - Fix linting errors before commits
-  - Document JavaScript coding standards
-
-- **JavaScript Security:**
-  - Sanitize DOM manipulation
-  - Validate function parameters
-  - Implement proper error boundaries
-  - Use secure coding practices
 
 ### Quality Assurance
 
@@ -272,7 +224,6 @@ ODYSSEY is a native macOS application that:
 
 - **DMG Creation:** Use `create-dmg` for installer creation
 - **Code Signing:** Sign with Developer ID for distribution
-- **Notarization:** Notarize app for macOS security
 - **GitHub Releases:** Create releases with proper documentation
 
 ## 🤝 Collaboration Guidelines
