@@ -38,7 +38,7 @@
 
 - **Protocol-Oriented Design:** Clear interfaces for all services and models
 - **Separation of Concerns:** Each service/component has a single responsibility
-- **Dependency Injection:** Use singletons for shared services
+- **Dependency Injection:** Use ServiceRegistry for dependency injection and singletons for shared services
 - **Reactive Programming:** Use Combine for state management and async operations
 - **Centralized Validation:** All input validation in `ValidationService`
 - **Centralized Constants:** All constants in `AppConstants`
@@ -66,7 +66,7 @@
 
 ```bash
 ./Scripts/build.sh
-# This will run SwiftFormat, SwiftLint, and npm lint automatically
+# This will run SwiftFormat and SwiftLint automatically
 ```
 
 ## 🧪 Testing
@@ -109,7 +109,7 @@
 - **Credential Storage:** All sensitive credentials (e.g., email passwords) are securely stored in the macOS Keychain using Keychain Services. No credentials are ever stored in UserDefaults or plain text files.
 - **Network Security:** All network requests use HTTPS. App Transport Security (ATS) is strictly enforced; there are no exceptions for ottawa.ca or any other domains.
 - **Code Signing & Notarization:** The app is code signed for distribution, but is **not notarized by Apple** (no Apple Developer account). To enable notarization, see the commented steps in `Scripts/create-release.sh` and provide the required credentials.
-- **Dependency Policy:** All runtime dependencies are native Swift/Apple frameworks. JavaScript development dependencies (e.g., ESLint) are MIT or similarly permissive. No third-party runtime code is included.
+- **Dependency Policy:** All runtime dependencies are native Swift/Apple frameworks. No third-party runtime code is included.
 - **Input Validation:** All user input is validated and sanitized through the centralized `ValidationService`.
 - **Data Privacy:** No user data is transmitted externally without explicit user consent. All automation runs locally on the user's machine.
 - **Periodic Audits:** It is recommended to periodically audit all dependencies and review security practices as part of ongoing maintenance.

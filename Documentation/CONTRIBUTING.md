@@ -115,7 +115,7 @@ struct Config {
 
 - **Protocol-Oriented Design** - Use protocols for interfaces
 - **Separation of Concerns** - Each component has a single responsibility
-- **Dependency Injection** - Use the ServiceRegistry for dependencies
+- **Dependency Injection** - Use ServiceRegistry for dependency injection and singletons for shared services
 - **Reactive Programming** - Use Combine for state management
 - **Error Handling** - Use structured error handling throughout
 
