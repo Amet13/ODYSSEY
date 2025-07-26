@@ -1,3 +1,4 @@
+import os.log
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -101,7 +102,12 @@ struct ConfigurationDetailView: View {
                 .fontWeight(.semibold)
                 .foregroundColor(.odysseyText)
             TextField("Enter facility URL", text: $facilityURL)
-                .onChange(of: facilityURL) { _, _ in
+                .onChange(of: facilityURL) { _, newValue in
+                    // Automatically trim the URL if it contains Home/...
+                    let trimmedURL = trimFacilityURL(newValue)
+                    if trimmedURL != newValue {
+                        facilityURL = trimmedURL
+                    }
                     updateConfigurationName()
                 }
             if !facilityURL.isEmpty, !isValidFacilityURL(facilityURL) {
@@ -396,6 +402,26 @@ struct ConfigurationDetailView: View {
             isValidFacilityURL(facilityURL) &&
             !sportName.isEmpty &&
             !dayTimeSlots.isEmpty
+    }
+
+    /**
+     Trims a facility URL to remove everything from Home/... onwards.
+     - Parameter url: The URL string to trim.
+     - Returns: The trimmed URL string.
+     */
+    private func trimFacilityURL(_ url: String) -> String {
+        guard !url.isEmpty else { return url }
+
+        // Find the position of "Home/..." in the URL
+        if let homeIndex = url.range(of: "Home")?.lowerBound {
+            // Return everything up to (but not including) "Home/..."
+            let trimmedURL = String(url[..<homeIndex])
+            Logger(subsystem: "com.odyssey.app", category: "ConfigurationDetailView")
+                .info("✂️ Trimmed facility URL from '\(url)' to '\(trimmedURL)'.")
+            return trimmedURL
+        }
+
+        return url
     }
 
     /**
