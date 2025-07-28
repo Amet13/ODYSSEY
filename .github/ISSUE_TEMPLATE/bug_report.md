@@ -62,7 +62,7 @@ body:
   attributes:
   label: "macOS Version"
   description: "Which version of macOS are you using?"
-  placeholder: "e.g. macOS 15.0"
+  placeholder: "e.g. macOS 15"
   validations:
   required: false
 

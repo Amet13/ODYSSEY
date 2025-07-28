@@ -55,11 +55,17 @@ public final class ConfigurationManager: ObservableObject, @unchecked Sendable {
 
     public func addConfiguration(_ config: ReservationConfig) {
         settings.configurations.append(config)
+        saveSettings()
+
+        logger.info("➕ Configuration '\(config.name)' added.")
     }
 
     public func updateConfiguration(_ config: ReservationConfig) {
         if let index = settings.configurations.firstIndex(where: { $0.id == config.id }) {
             settings.configurations[index] = config
+            saveSettings()
+
+            logger.info("✏️ Configuration '\(config.name)' updated.")
         } else {
             logger.warning("⚠️ Configuration not found for update: \(config.id).")
         }
@@ -67,6 +73,9 @@ public final class ConfigurationManager: ObservableObject, @unchecked Sendable {
 
     public func removeConfiguration(_ config: ReservationConfig) {
         settings.configurations.removeAll { $0.id == config.id }
+        saveSettings()
+
+        logger.info("🗑️ Configuration '\(config.name)' deleted.")
     }
 
     public func toggleConfiguration(at index: Int) {

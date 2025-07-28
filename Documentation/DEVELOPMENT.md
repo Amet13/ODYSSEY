@@ -1,9 +1,18 @@
 # ODYSSEY Development Guide
 
+## 🎯 Overview
+
+ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
+
+- **🖥️ GUI Version**: Native macOS menu bar app with SwiftUI interface
+- **💻 CLI Version**: Command-line interface for remote automation
+
+Both versions share the same backend services and automation engine.
+
 ## 🖥️ System Requirements
 
-- macOS 15.0 or later
-- Xcode 16.0 or later
+- macOS 15 or later
+- Xcode 16 or later
 - Homebrew (for installing dependencies)
 
 ## 🚀 Quick Start (For Developers)
@@ -73,15 +82,53 @@
 
 - **Manual Testing:**
   - Always test new features manually in the app UI.
+- **CLI Testing:**
+  - Test CLI commands: `./.build/arm64-apple-macosx/debug/odyssey-cli help`
+  - Verify CLI builds with: `swift build --product odyssey-cli`
 - **Linting:**
   - Run `./Scripts/build.sh` to check formatting and linting before every commit.
+- **GitHub Actions:**
+  - Test the workflow file: `.github/workflows/odyssey-automation.yml`
+  - Verify it works with real export tokens in a fork
+
+## 🖥️ CLI Development
+
+The CLI tool shares the same backend services as the GUI app, providing remote automation capabilities.
+
+### CLI Architecture
+
+- **Shared Services**: Uses the same `WebKitService`, `ConfigurationManager`, and other core services
+- **Environment-Based**: Configured via environment variables for CI/CD integration
+- **Token-Based**: Uses export tokens from the GUI for configuration
+- **Headless Mode**: Runs without browser windows for server environments
+
+### CLI Development Workflow
+
+1. **Build CLI**: `swift build --product odyssey-cli`
+2. **Test Commands**: `./.build/arm64-apple-macosx/debug/odyssey-cli help`
+3. **Export Token**: Use GUI to generate export token for testing
+4. **Test Automation**: `export ODYSSEY_EXPORT_TOKEN="<exported_token>" && ./odyssey-cli run`
+
+### Supported CLI Commands
+
+- `run [--now] [--prior <days>]` - Run reservations (with optional immediate execution and prior days)
+- `configs` - List all configurations from export token
+- `settings [--unmask]` - Show user settings (with optional unmasking)
+- `help` - Show CLI help and usage
+- `version` - Show CLI version information
+
+### CLI Integration
+
+- **GitHub Actions**: Perfect for automated reservation scheduling
+- **Cron Jobs**: Run on servers for reliable automation
+- **CI/CD**: Integrate with existing automation pipelines
 
 ## 🚀 Release Process
 
 1. **Update version numbers** in `Info.plist`, `AppConstants.swift`, and documentation.
 2. **Update the changelog** (`CHANGELOG.md`).
 3. **Run all tests and linting** to ensure a clean build.
-4. **Build the app:**
+4. **Build the app and CLI:**
    ```bash
    ./Scripts/build.sh
    ```
@@ -92,7 +139,7 @@
 
 ## 💡 Common Pitfalls & Tips
 
-- ⚠️ **Xcode version mismatch:** Make sure you are using Xcode 16.0+ (check with `xcodebuild -version`).
+- ⚠️ **Xcode version mismatch:** Make sure you are using Xcode 16+ (check with `xcodebuild -version`).
 - 🛑 **Build errors after pulling changes:** Run `./Scripts/build.sh` to auto-format and lint the code.
 - 🔑 **Keychain issues:** If you see credential errors, re-enter credentials in Settings and restart the app.
 - 📝 **Documentation:** Always update docs and comments when making changes.

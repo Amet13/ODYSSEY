@@ -1,9 +1,10 @@
 name: ODYSSEY
+# Dual-interface application: GUI (macOS Menu Bar App) + CLI (Command Line Interface)
 options:
   bundleIdPrefix: com.odyssey
   deploymentTarget:
-    macOS: "15.0"
-  xcodeVersion: "16.2"
+    macOS: "15"
+  xcodeVersion: "16"
   groupSortPosition: top
   generateEmptyDirectories: true
   fileTypes:
@@ -15,7 +16,7 @@ settings:
     CODE_SIGN_IDENTITY: ""
     SWIFT_VERSION: 6.1
     ENABLE_PREVIEWS: YES
-    MACOSX_DEPLOYMENT_TARGET: 15.0
+    MACOSX_DEPLOYMENT_TARGET: 15
     PRODUCT_BUNDLE_IDENTIFIER: com.odyssey.app
     PRODUCT_NAME: ODYSSEY
     MARKETING_VERSION: 1.0.0
@@ -88,6 +89,7 @@ targets:
           - "**/*.md"
           - "**/*.txt"
           - "**/*.xcuserstate"
+          - "CLI/**"
     resources:
       - path: ../Sources/Resources/AppIcon.icns
       - path: ../Sources/Resources/Assets.xcassets
@@ -135,7 +137,7 @@ targets:
         ENABLE_HARDENED_RUNTIME: YES
         ENABLE_APP_SANDBOX: YES
         SWIFT_VERSION: 6.1
-        MACOSX_DEPLOYMENT_TARGET: 15.0
+        MACOSX_DEPLOYMENT_TARGET: 15
         ENABLE_PREVIEWS: YES
     dependencies: []
 

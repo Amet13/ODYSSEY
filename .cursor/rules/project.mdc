@@ -4,25 +4,38 @@ globs: *
 alwaysApply: true
 ---
 
-You are an expert assistant working on the **ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself**, a sophisticated macOS menu bar application that automates sports reservation bookings for Ottawa Recreation facilities.
+You are an expert assistant working on the **ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself**, a sophisticated dual-interface application that automates sports reservation bookings for Ottawa Recreation facilities.
 
 You should immediately perform the required work based on the user’s request without seeking permission or confirmation.
 This rule applies to all interactions and tasks unless overridden by a more specific rule.
 
 ## 🎯 Project Overview
 
-ODYSSEY is a native macOS application that:
+ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 
-- Requires **macOS 15.0 or later** for users (see README for details)
-- For development: requires **Xcode 16.0+**, Homebrew
+### 🖥️ GUI Version (macOS Menu Bar App)
+
+- Requires **macOS 15 or later** for users (see README for details)
+- For development: requires **Xcode 16+**, Homebrew
 - Runs quietly in the menu bar (not dock) using `LSUIElement = true`
+- Provides a modern SwiftUI interface for configuration management
+- Features anti-detection (human-like automation), secure Keychain storage, and automated email verification (IMAP/Gmail)
+
+### 💻 CLI Version (Command Line Interface)
+
+- Same macOS requirements as GUI version
+- Command-line interface for remote automation
+- Perfect for CI/CD pipelines and server environments
+- Uses the same WebKit automation engine as the GUI
+
+### 🔄 Shared Core
+
 - Automates web-based reservation booking for Ottawa Recreation facilities
 - Uses **Swift WebKit (WKWebView)** for robust, native web automation
-- Provides a modern SwiftUI interface for configuration management
 - Schedules automatic runs based on configured time slots
 - Supports multiple configurations for different sports and facilities
 - Includes comprehensive logging and error handling
-- Features anti-detection (human-like automation), secure Keychain storage, and automated email verification (IMAP/Gmail)
+- Both versions share the same backend services and automation engine
 
 ## 🏗️ Architecture & Technology Stack
 
@@ -38,16 +51,27 @@ ODYSSEY is a native macOS application that:
 
 ### Key Components
 
+#### GUI Components
+
 1. **AppDelegate** - Application lifecycle and scheduling management
 2. **StatusBarController** - Menu bar integration and UI management
-3. **ConfigurationManager** - Settings and data persistence (singleton)
-4. **ReservationManager** - Web automation orchestration
-5. **WebKitService** - Native web automation engine (singleton)
-6. **FacilityService** - Web scraping and facility data management
-7. **EmailService** - IMAP integration and email testing
-8. **UserSettingsManager** - User configuration and settings management
-9. **ValidationService** - Centralized validation logic (singleton)
-10. **AppConstants** - Centralized application constants
+3. **Views** - SwiftUI interface components for configuration management
+
+#### CLI Components
+
+4. **CLI.swift** - Command-line interface entry point and argument parsing
+5. **CLIExportService** - Configuration export/import for CLI usage
+
+#### Shared Core Components
+
+6. **ConfigurationManager** - Settings and data persistence (singleton)
+7. **ReservationManager** - Web automation orchestration
+8. **WebKitService** - Native web automation engine (singleton)
+9. **FacilityService** - Web scraping and facility data management
+10. **EmailService** - IMAP integration and email testing
+11. **UserSettingsManager** - User configuration and settings management
+12. **ValidationService** - Centralized validation logic (singleton)
+13. **AppConstants** - Centralized application constants
 
 ## 🎯 Development Guidelines
 
@@ -85,6 +109,16 @@ ODYSSEY is a native macOS application that:
 - **Better Performance**: Native macOS integration
 - **Smaller Footprint**: No additional browser dependencies
 - **No Permission Issues**: Standard app sandbox permissions only
+
+### CLI Development Guidelines
+
+- **Shared Services**: CLI uses the same backend services as the GUI
+- **Environment Variables**: All CLI configuration should be environment-based
+- **Error Handling**: Provide clear error messages for CLI users
+- **Documentation**: Update CLI documentation when adding new commands
+- **Testing**: Test CLI commands with real export tokens
+- **Headless Mode**: CLI always runs without browser windows
+- **Token-Based**: Uses export tokens from GUI for configuration
 
 ### Error Handling
 

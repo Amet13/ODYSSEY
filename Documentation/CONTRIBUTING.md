@@ -2,6 +2,15 @@
 
 Thank you for your interest in contributing to ODYSSEY! This document provides guidelines and information for contributors.
 
+## 🎯 Overview
+
+ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
+
+- **🖥️ GUI Version**: Native macOS menu bar app with SwiftUI interface
+- **💻 CLI Version**: Command-line interface for remote automation
+
+Both versions share the same backend services and automation engine, so contributions can affect both interfaces.
+
 ## 🎯 Quick Start
 
 1. **Fork the repository** on GitHub
@@ -36,6 +45,7 @@ We use the following labels to help contributors find suitable tasks:
 - `security` - Security-related improvements
 - `automation` - Web automation enhancements
 - `integration` - Third-party integrations
+- `cli` - Command-line interface improvements
 
 ## 📝 How to Check Logs
 
@@ -78,6 +88,34 @@ We use the following labels to help contributors find suitable tasks:
    git push origin feature/amazing-feature
    ```
 7. **Open a Pull Request** on GitHub
+
+## 🖥️ CLI Development
+
+The CLI tool is an integral part of ODYSSEY, providing remote automation capabilities.
+
+### CLI Contribution Guidelines
+
+- **Shared Services**: CLI uses the same backend services as the GUI
+- **Environment Variables**: All configuration should be environment-based
+- **Error Handling**: Provide clear error messages for CLI users
+- **Documentation**: Update CLI documentation when adding new commands
+- **Testing**: Test CLI commands with real export tokens
+
+### CLI Development Workflow
+
+1. **Build CLI**: `swift build --product odyssey-cli`
+2. **Test Commands**: `./.build/arm64-apple-macosx/debug/odyssey-cli help`
+3. **Export Token**: Generate token from GUI for testing
+4. **Test Automation**: `export ODYSSEY_EXPORT_TOKEN="<exported_token>" && ./odyssey-cli run`
+5. **Test GitHub Actions**: Verify `.github/workflows/odyssey-automation.yml` works correctly
+
+### Supported CLI Commands
+
+- `run [--now] [--prior <days>]` - Run reservations (with optional immediate execution and prior days)
+- `configs` - List all configurations from export token
+- `settings [--unmask]` - Show user settings (with optional unmasking)
+- `help` - Show CLI help and usage
+- `version` - Show CLI version information
 
 ## 🧑‍💻 Coding Guidelines
 

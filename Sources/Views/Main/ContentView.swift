@@ -19,6 +19,7 @@ struct ContentView: View {
     @State private var showingSettings = false
     @State private var showingAbout = false
     @State private var showingGodModeConfig = false
+    @State private var showingExport = false
     // God mode and error/help UI
     @StateObject private var godModeStateManager = GodModeStateManager.shared
     @State private var showingUserError = false
@@ -38,6 +39,7 @@ struct ContentView: View {
             showingSettings: $showingSettings,
             showingAbout: $showingAbout,
             showingGodModeConfig: $showingGodModeConfig,
+            showingExport: $showingExport,
             godModeStateManager: godModeStateManager,
             showingUserError: $showingUserError,
             showingHelp: $showingHelp,
@@ -107,6 +109,7 @@ private struct MainBody: View {
     @Binding var showingSettings: Bool
     @Binding var showingAbout: Bool
     @Binding var showingGodModeConfig: Bool
+    @Binding var showingExport: Bool
     // Removed any white background or overlay from the UI, so all backgrounds are transparent or inherit the window.
     // background
     @ObservedObject var godModeStateManager: GodModeStateManager
@@ -138,6 +141,8 @@ private struct MainBody: View {
                 FooterView(
                     showingSettings: $showingSettings,
                     showingAbout: $showingAbout,
+                    showingExport: $showingExport,
+                    hasConfigurations: !configManager.settings.configurations.isEmpty,
                     )
             }
             .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
@@ -161,6 +166,9 @@ private struct MainBody: View {
                     .presentationDetents([.medium])
                     .presentationDragIndicator(.hidden)
                     .presentationBackground(.clear)
+            }
+            .sheet(isPresented: $showingExport) {
+                ExportView(configurationManager: configManager)
             }
             .sheet(isPresented: $showingGodModeConfig) {
                 ConfigurationDetailView(config: nil, onSave: { _ in
@@ -488,63 +496,83 @@ private struct ConfigurationListView: View {
                     }
                 }
             }
+            .padding(.horizontal, AppConstants.contentPadding)
+            .padding(.trailing, AppConstants.paddingMedium) // Add space for scrollbar
         }
-        .padding(.horizontal, AppConstants.contentPadding)
     }
 }
 
 private struct FooterView: View {
     @Binding var showingSettings: Bool
     @Binding var showingAbout: Bool
+    @Binding var showingExport: Bool
+    let hasConfigurations: Bool
 
     var body: some View {
         VStack(spacing: AppConstants.spacingMedium) {
             HStack {
-                Button(action: { showingSettings = true }) {
-                    HStack(spacing: AppConstants.spacingSmall) {
-                        Image(systemName: "gearshape.fill")
-                            .font(.system(size: AppConstants.fontBody))
-                        Text("Settings")
-                            .font(.system(size: AppConstants.fontBody))
+                HStack(spacing: AppConstants.spacingSmall) {
+                    Button(action: { showingSettings = true }) {
+                        HStack(spacing: AppConstants.spacingSmall) {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: AppConstants.fontBody))
+                            Text("Settings")
+                                .font(.system(size: AppConstants.fontBody))
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.blue)
+                    .controlSize(.regular)
+                    .help(NSLocalizedString("settings_tooltip", comment: "Configure user settings and integrations"))
+                    .accessibilityLabel(NSLocalizedString("settings", comment: "Settings"))
+                    .keyboardShortcut(",", modifiers: .command)
+
+                    if hasConfigurations {
+                        Button(action: { showingExport = true }) {
+                            HStack(spacing: AppConstants.spacingSmall) {
+                                Image(systemName: "square.and.arrow.up")
+                                    .font(.system(size: AppConstants.fontBody))
+                                Text("Export")
+                                    .font(.system(size: AppConstants.fontBody))
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.regular)
+                        .help("Export configurations for remote automation")
+                        .accessibilityLabel("Export")
                     }
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.blue)
-                .controlSize(.regular)
-                .help(NSLocalizedString("settings_tooltip", comment: "Configure user settings and integrations"))
-                .accessibilityLabel(NSLocalizedString("settings", comment: "Settings"))
-                .keyboardShortcut(",", modifiers: .command)
 
                 Spacer()
 
-                Button(action: { showingAbout = true }) {
-                    HStack(spacing: AppConstants.spacingSmall) {
-                        Image(systemName: "info.circle.fill")
-                            .font(.system(size: AppConstants.fontBody))
-                        Text("About")
-                            .font(.system(size: AppConstants.fontBody))
+                HStack(spacing: AppConstants.spacingSmall) {
+                    Button(action: { showingAbout = true }) {
+                        HStack(spacing: AppConstants.spacingSmall) {
+                            Image(systemName: "info.circle.fill")
+                                .font(.system(size: AppConstants.fontBody))
+                            Text("About")
+                                .font(.system(size: AppConstants.fontBody))
+                        }
                     }
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
-                .help(NSLocalizedString("about_tooltip", comment: "About ODYSSEY"))
-                .accessibilityLabel(NSLocalizedString("about", comment: "About"))
+                    .buttonStyle(.bordered)
+                    .controlSize(.regular)
+                    .help(NSLocalizedString("about_tooltip", comment: "About ODYSSEY"))
+                    .accessibilityLabel(NSLocalizedString("about", comment: "About"))
 
-                Spacer()
-
-                Button(action: { NSApp.terminate(nil) }) {
-                    HStack(spacing: AppConstants.spacingSmall) {
-                        Image(systemName: "power")
-                            .font(.system(size: AppConstants.fontBody))
-                        Text("Quit")
-                            .font(.system(size: AppConstants.fontBody))
+                    Button(action: { NSApp.terminate(nil) }) {
+                        HStack(spacing: AppConstants.spacingSmall) {
+                            Image(systemName: "power")
+                                .font(.system(size: AppConstants.fontBody))
+                            Text("Quit")
+                                .font(.system(size: AppConstants.fontBody))
+                        }
                     }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.red)
+                    .controlSize(.regular)
+                    .help(NSLocalizedString("quit_tooltip", comment: "Quit ODYSSEY"))
+                    .accessibilityLabel(NSLocalizedString("quit", comment: "Quit"))
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.red)
-                .controlSize(.regular)
-                .help(NSLocalizedString("quit_tooltip", comment: "Quit ODYSSEY"))
-                .accessibilityLabel(NSLocalizedString("quit", comment: "Quit"))
             }
             .padding(.horizontal, AppConstants.contentPadding)
             .padding(.bottom, AppConstants.contentPadding)
@@ -620,13 +648,15 @@ struct ConfigurationRowView: View {
                     ))
                 Button(action: onEdit) {
                     Image(systemName: "pencil")
+                        .foregroundColor(.odysseyAccent)
                 }
                 .buttonStyle(.bordered)
-                .foregroundColor(.odysseyAccent)
                 .help(NSLocalizedString("edit_tooltip", comment: "Edit this configuration"))
                 .accessibilityLabel(NSLocalizedString("edit_configuration", comment: "Edit Configuration"))
                 .accessibilityHint(NSLocalizedString("edit_tooltip", comment: "Edit this configuration"))
-                Button(action: { showingDeleteConfirmation = true }) {
+                Button(action: {
+                    showingDeleteConfirmation = true
+                }) {
                     Image(systemName: "trash")
                         .foregroundColor(.odysseyError)
                 }

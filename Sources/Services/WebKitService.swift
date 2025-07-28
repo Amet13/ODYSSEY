@@ -5115,7 +5115,7 @@ class WebKitElement: @preconcurrency WebElementProtocol {
 }
 
 // Register the singleton for DI
-extension WebKitService {
+public extension WebKitService {
     static func registerForDI() {
         ServiceRegistry.shared.register(WebKitService.shared, for: WebKitServiceProtocol.self)
     }

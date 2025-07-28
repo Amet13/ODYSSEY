@@ -2,6 +2,7 @@
   <img src="Sources/Resources/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" alt="ODYSSEY Logo">
   <h1>ODYSSEY</h1>
   <p><strong>Ottawa Drop-in Your Sports & Schedule Easily Yourself</strong></p>
+  <p><em>macOS Menu Bar App + Command Line Interface for Sports Reservation Automation</em></p>
   <p>
     <a href="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml">
       <img src="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml/badge.svg" alt="CI Status">
@@ -17,17 +18,27 @@
 
 ## 🚀 Quick Start
 
+### 🖥️ GUI Version (macOS Menu Bar App)
+
 1. **Download** the latest `.dmg` from the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
 2. **Install**: Open the `.dmg`, drag ODYSSEY to `Applications`.
 3. **Launch**: Find ODYSSEY in your menu bar (top right).
 4. **Configure**: Click the icon, add your reservation details, and set up email for verification.
 5. **Automate!** Sit back and let ODYSSEY book your sports for you! 🎉
 
+### 💻 CLI Version (Command Line Interface)
+
+1. **Download** the CLI binary from the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
+2. **Export** your configuration from the GUI app.
+3. **Set** the `ODYSSEY_EXPORT_TOKEN` environment variable.
+4. **Run** reservations with `./odyssey-cli run`! 🚀
+
 ## ✨ Features
 
 | Feature                     | Description                                                     |
 | --------------------------- | --------------------------------------------------------------- |
-| 🖥️ Native macOS Integration | Runs quietly in the menu bar, not the Dock                      |
+| 🖥️ **GUI Version**          | Native macOS menu bar app with SwiftUI interface                |
+| 💻 **CLI Version**          | Command-line interface for remote automation                    |
 | 🛡️ WebKit Automation        | Uses native Swift WebKit (WKWebView) for robust automation      |
 | 🎨 Modern SwiftUI Interface | Beautiful, responsive UI for easy configuration                 |
 | ⏰ Automated Scheduling     | Schedules runs based on your configured time slots              |
@@ -36,8 +47,11 @@
 | 📧 Email Verification       | Automated IMAP/Gmail verification for reservation confirmations |
 | 🕵️‍♂️ Anti-Detection           | Human-like automation to avoid bot detection                    |
 | 🎨 Dark Mode Polish         | Fully adaptive UI for both light and dark appearances           |
+| 🔄 **Dual Interface**       | Same automation engine powers both GUI and CLI versions         |
 
 ## 📦 Installation
+
+### 🖥️ GUI Version (macOS Menu Bar App)
 
 1. **Download the latest release**:
    - Go to the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
@@ -53,9 +67,32 @@
    - Click the ODYSSEY menu bar icon.
    - You're ready to automate your bookings! 🎾
 
+### 💻 CLI Version (Command Line Interface)
+
+1. **Download the CLI binary**:
+   - Go to the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
+   - Download the `odyssey-cli` binary for macOS.
+2. **Make it executable**:
+   ```bash
+   chmod +x odyssey-cli
+   ```
+3. **Export configuration from GUI**:
+   - Use the GUI app to configure your reservations.
+   - Export your configuration to get the `ODYSSEY_EXPORT_TOKEN`.
+4. **Set up environment**:
+   ```bash
+   export ODYSSEY_EXPORT_TOKEN="<your_exported_token>"
+   ```
+5. **Run reservations**:
+   ```bash
+   ./odyssey-cli run
+   ```
+
 ## 🎯 Usage
 
-### 1️⃣ Add a Reservation Configuration
+### 🖥️ GUI Version Usage
+
+#### 1️⃣ Add a Reservation Configuration
 
 - Click the ODYSSEY menu bar icon
 - Click **Add Configuration** or **+** button
@@ -65,7 +102,7 @@
   <img src="Documentation/Images/add_config.png" width="300">
 </div>
 
-### 2️⃣ Set Up Contact Data
+#### 2️⃣ Set Up Contact Data
 
 - Click **Settings**
 - Fill in your name and phone
@@ -77,7 +114,7 @@
   <img src="Documentation/Images/settings.png" width="300">
 </div>
 
-### 3️⃣ Configure Reservations
+#### 3️⃣ Configure Reservations
 
 - **Manual Run**: Click **Run Now** for immediate execution
 - **Auto Run**: Enable toggle; runs at 6PM, 2 days before your event
@@ -85,11 +122,140 @@
 - **Delete Configuration** (optional)
 
 <div align="center">
-  <img src="Documentation/Images/main_1.png" width="300">
-  <img src="Documentation/Images/main_2.png" width="300">
+  <img src="Documentation/Images/main_empty.png" width="300">
+  <img src="Documentation/Images/main_configs.png" width="300">
 </div>
 
 > **💡 Tip**: Keep your laptop awake during reservation automation. While ODYSSEY can prevent sleep before autorun, it's best to ensure your Mac doesn't go to sleep during the reservation process for optimal reliability.
+
+### ℹ️ About ODYSSEY
+
+Learn more about ODYSSEY's features and capabilities through the About view:
+
+- Click the ODYSSEY menu bar icon
+- Select **About** from the menu
+- View app information, version, and feature list
+
+<div align="center">
+  <img src="Documentation/Images/about.png" width="300">
+</div>
+
+### 💻 CLI Version Usage
+
+The CLI version provides the same automation capabilities as the GUI but runs from the command line, perfect for:
+
+- **Remote servers** and headless automation
+- **CI/CD pipelines** and scheduled jobs
+- **Advanced users** who prefer command-line tools
+- **Server deployments** where GUI is not available
+
+#### Quick Commands
+
+```bash
+# List all configurations
+./odyssey-cli configs
+
+# Show user settings
+./odyssey-cli settings
+
+# Run reservations (scheduled time)
+./odyssey-cli run
+
+# Run immediately (ignore time checks)
+./odyssey-cli run --now
+
+# Run 3 days before reservation (default: 2)
+./odyssey-cli run --prior 3
+
+# Show help
+./odyssey-cli help
+
+# Show version
+./odyssey-cli version
+```
+
+#### How to Export a Token
+
+1. **Configure in GUI**: Use the GUI app to set up your reservations and settings
+2. **Export Configuration**: Click the export button in the GUI
+3. **Copy Token**: Copy the generated export token
+4. **Set Environment Variable**:
+   ```bash
+   export ODYSSEY_EXPORT_TOKEN="<your_exported_token>"
+   ```
+5. **Run CLI**: Use the CLI commands above to automate reservations
+
+<div align="center">
+  <img src="Documentation/Images/export.png" width="300">
+</div>
+
+#### GitHub Actions Automation
+
+For automated scheduling, you can use the included GitHub Actions workflow:
+
+1. **Fork the repository** and add your export token as a GitHub secret
+2. **Enable the workflow** in your fork's Actions tab
+3. **Sit back** and let GitHub Actions run your reservations automatically!
+
+See [CLI Documentation](Documentation/CLI.md#github-actions-integration) for detailed setup instructions.
+
+## 🖥️ Command Line Interface (CLI)
+
+ODYSSEY includes a powerful CLI tool for remote automation on macOS servers. The CLI runs reservations in parallel using the same WebKit automation engine as the GUI app.
+
+### Quick Start
+
+```bash
+# Download CLI from releases
+# chmod +x odyssey-cli
+
+# Export configurations from GUI and run
+export ODYSSEY_EXPORT_TOKEN="<exported_token>"
+./odyssey-cli run
+
+# Run 3 days before reservation (instead of default 2)
+./odyssey-cli run --prior 3
+
+# List configurations
+./odyssey-cli configs
+
+# Show settings
+./odyssey-cli settings
+```
+
+### How to Export a Token
+
+1. **Open ODYSSEY GUI**: Launch the ODYSSEY app from your menu bar
+2. **Configure Reservations**: Set up your reservation configurations and user settings
+3. **Export Token**:
+   - Click the **Export** button in the main view
+   - Select the configurations you want to include in the CLI
+   - Click **Export Token** to generate the token
+   - The token will be automatically copied to your clipboard
+4. **Use in CLI**: Set the environment variable with your exported token:
+   ```bash
+   export ODYSSEY_EXPORT_TOKEN="<paste_your_exported_token_here>"
+   ```
+
+### Key Features
+
+- ✅ **Parallel Execution**: Runs multiple reservations simultaneously
+- ✅ **Headless Mode**: Always runs without browser window
+- ✅ **macOS Only**: Requires macOS servers with GUI capabilities
+- ✅ **Same Automation**: Uses identical WebKit engine as GUI app
+- ✅ **Pre-built Binaries**: Download ready-to-use CLI from releases
+- ✅ **CI/CD Ready**: Perfect for GitHub Actions and automated pipelines
+
+### Documentation
+
+For detailed CLI documentation including:
+
+- Environment variables and configuration
+- CI/CD pipeline examples
+- Remote server deployment
+- Troubleshooting and debugging
+
+See **[Documentation/CLI.md](Documentation/CLI.md)** for complete CLI documentation.
 
 ## 📊 Logs & Debugging
 
@@ -123,7 +289,7 @@
 
 #### 🕵️‍♂️ App does not appear in menu bar
 
-- Ensure you are running macOS 15.0 or later
+- Ensure you are running macOS 15 or later
 - Check that the app is not running in the Dock (it should only appear in the menu bar)
 
 #### 📝 Logs not showing in Console.app

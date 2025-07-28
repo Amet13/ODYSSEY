@@ -89,6 +89,34 @@ update_info_plist_version() {
     fi
 }
 
+# Function to update version in AppConstants.swift
+update_app_constants_version() {
+    local version=$1
+    local dry_run=$2
+    local app_constants_path="Sources/Utils/AppConstants.swift"
+    
+    if [ "$dry_run" = "true" ]; then
+        print_status "info" "Would update AppConstants.swift appVersion to $version"
+    else
+        sed -i '' "s/appVersion = \".*\"/appVersion = \"$version\"/" "$app_constants_path"
+        print_status "success" "Updated AppConstants.swift appVersion to $version"
+    fi
+}
+
+# Function to update version in CLIExportService.swift
+update_cli_export_version() {
+    local version=$1
+    local dry_run=$2
+    local cli_export_path="Sources/Services/CLIExportService.swift"
+    
+    if [ "$dry_run" = "true" ]; then
+        print_status "info" "Would update CLIExportService.swift version to $version"
+    else
+        sed -i '' "s/version: String = \".*\"/version: String = \"$version\"/" "$cli_export_path"
+        print_status "success" "Updated CLIExportService.swift version to $version"
+    fi
+}
+
 # Function to update changelog
 update_changelog() {
     local version=$1
@@ -280,6 +308,8 @@ main() {
     print_status "step" "Updating version files..."
     update_project_version "$version" "$dry_run"
     update_info_plist_version "$version" "$dry_run"
+    update_app_constants_version "$version" "$dry_run"
+    update_cli_export_version "$version" "$dry_run"
     update_changelog "$version" "$dry_run"
     
     # Generate git commands
