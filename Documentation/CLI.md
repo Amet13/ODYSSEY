@@ -180,7 +180,7 @@ The export token is a compressed, base64-encoded configuration optimized for CLI
 5. The token will be copied to your clipboard
 
 <div align="center">
-  <img src="../Images/export.png" width="300">
+  <img src="Images/export.png" width="300">
 </div>
 
 ### Step 2: Set Environment Variable
