@@ -47,7 +47,6 @@
 | 📧 Email Verification       | Automated IMAP/Gmail verification for reservation confirmations |
 | 🕵️‍♂️ Anti-Detection           | Human-like automation to avoid bot detection                    |
 | 🎨 Dark Mode Polish         | Fully adaptive UI for both light and dark appearances           |
-| 🔄 **Dual Interface**       | Same automation engine powers both GUI and CLI versions         |
 
 ## 📦 Installation
 
@@ -149,31 +148,6 @@ The CLI version provides the same automation capabilities as the GUI but runs fr
 - **Advanced users** who prefer command-line tools
 - **Server deployments** where GUI is not available
 
-#### Quick Commands
-
-```bash
-# List all configurations
-./odyssey-cli configs
-
-# Show user settings
-./odyssey-cli settings
-
-# Run reservations (scheduled time)
-./odyssey-cli run
-
-# Run immediately (ignore time checks)
-./odyssey-cli run --now
-
-# Run 3 days before reservation (default: 2)
-./odyssey-cli run --prior 3
-
-# Show help
-./odyssey-cli help
-
-# Show version
-./odyssey-cli version
-```
-
 #### How to Export a Token
 
 1. **Configure in GUI**: Use the GUI app to set up your reservations and settings
@@ -198,64 +172,6 @@ For automated scheduling, you can use the included GitHub Actions workflow:
 3. **Sit back** and let GitHub Actions run your reservations automatically!
 
 See [CLI Documentation](Documentation/CLI.md#github-actions-integration) for detailed setup instructions.
-
-## 🖥️ Command Line Interface (CLI)
-
-ODYSSEY includes a powerful CLI tool for remote automation on macOS servers. The CLI runs reservations in parallel using the same WebKit automation engine as the GUI app.
-
-### Quick Start
-
-```bash
-# Download CLI from releases
-# chmod +x odyssey-cli
-
-# Export configurations from GUI and run
-export ODYSSEY_EXPORT_TOKEN="<exported_token>"
-./odyssey-cli run
-
-# Run 3 days before reservation (instead of default 2)
-./odyssey-cli run --prior 3
-
-# List configurations
-./odyssey-cli configs
-
-# Show settings
-./odyssey-cli settings
-```
-
-### How to Export a Token
-
-1. **Open ODYSSEY GUI**: Launch the ODYSSEY app from your menu bar
-2. **Configure Reservations**: Set up your reservation configurations and user settings
-3. **Export Token**:
-   - Click the **Export** button in the main view
-   - Select the configurations you want to include in the CLI
-   - Click **Export Token** to generate the token
-   - The token will be automatically copied to your clipboard
-4. **Use in CLI**: Set the environment variable with your exported token:
-   ```bash
-   export ODYSSEY_EXPORT_TOKEN="<paste_your_exported_token_here>"
-   ```
-
-### Key Features
-
-- ✅ **Parallel Execution**: Runs multiple reservations simultaneously
-- ✅ **Headless Mode**: Always runs without browser window
-- ✅ **macOS Only**: Requires macOS servers with GUI capabilities
-- ✅ **Same Automation**: Uses identical WebKit engine as GUI app
-- ✅ **Pre-built Binaries**: Download ready-to-use CLI from releases
-- ✅ **CI/CD Ready**: Perfect for GitHub Actions and automated pipelines
-
-### Documentation
-
-For detailed CLI documentation including:
-
-- Environment variables and configuration
-- CI/CD pipeline examples
-- Remote server deployment
-- Troubleshooting and debugging
-
-See **[Documentation/CLI.md](Documentation/CLI.md)** for complete CLI documentation.
 
 ## 📊 Logs & Debugging
 

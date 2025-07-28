@@ -75,16 +75,13 @@ export ODYSSEY_EXPORT_TOKEN="<exported_token>"
 Run real reservations for configurations scheduled N days before reservation day using the same automation engine as the GUI app.
 
 ```bash
-# Run configurations at scheduled time (6:00 PM, 2 days before reservation)
+# Run configurations at scheduled time (6:00 PM, 2 days before event)
 ./odyssey-cli run
 
-# Run configurations immediately (ignore time checks)
+# Run configurations immediately (ignore time checks, usually for debugging)
 ./odyssey-cli run --now
 
-# Run 3 days before reservation (instead of default 2)
-./odyssey-cli run --prior 3
-
-# Run 1 day before reservation
+# Run 1 day before reservation (usually for debugging)
 ./odyssey-cli run --prior 1
 ```
 
@@ -103,28 +100,21 @@ List all available configurations from the export token.
 
 ```bash
 ./odyssey-cli configs
-```
-
-**Output:**
-
-```
-📋 Available Configurations:
+ Available Configurations:
 ==================================================
-1. ✅ Mintobarrhaven - Volleyball - adult
-   **Sport**: Volleyball
-   **Facility**: Mintobarrhaven
-   **People**: 6
-   **Time Slots**:
-     Mon: 7:00 PM, 8:00 PM
-     Wed: 6:00 PM, 7:00 PM
+1. ✅ Richcraftkanata - Aqua general - deep
+   Sport: Aqua general - deep
+   Facility: Richcraftkanata
+   People: 1
+   Time Slots:
+     Tue: 9:30 AM
 
-2. ✅ Richcraftkanata - Volleyball - adult
-   **Sport**: Volleyball
-   **Facility**: Richcraftkanata
-   **People**: 4
-   **Time Slots**:
-     Tue: 6:30 PM
-     Thu: 7:30 PM
+2. ✅ Cardelrec - Bootcamp
+   Sport: Bootcamp
+   Facility: Cardelrec
+   People: 1
+   Time Slots:
+     Tue: 7:00 AM
 ```
 
 ### `settings [--unmask]`
@@ -134,21 +124,23 @@ Show user settings from export token.
 ```bash
 # Show masked settings (default)
 ./odyssey-cli settings
+📋 User Settings:
+==============================
+Name: John
+Phone: ***890
+Email: ***@domain.com
+IMAP Password: ***
+IMAP Server: imap.domain.com
 
 # Show unmasked settings (for debugging)
 ./odyssey-cli settings --unmask
-```
-
-**Output:**
-
-```
 📋 User Settings:
 ==============================
-**Name**: John Doe
-**Phone**: ***123
-**Email**: ***@gmail.com
-**IMAP Password**: ***
-**IMAP Server**: imap.gmail.com
+Name: John
+Phone: 1234567890
+Email: johndoe@gmail.com
+IMAP Password: my-s3cur3-p@ssw0rd
+IMAP Server: imap.gmail.com
 ```
 
 ### `help`
@@ -173,20 +165,9 @@ The export token is a compressed, base64-encoded configuration optimized for CLI
 
 ### ✅ Included Data:
 
-- **User Settings**: Name, phone, email credentials, IMAP server (email provider excluded)
+- **User Settings**: Name, phone, email credentials, IMAP server (do not share this data, it contains sensitive information)
 - **Selected Configurations**: All reservation configurations chosen for export
 - **Export Metadata**: Version, export date, unique ID
-
-### ❌ Excluded Data (for CLI efficiency):
-
-- **Language Settings**: Not needed for automation
-- **Fixed Timing**: CLI uses fixed 6:00 PM execution time
-- **Email Provider**: Redundant since both IMAP and Gmail use IMAP protocol
-- **UI Preferences**: Browser window settings, debug preferences
-- **Timezone**: Hardcoded to America/Toronto (Ottawa facilities)
-- **Timeout Settings**: Hardcoded to optimal values for automation
-
-This optimization results in smaller, more focused export tokens that are perfect for CI/CD environments.
 
 ## 🧪 Verifying Your Configuration
 
@@ -255,81 +236,9 @@ The workflow file is already included in the repository. It will automatically:
 - Run reservations using your export token
 - Upload logs for debugging
 
-#### Workflow Example
-
-```yaml
-name: ODYSSEY Reservation Automation
-
-on:
-  schedule:
-    - cron: "0 18 * * *" # 6:00 PM daily
-  workflow_dispatch: # Allow manual runs
-
-jobs:
-  run-reservations:
-    runs-on: macos-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download ODYSSEY CLI
-        run: |
-          # Download latest CLI from releases
-          curl -L -o odyssey-cli "https://github.com/Amet13/ODYSSEY/releases/latest/download/odyssey-cli-$(curl -s https://api.github.com/repos/Amet13/ODYSSEY/releases/latest | grep -o '"tag_name": "v[^"]*"' | cut -d'"' -f4)"
-          chmod +x odyssey-cli
-
-      - name: Run Reservations
-        run: ./odyssey-cli run
-        env:
-          ODYSSEY_EXPORT_TOKEN: ${{ secrets.ODYSSEY_EXPORT_TOKEN }}
-
-      - name: Upload Logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: odyssey-logs
-          path: |
-            ~/.odyssey-cli/
-            *.log
-```
-
-### Cron Job (macOS)
-
-```bash
-#!/bin/bash
-# /etc/cron.d/odyssey-reservations
-
-# Set environment variables
-export ODYSSEY_EXPORT_TOKEN="<exported_token>"
-
-# Change to ODYSSEY directory
-cd /path/to/ODYSSEY
-
-# Run reservations
-./odyssey-cli run >> /var/log/odyssey.log 2>&1
-```
-
 ## 🔍 Troubleshooting
 
 ### Common Issues
-
-#### Token Decoding Fails
-
-```bash
-# Verify token format
-./odyssey-cli configs
-```
-
-#### Configuration Not Found
-
-```bash
-# List all configurations
-./odyssey-cli configs
-
-# Check configuration name exactly
-./odyssey-cli configs | grep -A 5 "Selected Configurations"
-```
 
 #### WebKit Issues
 
@@ -337,14 +246,6 @@ cd /path/to/ODYSSEY
 # CLI always runs in headless mode
 # Check system logs for WebKit errors
 log show --predicate 'subsystem == "com.odyssey.cli"' --last 1h
-```
-
-## 📊 Token Decoding Tools
-
-### CLI Tool
-
-```bash
-./odyssey-cli configs
 ```
 
 ## 🔒 Security
@@ -375,54 +276,6 @@ The CLI uses WebKit which requires macOS and a graphical environment. For remote
 - **Only macOS servers** with GUI capabilities are supported
 - **CI/CD pipelines** should use macOS runners exclusively
 - **Virtual displays** are not needed on macOS servers
-
-## 📝 Examples
-
-### Complete Workflow
-
-```bash
-# 1. Download CLI from releases
-# chmod +x odyssey-cli
-
-# 2. Set environment variables
-export ODYSSEY_EXPORT_TOKEN="<exported_token>"
-
-# 3. Verify token contents
-./odyssey-cli configs
-
-# 4. Show user settings
-./odyssey-cli settings
-
-# 5. Run all configurations
-./odyssey-cli run
-```
-
-### Automated Script
-
-```bash
-#!/bin/bash
-# run-odyssey.sh
-
-set -e
-
-# Configuration
-export ODYSSEY_EXPORT_TOKEN="<exported_token>"
-
-# Download CLI
-echo "📥 Downloading ODYSSEY CLI..."
-curl -L -o odyssey-cli "https://github.com/Amet13/ODYSSEY/releases/latest/download/odyssey-cli-$(curl -s https://api.github.com/repos/Amet13/ODYSSEY/releases/latest | grep -o '"tag_name": "v[^"]*"' | cut -d'"' -f4)"
-chmod +x odyssey-cli
-
-# Verify token
-echo "🔍 Verifying export token..."
-./odyssey-cli configs
-
-# Run reservations
-echo "🚀 Running reservations..."
-./odyssey-cli run
-
-echo "✅ ODYSSEY automation completed!"
-```
 
 ## 🤝 Support
 

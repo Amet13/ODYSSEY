@@ -120,7 +120,6 @@ The CLI tool shares the same backend services as the GUI app, providing remote a
 ### CLI Integration
 
 - **GitHub Actions**: Perfect for automated reservation scheduling
-- **Cron Jobs**: Run on servers for reliable automation
 - **CI/CD**: Integrate with existing automation pipelines
 
 ## 🚀 Release Process
