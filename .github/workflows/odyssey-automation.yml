@@ -3,12 +3,12 @@ name: ODYSSEY Reservation Automation
 
 on:
   schedule:
-    - cron: "0 18 * * *" # 6:00 PM daily (Toronto time)
+    - cron: "53 21 * * *" # 21:53 UTC (5:53pm EST)
   workflow_dispatch: true # Allow manual runs
 
 jobs:
   run-reservations:
-    runs-on: macos-latest
+    runs-on: macos-15
     name: Run ODYSSEY Reservations
 
     steps:
@@ -17,12 +17,8 @@ jobs:
 
       - name: Download ODYSSEY CLI
         run: |
-          # Download latest CLI from releases
-          curl -L -o odyssey-cli "https://github.com/Amet13/ODYSSEY/releases/latest/download/odyssey-cli-$(curl -s https://api.github.com/repos/Amet13/ODYSSEY/releases/latest | grep -o '"tag_name": "v[^"]*"' | cut -d'"' -f4)"
+          curl -L -o odyssey-cli https://github.com/Amet13/ODYSSEY/releases/latest/download/odyssey-cli
           chmod +x odyssey-cli
-
-          # Verify CLI works
-          ./odyssey-cli version
 
       - name: Run Reservations
         run: |
@@ -30,21 +26,3 @@ jobs:
           ./odyssey-cli run
         env:
           ODYSSEY_EXPORT_TOKEN: ${{ secrets.ODYSSEY_EXPORT_TOKEN }}
-
-      - name: Upload Logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: odyssey-logs-${{ github.run_id }}
-          path: |
-            ~/.odyssey-cli/
-            *.log
-          retention-days: 30
-
-      - name: Upload CLI Binary
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: odyssey-cli-binary
-          path: odyssey-cli
-          retention-days: 7

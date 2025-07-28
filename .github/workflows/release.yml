@@ -163,12 +163,12 @@ jobs:
           echo "📦 Creating CLI binary..."
 
           # Copy CLI binary to release directory
-          cp "$CLI_PATH" "odyssey-cli-${{ github.ref_name }}"
+          cp "$CLI_PATH" "odyssey-cli"
 
           # Make executable
-          chmod +x "odyssey-cli-${{ github.ref_name }}"
+          chmod +x "odyssey-cli"
 
-          echo "✅ CLI binary created: odyssey-cli-${{ github.ref_name }}"
+          echo "✅ CLI binary created: odyssey-cli"
 
       - name: Create DMG
         run: |
@@ -212,7 +212,7 @@ jobs:
           APP_SIZE=$(du -sh "${{ steps.app-path.outputs.APP_PATH }}" | cut -f1)
           DMG_SIZE=$(du -sh "ODYSSEY-${{ github.ref_name }}.dmg" | cut -f1)
           CLI_SIZE=$(du -sh "$CLI_PATH" | cut -f1)
-          CLI_BINARY_SIZE=$(du -sh "odyssey-cli-${{ github.ref_name }}" | cut -f1)
+          CLI_BINARY_SIZE=$(du -sh "odyssey-cli" | cut -f1)
 
           echo "App size: $APP_SIZE"
           echo "DMG size: $DMG_SIZE"
@@ -235,7 +235,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: odyssey-cli
-          path: odyssey-cli-${{ github.ref_name }}
+          path: odyssey-cli
           retention-days: 90
 
   create-release:
@@ -303,9 +303,9 @@ jobs:
 
           #### CLI Tool
           1. Download the CLI binary above
-          2. Make executable: `chmod +x odyssey-cli-v1.1.0`
+          2. Make executable: `chmod +x odyssey-cli`
           3. Export token from GUI: `export ODYSSEY_EXPORT_TOKEN="<token>"`
-          4. Run: `./odyssey-cli-v1.1.0 run`
+          4. Run: `./odyssey-cli run`
 
           ### 📋 Requirements
           - macOS 15 or later
@@ -357,8 +357,8 @@ jobs:
 
           **CLI not working?**
           - Ensure you have an export token from the GUI app
-          - Check that the CLI is executable: `chmod +x odyssey-cli-v1.1.0`
-          - Verify your export token: `./odyssey-cli-v1.1.0 decode "$ODYSSEY_EXPORT_TOKEN"`
+          - Check that the CLI is executable: `chmod +x odyssey-cli`
+          - Verify your export token: `./odyssey-cli configs`
 
           **Notarization:**
           - This app is code signed but **not notarized by Apple**. See documentation for details.

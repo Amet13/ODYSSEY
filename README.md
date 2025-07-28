@@ -37,8 +37,8 @@
 
 | Feature                     | Description                                                     |
 | --------------------------- | --------------------------------------------------------------- |
-| 🖥️ **GUI Version**          | Native macOS menu bar app with SwiftUI interface                |
-| 💻 **CLI Version**          | Command-line interface for remote automation                    |
+| 🖥️ GUI Version              | Native macOS menu bar app with SwiftUI interface                |
+| 💻 CLI Version              | Command-line interface for remote automation                    |
 | 🛡️ WebKit Automation        | Uses native Swift WebKit (WKWebView) for robust automation      |
 | 🎨 Modern SwiftUI Interface | Beautiful, responsive UI for easy configuration                 |
 | ⏰ Automated Scheduling     | Schedules runs based on your configured time slots              |
