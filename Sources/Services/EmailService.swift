@@ -867,12 +867,13 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             }
         case .cancelled:
             if config.stateObj.authenticationCompleted {
-                let cancelMsg =
-                    "[IMAP][\(config.connectionID)] Connection cancelled after successful authentication for \(config.server):\(config.port) (TLS=\(config.useTLS))"
+                let cancelMsg = "[IMAP][\(config.connectionID)] Connection cancelled after successful authentication " +
+                    "for \(config.server):\(config.port) (TLS=\(config.useTLS))"
                 staticLogger.info("\(cancelMsg, privacy: .public)")
             } else {
                 let cancelMsg =
-                    "❌ [IMAP][\(config.connectionID)] Connection cancelled on \(config.server):\(config.port) (TLS=\(config.useTLS)): Connection was cancelled"
+                    "❌ [IMAP][\(config.connectionID)] Connection cancelled on \(config.server):\(config.port) " +
+                    "(TLS=\(config.useTLS)): Connection was cancelled"
                 staticLogger.error("\(cancelMsg, privacy: .public)")
                 if !config.stateObj.didResume {
                     config.stateObj.didResume = true
@@ -1267,13 +1268,11 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
     private nonisolated func parseEmailSubject(from response: String) -> String {
         let lines = response.components(separatedBy: .newlines)
-        for line in lines {
-            if line.lowercased().hasPrefix("subject:") {
-                let subject = line.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: true)
-                    .last?
-                    .trimmingCharacters(in: .whitespaces) ?? ""
-                return subject.isEmpty ? "No subject" : subject
-            }
+        for line in lines where line.lowercased().hasPrefix("subject:") {
+            let subject = line.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: true)
+                .last?
+                .trimmingCharacters(in: .whitespaces) ?? ""
+            return subject.isEmpty ? "No subject" : subject
         }
         return "No subject"
     }

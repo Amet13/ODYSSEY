@@ -88,7 +88,7 @@ Run real reservations for configurations scheduled N days before reservation day
 **Features:**
 
 - ✅ **Real Automation**: Uses the same WebKit automation as the GUI app
-- ✅ **Parallel Execution**: Runs multiple reservations simultaneously using God Mode
+- ✅ **Parallel Execution**: Runs multiple reservations simultaneously
 - ✅ **Headless Mode**: Always runs without browser window (perfect for CI/CD)
 - ✅ **Progress Tracking**: Shows real-time progress and status updates
 - ✅ **Error Handling**: Displays detailed error messages if reservation fails

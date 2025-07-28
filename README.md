@@ -20,6 +20,8 @@
 
 ### 🖥️ GUI Version (macOS Menu Bar App)
 
+**Requirements**: macOS 15 or later
+
 1. **Download** the latest `.dmg` from the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
 2. **Install**: Open the `.dmg`, drag ODYSSEY to `Applications`.
 3. **Launch**: Find ODYSSEY in your menu bar (top right).
@@ -27,6 +29,8 @@
 5. **Automate!** Sit back and let ODYSSEY book your sports for you! 🎉
 
 ### 💻 CLI Version (Command Line Interface)
+
+**Requirements**: macOS 15 or later
 
 1. **Download** the CLI binary from the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
 2. **Export** your configuration from the GUI app.
@@ -45,7 +49,7 @@
 | ⚙️ Multiple Configurations  | Supports different sports and facilities                        |
 | 🔒 Secure Storage           | Keychain integration for credentials                            |
 | 📧 Email Verification       | Automated IMAP/Gmail verification for reservation confirmations |
-| 🕵️‍♂️ Anti-Detection           | Human-like automation to avoid bot detection                    |
+| 🕵️‍♂️ Anti-Detection           | Human-like automation with browser window monitoring            |
 | 🎨 Dark Mode Polish         | Fully adaptive UI for both light and dark appearances           |
 
 ## 📦 Installation
@@ -226,7 +230,7 @@ See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution g
 
 - 🔒 Credentials are securely stored in the macOS Keychain—never in plain text or UserDefaults
 - 🌐 All network requests use HTTPS; App Transport Security (ATS) is strictly enforced
-- 📝 The app is code signed for distribution, but is **not notarized by Apple** (no Apple Developer account). To enable notarization, see [DEVELOPMENT.md](Documentation/DEVELOPMENT.md) and `Scripts/create-release.sh`
+- 📝 The app is code signed for distribution, but is **not notarized by Apple** (no Apple Developer account). To enable notarization, see [DEVELOPMENT.md](Documentation/DEVELOPMENT.md) and `Scripts/create-release.sh` for detailed instructions
 - 🚫 No user data is ever sent externally without your explicit consent. All automation runs locally
 - See [DEVELOPMENT.md](Documentation/DEVELOPMENT.md) for full security and compliance details
 

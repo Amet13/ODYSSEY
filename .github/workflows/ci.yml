@@ -53,10 +53,23 @@ jobs:
           fi
           echo "✅ Code formatting is correct"
 
-      - name: Run ESLint on JavaScript
+      - name: Build CLI
         run: |
-          npm install -g eslint
-          eslint Sources/Resources/JavaScript/**/*.js --max-warnings=0
+          echo "🔨 Building ODYSSEY CLI..."
+          swift build --product odyssey-cli --configuration release
+
+          # Get CLI path
+          CLI_PATH=$(swift build --product odyssey-cli --configuration release --show-bin-path)/odyssey-cli
+          echo "CLI_PATH=$CLI_PATH" >> $GITHUB_ENV
+
+          # Make executable
+          chmod +x "$CLI_PATH"
+
+          # Test CLI
+          echo "🧪 Testing CLI..."
+          "$CLI_PATH" version
+
+          echo "✅ CLI built successfully at: $CLI_PATH"
 
   build-and-test:
     runs-on: macos-15

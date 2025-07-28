@@ -47,7 +47,7 @@ Both versions share the same backend services and automation engine.
 
 - **Protocol-Oriented Design:** Clear interfaces for all services and models
 - **Separation of Concerns:** Each service/component has a single responsibility
-- **Dependency Injection:** Use ServiceRegistry for dependency injection and singletons for shared services
+- **Dependency Injection:** Use singletons for shared services and dependency injection patterns
 - **Reactive Programming:** Use Combine for state management and async operations
 - **Centralized Validation:** All input validation in `ValidationService`
 - **Centralized Constants:** All constants in `AppConstants`
@@ -57,7 +57,8 @@ Both versions share the same backend services and automation engine.
 
 ## 🐞 Debugging & Troubleshooting
 
-- **Browser Window:** Optional for development and support. By default, automation runs invisibly. All advanced settings (including browser window controls) are only available in God Mode. Enable "Show browser window" in God Mode Advanced Settings to monitor automation and diagnose issues.
+- **Browser Window:** Optional for development and support. By default, automation runs invisibly. Enable "Show browser window" in God Mode Advanced Settings to monitor automation and diagnose issues.
+- **God Mode:** Advanced parallel execution mode accessible via Cmd+G keyboard shortcut for running multiple reservations simultaneously.
 - **Logs:** All logs use `os.log` with emoji indicators. Sensitive data is masked or marked as private.
 - **Console.app:** View logs by searching for `ODYSSEY` or `com.odyssey.app`.
 - **Error Handling:** All errors are logged with context and user-friendly messages are shown in the UI.

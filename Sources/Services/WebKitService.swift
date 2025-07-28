@@ -1046,11 +1046,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Failsafe: Force close all NSWindows with our title
         await MainActor.run {
             let allWindows = NSApplication.shared.windows
-            for window in allWindows {
-                if window.title.contains("ODYSSEY Web Automation") {
-                    logger.info("🪟 Failsafe: Forcibly closing window with title: \(window.title)")
-                    window.close()
-                }
+            for window in allWindows where window.title.contains("ODYSSEY Web Automation") {
+                logger.info("🪟 Failsafe: Forcibly closing window with title: \(window.title)")
+                window.close()
             }
         }
         // Ensure WebView is properly cleaned up for next run
