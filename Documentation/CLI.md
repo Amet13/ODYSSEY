@@ -167,7 +167,6 @@ The export token is a compressed, base64-encoded configuration optimized for CLI
 
 - **User Settings**: Name, phone, email credentials, IMAP server (do not share this data, it contains sensitive information)
 - **Selected Configurations**: All reservation configurations chosen for export
-- **Export Metadata**: Version, export date, unique ID
 
 ## 🧪 Verifying Your Configuration
 
