@@ -104,6 +104,24 @@ jobs:
             -quiet \
             -showBuildTimingSummary
 
+      - name: Build CLI
+        run: |
+          echo "🔨 Building ODYSSEY CLI..."
+          swift build --product odyssey-cli --configuration release
+
+          # Get CLI path
+          CLI_PATH=$(swift build --product odyssey-cli --configuration release --show-bin-path)/odyssey-cli
+          echo "CLI_PATH=$CLI_PATH" >> $GITHUB_ENV
+
+          # Make executable
+          chmod +x "$CLI_PATH"
+
+          # Test CLI
+          echo "🧪 Testing CLI..."
+          "$CLI_PATH" version
+
+          echo "✅ CLI built successfully at: $CLI_PATH"
+
       - name: Code Sign App
         run: |
           APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
@@ -119,12 +137,38 @@ jobs:
           codesign -dv "$APP_PATH"
           echo "Code signing completed"
 
+      - name: Code Sign CLI
+        run: |
+          echo "🔐 Code signing CLI..."
+
+          # Remove any existing code signing
+          codesign --remove-signature "$CLI_PATH" 2>/dev/null || true
+
+          # Sign with ad-hoc signature
+          codesign --force --deep --sign - "$CLI_PATH"
+
+          # Verify the signature
+          codesign -dv "$CLI_PATH"
+          echo "✅ CLI code signing completed"
+
       - name: Get app path
         id: app-path
         run: |
           APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
           echo "APP_PATH=$APP_PATH" >> $GITHUB_OUTPUT
           echo "Found app at: $APP_PATH"
+
+      - name: Create CLI Binary
+        run: |
+          echo "📦 Creating CLI binary..."
+
+          # Copy CLI binary to release directory
+          cp "$CLI_PATH" "odyssey-cli"
+
+          # Make executable
+          chmod +x "odyssey-cli"
+
+          echo "✅ CLI binary created: odyssey-cli"
 
       - name: Create DMG
         run: |
@@ -163,20 +207,35 @@ jobs:
               "dmg_temp/"
           fi
 
-      - name: Get app size
+      - name: Get sizes
         run: |
           APP_SIZE=$(du -sh "${{ steps.app-path.outputs.APP_PATH }}" | cut -f1)
           DMG_SIZE=$(du -sh "ODYSSEY-${{ github.ref_name }}.dmg" | cut -f1)
+          CLI_SIZE=$(du -sh "$CLI_PATH" | cut -f1)
+          CLI_BINARY_SIZE=$(du -sh "odyssey-cli" | cut -f1)
+
           echo "App size: $APP_SIZE"
           echo "DMG size: $DMG_SIZE"
+          echo "CLI size: $CLI_SIZE"
+          echo "CLI binary size: $CLI_BINARY_SIZE"
+
           echo "APP_SIZE=$APP_SIZE" >> $GITHUB_ENV
           echo "DMG_SIZE=$DMG_SIZE" >> $GITHUB_ENV
+          echo "CLI_SIZE=$CLI_SIZE" >> $GITHUB_ENV
+          echo "CLI_BINARY_SIZE=$CLI_BINARY_SIZE" >> $GITHUB_ENV
 
       - name: Upload DMG
         uses: actions/upload-artifact@v4
         with:
           name: odyssey-installer
           path: ODYSSEY-${{ github.ref_name }}.dmg
+          retention-days: 90
+
+      - name: Upload CLI
+        uses: actions/upload-artifact@v4
+        with:
+          name: odyssey-cli
+          path: odyssey-cli
           retention-days: 90
 
   create-release:
@@ -192,6 +251,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: odyssey-installer
+          path: .
+
+      - name: Download CLI
+        uses: actions/download-artifact@v4
+        with:
+          name: odyssey-cli
           path: .
 
       - name: Generate release notes
@@ -217,6 +282,7 @@ jobs:
 
           ### 🚀 What's New
           - Native macOS menu bar application for Ottawa Recreation reservations
+          - **NEW**: Command-line interface (CLI) for remote automation
           - Smart scheduling with 2-day advance booking
           - Modern SwiftUI interface
           - Native WebKit (WKWebView) automation for seamless booking (no ChromeDriver required)
@@ -225,6 +291,8 @@ jobs:
           - Anti-detection with human-like automation
 
           ### 📦 Installation
+
+          #### GUI Application
           1. Download the DMG file above
           2. Double-click to mount the disk image
           3. Drag ODYSSEY to your Applications folder
@@ -233,10 +301,18 @@ jobs:
           6. The app will appear in your menu bar
           7. **Note**: This is normal for apps not from the App Store
 
+          #### CLI Tool
+          1. Download the CLI binary above
+          2. Make executable: `chmod +x odyssey-cli`
+          3. Export token from GUI: `export ODYSSEY_EXPORT_TOKEN="<token>"`
+          4. Run: `./odyssey-cli run`
+
           ### 📋 Requirements
-          - macOS 15.0 or later
+          - macOS 15 or later
 
           ### 🔧 Features
+
+          #### GUI Application
           - 🖥️ Native macOS menu bar integration
           - ⏰ Smart scheduling system
           - ⚙️ Easy configuration interface
@@ -250,11 +326,22 @@ jobs:
           - 📅 Step-by-step reservation progress
           - 🧹 Comprehensive error handling and cleanup
 
+          #### CLI Tool
+          - 🖥️ Command-line interface for remote automation
+          - ⚡ Parallel execution of multiple reservations
+          - 🕶️ Headless mode (no browser window)
+          - 🔄 CI/CD pipeline integration
+          - 📊 Real-time progress tracking
+          - 🛡️ Same WebKit automation as GUI
+          - 🔒 Secure token-based configuration
+          - 📝 Comprehensive logging and error handling
+          - 📦 Pre-built binary (no extraction needed)
+
           ### 📊 Build Info
           - **App Size**: ${{ env.APP_SIZE }}
           - **Installer Size**: ${{ env.DMG_SIZE }}
-          - **Swift Version**: ${{ env.SWIFT_VERSION }}
-          - **Xcode Version**: ${{ env.XCODE_VERSION }}
+          - **CLI Size**: ${{ env.CLI_SIZE }}
+          - **CLI Binary Size**: ${{ env.CLI_BINARY_SIZE }}
 
           ### 🔄 Recent Changes
           $CHANGES
@@ -267,6 +354,11 @@ jobs:
           - Right-click the app and select "Open" instead of double-clicking
           - This is normal for apps not from the App Store
           - macOS Gatekeeper protects you from unsigned apps
+
+          **CLI not working?**
+          - Ensure you have an export token from the GUI app
+          - Check that the CLI is executable: `chmod +x odyssey-cli`
+          - Verify your export token: `./odyssey-cli configs`
 
           **Notarization:**
           - This app is code signed but **not notarized by Apple**. See documentation for details.
@@ -282,7 +374,9 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: ODYSSEY-${{ github.ref_name }}.dmg
+          files: |
+            ODYSSEY-${{ github.ref_name }}.dmg
+            odyssey-cli-${{ github.ref_name }}
           name: ODYSSEY ${{ github.ref_name }}
           body: ${{ steps.release-notes.outputs.RELEASE_BODY }}
           draft: false

@@ -125,6 +125,34 @@ measure_time xcodebuild build \
     -quiet \
     -showBuildTimingSummary
 
+# Build CLI
+print_status "step" "Building CLI tool..."
+measure_time swift build --product odyssey-cli --configuration release
+
+# Check CLI build success
+CLI_PATH=$(swift build --product odyssey-cli --configuration release --show-bin-path)/odyssey-cli
+if [ -f "$CLI_PATH" ]; then
+    chmod +x "$CLI_PATH"
+    print_status "success" "CLI built successfully at: $CLI_PATH"
+    
+    # Test CLI
+    print_status "info" "Testing CLI..."
+    if "$CLI_PATH" version >/dev/null 2>&1; then
+        print_status "success" "CLI test passed"
+    else
+        print_status "warning" "CLI test failed"
+    fi
+    
+    # Code sign CLI
+    print_status "info" "Code signing CLI..."
+    codesign --remove-signature "$CLI_PATH" 2>/dev/null || true
+    codesign --force --deep --sign - "$CLI_PATH"
+    print_status "success" "CLI code signing completed"
+else
+    print_status "error" "CLI build failed"
+    exit 1
+fi
+
 # Find the built app
 print_status "step" "Locating built application..."
 LATEST_APP_PATH=$(ls -td ~/Library/Developer/Xcode/DerivedData/ODYSSEY-*/Build/Products/Debug/ODYSSEY.app 2>/dev/null | head -1)
@@ -226,7 +254,8 @@ echo -e "${CYAN}================================${NC}"
 print_status "info" "Project: $PROJECT_NAME"
 print_status "info" "Configuration: $BUILD_CONFIG"
 print_status "info" "App Size: $APP_SIZE"
-print_status "info" "Build Location: $APP_PATH"
+print_status "info" "App Location: $APP_PATH"
+print_status "info" "CLI Location: $CLI_PATH"
 print_status "info" "Status: Running in menu bar"
 
 echo ""
@@ -236,6 +265,7 @@ print_status "info" "Next steps:"
 echo "1. Open $XCODEPROJ_PATH in Xcode for development"
 echo "2. Run the app to configure your reservations"
 echo "3. The app will appear in your menu bar"
+echo "4. Use CLI: $CLI_PATH <command> for remote automation"
 echo ""
 print_status "info" "For more information, see Documentation/README.md"
 echo ""

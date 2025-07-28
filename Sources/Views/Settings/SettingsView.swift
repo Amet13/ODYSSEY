@@ -78,6 +78,7 @@ struct SettingsFormView: View {
             SettingsFooter(
                 userSettingsManager: userSettingsManager,
                 emailService: emailService,
+                configurationManager: configurationManager,
                 dismiss: dismiss,
                 showingValidationAlert: $showingValidationAlert,
                 validationMessage: $validationMessage,
@@ -438,6 +439,7 @@ private struct AdvancedSettingsSection: View {
 private struct SettingsFooter: View {
     @ObservedObject var userSettingsManager: UserSettingsManager
     @ObservedObject var emailService: EmailService
+    @ObservedObject var configurationManager: ConfigurationManager
     let dismiss: DismissAction
     @Binding var showingValidationAlert: Bool
     @Binding var validationMessage: String
@@ -449,6 +451,7 @@ private struct SettingsFooter: View {
         VStack(spacing: AppConstants.spacingMedium) {
             HStack {
                 Spacer()
+
                 Button("Cancel") {
                     cancelSettings()
                 }
@@ -544,9 +547,7 @@ private struct PasswordField: View {
     // Computed property for Gmail help URL
     private var gmailHelpURL: URL {
         URL(string: "https://support.google.com/accounts/answer/185833") ??
-            URL(string: "https://google.com") ??
-            URL(string: "https://example.com") ??
-            URL(string: "https://httpbin.org")!
+            URL(string: "https://google.com")!
     }
 
     var body: some View {

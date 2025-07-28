@@ -1,6 +1,6 @@
 # 📋 Changelog
 
-All notable changes to ODYSSEY will be documented in this file.
+All notable changes to ODYSSEY (macOS Menu Bar App + Command Line Interface) will be documented in this file.
 
 > **How to read this changelog:**
 >
@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - First public release of ODYSSEY: Ottawa Drop-in Your Sports & Schedule Easily Yourself
 - Native macOS menu bar app for automated sports reservation bookings
+- Command-line interface (CLI) for remote automation
 - Modern SwiftUI interface and configuration management
 - WebKit-based automation (no Chrome/Chromedriver required)
 - Email/IMAP integration for verification

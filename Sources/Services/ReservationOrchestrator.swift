@@ -506,6 +506,8 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             }
             logger.info("🎉 Reservation completed successfully for \(config.name).")
             logger.info("🧹 Cleaning up WebKit session after successful reservation.")
+            // Temporarily disable window closure callback to prevent false failure
+            webKitService.onWindowClosed = nil
             await webKitService.disconnect(closeWindow: true)
             return
         } else {
@@ -721,6 +723,8 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     }
                 }
                 logger.info("🎉 Reservation completed successfully for \(config.name).")
+                // Temporarily disable window closure callback to prevent false failure
+                separateWebKitService.onWindowClosed = nil
             } else {
                 logger.error("❌ Failed to click sport button for \(config.name).")
                 throw ReservationError.sportButtonNotFound

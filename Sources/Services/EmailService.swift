@@ -1954,7 +1954,7 @@ class IMAPStreamDelegate: NSObject, StreamDelegate {
 }
 
 // Register the singleton for DI
-extension EmailService {
+public extension EmailService {
     static func registerForDI() {
         ServiceRegistry.shared.register(EmailService.shared, for: EmailServiceProtocol.self)
     }

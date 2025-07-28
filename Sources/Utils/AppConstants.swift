@@ -4,58 +4,58 @@ import SwiftUI
 public enum AppConstants {
     // MARK: - App Information
 
-    static let appName = "ODYSSEY"
-    static let appVersion = "1.0.0"
-    static let appBundleId = "com.odyssey.app"
+    public static let appName = "ODYSSEY"
+    public static let appVersion = "1.0.0"
+    public static let appBundleId = "com.odyssey.app"
 
     // MARK: - Timeouts and Delays
 
-    static let defaultTimeout: TimeInterval = 30.0
-    static let pageLoadTimeout: TimeInterval = 15.0
-    static let elementWaitTimeout: TimeInterval = 10.0
-    static let imapConnectionTimeout: TimeInterval = 30.0
-    static let verificationCodeTimeout: TimeInterval = 300.0
-    static let minHumanDelay: TimeInterval = 0.5
-    static let maxHumanDelay: TimeInterval = 0.9
-    static let typingDelay: TimeInterval = 0.12
-    static let pageTransitionDelay: TimeInterval = 1.2
+    public static let defaultTimeout: TimeInterval = 30.0
+    public static let pageLoadTimeout: TimeInterval = 15.0
+    public static let elementWaitTimeout: TimeInterval = 10.0
+    public static let imapConnectionTimeout: TimeInterval = 30.0
+    public static let verificationCodeTimeout: TimeInterval = 300.0
+    public static let minHumanDelay: TimeInterval = 0.5
+    public static let maxHumanDelay: TimeInterval = 0.9
+    public static let typingDelay: TimeInterval = 0.12
+    public static let pageTransitionDelay: TimeInterval = 1.2
 
     // MARK: - Network and Email
 
-    static let gmailImapServer = "imap.gmail.com"
-    static let gmailImapPort: UInt16 = 993
-    static let verificationEmailFrom = "noreply@frontdesksuite.com"
-    static let verificationEmailSubject = "Verify your email"
+    public static let gmailImapServer = "imap.gmail.com"
+    public static let gmailImapPort: UInt16 = 993
+    public static let verificationEmailFrom = "noreply@frontdesksuite.com"
+    public static let verificationEmailSubject = "Verify your email"
 
     // MARK: - WebKit Configuration
 
-    static let webKitWindowWidth = 1_440
-    static let webKitWindowHeight = 900
-    static let webKitDebugWindowX: CGFloat = 200
-    static let webKitDebugWindowY: CGFloat = 200
-    static let windowSizes = [(width: 1_440, height: 900), (width: 1_680, height: 1_050)]
+    public static let webKitWindowWidth = 1_440
+    public static let webKitWindowHeight = 900
+    public static let webKitDebugWindowX: CGFloat = 200
+    public static let webKitDebugWindowY: CGFloat = 200
+    public static let windowSizes = [(width: 1_440, height: 900), (width: 1_680, height: 1_050)]
 
     // MARK: - URLs
 
     public static let ottawaFacilitiesURL = "https://ottawa.ca/en/recreation-and-parks/facilities"
     public static let gmailAppPasswordURL = "https://support.google.com/accounts/answer/185833"
-    static let githubURL = "https://github.com/Amet13/ODYSSEY"
+    public static let githubURL = "https://github.com/Amet13/ODYSSEY"
 
     // MARK: - Storage Keys
 
-    static let lastRunInfoKey = "ReservationManager.lastRunInfo"
-    static let userSettingsKey = "UserSettingsManager.userSettings"
-    static let configurationsKey = "ConfigurationManager.configurations"
-    static let loggingSubsystem = "com.odyssey.app"
+    public static let lastRunInfoKey = "ReservationManager.lastRunInfo"
+    public static let userSettingsKey = "UserSettingsManager.userSettings"
+    public static let configurationsKey = "ConfigurationManager.configurations"
+    public static let loggingSubsystem = "com.odyssey.app"
 
     // MARK: - Notification Names
 
-    static let addConfigurationNotification = Notification.Name("addConfiguration")
-    static let openSettingsNotification = Notification.Name("openSettings")
+    public static let addConfigurationNotification = Notification.Name("addConfiguration")
+    public static let openSettingsNotification = Notification.Name("openSettings")
 
     // MARK: - Validation Patterns
 
-    static let patterns = [
+    public static let patterns = [
         "gmailAppPassword": "^[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}$",
         "verificationCode": "\\b\\d{4}\\b",
         "phoneNumber": "^\\+?[1-9]\\d{1,14}$",
@@ -65,23 +65,23 @@ public enum AppConstants {
     // MARK: - Magic Numbers and Limits
 
     // Time-related constants
-    static let verificationCodeTimeoutSeconds: TimeInterval = 300.0
-    static let emailSearchWindowMinutes: TimeInterval = 10.0
-    static let codePoolRefreshIntervalSeconds: TimeInterval = 300.0
-    static let maxWaitTimeForGodModeSeconds: TimeInterval = 300.0
-    static let additionalWaitTimeForUIUpdatesSeconds: TimeInterval = 2.0
+    public static let verificationCodeTimeoutSeconds: TimeInterval = 300.0
+    public static let emailSearchWindowMinutes: TimeInterval = 10.0
+    public static let codePoolRefreshIntervalSeconds: TimeInterval = 300.0
+    public static let maxWaitTimeForGodModeSeconds: TimeInterval = 300.0
+    public static let additionalWaitTimeForUIUpdatesSeconds: TimeInterval = 2.0
 
     // Validation limits
-    static let maxNumberOfPeople: Int = 2
-    static let minNumberOfPeople: Int = 1
-    static let maxVerificationCodeLength: Int = 4
-    static let maxPhoneNumberLength: Int = 10
-    static let maxEmailLength: Int = 254
+    public static let maxNumberOfPeople: Int = 2
+    public static let minNumberOfPeople: Int = 1
+    public static let maxVerificationCodeLength: Int = 4
+    public static let maxPhoneNumberLength: Int = 10
+    public static let maxEmailLength: Int = 254
 
     // UI limits
-    static let maxConfigurationNameLength: Int = 30
-    static let maxSportNameLength: Int = 50
-    static let maxFacilityNameLength: Int = 30
+    public static let maxConfigurationNameLength: Int = 30
+    public static let maxSportNameLength: Int = 50
+    public static let maxFacilityNameLength: Int = 30
 
     // Default values
     public static let defaultNumberOfPeople: Int = 1
@@ -93,7 +93,7 @@ public enum AppConstants {
 
 // MARK: - UI Constants
 
-extension AppConstants {
+public extension AppConstants {
     // MARK: - Window Sizes
 
     static let windowMainWidth: CGFloat = 440
@@ -258,7 +258,7 @@ extension AppConstants {
 
 // MARK: - UI Helper Extensions
 
-extension AppConstants {
+public extension AppConstants {
     // MARK: - Common Spacing Combinations
 
     static let contentSpacing: CGFloat = spacingLarge
