@@ -121,11 +121,12 @@ final class ValidationService {
         // Validate number of people
         if
             config.numberOfPeople < AppConstants.minNumberOfPeople || config.numberOfPeople > AppConstants
-                .maxNumberOfPeople {
+                .maxNumberOfPeople
+        {
             errors
                 .append(
                     "Number of people must be between \(AppConstants.minNumberOfPeople) and \(AppConstants.maxNumberOfPeople)",
-                    )
+                )
         }
 
         // Validate time slots

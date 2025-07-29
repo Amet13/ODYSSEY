@@ -38,8 +38,9 @@ struct JavaScriptResult: @unchecked Sendable {
 @MainActor
 @preconcurrency
 public final class WebKitService: NSObject, ObservableObject, WebAutomationServiceProtocol, WebKitServiceProtocol,
-                                  NSWindowDelegate,
-                                  @unchecked Sendable {
+    NSWindowDelegate,
+    @unchecked Sendable
+{
     // Singleton instance for app-wide use
     public static let shared = WebKitService()
     // Register this service for dependency injection
@@ -222,7 +223,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         websiteDataStore.removeData(
             ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
             modifiedSince: Date(timeIntervalSince1970: 0),
-            ) { [self] in
+        ) { [self] in
             logger.info("🧹 Cleared website data for instance: \(currentInstanceId).")
         }
 
@@ -236,7 +237,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
         ]
         let selectedUserAgent = userAgents.randomElement() ?? userAgents[0]
         webView?.customUserAgent = selectedUserAgent
@@ -531,13 +532,12 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Only close browser window if requested
         if closeWindow {
             await MainActor.run {
-                if let window = self.debugWindow {
-                    logger.info("🪟 Closing debugWindow in disconnect.")
-                    window.close()
+                if let debugWindowManager = self.debugWindowManager {
+                    logger.info("🪟 Closing debug window via debugWindowManager.")
+                    debugWindowManager.hideDebugWindow()
                 } else {
-                    logger.info("🪟 No debugWindow to close in disconnect.")
+                    logger.info("🪟 No debugWindowManager to close window.")
                 }
-                self.debugWindow = nil
             }
         }
         // Failsafe: Force close all NSWindows with our title
@@ -846,7 +846,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                             .resume(
                                 throwing: WebDriverError
                                     .scriptExecutionFailed("WebView was disconnected during script execution"),
-                                )
+                            )
                         return
                     }
 
@@ -861,7 +861,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                             .resume(
                                 throwing: WebDriverError
                                     .scriptExecutionFailed("WebView was disconnected during JavaScript execution"),
-                                )
+                            )
                         return
                     }
 
@@ -940,7 +940,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                     logger
                         .error(
                             "Sport button not found: '\(text, privacy: .private)' | JS result: \(str, privacy: .public)",
-                            )
+                        )
                     return false
                 }
             } else {
@@ -1025,7 +1025,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 logger
                     .error(
                         "waitForDOMReadyAndButton JS error: \(error.localizedDescription, privacy: .public) | error: \(String(describing: error), privacy: .public)",
-                        )
+                    )
                 return false
             }
             try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
@@ -1200,7 +1200,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                     logger
                         .info(
                             "[GroupSizePoll][poll \(pollCount)] found=\(found)\nINPUTS: \(inputs.joined(separator: ", "))\nBUTTONS: \(buttons.joined(separator: ", "))\nDIVS: \(divs.prefix(5).joined(separator: ", "))\nHTML: \(html.prefix(5_000))",
-                            )
+                        )
                     if found {
                         logger.info("📊 Group size input found on poll #\(pollCount)")
                         return true
@@ -1403,7 +1403,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                         logger
                             .info(
                                 "Contact form page already loaded after time slot selection - skipping continue button check",
-                                )
+                            )
                     } else {
                         // Check for continue button after time slot selection
                         let continueClicked = await checkAndClickContinueButton()
@@ -1438,7 +1438,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                     logger
                         .error(
                             "[TimeSlot][DaySection] Page analysis - Symbols: [\(symbolLog)], Days: [\(dayLog)], Elements with symbols: \(elementsWithSymbols)",
-                            )
+                        )
                 }
 
                 // Log candidates as simple strings to avoid privacy redaction
@@ -1452,12 +1452,12 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                     logger
                         .error(
                             "[TimeSlot][DaySection] Failed to expand day section. Found \(candidates.count) candidates: \(candidateStrings.joined(separator: ", "))",
-                            )
+                        )
                 } else {
                     logger
                         .error(
                             "[TimeSlot][DaySection] Failed to expand day section. No candidates found or result format error.",
-                            )
+                        )
                 }
                 return false
             }
@@ -1510,7 +1510,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             logger
                 .error(
                     "❌ [ContinueButton] Error checking for continue button: \(error.localizedDescription, privacy: .public)",
-                    )
+                )
             logger.error("❌ [ContinueButton] Continue button error details: \(error, privacy: .public)")
             return false
         }
@@ -1657,7 +1657,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             logger
                 .error(
                     "[ContinueButton] Error clicking continue button after time slot selection: \(error, privacy: .private)",
-                    )
+                )
             return false
         }
     }
@@ -2667,7 +2667,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                     logger
                         .info(
                             "Verification page check - Input: \(hasInput), Text: \(hasText), Pattern: \(hasPattern), Loading: \(isLoading)",
-                            )
+                        )
                     logger.info("Page content preview: \(bodyTextPreview)")
 
                     if hasInput || hasText || hasPattern {
@@ -2772,7 +2772,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         logger
             .info(
                 "Waiting \(initialWait)s before starting email verification checks for instance: \(self.instanceId)...",
-                )
+            )
         try? await Task.sleep(nanoseconds: UInt64(initialWait * 1_000_000_000))
 
         while Date() < deadline {
@@ -2783,7 +2783,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             codes = await emailService.fetchAndConsumeVerificationCodes(
                 since: verificationStart,
                 instanceId: self.instanceId,
-                )
+            )
 
             if codes.isEmpty {
                 logger.info("📧 Instance \(self.instanceId): Shared code pool empty, trying direct email fetch...")
@@ -2808,7 +2808,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 logger
                     .info(
                         "Instance \(self.instanceId): Found \(codes.count) verification codes: \(codes.map { String(repeating: "*", count: $0.count) })",
-                        )
+                    )
                 return codes
             }
             logger
@@ -2824,7 +2824,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         logger
             .info(
                 "Instance \(self.instanceId): Starting systematic verification code trial with \(codes.count) codes: \(codes)",
-                )
+            )
 
         let emailService = EmailService.shared
         for (index, code) in codes.enumerated() {
@@ -2843,7 +2843,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             logger
                 .info(
                     "Instance \(self.instanceId): Trying verification code \(index + 1)/\(codes.count): \(String(repeating: "*", count: code.count))",
-                    )
+                )
             await updateTask("Trying verification code \(index + 1)/\(codes.count)...")
             let fillSuccess = await fillVerificationCode(code)
             if !fillSuccess {
@@ -2859,7 +2859,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 logger
                     .warning(
                         "Instance \(self.instanceId): Failed to click verification submit button for code \(index + 1)",
-                        )
+                    )
 
                 continue
             }
@@ -2872,12 +2872,12 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 logger
                     .info(
                         "✅ Instance \(self.instanceId): ✅ Verification code \(index + 1) was accepted or terminal state reached!",
-                        )
+                    )
                 await emailService.markCodeAsConsumed(code, byInstanceId: self.instanceId)
                 logger
                     .info(
                         "Instance \(self.instanceId): ✅ Verification successful or terminal state on attempt \(index + 1)",
-                        )
+                    )
 
                 return true // TERMINATE IMMEDIATELY ON SUCCESS OR TERMINAL STATE
             }
@@ -2892,7 +2892,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 logger
                     .info(
                         "Instance \(self.instanceId): Moved away from verification page - likely success or different error",
-                        )
+                    )
                 let finalCheck = await checkVerificationSuccess()
                 if finalCheck {
                     logger.info("Instance \(self.instanceId): ✅ Final check confirms verification success!")
@@ -2909,7 +2909,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         logger
             .error(
                 "Instance \(self.instanceId): All \(codes.count) verification codes failed or were rejected. Failing gracefully.",
-                )
+            )
 
         return false
     }
@@ -2936,7 +2936,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             logger
                 .info(
                     "Instance \(self.instanceId): Retrieved \(verificationCodes.count) verification codes for attempt \(retryCount + 1)",
-                    )
+                )
             await updateTask("Trying verification codes (attempt \(retryCount + 1)/\(maxRetryAttempts))...")
             let verificationSuccess = await tryVerificationCodes(verificationCodes)
             if verificationSuccess {
@@ -2967,7 +2967,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         logger
             .error(
                 "Instance \(self.instanceId): All verification attempts failed or all codes consumed. Failing gracefully.",
-                )
+            )
         return false
     }
 
@@ -3095,7 +3095,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 logger
                     .info(
                         "Instance \(self.instanceId): Verification check result: \(success ? "SUCCESS" : "FAILED") - \(reason)",
-                        )
+                    )
 
                 if success {
                     logger.info("Instance \(self.instanceId): 🎉 SUCCESS detected - reason: \(reason)")
@@ -3107,13 +3107,13 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 logger
                     .error(
                         "Instance \(self.instanceId): Could not parse verification result: \(String(describing: result))",
-                        )
+                    )
             }
         } catch {
             logger
                 .error(
                     "Instance \(self.instanceId): Error checking verification success: \(error.localizedDescription)",
-                    )
+                )
         }
 
         logger.error("Instance \(self.instanceId): Defaulting to FAILURE due to error or parsing issue")
@@ -3165,7 +3165,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             logger
                 .error(
                     "Instance \(self.instanceId): Error checking if still on verification page: \(error.localizedDescription)",
-                    )
+                )
             return false
         }
     }
@@ -3269,7 +3269,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             logger
                 .error(
                     "Instance \(self.instanceId): Error filling verification code with autofill: \(error.localizedDescription)",
-                    )
+                )
             return false
         }
     }
@@ -4093,7 +4093,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         phoneNumber: String,
         email: String,
         name: String,
-        ) async -> Bool {
+    ) async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
             return false
@@ -4432,7 +4432,7 @@ public class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
         _: WKWebView,
         decidePolicyFor _: WKNavigationAction,
         decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void,
-        ) {
+    ) {
         decisionHandler(.allow)
     }
 }
@@ -4451,13 +4451,15 @@ public class WebKitScriptMessageHandler: NSObject, WKScriptMessageHandler {
                 case "contactFormCheckError":
                     if
                         let data = body["data"] as? [String: Any], let msg = data["message"] as? String,
-                        let stack = data["stack"] as? String {
+                        let stack = data["stack"] as? String
+                    {
                         delegate?.logger.error("[ContactForm][JS] Error: \(msg)\nStack: \(stack)")
                     }
                 case "contactFormTimeout":
                     if
                         let data = body["data"] as? [String: Any], let html = data["html"] as? String,
-                        let allInputs = data["allInputs"] {
+                        let allInputs = data["allInputs"]
+                    {
                         let allInputsStr = String(describing: allInputs)
                         delegate?.logger
                             .error("[ContactForm][JS] Timeout. HTML: \(html.prefix(1_000))\nInputs: \(allInputsStr)")
@@ -4465,7 +4467,8 @@ public class WebKitScriptMessageHandler: NSObject, WKScriptMessageHandler {
                 case "contactFormTimeoutError":
                     if
                         let data = body["data"] as? [String: Any], let msg = data["message"] as? String,
-                        let stack = data["stack"] as? String {
+                        let stack = data["stack"] as? String
+                    {
                         delegate?.logger.error("[ContactForm][JS] Timeout error: \(msg)\nStack: \(stack)")
                     }
                 default:

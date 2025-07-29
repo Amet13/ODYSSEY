@@ -12,7 +12,7 @@ public final class ReservationErrorHandler: @unchecked Sendable {
         _ error: Error,
         config: ReservationConfig,
         runType: ReservationRunType,
-        ) async {
+    ) async {
         logger.error("❌ Reservation error: \(error.localizedDescription).")
 
         // Capture additional context for debugging
@@ -42,7 +42,7 @@ public final class ReservationErrorHandler: @unchecked Sendable {
                 status: .failed(userFriendlyMessage),
                 date: Date(),
                 runType: runType,
-                )
+            )
             statusManager.lastRunDate = Date()
             statusManager.currentTask = "Reservation failed: \(userFriendlyMessage)"
 

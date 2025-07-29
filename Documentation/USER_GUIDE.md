@@ -144,7 +144,6 @@ ODYSSEY automatically detects potential conflicts:
 ### Conflict Types
 
 1. **Time Slot Overlaps**: When configurations have overlapping times
-2. **Scheduling Conflicts**: Enabled configurations that may run simultaneously
 
 ### Conflict Severity Levels
 

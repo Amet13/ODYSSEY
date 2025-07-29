@@ -76,11 +76,16 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
 
     /// Hides the debug window
     public func hideDebugWindow() {
-        guard let window = debugWindow else { return }
+        guard let window = debugWindow else {
+            logger.info("🪟 No debugWindow to close in disconnect.")
+            return
+        }
 
-        window.orderOut(nil)
+        window.close()
+        debugWindow = nil
         isWindowVisible = false
-        logger.info("🪟 Debug window hidden")
+        currentConfig = nil
+        logger.info("🪟 Debug window closed")
     }
 
     /// Updates the window title with configuration information
@@ -130,7 +135,7 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false,
-            )
+        )
 
         // Configure window properties
         window.title = "ODYSSEY Debug"

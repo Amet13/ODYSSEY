@@ -193,34 +193,119 @@ struct CLI {
     private static func waitForReservationCompletion() async {
         var attempts = 0
         let maxAttempts = 300 // 5 minutes timeout
+        var lastStatus = ReservationRunStatus.idle
+        var lastProgressUpdate = 0
+        var lastLogCheck = 0
+
+        print("📊 Monitoring reservation progress...")
+        print()
 
         while attempts < maxAttempts {
             let status = await MainActor.run {
                 ReservationOrchestrator.shared.lastRunStatus
             }
 
-            if status != .running {
-                // Check final status
+            // Show status changes
+            if status != lastStatus {
                 switch status {
-                case .success:
-                    print("✅ All reservations completed successfully!")
-                case let .failed(error):
-                    print("❌ Some reservations failed!")
-                    print("💡 Error: \(error)")
                 case .running:
-                    print("⏰ Reservations timed out after 5 minutes")
+                    print("🔄 Status: Starting automation...")
+                case .success:
+                    print("✅ Status: All reservations completed successfully!")
+                    await printDetailedResults()
+                case let .failed(error):
+                    print("❌ Status: Some reservations failed!")
+                    print("💡 Error: \(error)")
+                    await printDetailedResults()
                 case .idle:
-                    print("ℹ️ Reservation status: idle")
+                    print("ℹ️ Status: Automation idle")
                 }
+                lastStatus = status
+            }
+
+            // Show real-time logs every 2 seconds
+            if attempts % 2 == 0, attempts > lastLogCheck {
+                await showRecentLogs()
+                lastLogCheck = attempts
+            }
+
+            // Show progress updates every 10 seconds
+            if attempts % 10 == 0, attempts > lastProgressUpdate {
+                print("⏳ Still running... (\(attempts)s)")
+                lastProgressUpdate = attempts
+            }
+
+            if status != .running {
                 break
             }
 
             try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
             attempts += 1
+        }
 
-            if attempts % 10 == 0 { // Print progress every 10 seconds
-                print("⏳ Still running... (\(attempts)s)")
+        if attempts >= maxAttempts {
+            print("⏰ Reservations timed out after 5 minutes")
+            await printDetailedResults()
+        }
+    }
+
+    private static func showRecentLogs() async {
+        // Capture recent logs from the system log
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/log")
+        process.arguments = [
+            "show",
+            "--predicate", "subsystem == \"com.odyssey.app\"",
+            "--last", "5s",
+            "--info",
+            "--debug",
+        ]
+
+        let pipe = Pipe()
+        process.standardOutput = pipe
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            if let output = String(data: data, encoding: .utf8) {
+                let lines = output.components(separatedBy: .newlines)
+                let relevantLines = lines.filter { line in
+                    line.contains("WebKit") ||
+                        line.contains("reservation") ||
+                        line.contains("automation") ||
+                        line.contains("CLI") ||
+                        line.contains("navigating") ||
+                        line.contains("clicking") ||
+                        line.contains("filling") ||
+                        line.contains("success") ||
+                        line.contains("error") ||
+                        line.contains("failed")
+                }
+
+                for line in relevantLines.suffix(3)
+                    where !line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                { // Show last 3 relevant lines
+                    // Extract the log message part
+                    if let messageStart = line.range(of: "] ") {
+                        let message = String(line[messageStart.upperBound...])
+                        print("   📝 \(message)")
+                    }
+                }
             }
+        } catch {
+            // Silently fail if log command is not available
+        }
+    }
+
+    private static func printDetailedResults() async {
+        await MainActor.run {
+            // Note: We can't access statusManager directly, so we'll show basic results
+            // We can add a public method to ReservationOrchestrator to get detailed results
+            print()
+            print("📋 Results Summary:")
+            print("==================")
         }
     }
 
@@ -247,15 +332,12 @@ struct CLI {
 
             print(
                 "🔍 Found \(configsToRun.count) configurations scheduled for today (\(priorDays) days before reservation)",
-                )
+            )
 
             if configsToRun.isEmpty {
                 handleEmptyConfigurations(exportConfig, priorDays: priorDays)
                 return
             }
-
-            // CLI always runs in headless mode
-            print("🕶️ Running in headless mode")
 
             // Check current time and wait if necessary (skip if --now is used)
             if !runNow {
@@ -270,12 +352,17 @@ struct CLI {
             await updateConfigurationManagerForCLI(exportConfig.selectedConfigurations)
 
             // Run all reservations in parallel using God Mode
-            print("🚀 Starting parallel reservation automation for \(configsToRun.count) configurations...")
-            print("🕶️ Running in headless mode")
+            print("🚀 Starting reservation automation for \(configsToRun.count) configurations...")
 
             // Run all reservations in parallel using MainActor
             await MainActor.run {
                 let orchestrator = ReservationOrchestrator.shared
+                print("🚀 Starting automation for \(configsToRun.count) configurations...")
+                for (index, config) in configsToRun.enumerated() {
+                    let configName = config.name.isEmpty ? "Config \(index + 1)" : config.name
+                    print("   📋 \(index + 1). \(configName) - \(config.sportName)")
+                }
+                print()
                 orchestrator.runMultipleReservations(for: configsToRun, runType: .manual)
             }
 
@@ -522,7 +609,7 @@ struct CLI {
                 print("\(bold("Phone")): ***\(String(exportConfig.userSettings.phoneNumber.suffix(3)))")
                 print(
                     "\(bold("Email")): ***@\(exportConfig.userSettings.imapEmail.components(separatedBy: "@").last ?? "unknown")",
-                    )
+                )
                 print("\(bold("IMAP Password")): ***")
             }
 

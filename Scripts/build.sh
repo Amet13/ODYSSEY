@@ -125,16 +125,18 @@ measure_time xcodebuild build \
     -quiet \
     -showBuildTimingSummary
 
-# Build CLI
+# Build CLI (Debug only for development)
 print_status "step" "Building CLI tool..."
-measure_time swift build --product odyssey-cli --configuration release
+print_status "info" "Building CLI in debug configuration..."
+measure_time swift build --product odyssey-cli --configuration debug
 
 # Check CLI build success
-CLI_PATH=$(swift build --product odyssey-cli --configuration release --show-bin-path)/odyssey-cli
+CLI_PATH=$(swift build --product odyssey-cli --configuration debug --show-bin-path)/odyssey-cli
 if [ -f "$CLI_PATH" ]; then
     chmod +x "$CLI_PATH"
+
     print_status "success" "CLI built successfully at: $CLI_PATH"
-    
+
     # Test CLI
     print_status "info" "Testing CLI..."
     if "$CLI_PATH" version >/dev/null 2>&1; then
@@ -142,7 +144,7 @@ if [ -f "$CLI_PATH" ]; then
     else
         print_status "warning" "CLI test failed"
     fi
-    
+
     # Code sign CLI
     print_status "info" "Code signing CLI..."
     codesign --remove-signature "$CLI_PATH" 2>/dev/null || true
@@ -207,7 +209,7 @@ print_status "step" "Managing existing ODYSSEY instances..."
 if pgrep -f "$PROJECT_NAME" > /dev/null; then
     print_status "info" "Found running $PROJECT_NAME process, terminating..."
     pkill -f "$PROJECT_NAME" 2>/dev/null || true
-    
+
     # Wait for process to terminate
     print_status "info" "Waiting for process to terminate..."
     for _ in {1..10}; do
@@ -217,7 +219,7 @@ if pgrep -f "$PROJECT_NAME" > /dev/null; then
         fi
         sleep 0.5
     done
-    
+
     # Force kill if still running
     if pgrep -f "$PROJECT_NAME" > /dev/null; then
         print_status "warning" "Process still running, force killing..."

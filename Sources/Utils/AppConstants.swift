@@ -52,6 +52,7 @@ public enum AppConstants {
 
     public static let addConfigurationNotification = Notification.Name("addConfiguration")
     public static let openSettingsNotification = Notification.Name("openSettings")
+    public static let rescheduleAutorunNotification = Notification.Name("rescheduleAutorun")
 
     // MARK: - Validation Patterns
 
@@ -59,7 +60,7 @@ public enum AppConstants {
         "gmailAppPassword": "^[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}$",
         "verificationCode": "\\b\\d{4}\\b",
         "phoneNumber": "^\\+?[1-9]\\d{1,14}$",
-        "email": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+        "email": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
     ]
 
     // MARK: - Magic Numbers and Limits

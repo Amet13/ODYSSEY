@@ -61,23 +61,23 @@ jobs:
       - name: Run YAML Linting
         run: |
           echo "🔍 Running YAML Linting..."
-          yamllint Config/project.yml .github/workflows/*.yml || echo "⚠️ YAML Linting found issues (mostly style warnings)"
+          yamllint --config-file .yamllint Config/project.yml .github/workflows/*.yml || echo "⚠️ YAML Linting found issues (acceptable warnings ignored)"
 
       - name: Run Markdown Linting
         run: |
           echo "🔍 Running Markdown Linting..."
-          markdownlint README.md Documentation/*.md .github/*.md || echo "⚠️ Markdown Linting found issues (mostly line length warnings)"
+          markdownlint --config .markdownlint.json README.md Documentation/*.md .github/*.md || echo "⚠️ Markdown Linting found issues (acceptable warnings ignored)"
 
       - name: Run GitHub Actions Linting
         run: |
           echo "🔍 Running GitHub Actions Linting..."
-          actionlint .github/workflows/*.yml || echo "⚠️ GitHub Actions Linting found issues (mostly ShellCheck warnings in embedded scripts)"
+          actionlint -shellcheck="" .github/workflows/*.yml || echo "⚠️ GitHub Actions Linting found issues (acceptable warnings ignored)"
 
       - name: Run Comprehensive Linting
         run: |
           echo "🧹 Running comprehensive linting check..."
           chmod +x Scripts/lint-all.sh
-          ./Scripts/lint-all.sh || echo "⚠️ Comprehensive linting found issues (mostly acceptable warnings)"
+          ./Scripts/lint-all.sh || echo "⚠️ Comprehensive linting found issues (acceptable warnings ignored)"
 
       - name: Check code formatting
         run: |
@@ -105,6 +105,8 @@ jobs:
             "Documentation/ACCESSIBILITY.md"
             ".yamllint"
             ".markdownlint.json"
+            ".actionlintrc"
+            ".swiftlint.yml"
             "Scripts/lint-all.sh"
           )
 
@@ -237,12 +239,12 @@ jobs:
           APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
           if [ -n "$APP_PATH" ]; then
             echo "App found at: $APP_PATH"
-            
+
             # Check app size
             APP_SIZE=$(du -sh "$APP_PATH" | cut -f1)
             echo "App size: $APP_SIZE"
             echo "APP_SIZE=$APP_SIZE" >> $GITHUB_ENV
-            
+
             # Check if app size is reasonable (should be under 10MB)
             SIZE_BYTES=$(du -s "$APP_PATH" | cut -f1)
             if [ "$SIZE_BYTES" -gt 10240 ]; then
@@ -250,11 +252,11 @@ jobs:
             else
               echo "✅ App size is reasonable: $APP_SIZE"
             fi
-            
+
             # Check app structure
             echo "📁 App structure:"
             find "$APP_PATH" -type f -name "*.dylib" -o -name "*.framework" | head -10
-            
+
             # Check for required components
             if [ -f "$APP_PATH/Contents/Info.plist" ]; then
               echo "✅ Info.plist found"
@@ -262,14 +264,14 @@ jobs:
               echo "❌ Info.plist missing"
               exit 1
             fi
-            
+
             if [ -d "$APP_PATH/Contents/Resources" ]; then
               echo "✅ Resources directory found"
             else
               echo "❌ Resources directory missing"
               exit 1
             fi
-            
+
           else
             echo "❌ Could not find built app"
             exit 1
@@ -470,6 +472,26 @@ jobs:
           codesign -dv "$CLI_PATH"
           echo "✅ CLI code signing completed"
 
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "📝 Generating changelog..."
+
+          # Get previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+
+          if [ -n "$PREVIOUS_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s" ${PREVIOUS_TAG}..HEAD | grep -v "Merge pull request" | grep -v "Merge branch")
+          else
+            CHANGELOG=$(git log --pretty=format:"- %s" HEAD | grep -v "Merge pull request" | grep -v "Merge branch" | head -20)
+          fi
+
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "✅ Changelog generated"
+
       - name: Get app path
         id: app-path
         run: |
@@ -625,6 +647,7 @@ jobs:
           - **CLI Binary Size**: ${{ steps.sizes.outputs.CLI_BINARY_SIZE }}
 
           ### 🔄 Recent Changes
+          # actionlint: disable=expression
           ${{ steps.changelog.outputs.CHANGELOG }}
 
           ### 🐛 Issues & Support

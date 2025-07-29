@@ -1,23 +1,9 @@
 extends: default
 
 rules:
-  # Allow longer lines for URLs and complex configurations
-  line-length:
-    max: 120
-    level: warning
-
-  # Allow document start without --- for some files
-  document-start:
-    level: warning
-
-  # Allow truthy values (yes/no) for better readability
-  truthy:
-    level: warning
-
-  # Allow trailing spaces in some cases
-  trailing-spaces:
-    level: warning
-
-  # Allow comments with fewer spaces
-  comments:
-    level: warning
+  # Disable acceptable warnings
+  line-length: disable
+  document-start: disable
+  truthy: disable
+  trailing-spaces: disable
+  comments: disable

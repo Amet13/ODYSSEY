@@ -65,7 +65,7 @@ get_current_version() {
 update_project_version() {
     local version=$1
     local dry_run=$2
-    
+
     if [ "$dry_run" = "true" ]; then
         print_status "info" "Would update project.yml MARKETING_VERSION to $version"
     else
@@ -78,7 +78,7 @@ update_project_version() {
 update_info_plist_version() {
     local version=$1
     local dry_run=$2
-    
+
     if [ "$dry_run" = "true" ]; then
         print_status "info" "Would update Info.plist CFBundleShortVersionString to $version"
     else
@@ -92,7 +92,7 @@ update_app_constants_version() {
     local version=$1
     local dry_run=$2
     local app_constants_path="Sources/Utils/AppConstants.swift"
-    
+
     if [ "$dry_run" = "true" ]; then
         print_status "info" "Would update AppConstants.swift appVersion to $version"
     else
@@ -106,7 +106,7 @@ update_cli_export_version() {
     local version=$1
     local dry_run=$2
     local cli_export_path="Sources/Services/CLIExportService.swift"
-    
+
     if [ "$dry_run" = "true" ]; then
         print_status "info" "Would update CLIExportService.swift version to $version"
     else
@@ -121,7 +121,7 @@ update_changelog() {
     local dry_run=$2
     local date
     date=$(date +%Y-%m-%d)
-    
+
     if [ "$dry_run" = "true" ]; then
         print_status "info" "Would add version $version to changelog with date $date"
     else
@@ -146,11 +146,11 @@ update_changelog() {
 ---
 
 EOF
-        
+
         # Insert at the top of changelog (after the header)
         sed -i '' "3r /tmp/changelog_entry.md" "$CHANGELOG_PATH"
         rm /tmp/changelog_entry.md
-        
+
         print_status "success" "Added version $version to changelog"
     fi
 }
@@ -159,7 +159,7 @@ EOF
 generate_git_commands() {
     local version=$1
     local dry_run=$2
-    
+
     if [ "$dry_run" = "true" ]; then
         print_status "info" "Would run the following git commands:"
         echo "  git add ."
@@ -171,14 +171,14 @@ generate_git_commands() {
         print_status "step" "Committing changes..."
         git add .
         git commit -m "chore: prepare release v$version"
-        
+
         print_status "step" "Creating tag v$version..."
         git tag "v$version"
-        
+
         print_status "step" "Pushing changes..."
         git push origin main
         git push origin "v$version"
-        
+
         print_status "success" "Release v$version prepared and pushed"
     fi
 }
@@ -190,7 +190,7 @@ validate_git_status() {
         git status --short
         exit 1
     fi
-    
+
     if [ "$(git branch --show-current)" != "main" ]; then
         print_status "warning" "Not on main branch. Current branch: $(git branch --show-current)"
         read -p "Continue anyway? (y/N): " -n 1 -r
@@ -206,7 +206,7 @@ show_release_summary() {
     local version=$1
     local current_version=$2
     local dry_run=$3
-    
+
     echo ""
     print_status "step" "Release Summary"
     echo -e "${CYAN}================================${NC}"
@@ -219,7 +219,7 @@ show_release_summary() {
     echo "  - $INFO_PLIST_PATH"
     echo "  - $CHANGELOG_PATH"
     echo ""
-    
+
     if [ "$dry_run" = "false" ]; then
         print_status "info" "After running this script:"
         echo "  1. CI/CD pipeline will automatically build and release"
@@ -234,7 +234,7 @@ show_release_summary() {
 main() {
     local dry_run=false
     local version=""
-    
+
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -263,22 +263,22 @@ main() {
                 ;;
         esac
     done
-    
+
     # Check if version was provided
     if [ -z "$version" ]; then
         print_status "error" "Version is required"
         show_usage
         exit 1
     fi
-    
+
     # Validate version format
     validate_version "$version"
-    
+
     # Get current version
     local current_version
     current_version=$(get_current_version)
     print_status "info" "Current version: $current_version"
-    
+
     # Check if version is different
     if [ "$version" = "$current_version" ]; then
         print_status "warning" "Version $version is already the current version"
@@ -288,10 +288,10 @@ main() {
             exit 1
         fi
     fi
-    
+
     # Show release summary
     show_release_summary "$version" "$current_version" "$dry_run"
-    
+
     if [ "$dry_run" = "false" ]; then
         read -p "Proceed with release? (y/N): " -n 1 -r
         echo
@@ -300,10 +300,10 @@ main() {
             exit 0
         fi
     fi
-    
+
     # Validate git status
     validate_git_status
-    
+
     # Update files
     print_status "step" "Updating version files..."
     update_project_version "$version" "$dry_run"
@@ -311,10 +311,49 @@ main() {
     update_app_constants_version "$version" "$dry_run"
     update_cli_export_version "$version" "$dry_run"
     update_changelog "$version" "$dry_run"
-    
+
+    # Build CLI release version
+    if [ "$dry_run" = "false" ]; then
+        print_status "step" "Building CLI release version..."
+
+        # Generate Xcode project
+        print_status "info" "Generating Xcode project..."
+        xcodegen --spec Config/project.yml
+
+        # Build CLI in release configuration
+        print_status "info" "Building CLI in release configuration..."
+        swift build --product odyssey-cli --configuration release
+
+        # Get CLI path and make executable
+        CLI_PATH=$(swift build --product odyssey-cli --configuration release --show-bin-path)/odyssey-cli
+        if [ -f "$CLI_PATH" ]; then
+            chmod +x "$CLI_PATH"
+            print_status "success" "CLI release built successfully at: $CLI_PATH"
+
+            # Test CLI
+            print_status "info" "Testing CLI release..."
+            if "$CLI_PATH" version >/dev/null 2>&1; then
+                print_status "success" "CLI release test passed"
+            else
+                print_status "warning" "CLI release test failed"
+            fi
+
+            # Code sign CLI
+            print_status "info" "Code signing CLI release..."
+            codesign --remove-signature "$CLI_PATH" 2>/dev/null || true
+            codesign --force --deep --sign - "$CLI_PATH"
+            print_status "success" "CLI release code signing completed"
+        else
+            print_status "error" "CLI release build failed"
+            exit 1
+        fi
+    else
+        print_status "info" "Would build CLI release version"
+    fi
+
     # Generate git commands
     generate_git_commands "$version" "$dry_run"
-    
+
     # Final summary
     echo ""
     if [ "$dry_run" = "true" ]; then

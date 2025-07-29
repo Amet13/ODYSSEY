@@ -39,19 +39,19 @@
 
 ## ✨ Features
 
-| Feature                     | Description                                                     |
-| --------------------------- | --------------------------------------------------------------- |
-| 🖥️ GUI Version              | Native macOS menu bar app with SwiftUI interface                |
-| 💻 CLI Version              | Command-line interface for remote automation                    |
-| 🛡️ WebKit Automation        | Uses native Swift WebKit (WKWebView) for robust automation      |
-| 🎨 Modern SwiftUI Interface | Beautiful, responsive UI for easy configuration                 |
-| ⏰ Automated Scheduling     | Schedules runs based on your configured time slots              |
-| ⚙️ Multiple Configurations  | Supports different sports and facilities                        |
-| 🔒 Secure Storage           | Keychain integration for credentials                            |
-| 📧 Email Verification       | Automated IMAP/Gmail verification for reservation confirmations |
-| 🕵️‍♂️ Anti-Detection           | Human-like automation with browser window monitoring            |
-| 🎨 Dark Mode Polish         | Fully adaptive UI for both light and dark appearances           |
-| 🔍 Conflict Detection       | Automatic detection of scheduling and facility conflicts        |
+| Feature                     | Description                                                      |
+| --------------------------- | ---------------------------------------------------------------- |
+| 🖥️ GUI Version              | Native macOS menu bar app with SwiftUI interface                 |
+| 💻 CLI Version              | Command-line interface for remote automation                     |
+| 🛡️ WebKit Automation        | Uses native Swift WebKit (WKWebView) for robust automation       |
+| 🎨 Modern SwiftUI Interface | Beautiful, responsive UI for easy configuration                  |
+| ⏰ Automated Scheduling     | Schedules runs based on your configured time slots               |
+| ⚙️ Multiple Configurations  | Supports different sports and facilities                         |
+| 🔒 Secure Storage           | Keychain integration for credentials                             |
+| 📧 Email Verification       | Automated IMAP/Gmail verification for reservation confirmations  |
+| 🕵️‍♂️ Anti-Detection           | Human-like automation with browser window monitoring             |
+| 🎨 Dark Mode Polish         | Fully adaptive UI for both light and dark appearances            |
+| 🔍 Conflict Detection       | Automatic detection of time slot overlaps and facility conflicts |
 
 ## 📦 Installation
 

@@ -88,7 +88,7 @@ public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol
         password: String,
         server: String,
         port: Int,
-        ) -> Result<Void, KeychainError> {
+    ) -> Result<Void, KeychainError> {
         guard let passwordData = password.data(using: .utf8) else {
             let err = KeychainError.encodingFailed
             handleError(err)
@@ -100,7 +100,7 @@ public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol
             kSecAttrServer as String: server,
             kSecAttrPort as String: port,
             kSecValueData as String: passwordData,
-            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
         ]
         SecItemDelete(query as CFDictionary)
         let status = SecItemAdd(query as CFDictionary, nil)
@@ -122,7 +122,7 @@ public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol
             kSecAttrServer as String: server,
             kSecAttrPort as String: port,
             kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
+            kSecMatchLimit as String: kSecMatchLimitOne,
         ]
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
@@ -146,7 +146,7 @@ public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol
             kSecClass as String: kSecClassInternetPassword,
             kSecAttrAccount as String: email,
             kSecAttrServer as String: server,
-            kSecAttrPort as String: port
+            kSecAttrPort as String: port,
         ]
         let status = SecItemDelete(query as CFDictionary)
         if status == errSecSuccess {
@@ -171,7 +171,7 @@ public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol
             kSecAttrServer as String: server,
             kSecAttrPort as String: port,
             kSecReturnData as String: false,
-            kSecMatchLimit as String: kSecMatchLimitOne
+            kSecMatchLimit as String: kSecMatchLimitOne,
         ]
         let status = SecItemCopyMatching(query as CFDictionary, nil)
         return status == errSecSuccess
@@ -190,7 +190,7 @@ public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol
             kSecAttrAccount as String: key,
             kSecAttrService as String: service,
             kSecValueData as String: valueData,
-            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
         ]
         SecItemDelete(query as CFDictionary)
         let status = SecItemAdd(query as CFDictionary, nil)
@@ -210,7 +210,7 @@ public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol
             kSecAttrAccount as String: key,
             kSecAttrService as String: service,
             kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
+            kSecMatchLimit as String: kSecMatchLimitOne,
         ]
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
@@ -232,7 +232,7 @@ public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
-            kSecAttrService as String: service
+            kSecAttrService as String: service,
         ]
         let status = SecItemDelete(query as CFDictionary)
         if status == errSecSuccess {
@@ -262,12 +262,12 @@ public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol
         logger.info("🧹 Clearing all ODYSSEY items from Keychain.")
         let genericQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: "com.odyssey.app"
+            kSecAttrService as String: "com.odyssey.app",
         ]
         let genericStatus = SecItemDelete(genericQuery as CFDictionary)
         let internetQuery: [String: Any] = [
             kSecClass as String: kSecClassInternetPassword,
-            kSecAttrServer as String: "imap"
+            kSecAttrServer as String: "imap",
         ]
         let internetStatus = SecItemDelete(internetQuery as CFDictionary)
         let success = genericStatus == errSecSuccess || genericStatus == errSecItemNotFound

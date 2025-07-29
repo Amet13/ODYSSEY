@@ -39,7 +39,7 @@ public final class LoggingService: ObservableObject {
     ///   - error: Optional error object
     ///   - category: The category/context for the log
     public nonisolated func error(_ message: String, error: Error? = nil, category: LoggerCategory = .general) {
-        let fullMessage = error != nil ? "\(message): \(error!.localizedDescription)" : message
+        let fullMessage = error != nil ? "\(message): \(error?.localizedDescription ?? "Unknown error")" : message
         logger.error("❌ [\(category.categoryName)] \(fullMessage)")
     }
 
@@ -60,9 +60,9 @@ public final class LoggingService: ObservableObject {
         _ error: UnifiedErrorProtocol,
         context: String = "",
         category: LoggerCategory = .general,
-        ) {
+    ) {
         let contextPrefix = context.isEmpty ? "" : "[\(context)] "
-        let technicalDetails = error.technicalDetails != nil ? " (\(error.technicalDetails!))" : ""
+        let technicalDetails = error.technicalDetails != nil ? " (\(error.technicalDetails ?? "No details"))" : ""
         let message = "\(contextPrefix)\(error.userFriendlyMessage)\(technicalDetails)"
         logger.error("\(error.errorCategory.emoji) [\(category.categoryName)] \(error.errorCode): \(message)")
     }

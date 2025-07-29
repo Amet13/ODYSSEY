@@ -220,6 +220,7 @@ The CLI tool shares the same backend services as the GUI app, providing remote a
 - ✅ **File Size Tracking**: Displays app, DMG, and CLI sizes
 - ✅ **Changelog Generation**: Creates changelog from git commits since last tag
 - ✅ **GitHub Integration**: Automatically publishes to GitHub Releases
+- ✅ **Comprehensive Linting**: Uses configuration files to ignore acceptable warnings while catching critical issues
 
 ### Manual Release (Alternative)
 

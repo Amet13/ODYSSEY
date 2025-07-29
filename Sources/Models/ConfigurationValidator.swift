@@ -40,11 +40,12 @@ public final class ConfigurationValidator: ObservableObject {
         // Number of people validation
         if
             config.numberOfPeople < AppConstants.minNumberOfPeople || config.numberOfPeople > AppConstants
-                .maxNumberOfPeople {
+                .maxNumberOfPeople
+        {
             errors
                 .append(
                     "Number of people must be between \(AppConstants.minNumberOfPeople) and \(AppConstants.maxNumberOfPeople)",
-                    )
+                )
         }
 
         // Time slots validation
@@ -180,7 +181,7 @@ public final class ConfigurationValidator: ObservableObject {
         sportName: String,
         numberOfPeople: Int,
         dayTimeSlots: [ReservationConfig.Weekday: [Date]],
-        ) -> [String] {
+    ) -> [String] {
         let validator = shared
         let tempConfig = ReservationConfig(
             name: name,
@@ -188,7 +189,7 @@ public final class ConfigurationValidator: ObservableObject {
             sportName: sportName,
             numberOfPeople: numberOfPeople,
             dayTimeSlots: dayTimeSlots.mapValues { $0.map { TimeSlot(time: $0) } },
-            )
+        )
         let result = validator.validateReservationConfig(tempConfig)
         return result.errors
     }

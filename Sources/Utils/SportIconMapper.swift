@@ -142,7 +142,7 @@ public enum SportIconMapper {
         // MARK: - Meditation
 
         "meditation": "figure.mind.and.body",
-        "meditate": "figure.mind.and.body"
+        "meditate": "figure.mind.and.body",
     ]
 
     /// Returns the appropriate SF Symbol icon name for a given sport
@@ -185,33 +185,33 @@ public struct SportIconView: View {
 
     public var body: some View {
         #if os(macOS)
-        if NSImage(systemSymbolName: symbolName, accessibilityDescription: nil) != nil {
-            Image(systemName: symbolName)
-                .resizable()
-                .scaledToFit()
-                .foregroundColor(color)
-                .frame(width: size, height: size)
-        } else {
-            Image(systemName: fallback)
-                .resizable()
-                .scaledToFit()
-                .foregroundColor(color)
-                .frame(width: size, height: size)
-        }
+            if NSImage(systemSymbolName: symbolName, accessibilityDescription: nil) != nil {
+                Image(systemName: symbolName)
+                    .resizable()
+                    .scaledToFit()
+                    .foregroundColor(color)
+                    .frame(width: size, height: size)
+            } else {
+                Image(systemName: fallback)
+                    .resizable()
+                    .scaledToFit()
+                    .foregroundColor(color)
+                    .frame(width: size, height: size)
+            }
         #else
-        if UIImage(systemName: symbolName) != nil {
-            Image(systemName: symbolName)
-                .resizable()
-                .scaledToFit()
-                .foregroundColor(color)
-                .frame(width: size, height: size)
-        } else {
-            Image(systemName: fallback)
-                .resizable()
-                .scaledToFit()
-                .foregroundColor(color)
-                .frame(width: size, height: size)
-        }
+            if UIImage(systemName: symbolName) != nil {
+                Image(systemName: symbolName)
+                    .resizable()
+                    .scaledToFit()
+                    .foregroundColor(color)
+                    .frame(width: size, height: size)
+            } else {
+                Image(systemName: fallback)
+                    .resizable()
+                    .scaledToFit()
+                    .foregroundColor(color)
+                    .frame(width: size, height: size)
+            }
         #endif
     }
 }

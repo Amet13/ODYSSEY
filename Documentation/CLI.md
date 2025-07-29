@@ -242,8 +242,6 @@ The CLI uses WebKit which requires macOS and a graphical environment. For remote
 #### macOS Servers (Recommended)
 
 ```bash
-# macOS servers with GUI capabilities work out of the box
-# For headless macOS servers, use Screen Sharing or VNC
 ./odyssey-cli run
 ```
 
@@ -252,7 +250,6 @@ The CLI uses WebKit which requires macOS and a graphical environment. For remote
 - **Linux servers are not supported** due to WebKit dependencies
 - **Only macOS servers** with GUI capabilities are supported
 - **CI/CD pipelines** should use macOS runners exclusively
-- **Virtual displays** are not needed on macOS servers
 
 ## 🤝 Support
 

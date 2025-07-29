@@ -36,7 +36,7 @@ public final class ErrorHandlingService: ObservableObject {
         _ error: UnifiedErrorProtocol,
         context: String,
         userFacing: Bool = false,
-        ) {
+    ) {
         let errorMessage = "\(error.errorCategory.emoji) \(context): \(error.userFriendlyMessage)"
         logger.error("\(errorMessage)")
 
@@ -53,7 +53,7 @@ public final class ErrorHandlingService: ObservableObject {
     ///   - error: Optional error object
     ///   - context: The context where the error occurred
     public nonisolated func logError(_ message: String, error: Error? = nil, context: String = "General") {
-        let fullMessage = error != nil ? "\(message): \(error!.localizedDescription)" : message
+        let fullMessage = error != nil ? "\(message): \(error?.localizedDescription ?? "Unknown error")" : message
         logger.error("❌ [\(context)] \(fullMessage)")
     }
 

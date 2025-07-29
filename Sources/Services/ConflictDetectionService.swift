@@ -2,7 +2,7 @@ import Foundation
 import os.log
 
 /// Service for detecting conflicts between reservation configurations
-/// Handles scheduling conflicts, time slot overlaps, and facility conflicts
+/// Handles time slot overlaps and facility conflicts
 @MainActor
 public final class ConflictDetectionService: ObservableObject {
     public static let shared = ConflictDetectionService()
@@ -26,9 +26,6 @@ public final class ConflictDetectionService: ObservableObject {
 
         // Check for time slot conflicts
         conflicts.append(contentsOf: detectTimeSlotConflicts(in: configurations))
-
-        // Check for scheduling conflicts
-        conflicts.append(contentsOf: detectSchedulingConflicts(in: configurations))
 
         logger.info("🔍 Detected \(conflicts.count) conflicts in \(configurations.count) configurations")
         return conflicts
@@ -56,36 +53,7 @@ public final class ConflictDetectionService: ObservableObject {
                         config1: config1,
                         config2: config2,
                         details: overlappingSlots,
-                        )
-                    conflicts.append(conflict)
-                }
-            }
-        }
-
-        return conflicts
-    }
-
-    /// Detects scheduling conflicts between configurations
-    /// - Parameter configurations: Array of configurations to check
-    /// - Returns: Array of scheduling conflicts
-    private func detectSchedulingConflicts(in configurations: [ReservationConfig]) -> [ReservationConflict] {
-        var conflicts: [ReservationConflict] = []
-
-        for firstIndex in 0 ..< configurations.count {
-            for secondIndex in (firstIndex + 1) ..< configurations.count {
-                let config1 = configurations[firstIndex]
-                let config2 = configurations[secondIndex]
-
-                // Check if configurations have conflicting autorun times
-                if config1.isEnabled, config2.isEnabled {
-                    let conflict = ReservationConflict(
-                        type: .schedulingConflict,
-                        severity: .warning,
-                        message: "Both configurations are enabled and may run simultaneously",
-                        config1: config1,
-                        config2: config2,
-                        details: ["Both configurations are enabled for autorun"],
-                        )
+                    )
                     conflicts.append(conflict)
                 }
             }
@@ -102,7 +70,7 @@ public final class ConflictDetectionService: ObservableObject {
     private func findOverlappingTimeSlots(
         between config1: ReservationConfig,
         and config2: ReservationConfig,
-        ) -> [String] {
+    ) -> [String] {
         var overlappingSlots: [String] = []
 
         for (weekday1, timeSlots1) in config1.dayTimeSlots {
@@ -136,7 +104,7 @@ public final class ConflictDetectionService: ObservableObject {
     public func validateNewConfiguration(
         _ newConfig: ReservationConfig,
         against existingConfigs: [ReservationConfig],
-        ) -> [ReservationConflict] {
+    ) -> [ReservationConflict] {
         let allConfigs = existingConfigs + [newConfig]
         return detectConflicts(in: allConfigs).filter { conflict in
             conflict.config1.id == newConfig.id || conflict.config2.id == newConfig.id
@@ -202,7 +170,6 @@ public struct ReservationConflict: Identifiable {
 /// Types of conflicts that can occur
 public enum ConflictType: String, CaseIterable {
     case timeSlotOverlap = "Time Slot Overlap"
-    case schedulingConflict = "Scheduling Conflict"
     case resourceConflict = "Resource Conflict"
 }
 

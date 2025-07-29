@@ -50,16 +50,16 @@ install_homebrew() {
         log_success "Homebrew already installed"
         return
     fi
-    
+
     log_info "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    
+
     # Add Homebrew to PATH if needed
     if [[ "$PATH" != *"/opt/homebrew/bin"* ]]; then
-        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
+        echo "eval \"\$(/opt/homebrew/bin/brew shellenv)\"" >> ~/.zshrc
         eval "$(/opt/homebrew/bin/brew shellenv)"
     fi
-    
+
     log_success "Homebrew installed"
 }
 
@@ -69,21 +69,21 @@ install_xcode_tools() {
         log_success "Xcode command line tools already installed"
         return
     fi
-    
+
     log_info "Installing Xcode command line tools..."
     xcode-select --install
-    
+
     log_warning "Please complete the Xcode installation in the popup window"
     log_warning "Press Enter when installation is complete..."
     read -r
-    
+
     log_success "Xcode command line tools installed"
 }
 
 # Function to install development tools
 install_dev_tools() {
     log_info "Installing development tools..."
-    
+
     # Install required tools
     local tools=(
         "xcodegen"
@@ -96,7 +96,7 @@ install_dev_tools() {
         "create-dmg"
         "jazzy"
     )
-    
+
     for tool in "${tools[@]}"; do
         if command -v "$tool" &> /dev/null; then
             log_success "$tool already installed"
@@ -111,10 +111,10 @@ install_dev_tools() {
 # Function to setup Git hooks
 setup_git_hooks() {
     log_info "Setting up Git hooks..."
-    
+
     # Create .git/hooks directory if it doesn't exist
     mkdir -p .git/hooks
-    
+
     # Create pre-commit hook
     cat > .git/hooks/pre-commit << 'EOF'
 #!/bin/bash
@@ -174,17 +174,17 @@ fi
 
 echo "✅ Pre-commit checks passed"
 EOF
-    
+
     # Make hook executable
     chmod +x .git/hooks/pre-commit
-    
+
     log_success "Git hooks configured"
 }
 
 # Function to setup development environment
 setup_dev_environment() {
     log_info "Setting up development environment..."
-    
+
     # Create development configuration
     if [ ! -f ".env.development" ]; then
         cat > .env.development << EOF
@@ -210,7 +210,7 @@ WEBKIT_TIMEOUT=30
 EOF
         log_success "Development configuration created"
     fi
-    
+
     # Create .gitignore additions if needed
     if ! grep -q ".env.development" .gitignore; then
         {
@@ -227,9 +227,9 @@ EOF
 # Function to validate setup
 validate_setup() {
     log_info "Validating development setup..."
-    
+
     local missing_tools=()
-    
+
     # Check required tools
     local required_tools=(
         "xcodebuild"
@@ -238,18 +238,18 @@ validate_setup() {
         "swiftlint"
         "swiftformat"
     )
-    
+
     for tool in "${required_tools[@]}"; do
         if ! command -v "$tool" &> /dev/null; then
             missing_tools+=("$tool")
         fi
     done
-    
+
     if [ ${#missing_tools[@]} -ne 0 ]; then
         log_error "Missing required tools: ${missing_tools[*]}"
         return 1
     fi
-    
+
     # Check project structure
     local required_files=(
         "Package.swift"
@@ -260,14 +260,14 @@ validate_setup() {
         ".markdownlint.json"
         "Scripts/lint-all.sh"
     )
-    
+
     for file in "${required_files[@]}"; do
         if [ ! -f "$file" ]; then
             log_error "Missing required file: $file"
             return 1
         fi
     done
-    
+
     # Test build
     log_info "Testing build..."
     if ./Scripts/build.sh &> /dev/null; then
@@ -276,7 +276,7 @@ validate_setup() {
         log_error "Build test failed"
         return 1
     fi
-    
+
     log_success "Development setup validation passed"
     return 0
 }

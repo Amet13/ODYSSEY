@@ -133,7 +133,7 @@ public protocol WebKitServiceProtocol: AnyObject {
      - Returns: True if successful.
      */
     func fillAllContactFieldsWithAutofillAndHumanMovements(phoneNumber: String, email: String, name: String) async
-    -> Bool
+        -> Bool
     /**
      Adds a quick pause (for human-like timing).
      */

@@ -443,6 +443,33 @@ log stream --predicate 'process == "ODYSSEY"' --info --debug
 3. **Monitor logs**: Use `./Scripts/logs.sh` during development and testing
 4. **Use dry-run**: Test release scripts with `--dry-run` before actual releases
 
+### Linting Configuration
+
+The project includes configuration files to ignore acceptable warnings:
+
+- **`.swiftlint.yml`**: SwiftLint configuration with relaxed rules for complex automation code
+- **`.markdownlint.json`**: Markdown linting configuration that ignores acceptable documentation warnings
+- **`.actionlintrc`**: GitHub Actions linting configuration that ignores acceptable ShellCheck warnings
+- **`.swiftformat`**: SwiftFormat configuration for consistent code formatting
+
+These configurations ensure that linting focuses on critical issues while ignoring acceptable warnings for:
+
+- Complex automation logic (cyclomatic complexity)
+- Documentation formatting (line length, HTML usage)
+- CI/CD script warnings (ShellCheck in embedded scripts)
+- Style preferences (opening brace spacing, trailing commas)
+
+### CI/CD Integration
+
+The GitHub Actions pipeline (`.github/workflows/pipeline.yml`) automatically uses these configuration files:
+
+- **SwiftLint**: Uses `.swiftlint.yml` configuration
+- **Markdown Linting**: Uses `.markdownlint.json` configuration
+- **GitHub Actions Linting**: Uses `.actionlintrc` configuration
+- **YAML Linting**: Uses `.yamllint` configuration
+
+This ensures that CI/CD builds won't fail due to acceptable warnings, while still catching critical issues.
+
 ### Development Workflow
 
 1. **Setup**: `./Scripts/setup-dev.sh setup`

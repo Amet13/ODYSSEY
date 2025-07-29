@@ -86,7 +86,7 @@ public final class CLIExportService: ObservableObject {
         let exportConfig = CLIExportConfig(
             userSettings: userSettingsManager.userSettings,
             selectedConfigurations: selectedConfigs,
-            )
+        )
 
         // Encode to JSON
         let encoder = JSONEncoder()
