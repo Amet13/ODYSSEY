@@ -303,7 +303,6 @@ show_dev_tips() {
     echo ""
     echo "📖 Documentation:"
     echo "  • User Guide: Documentation/USER_GUIDE.md"
-    echo "  • Accessibility: Documentation/ACCESSIBILITY.md"
     echo "  • Development: Documentation/DEVELOPMENT.md"
     echo ""
     echo "🚀 Happy coding!"

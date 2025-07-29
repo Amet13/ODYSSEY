@@ -102,7 +102,6 @@ jobs:
             "Config/project.yml"
             "README.md"
             "Documentation/USER_GUIDE.md"
-            "Documentation/ACCESSIBILITY.md"
             ".yamllint"
             ".markdownlint.json"
             ".actionlintrc"

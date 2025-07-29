@@ -9,7 +9,7 @@ This document contains the centralized installation instructions for ODYSSEY tha
 1. **Download the latest release**
 
    - Go to [GitHub Releases](https://github.com/Amet13/ODYSSEY/releases)
-   - Download `ODYSSEY-v1.0.0.dmg` (or latest version)
+   - Download `ODYSSEY.dmg` (latest version)
 
 2. **Install the application**
 
@@ -32,12 +32,12 @@ This document contains the centralized installation instructions for ODYSSEY tha
 1. **Download the CLI binary**
 
    - Go to [GitHub Releases](https://github.com/Amet13/ODYSSEY/releases)
-   - Download `odyssey-cli-v1.0.0` (or latest version)
+   - Download `odyssey-cli` (latest version)
 
 2. **Make it executable**
 
    ```bash
-   chmod +x odyssey-cli-v1.0.0
+   chmod +x odyssey-cli
    ```
 
 3. **Export configuration from GUI**
@@ -54,7 +54,7 @@ This document contains the centralized installation instructions for ODYSSEY tha
 
 5. **Test the CLI**
    ```bash
-   ./odyssey-cli-v1.0.0 configs
+   ./odyssey-cli configs
    ```
 
 ## Development Installation
@@ -105,8 +105,8 @@ See [REQUIREMENTS.md](REQUIREMENTS.md) for system requirements.
 
 - **CLI not working**:
   1. Ensure you have an export token from the GUI app
-  2. Check that the CLI is executable: `chmod +x odyssey-cli-v1.0.0`
-  3. Verify your export token: `./odyssey-cli-v1.0.0 configs`
+  2. Check that the CLI is executable: `chmod +x odyssey-cli`
+  3. Verify your export token: `./odyssey-cli configs`
 
 ### Development Issues
 

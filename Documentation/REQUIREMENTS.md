@@ -7,8 +7,6 @@ This document contains the centralized requirements for ODYSSEY that are referen
 ### For Users
 
 - **macOS 15.0 or later**
-- **Internet connection** for reservation automation
-- **Valid Ottawa Recreation account** with email verification enabled
 
 ### For Developers
 
@@ -54,13 +52,6 @@ brew install xcodegen swiftlint swiftformat create-dmg shellcheck yamllint markd
 # Setup development environment
 ./Scripts/setup-dev.sh
 ```
-
-## Version Information
-
-- **Current Version**: 1.0.0
-- **Minimum macOS**: 15.0
-- **Minimum Xcode**: 16.0
-- **Swift Version**: 6.1
 
 ## Troubleshooting
 

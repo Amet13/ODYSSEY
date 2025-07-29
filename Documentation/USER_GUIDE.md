@@ -71,9 +71,7 @@ Common sport names include:
 - Badminton
 - Tennis
 - Soccer
-- Volleyball
-- Swimming
-- Fitness
+- and many more...
 
 #### Time Slots
 
@@ -172,22 +170,7 @@ ODYSSEY automatically detects potential conflicts:
    - IMAP Server: gmail.com
    - Password: Your 16-character app password
 
-### Other Email Providers
-
-#### Outlook/Hotmail
-
-- IMAP Server: `outlook.office365.com`
-- Port: 993 (SSL)
-
-#### Yahoo
-
-- IMAP Server: `imap.mail.yahoo.com`
-- Port: 993 (SSL)
-
-#### iCloud
-
-- IMAP Server: `imap.mail.me.com`
-- Port: 993 (SSL)
+Other email providers that support IMAP could be used too.
 
 ### Testing Email Connection
 
@@ -251,26 +234,6 @@ ODYSSEY automatically detects potential conflicts:
 2. **GitHub Issues**: Report bugs on [GitHub](https://github.com/Amet13/ODYSSEY/issues)
 3. **Documentation**: See [DEVELOPMENT.md](DEVELOPMENT.md) for advanced troubleshooting
 
-## 🚀 Advanced Features
-
-### Custom Autorun Times
-
-- **Default**: 6:00 PM, 2 days before event
-- **Custom**: Set your preferred time in Settings
-- **Use Case**: When you need different timing for different facilities
-
-### Debug Window
-
-- **Purpose**: Monitor automation in real-time
-- **Access**: Enable in Settings → Advanced
-- **Use Case**: Troubleshooting automation issues
-
-### Export/Import
-
-- **Purpose**: Backup and share configurations
-- **Access**: Settings → Export
-- **Use Case**: Moving configurations between devices
-
 ## 🔒 Security & Privacy
 
 ### Data Protection
@@ -324,29 +287,6 @@ log stream --predicate 'category == "WebKitService"'
 # Filter by level
 log stream --predicate 'level >= 2'
 ```
-
-## 🎯 Tips & Tricks
-
-### Optimization Tips
-
-1. **Run During Off-Peak**: Schedule runs during less busy times
-2. **Use Multiple Configurations**: Create separate configs for different times
-3. **Monitor Success Rates**: Check logs to optimize timing
-4. **Backup Regularly**: Export configurations before major changes
-
-### Best Practices
-
-1. **Test First**: Always test manually before enabling auto-run
-2. **Monitor Logs**: Regularly check Console.app for issues
-3. **Update Regularly**: Keep ODYSSEY updated
-4. **Secure Credentials**: Use App Passwords for email accounts
-
-### Advanced Usage
-
-1. **Multiple Facilities**: Create configurations for different facilities
-2. **Time Variations**: Use different times for different sports
-3. **Group Bookings**: Coordinate with friends for group reservations
-4. **Backup Strategy**: Export configurations regularly
 
 ---
 
