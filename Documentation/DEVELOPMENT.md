@@ -58,10 +58,20 @@ Both versions share the same backend services and automation engine, so contribu
 
 ## 🏗️ Architecture Principles
 
+### **Clean Architecture Layers**
+
+- **Presentation Layer**: SwiftUI views and controllers
+- **Application Layer**: Use cases and orchestration logic
+- **Domain Layer**: Business entities and core logic
+- **Infrastructure Layer**: WebKit automation, email services, storage
+
+### **Service-Oriented Design**
+
 - **Protocol-Oriented Design**: Use protocols for interfaces and dependency injection
-- **Separation of Concerns**: Each component has a single responsibility
-- **Reactive Programming**: Use Combine for state management and async operations
-- **Error Handling**: Use structured error handling throughout
+- **Single Responsibility**: Each service has a single, well-defined responsibility
+- **Dependency Injection**: Centralized `DependencyContainer` for service management
+- **Concurrency Safety**: `@MainActor` and `Sendable` conformance throughout
+- **Error Handling**: Unified `DomainError` system with hierarchical categorization
 - **Security First**: Always use Keychain for sensitive data
 - **Performance**: Optimize for memory usage and responsiveness
 - **Validation**: Centralized validation in `ValidationService`
@@ -98,6 +108,72 @@ The project includes comprehensive automated quality checks:
 ### CI/CD Pipeline Integration
 
 The unified CI/CD pipeline (`.github/workflows/pipeline.yml`) automatically runs all quality checks on every commit and pull request.
+
+## 🏗️ Service Architecture
+
+### **Current Service Structure**
+
+The codebase has been transformed into a modular architecture with 11 focused services:
+
+#### **Email Services (6 services)**
+
+- `EmailGmailSupport.swift` - Gmail-specific functionality
+- `EmailConfigurationDiagnostics.swift` - Email diagnostics
+- `EmailKeychainHelper.swift` - Secure credential management
+- `EmailIMAPStreamDelegate.swift` - IMAP connection handling
+- `EmailClient.swift` - Email server connections
+- `EmailParser.swift` - Email content parsing
+
+#### **Reservation Services (3 services)**
+
+- `ReservationError.swift` - Error definitions
+- `ReservationRunStatus.swift` - Status management
+- `ReservationOrchestrationMethods.swift` - Core orchestration
+
+#### **WebKit Services (2 services)**
+
+- `WebKitAutofillService.swift` - Browser autofill methods
+- `WebKitReservationMethods.swift` - Reservation automation
+
+### **Development Guidelines**
+
+#### **Adding New Services**
+
+1. **Follow Single Responsibility Principle**: Each service should have one clear purpose
+2. **Implement Protocols**: Define clear interfaces for testability
+3. **Use Dependency Injection**: Register new services in `DependencyContainer`
+4. **Add Concurrency Safety**: Use `@MainActor` and `Sendable` where appropriate
+5. **Document Public APIs**: Use JSDoc-style comments for all public methods
+
+#### **Service Testing**
+
+```swift
+// Example: Testing a new service
+class NewServiceTests: XCTestCase {
+    func testServiceFunctionality() {
+        let service = NewService()
+        let result = service.performAction()
+        XCTAssertTrue(result)
+    }
+}
+```
+
+#### **Protocol Conformance**
+
+```swift
+// Define protocol for new service
+protocol NewServiceProtocol: ServiceProtocol {
+    func performAction() -> Bool
+}
+
+// Implement service
+class NewService: NewServiceProtocol {
+    func performAction() -> Bool {
+        // Implementation
+        return true
+    }
+}
+```
 
 #### Unified Pipeline Structure
 

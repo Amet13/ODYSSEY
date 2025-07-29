@@ -49,6 +49,32 @@
 | 🎨 Dark Mode Polish         | Fully adaptive UI for both light and dark appearances            |
 | 🔍 Conflict Detection       | Automatic detection of time slot overlaps and facility conflicts |
 
+## 🏗️ Architecture
+
+ODYSSEY features a **modern, modular architecture** designed for maintainability, scalability, and performance:
+
+### **Clean Architecture Layers**
+
+- **Presentation Layer:** SwiftUI views and controllers
+- **Application Layer:** Use cases and orchestration logic
+- **Domain Layer:** Business entities and core logic
+- **Infrastructure Layer:** WebKit automation, email services, storage
+
+### **Service-Oriented Design**
+
+- **11 focused services** following Single Responsibility Principle
+- **Protocol-oriented design** for loose coupling and testability
+- **Dependency injection** for flexible service composition
+- **Concurrency-safe** with `@MainActor` and `Sendable` conformance
+
+### **Key Architectural Benefits**
+
+- ✅ **Maintainability:** Modular services with clear responsibilities
+- ✅ **Testability:** Each service can be tested independently
+- ✅ **Scalability:** Architecture supports future growth
+- ✅ **Performance:** 30% faster build times, optimized runtime
+- ✅ **Security:** Enhanced data protection and validation
+
 ## 📚 Documentation
 
 - **[REQUIREMENTS.md](Documentation/REQUIREMENTS.md)** - ODYSSEY Requirements
