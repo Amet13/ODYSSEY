@@ -13,7 +13,7 @@ struct ExportView: View {
     init(configurationManager: ConfigurationManager) {
         print(
             "DEBUG: ExportView init called with \(configurationManager.settings.configurations.count) configurations",
-        )
+            )
         self.configurationManager = configurationManager
     }
 
@@ -85,7 +85,7 @@ struct ExportView: View {
                                                 selectedConfigIds.remove(configId)
                                             }
                                         },
-                                    )
+                                        )
                                 }
                             }
                         }

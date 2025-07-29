@@ -11,14 +11,26 @@ public enum AppConstants {
     // MARK: - Timeouts and Delays
 
     public static let defaultTimeout: TimeInterval = 30.0
-    public static let pageLoadTimeout: TimeInterval = 15.0
-    public static let elementWaitTimeout: TimeInterval = 10.0
+
     public static let imapConnectionTimeout: TimeInterval = 30.0
     public static let verificationCodeTimeout: TimeInterval = 300.0
     public static let minHumanDelay: TimeInterval = 0.5
     public static let maxHumanDelay: TimeInterval = 0.9
     public static let typingDelay: TimeInterval = 0.12
     public static let pageTransitionDelay: TimeInterval = 1.2
+
+    // Additional timeout constants (consolidated)
+    public static let retryDelay: TimeInterval = 2.0
+    public static let pollInterval: TimeInterval = 1.0
+    public static let initialWait: TimeInterval = 10.0
+    public static let maxTotalWait: TimeInterval = verificationCodeTimeout
+    public static let shortTimeout: TimeInterval = 10.0
+    public static let mediumTimeout: TimeInterval = 60.0
+    public static let timeWindowMinutes: TimeInterval = 5.0 * 60.0
+    public static let waitInterval: TimeInterval = 10.0
+    public static let checkIntervalShort: TimeInterval = 0.5
+    public static let pageLoadTimeout: TimeInterval = 30.0
+    public static let elementWaitTimeout: TimeInterval = 10.0
 
     // MARK: - Network and Email
 
@@ -65,11 +77,10 @@ public enum AppConstants {
 
     // MARK: - Magic Numbers and Limits
 
-    // Time-related constants
-    public static let verificationCodeTimeoutSeconds: TimeInterval = 300.0
+    // Time-related constants (consolidated)
     public static let emailSearchWindowMinutes: TimeInterval = 10.0
-    public static let codePoolRefreshIntervalSeconds: TimeInterval = 300.0
-    public static let maxWaitTimeForGodModeSeconds: TimeInterval = 300.0
+    public static let codePoolRefreshIntervalSeconds: TimeInterval = verificationCodeTimeout
+    public static let maxWaitTimeForGodModeSeconds: TimeInterval = verificationCodeTimeout
     public static let additionalWaitTimeForUIUpdatesSeconds: TimeInterval = 2.0
 
     // Validation limits

@@ -60,7 +60,7 @@ public final class LoggingService: ObservableObject {
         _ error: UnifiedErrorProtocol,
         context: String = "",
         category: LoggerCategory = .general,
-    ) {
+        ) {
         let contextPrefix = context.isEmpty ? "" : "[\(context)] "
         let technicalDetails = error.technicalDetails != nil ? " (\(error.technicalDetails ?? "No details"))" : ""
         let message = "\(contextPrefix)\(error.userFriendlyMessage)\(technicalDetails)"

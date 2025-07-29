@@ -110,7 +110,7 @@ struct CLI {
             userSettings.imapPassword = cliUserSettings.imapPassword
             userSettings.imapServer = cliUserSettings.imapServer
             userSettings.emailProvider = UserSettings.EmailProvider
-                .imap // Default to IMAP since we removed emailProvider from CLIUserSettings
+                .imap
             userSettings.preventSleepForAutorun = cliUserSettings.preventSleepForAutorun
             userSettings.autoCloseDebugWindowOnFailure = cliUserSettings.autoCloseDebugWindowOnFailure
 
@@ -219,6 +219,8 @@ struct CLI {
                     await printDetailedResults()
                 case .idle:
                     print("ℹ️ Status: Automation idle")
+                case .stopped:
+                    print("⏹️ Status: Automation stopped")
                 }
                 lastStatus = status
             }
@@ -285,7 +287,7 @@ struct CLI {
                 }
 
                 for line in relevantLines.suffix(3)
-                    where !line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                where !line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 { // Show last 3 relevant lines
                     // Extract the log message part
                     if let messageStart = line.range(of: "] ") {
@@ -332,7 +334,7 @@ struct CLI {
 
             print(
                 "🔍 Found \(configsToRun.count) configurations scheduled for today (\(priorDays) days before reservation)",
-            )
+                )
 
             if configsToRun.isEmpty {
                 handleEmptyConfigurations(exportConfig, priorDays: priorDays)
@@ -424,7 +426,7 @@ struct CLI {
         print("⏰ Waiting \(Int(timeInterval)) seconds...")
 
         // Wait in 10-second intervals to show progress
-        let waitInterval: TimeInterval = 10
+        let waitInterval: TimeInterval = AppConstants.waitInterval
         var remainingTime = timeInterval
 
         while remainingTime > 0 {
@@ -609,7 +611,7 @@ struct CLI {
                 print("\(bold("Phone")): ***\(String(exportConfig.userSettings.phoneNumber.suffix(3)))")
                 print(
                     "\(bold("Email")): ***@\(exportConfig.userSettings.imapEmail.components(separatedBy: "@").last ?? "unknown")",
-                )
+                    )
                 print("\(bold("IMAP Password")): ***")
             }
 

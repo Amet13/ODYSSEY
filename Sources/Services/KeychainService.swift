@@ -88,7 +88,7 @@ public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol
         password: String,
         server: String,
         port: Int,
-    ) -> Result<Void, KeychainError> {
+        ) -> Result<Void, KeychainError> {
         guard let passwordData = password.data(using: .utf8) else {
             let err = KeychainError.encodingFailed
             handleError(err)

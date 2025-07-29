@@ -1,6 +1,6 @@
-# ODYSSEY Installation Guide
+# 📦 ODYSSEY Installation Guide
 
-This document contains the centralized installation instructions for ODYSSEY that are referenced by all other documentation files.
+This document contains detailed installation instructions for ODYSSEY.
 
 ## 🚀 Quick Installation
 
@@ -61,7 +61,10 @@ This document contains the centralized installation instructions for ODYSSEY tha
 
 ### 📋 Prerequisites
 
-See [REQUIREMENTS.md](REQUIREMENTS.md) for system requirements.
+- **macOS 15.0 or later**
+- **Xcode 16.0 or later**
+- **Swift 6.1 or later**
+- **Homebrew** (for installing development dependencies)
 
 ### ⚙️ Setup Steps
 

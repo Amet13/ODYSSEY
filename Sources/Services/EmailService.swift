@@ -199,7 +199,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         // Use the existing IMAP connection to fetch verification codes
         let codes = await fetchVerificationCodesForToday(
             since: Date()
-                .addingTimeInterval(-AppConstants.verificationCodeTimeoutSeconds),
+                .addingTimeInterval(-AppConstants.verificationCodeTimeout),
         ) // Last 5 minutes
 
         if let latestCode = codes.last {
@@ -254,7 +254,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         // and look for the most recent email that matches our criteria
         let codes = await fetchVerificationCodesForToday(
             since: Date()
-                .addingTimeInterval(-AppConstants.verificationCodeTimeoutSeconds),
+                .addingTimeInterval(-AppConstants.verificationCodeTimeout),
         ) // Last 5 minutes
 
         if let latestCode = codes.last {
@@ -1521,7 +1521,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                 var buffer = [UInt8](repeating: 0, count: 4_096)
                 var response = ""
                 let startTime = Date()
-                let timeout: TimeInterval = 10 // 10 second timeout
+                let timeout: TimeInterval = AppConstants.shortTimeout // 10 second timeout
 
                 while Date().timeIntervalSince(startTime) < timeout {
                     // Check if we have bytes available
@@ -1925,6 +1925,36 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             }
             return nil
         }
+    }
+
+    public func searchForVerificationEmails() async throws -> [Email] {
+        logger.info("🔍 Searching for verification emails...")
+
+        let settings = userSettingsManager.userSettings
+        guard settings.hasEmailConfigured else {
+            logger.error("❌ Email settings not configured")
+            throw IMAPError.connectionFailed("Email settings not configured")
+        }
+
+        // Use the existing verification code fetching logic
+        let verificationCodes = await fetchVerificationCodesForToday(
+            since: Date()
+                .addingTimeInterval(-900),
+        ) // Last 15 minutes
+
+        // Convert verification codes to Email objects
+        let emails = verificationCodes.map { code in
+            Email(
+                id: UUID().uuidString,
+                from: "noreply@frontdesksuite.com",
+                subject: "Verify your email",
+                body: "Your verification code is: \(code)",
+                date: Date(),
+            )
+        }
+
+        logger.info("✅ Found \(emails.count) verification emails")
+        return emails
     }
 }
 

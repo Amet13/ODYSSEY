@@ -135,7 +135,7 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false,
-        )
+            )
 
         // Configure window properties
         window.title = "ODYSSEY Debug"

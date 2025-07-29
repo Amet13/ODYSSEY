@@ -17,7 +17,7 @@ struct SettingsView: View {
                 userSettingsManager: userSettingsManager,
                 emailService: emailService,
                 godModeEnabled: godModeEnabled,
-            )
+                )
         }
         .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
     }
@@ -73,7 +73,7 @@ struct SettingsFormView: View {
                 emailService: emailService,
                 isGmailAccount: isGmailAccount,
                 godModeEnabled: godModeEnabled,
-            )
+                )
             Divider().padding(.horizontal, AppConstants.contentPadding)
             SettingsFooter(
                 userSettingsManager: userSettingsManager,
@@ -85,7 +85,7 @@ struct SettingsFormView: View {
                 saveSettings: saveSettings,
                 cancelSettings: cancelSettings,
                 tempSettings: $tempSettings,
-            )
+                )
         }
         .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
         .alert("Validation Error", isPresented: $showingValidationAlert) {
@@ -165,20 +165,19 @@ private struct SettingsContent: View {
                     tempSettings: $tempSettings,
                     userSettingsManager: userSettingsManager,
                     emailService: emailService,
-                )
+                    )
                 Divider().padding(.horizontal, AppConstants.contentPadding)
                 EmailSettingsSection(
                     tempSettings: $tempSettings,
                     userSettingsManager: userSettingsManager,
                     emailService: emailService,
                     isGmailAccount: isGmailAccount,
-                )
+                    )
                 // Advanced Settings Section (God Mode Only)
                 if godModeEnabled {
                     Divider().padding(.horizontal, AppConstants.contentPadding)
                     AdvancedSettingsSection(tempSettings: $tempSettings, godModeEnabled: godModeEnabled)
                 }
-                // AuditLogSection removed
             }
             .contentShape(Rectangle())
             .onTapGesture {
@@ -200,7 +199,7 @@ private struct ContactInformationSection: View {
         settingsSection(
             title: "Contact Information",
             icon: "person.circle",
-        ) {
+            ) {
             VStack(spacing: AppConstants.spacingLarge) {
                 settingsField(
                     title: "Full Name",
@@ -208,7 +207,7 @@ private struct ContactInformationSection: View {
                     placeholder: "John Doe",
                     icon: "person",
                     maxLength: 30,
-                )
+                    )
                 .onChange(of: tempSettings.name) { _, _ in
                     if emailService.lastTestResult != nil {
                         emailService.lastTestResult = nil
@@ -222,7 +221,7 @@ private struct ContactInformationSection: View {
                     placeholder: "234567890",
                     icon: "phone",
                     maxLength: 10,
-                )
+                    )
                 .onChange(of: tempSettings.phoneNumber) { _, _ in
                     if emailService.lastTestResult != nil {
                         emailService.lastTestResult = nil
@@ -257,32 +256,32 @@ private struct EmailSettingsSection: View {
         settingsSection(
             title: "Email Settings",
             icon: "envelope.circle",
-        ) {
+            ) {
             VStack(spacing: AppConstants.spacingLarge) {
                 EmailAddressField(
                     tempSettings: $tempSettings,
                     userSettingsManager: userSettingsManager,
                     emailService: emailService,
                     isGmailAccount: isGmailAccount,
-                )
+                    )
                 IMAPServerField(
                     tempSettings: $tempSettings,
                     userSettingsManager: userSettingsManager,
                     emailService: emailService,
                     isGmailAccount: isGmailAccount,
-                )
+                    )
                 PasswordField(
                     tempSettings: $tempSettings,
                     userSettingsManager: userSettingsManager,
                     emailService: emailService,
                     isGmailAccount: isGmailAccount,
-                )
+                    )
                 TestEmailButton(
                     tempSettings: $tempSettings,
                     userSettingsManager: userSettingsManager,
                     emailService: emailService,
                     isGmailAccount: isGmailAccount,
-                )
+                    )
             }
         }
     }
@@ -301,13 +300,13 @@ private struct AdvancedSettingsSection: View {
                         set: { newValue in
                             tempSettings.preventSleepForAutorun = newValue
                         },
-                    ))
+                        ))
                     Text("Prevent sleep before autorun (5 minutes prior)")
                     Spacer()
                 }
                 .help(
                     "If enabled, ODYSSEY will prevent your Mac from sleeping 5 minutes before autorun and allow sleep after reservations are done.",
-                )
+                    )
 
                 // Browser Window Controls
                 VStack(alignment: .leading, spacing: AppConstants.spacingMedium) {
@@ -317,14 +316,14 @@ private struct AdvancedSettingsSection: View {
                             set: { newValue in
                                 tempSettings.showBrowserWindow = newValue
                             },
-                        ))
+                            ))
                         Text("Show browser window")
                         Spacer()
                     }
                     .help(
                         "If enabled, the browser window will be visible during automation, " +
                             "which can help bypass captcha detection. If disabled, automation runs invisibly in the background.",
-                    )
+                        )
 
                     if tempSettings.showBrowserWindow {
                         HStack {
@@ -333,14 +332,14 @@ private struct AdvancedSettingsSection: View {
                                 set: { newValue in
                                     tempSettings.autoCloseDebugWindowOnFailure = newValue
                                 },
-                            ))
+                                ))
                             Text("Automatically close browser window on failure")
                             Spacer()
                         }
                         .help(
                             "If enabled, the browser window will close automatically after a reservation failure. " +
                                 "If disabled, the window will remain open so you can inspect the error.",
-                        )
+                            )
                     }
                 }
 
@@ -352,13 +351,13 @@ private struct AdvancedSettingsSection: View {
                             set: { newValue in
                                 tempSettings.useCustomAutorunTime = newValue
                             },
-                        ))
+                            ))
                         Text("Use custom autorun time")
                         Spacer()
                     }
                     .help(
                         "If enabled, you can set a custom time for autorun. If disabled, the default time of 6:00 PM will be used.",
-                    )
+                        )
 
                     if tempSettings.useCustomAutorunTime {
                         HStack {
@@ -376,12 +375,12 @@ private struct AdvancedSettingsSection: View {
                                             minute: minute,
                                             second: 0,
                                             of: Date(),
-                                        ) ?? newTime
+                                            ) ?? newTime
                                         tempSettings.customAutorunTime = normalizedTime
                                     },
-                                ),
+                                    ),
                                 displayedComponents: .hourAndMinute,
-                            )
+                                )
                             .labelsHidden()
                             .frame(width: AppConstants.buttonHeightXLarge * 3)
 
@@ -393,7 +392,7 @@ private struct AdvancedSettingsSection: View {
                         }
                         .help(
                             "Set a custom time for autorun scheduling. This time will be used for all automatic reservation runs.",
-                        )
+                            )
                     }
                 }
             }
@@ -453,7 +452,7 @@ private struct EmailAddressField: View {
                 value: $tempSettings.imapEmail,
                 placeholder: "your-email@domain.com",
                 icon: "envelope",
-            )
+                )
             .onChange(of: tempSettings.imapEmail) { _, newEmail in
                 if isGmailAccount(newEmail) {
                     tempSettings.imapServer = "imap.gmail.com"
@@ -494,7 +493,7 @@ private struct IMAPServerField: View {
             placeholder: "mail.myserver.com",
             icon: "server.rack",
             isReadOnly: isGmailAccount(tempSettings.imapEmail),
-        )
+            )
         .onChange(of: tempSettings.imapServer) { _, _ in
             if emailService.lastTestResult != nil {
                 emailService.lastTestResult = nil
@@ -526,7 +525,7 @@ private struct PasswordField: View {
                     "16-character app password" : "my-password",
                 icon: "lock",
                 isSecure: true,
-            )
+                )
             .onChange(of: tempSettings.imapPassword) { _, _ in
                 if emailService.lastTestResult != nil {
                     emailService.lastTestResult = nil
@@ -535,7 +534,7 @@ private struct PasswordField: View {
             .accessibilityLabel(
                 isGmailAccount(tempSettings.imapEmail) ? "Gmail App Password" :
                     "Password",
-            )
+                )
 
             // Gmail App Password validation
             if isGmailAccount(tempSettings.imapEmail), !tempSettings.imapPassword.isEmpty {
@@ -545,18 +544,9 @@ private struct PasswordField: View {
                         Link(
                             "How to create Gmail app password?",
                             destination: gmailHelpURL,
-                        )
+                            )
                         .font(.caption)
                         .foregroundColor(.blue)
-                    }
-                } else {
-                    HStack {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                        Text("Gmail app password format is valid")
-                            .font(.caption)
-                            .foregroundColor(.green)
-                        Spacer()
                     }
                 }
             }
@@ -585,7 +575,7 @@ private struct TestEmailButton: View {
                             server: tempSettings.imapServer,
                             provider: isGmailAccount(tempSettings.imapEmail) ?
                                 .gmail : .imap,
-                        )
+                            )
                         await MainActor.run {
                             emailService.lastTestResult = result
                             if result.isSuccess {
@@ -593,13 +583,13 @@ private struct TestEmailButton: View {
                                     userSettingsManager.saveLastSuccessfulGmailConfig(
                                         email: tempSettings.imapEmail,
                                         appPassword: tempSettings.imapPassword,
-                                    )
+                                        )
                                 } else {
                                     userSettingsManager.saveLastSuccessfulIMAPConfig(
                                         email: tempSettings.imapEmail,
                                         password: tempSettings.imapPassword,
                                         server: tempSettings.imapServer,
-                                    )
+                                        )
                                 }
                             }
                             // Restore original settings
@@ -679,7 +669,7 @@ private func settingsField(
     isSecure: Bool = false,
     maxLength: Int? = nil,
     isReadOnly: Bool = false,
-) -> some View {
+    ) -> some View {
     VStack(alignment: .leading, spacing: AppConstants.spacingTiny) {
         HStack {
             Image(systemName: icon)

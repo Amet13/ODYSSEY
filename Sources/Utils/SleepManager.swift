@@ -19,7 +19,7 @@ public enum SleepManager {
             IOPMAssertionLevel(kIOPMAssertionLevelOn),
             reasonForActivity,
             &assertionID,
-        )
+            )
         if result == kIOReturnSuccess {
             // Sleep prevention successful
         }

@@ -46,7 +46,7 @@ struct ContentView: View {
             showingHelp: $showingHelp,
             emailService: emailService,
             countdownRefreshTrigger: $countdownRefreshTrigger,
-        )
+            )
         .onAppear {
             countdownRefreshTrigger.toggle()
             countdownTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
@@ -74,7 +74,7 @@ struct ContentView: View {
             forName: AppConstants.addConfigurationNotification,
             object: nil,
             queue: .main,
-        ) { _ in
+            ) { _ in
             Task { @MainActor in
                 showingAddConfig = true
             }
@@ -84,7 +84,7 @@ struct ContentView: View {
             forName: AppConstants.openSettingsNotification,
             object: nil,
             queue: .main,
-        ) { _ in
+            ) { _ in
             Task { @MainActor in
                 showingSettings = true
             }
@@ -123,7 +123,7 @@ private struct MainBody: View {
                     godModeUIEnabled: $godModeStateManager.isGodModeUIEnabled,
                     showingAddConfig: $showingAddConfig,
                     simulateAutorunForToday: simulateAutorunForToday,
-                )
+                    )
                 .accessibilityElement()
                 .accessibilityLabel("ODYSSEY header with add configuration button")
                 Divider()
@@ -136,7 +136,7 @@ private struct MainBody: View {
                     formatCountdown: formatCountdown,
                     showingAddConfig: $showingAddConfig,
                     countdownRefreshTrigger: countdownRefreshTrigger,
-                )
+                    )
                 .accessibilityElement()
                 .accessibilityLabel("Reservation configurations list")
 
@@ -146,7 +146,7 @@ private struct MainBody: View {
                     showingAbout: $showingAbout,
                     showingExport: $showingExport,
                     hasConfigurations: !configManager.settings.configurations.isEmpty,
-                )
+                    )
                 .accessibilityElement()
                 .accessibilityLabel("ODYSSEY footer with settings and about buttons")
             }
@@ -230,7 +230,7 @@ private struct MainBody: View {
                         minute: autorunMinute,
                         second: autorunSecond,
                         of: cronTime,
-                    ) ?? cronTime
+                        ) ?? cronTime
                     if finalCronTime > now {
                         if let currentNextCronTime = nextCronTime {
                             if finalCronTime < currentNextCronTime {
@@ -429,7 +429,7 @@ private struct MainContentView: View {
                 getNextCronRunTime: getNextCronRunTime,
                 formatCountdown: formatCountdown,
                 countdownRefreshTrigger: countdownRefreshTrigger,
-            )
+                )
         }
     }
 }
@@ -483,7 +483,7 @@ private struct ConfigurationListView: View {
                 ForEach(
                     Array(configManager.settings.configurations.enumerated()),
                     id: \.element.id,
-                ) { index, config in
+                    ) { index, config in
                     ConfigurationRowView(
                         config: config,
                         nextAutorunInfo: getNextCronRunTime(config),
@@ -495,7 +495,7 @@ private struct ConfigurationListView: View {
                         onToggle: { configManager.toggleConfiguration(at: index) },
                         onRun: { orchestrator.runReservation(for: config, runType: .manual) },
                         onFocus: { },
-                    )
+                        )
                     .accessibilityElement()
                     .accessibilityLabel("Reservation configuration for \(config.name)")
                     .accessibilityAddTraits(.allowsDirectInteraction)
@@ -643,17 +643,17 @@ struct ConfigurationRowView: View {
             Toggle("", isOn: Binding(
                 get: { config.isEnabled },
                 set: { _ in onToggle() },
-            ))
+                ))
             .toggleStyle(.switch)
             .labelsHidden()
             .help(NSLocalizedString(
                 "enable_autorun_tooltip",
                 comment: "Enable or disable autorun for this configuration",
-            ))
+                ))
             .accessibilityLabel("\(config.name) autorun is \(config.isEnabled ? "enabled" : "disabled")")
             .accessibilityHint(
                 "Double tap to \(config.isEnabled ? "disable" : "enable") automatic runs for this configuration",
-            )
+                )
             .accessibilityAddTraits(.allowsDirectInteraction)
             Button(action: onEdit) {
                 Image(systemName: "pencil")
@@ -686,7 +686,7 @@ struct ConfigurationRowView: View {
                 .accessibilityHint(
                     "Configuration for \(config.sportName) at " +
                         "\(ReservationConfig.extractFacilityName(from: config.facilityURL)) with \(config.numberOfPeople) people",
-                )
+                    )
                 .accessibilityAddTraits(.allowsDirectInteraction)
 
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
@@ -695,10 +695,10 @@ struct ConfigurationRowView: View {
                     symbolName: SportIconMapper.iconForSport(config.sportName),
                     color: .odysseyAccent,
                     size: AppConstants.iconTiny,
-                )
+                    )
                 Text(
                     "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(formatScheduleInfoInline())",
-                )
+                    )
                 .font(.system(size: AppConstants.secondaryFont))
                 .foregroundColor(Color.odysseySecondaryText)
                 .fixedSize(horizontal: false, vertical: true)
@@ -724,12 +724,12 @@ struct ConfigurationRowView: View {
         .background(
             RoundedRectangle(cornerRadius: AppConstants.cardCornerRadius)
                 .fill(Color(NSColor.controlBackgroundColor).opacity(AppConstants.opacitySubtle)),
-        )
+            )
         .padding(.vertical, AppConstants.paddingTiny)
         .alert(
             "Delete Configuration",
             isPresented: $showingDeleteConfirmation,
-        ) {
+            ) {
             Button("Cancel", role: .cancel) { }
             Button("Delete", role: .destructive) {
                 onDelete()
@@ -817,25 +817,31 @@ struct ConfigurationRowView: View {
                     statusKey: "successful",
                     statusColor: .odysseySuccess,
                     iconName: "checkmark.circle.fill",
-                )
+                    )
             case .failed:
                 LastRunStatusInfo(
                     statusKey: "failed",
                     statusColor: .odysseyError,
                     iconName: "xmark.octagon.fill",
-                )
+                    )
             case .running:
                 LastRunStatusInfo(
                     statusKey: "Running...",
                     statusColor: .odysseyWarning,
                     iconName: "hourglass",
-                )
+                    )
             case .idle:
                 LastRunStatusInfo(
                     statusKey: "never",
                     statusColor: .gray,
                     iconName: "questionmark.circle",
-                )
+                    )
+            case .stopped:
+                LastRunStatusInfo(
+                    statusKey: "stopped",
+                    statusColor: .orange,
+                    iconName: "stop.circle.fill",
+                    )
             }
             let runTypeKey = switch lastRun.runType {
             case .manual: " (manual)"
@@ -862,7 +868,7 @@ struct ConfigurationRowView: View {
                             .foregroundColor(statusInfo.statusColor)
                     }
                 },
-            )
+                )
         } else {
             // Configuration has never been run - show in grey
             return AnyView(
@@ -877,7 +883,7 @@ struct ConfigurationRowView: View {
                         .font(.system(size: AppConstants.tertiaryFont))
                         .foregroundColor(Color.odysseyGray)
                 },
-            )
+                )
         }
     }
 }
@@ -921,11 +927,7 @@ struct DeleteConfirmationModal: View {
             RoundedRectangle(cornerRadius: AppConstants.modalCornerRadius)
                 .fill(Color(NSColor.windowBackgroundColor))
                 .shadow(radius: AppConstants.shadowRadiusXXLarge),
-        )
+            )
         .padding(AppConstants.sectionPadding)
     }
 }
-
-// MARK: - Onboarding/Help View
-
-// (OnboardingHelpView struct and its implementation removed)

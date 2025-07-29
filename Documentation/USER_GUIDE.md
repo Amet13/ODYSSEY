@@ -216,7 +216,7 @@ Other email providers that support IMAP could be used too.
 
 - Check Applications folder for ODYSSEY
 - Restart the app
-- Ensure macOS 15+ is installed (see [REQUIREMENTS.md](REQUIREMENTS.md))
+- Ensure macOS 15+ is installed (see [INSTALLATION.md](INSTALLATION.md))
 - Check System Preferences → Dock & Menu Bar
 
 #### 🔑 Keychain Errors

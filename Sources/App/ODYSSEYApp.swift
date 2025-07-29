@@ -146,7 +146,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             forName: AppConstants.rescheduleAutorunNotification,
             object: nil,
             queue: .main,
-        ) { [weak self] _ in
+            ) { [weak self] _ in
             Task { @MainActor in
                 self?.logger.info("🔄 Rescheduling autorun due to settings change")
                 self?.schedulePreciseAutorun()
@@ -235,7 +235,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         logger
             .info(
                 "🔍 DEBUG: Current autorun time is set to \(autorunHour):\(autorunMinute):\(autorunSecond) (\(timeType))",
-            )
+                )
 
         // Calculate the next autorun time using the determined time
         var nextAutorun = calendar
@@ -251,7 +251,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         logger
             .info(
                 "🕕 Scheduling precise autorun for \(nextAutorun) (custom time: \(timeString), in \(timeUntilAutorun) seconds)",
-            )
+                )
 
         // Schedule the precise timer
         DispatchQueue.main.asyncAfter(deadline: .now() + timeUntilAutorun) { [self] in
@@ -353,9 +353,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if timeDifference > 2 {
             let currentTimeStr = "\(currentHour):\(currentMinute):\(currentSecond)"
             let autorunTimeStr = "\(autorunHour):\(autorunMinute):\(autorunSecond)"
-            logger
-                .info(
-                    "🔍 DEBUG: Time mismatch - current: \(currentTimeStr), autorun: \(autorunTimeStr), difference: \(timeDifference)s",
+            logger.info(
+                "🔍 DEBUG: Time mismatch - current: \(currentTimeStr), autorun: \(autorunTimeStr), difference: \(timeDifference)s",
                 )
             return false
         }
@@ -373,11 +372,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Autorun should be 2 days before reservation day
             let autorunDay = calendar.date(byAdding: .day, value: -2, to: reservationDay) ?? reservationDay
 
-            logger.info(
-                "🔍 DEBUG: Config '\(config.name)' - Day: \(day.rawValue), targetWeekday: \(targetWeekday), " +
-                    "currentWeekday: \(currentWeekday), daysUntilTarget: \(daysUntilTarget), " +
-                    "reservationDay: \(reservationDay), autorunDay: \(autorunDay), today: \(today)",
-            )
+            logger
+                .info(
+                    "🔍 DEBUG: Config '\(config.name)' - Day: \(day.rawValue), targetWeekday: \(targetWeekday), currentWeekday: \(currentWeekday), daysUntilTarget: \(daysUntilTarget), reservationDay: \(reservationDay), autorunDay: \(autorunDay), today: \(today)",
+                    )
 
             if calendar.isDate(today, inSameDayAs: autorunDay) {
                 logger.info("🔍 DEBUG: Config '\(config.name)' - MATCH FOUND!")
