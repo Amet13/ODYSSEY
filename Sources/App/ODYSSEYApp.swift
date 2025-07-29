@@ -338,9 +338,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let timeDifference = abs(currentTimeInSeconds - autorunTimeInSeconds)
 
         if timeDifference > 2 {
+            let currentTimeStr = "\(currentHour):\(currentMinute):\(currentSecond)"
+            let autorunTimeStr = "\(autorunHour):\(autorunMinute):\(autorunSecond)"
             logger
                 .info(
-                    "🔍 DEBUG: Time mismatch - current: \(currentHour):\(currentMinute):\(currentSecond), autorun: \(autorunHour):\(autorunMinute):\(autorunSecond), difference: \(timeDifference)s",
+                    "🔍 DEBUG: Time mismatch - current: \(currentTimeStr), autorun: \(autorunTimeStr), difference: \(timeDifference)s",
                     )
             return false
         }

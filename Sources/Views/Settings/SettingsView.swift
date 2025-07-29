@@ -101,54 +101,11 @@ struct SettingsFormView: View {
     // MARK: - Actions
 
     private func saveSettings() {
-        // Validate required fields
-        if tempSettings.name.isEmpty {
-            validationMessage = "Please enter your full name."
-            showingValidationAlert = true
-            return
-        }
-
-        if tempSettings.phoneNumber.isEmpty {
-            validationMessage = "Please enter your phone number."
-            showingValidationAlert = true
-            return
-        }
-
-        if !tempSettings.isPhoneNumberValid {
-            validationMessage = "Phone number must be exactly 10 digits."
-            showingValidationAlert = true
-            return
-        }
-
-        if tempSettings.imapEmail.isEmpty {
-            validationMessage = "Please enter your email address."
-            showingValidationAlert = true
-            return
-        }
-
-        if !tempSettings.isEmailValid {
-            validationMessage = "Please enter a valid email address."
-            showingValidationAlert = true
-            return
-        }
-
-        // IMAP server validation (only for non-Gmail accounts)
-        if !isGmailAccount(tempSettings.imapEmail), tempSettings.imapServer.isEmpty {
-            validationMessage = "Please enter your IMAP server address."
-            showingValidationAlert = true
-            return
-        }
-
-        if tempSettings.imapPassword.isEmpty {
-            validationMessage = "Please enter your email password."
-            showingValidationAlert = true
-            return
-        }
-
-        // Gmail app password validation
-        if isGmailAccount(tempSettings.imapEmail), !tempSettings.isGmailAppPasswordValid {
-            validationMessage =
-                "Gmail app password must be 16 characters with spaces every 4 (e.g., 'abcd efgh ijkl mnop'). Please check the format and try again."
+        // Use centralized validation
+        let validator = ConfigurationValidator.shared
+        let validationResult = validator.validateUserSettings(tempSettings)
+        if !validationResult.isValid {
+            validationMessage = validationResult.errorMessage
             showingValidationAlert = true
             return
         }
@@ -359,7 +316,8 @@ private struct AdvancedSettingsSection: View {
                         Spacer()
                     }
                     .help(
-                        "If enabled, the browser window will be visible during automation, which can help bypass captcha detection. If disabled, automation runs invisibly in the background.",
+                        "If enabled, the browser window will be visible during automation, " +
+                            "which can help bypass captcha detection. If disabled, automation runs invisibly in the background.",
                         )
 
                     if tempSettings.showBrowserWindow {
@@ -374,7 +332,8 @@ private struct AdvancedSettingsSection: View {
                             Spacer()
                         }
                         .help(
-                            "If enabled, the browser window will close automatically after a reservation failure. If disabled, the window will remain open so you can inspect the error.",
+                            "If enabled, the browser window will close automatically after a reservation failure. " +
+                                "If disabled, the window will remain open so you can inspect the error.",
                             )
                     }
                 }

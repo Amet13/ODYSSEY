@@ -68,16 +68,83 @@ Both versions share the same backend services and automation engine.
 
 - **SwiftLint:** Enforced code style and best practices
 - **SwiftFormat:** Automatic code formatting
+- **ShellCheck:** Bash script linting and best practices
+- **YAML Linting:** yamllint for configuration and workflow files
+- **Markdown Linting:** markdownlint for documentation quality
+- **GitHub Actions Linting:** actionlint for workflow validation
 - **Comprehensive Documentation:** All public APIs and services are documented
 - **Self-Review:** All changes should be self-reviewed before submission
-- **Zero Linter Errors:** All code must pass SwiftLint and SwiftFormat before merging
+- **Zero Linter Errors:** All code must pass all linters before merging
 
 ### Example: Running All Checks
 
 ```bash
+# Run all linters locally
+./Scripts/lint-all.sh
+
+# Or run individual linters
 ./Scripts/build.sh
-# This will run SwiftFormat and SwiftLint automatically
+shellcheck Scripts/*.sh
+yamllint Config/project.yml .github/workflows/*.yml
+markdownlint README.md Documentation/*.md .github/*.md
+actionlint .github/workflows/*.yml
 ```
+
+### CI/CD Pipeline Integration
+
+The project includes a unified CI/CD automation pipeline through GitHub Actions that handles both continuous integration and releases:
+
+#### Unified Pipeline Structure
+
+**Single Workflow**: `.github/workflows/pipeline.yml` handles all automation:
+
+- **Quality Checks**: Runs on every push and pull request
+- **Build & Analysis**: Creates and analyzes both Debug and Release builds
+- **Documentation Generation**: Auto-generates project documentation
+- **Release Pipeline**: Automated release creation (triggered by version tags)
+
+#### Automated Workflows
+
+**Quality Checks (Every Push/PR)**
+
+- ✅ SwiftLint code quality checks
+- ✅ SwiftFormat code formatting validation
+- ✅ ShellCheck bash script linting
+- ✅ YAML and Markdown linting
+- ✅ GitHub Actions workflow validation
+- ✅ Project structure validation
+- ✅ Comprehensive linting with `lint-all.sh`
+- ✅ CLI build and testing
+
+**Build & Analysis (After Quality Checks)**
+
+- ✅ Xcode project generation with XcodeGen
+- ✅ Debug and Release builds for GUI app
+- ✅ CLI binary compilation and testing
+- ✅ App structure analysis and size validation
+- ✅ Build artifact uploads for debugging
+- ✅ Documentation generation and upload
+
+**Release Pipeline (Tag-triggered)**
+
+- ✅ Version consistency validation (tag vs project.yml vs Info.plist)
+- ✅ Changelog generation from git commits since last tag
+- ✅ DMG installer creation with app icon
+- ✅ CLI binary packaging with version naming
+- ✅ Code signing for both applications
+- ✅ GitHub Releases publication with comprehensive notes
+- ✅ File size tracking and reporting
+- ✅ Professional release notes with installation instructions
+
+#### Pipeline Benefits
+
+- ✅ **Efficiency**: Single workflow eliminates duplication and maintenance overhead
+- ✅ **Consistency**: Same build environment for all releases
+- ✅ **Quality**: Automated quality checks prevent regressions
+- ✅ **Automation**: No manual release steps required
+- ✅ **Transparency**: All build artifacts and logs are preserved
+- ✅ **Reliability**: Comprehensive validation ensures release quality
+- ✅ **Resource Optimization**: Eliminates redundant builds and setup steps
 
 ## 🧪 Testing
 
@@ -89,7 +156,7 @@ Both versions share the same backend services and automation engine.
 - **Linting:**
   - Run `./Scripts/build.sh` to check formatting and linting before every commit.
 - **GitHub Actions:**
-  - Test the workflow file: `.github/workflows/odyssey-automation.yml`
+  - Test the workflow file: `.github/workflows/reservation-automation.yml`
   - Verify it works with real export tokens in a fork
 
 ## 🖥️ CLI Development
@@ -127,15 +194,42 @@ The CLI tool shares the same backend services as the GUI app, providing remote a
 
 1. **Update version numbers** in `Info.plist`, `AppConstants.swift`, and documentation.
 2. **Update the changelog** (`CHANGELOG.md`).
-3. **Run all tests and linting** to ensure a clean build.
-4. **Build the app and CLI:**
+3. **Run all tests and linting** to ensure a clean build:
    ```bash
    ./Scripts/build.sh
    ```
-5. **Create a DMG installer** (see `Scripts/create-release.sh`).
-6. **Code sign** the app for distribution.
-7. **(Optional) Notarize** the app with Apple (see `DEVELOPMENT.md` for steps).
-8. **Publish the release** on GitHub with release notes and the DMG.
+4. **Create and push a version tag:**
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+5. **Automated Release Pipeline:**
+   - The CI/CD pipeline automatically detects the tag
+   - Builds both GUI and CLI applications
+   - Creates DMG installer and CLI binary
+   - Code signs both applications
+   - Publishes to GitHub Releases with comprehensive release notes
+   - Calculates and displays file sizes
+   - Generates changelog from git commits
+
+### Automated Release Features
+
+- ✅ **Version Validation**: Ensures tag version matches `project.yml` and `Info.plist`
+- ✅ **Dual Build**: Creates both GUI app and CLI binary
+- ✅ **Code Signing**: Automatically signs both applications
+- ✅ **DMG Creation**: Creates professional installer with app icon
+- ✅ **Release Notes**: Auto-generates comprehensive release notes with features and troubleshooting
+- ✅ **File Size Tracking**: Displays app, DMG, and CLI sizes
+- ✅ **Changelog Generation**: Creates changelog from git commits since last tag
+- ✅ **GitHub Integration**: Automatically publishes to GitHub Releases
+
+### Manual Release (Alternative)
+
+If you prefer manual releases, you can still use the scripts:
+
+- **Create DMG**: `./Scripts/create-release.sh`
+- **Code Sign**: `codesign --force --deep --sign - /path/to/app`
+- **Notarize**: See `Scripts/create-release.sh` for notarization steps
 
 ## 💡 Common Pitfalls & Tips
 
@@ -174,3 +268,10 @@ The CLI tool shares the same backend services as the GUI app, providing remote a
 - 📝 **Code Signing:** All builds for distribution must be code signed.
 - 🚫 **Privacy:** Never transmit user data externally without explicit consent.
 - 🧪 **Audit:** Periodically review dependencies and security settings.
+
+## 📚 Additional Resources
+
+- **[SCRIPTS.md](SCRIPTS.md)** - Complete scripts documentation and usage guide
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Detailed contribution guidelines
+- **[CLI.md](CLI.md)** - Command-line interface documentation
+- **[USER_GUIDE.md](USER_GUIDE.md)** - User guide for the application

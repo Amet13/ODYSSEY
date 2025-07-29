@@ -1888,9 +1888,17 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
     // MARK: - Keychain Credential Helper
 
+    /// Email credentials structure
+    private struct EmailCredentials {
+        let email: String
+        let password: String
+        let server: String
+        let port: Int
+    }
+
     /// Retrieves email credentials from KeychainService
-    /// - Returns: (email, password, server, port) tuple if found, else nil
-    private func getCredentialsFromKeychain() -> (email: String, password: String, server: String, port: Int)? {
+    /// - Returns: EmailCredentials if found, else nil
+    private func getCredentialsFromKeychain() -> EmailCredentials? {
         let settings = userSettingsManager.userSettings
         let email = settings.imapEmail
         let server = settings.imapServer
@@ -1903,7 +1911,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         switch passwordResult {
         case let .success(password):
             Task { @MainActor in self.userFacingError = nil }
-            return (email, password, server, port)
+            return EmailCredentials(email: email, password: password, server: server, port: port)
         case let .failure(error):
             Task { @MainActor in
                 self.userFacingError = error.localizedDescription
@@ -1922,25 +1930,23 @@ private final class IMAPConnectionState: @unchecked Sendable {
 }
 
 /// Helper function to add timeout to async operations
-func withTimeout<T: Sendable>(seconds: TimeInterval, operation: @escaping @Sendable () async -> T) async -> T {
-    await withTaskGroup(of: T.self) { group in
+func withTimeout<T: Sendable>(seconds: TimeInterval, operation: @escaping @Sendable () async -> T) async -> T? {
+    await withTaskGroup(of: T?.self) { group in
         group.addTask {
             await operation()
         }
 
         group.addTask {
             try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
-            // Return a default value that indicates timeout
-            // For other types, we'd need to handle them specifically
-            fatalError("Timeout not implemented for type \(T.self)")
+            return nil
         }
 
         for await result in group {
+            group.cancelAll()
             return result
         }
 
-        // This should never be reached
-        fatalError("Unexpected timeout behavior")
+        return nil
     }
 }
 

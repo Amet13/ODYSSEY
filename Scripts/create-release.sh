@@ -15,11 +15,9 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Configuration
-PROJECT_NAME="ODYSSEY"
 PROJECT_PATH="Config/project.yml"
 INFO_PLIST_PATH="Sources/App/Info.plist"
 CHANGELOG_PATH="Documentation/CHANGELOG.md"
-PACKAGE_PATH="Package.swift"
 
 # Function to print colored output
 print_status() {
@@ -121,7 +119,8 @@ update_cli_export_version() {
 update_changelog() {
     local version=$1
     local dry_run=$2
-    local date=$(date +%Y-%m-%d)
+    local date
+    date=$(date +%Y-%m-%d)
     
     if [ "$dry_run" = "true" ]; then
         print_status "info" "Would add version $version to changelog with date $date"
@@ -276,7 +275,8 @@ main() {
     validate_version "$version"
     
     # Get current version
-    local current_version=$(get_current_version)
+    local current_version
+    current_version=$(get_current_version)
     print_status "info" "Current version: $current_version"
     
     # Check if version is different

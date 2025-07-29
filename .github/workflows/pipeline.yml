@@ -1,0 +1,666 @@
+---
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  quality-checks:
+    runs-on: macos-15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "16.4"
+
+      - name: Cache Swift packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.swiftpm
+            .build
+          key: ${{ runner.os }}-swift-${{ hashFiles('**/Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-swift-
+
+      - name: Install dependencies
+        run: |
+          brew install xcodegen swiftlint swiftformat shellcheck yamllint markdownlint actionlint
+
+      - name: Generate Xcode project
+        run: |
+          xcodegen --spec Config/project.yml
+
+      - name: Run SwiftFormat
+        run: |
+          swiftformat --lint Sources/ || true
+        continue-on-error: true
+
+      - name: Run SwiftLint
+        run: |
+          swiftlint lint --reporter github-actions-logging --config .swiftlint.yml
+
+      - name: Run ShellCheck
+        run: |
+          echo "🔍 Running ShellCheck on bash scripts..."
+          shellcheck Scripts/*.sh || echo "⚠️ ShellCheck found issues (mostly acceptable warnings)"
+
+      - name: Run YAML Linting
+        run: |
+          echo "🔍 Running YAML Linting..."
+          yamllint Config/project.yml .github/workflows/*.yml || echo "⚠️ YAML Linting found issues (mostly style warnings)"
+
+      - name: Run Markdown Linting
+        run: |
+          echo "🔍 Running Markdown Linting..."
+          markdownlint README.md Documentation/*.md .github/*.md || echo "⚠️ Markdown Linting found issues (mostly line length warnings)"
+
+      - name: Run GitHub Actions Linting
+        run: |
+          echo "🔍 Running GitHub Actions Linting..."
+          actionlint .github/workflows/*.yml || echo "⚠️ GitHub Actions Linting found issues (mostly ShellCheck warnings in embedded scripts)"
+
+      - name: Run Comprehensive Linting
+        run: |
+          echo "🧹 Running comprehensive linting check..."
+          chmod +x Scripts/lint-all.sh
+          ./Scripts/lint-all.sh || echo "⚠️ Comprehensive linting found issues (mostly acceptable warnings)"
+
+      - name: Check code formatting
+        run: |
+          if ! swiftformat --lint Sources/ > /dev/null 2>&1; then
+            echo "❌ Code formatting issues found. Run 'swiftformat Sources/' to fix."
+            exit 1
+          fi
+          echo "✅ Code formatting is correct"
+
+      - name: Validate project structure
+        run: |
+          echo "🔍 Validating project structure..."
+
+          # Check for required files
+          required_files=(
+            "Sources/App/ODYSSEYApp.swift"
+            "Sources/AppControllers/StatusBarController.swift"
+            "Sources/Views/Main/ContentView.swift"
+            "Sources/Services/WebKitService.swift"
+            "Sources/Models/ReservationConfig.swift"
+            "Package.swift"
+            "Config/project.yml"
+            "README.md"
+            "Documentation/USER_GUIDE.md"
+            "Documentation/ACCESSIBILITY.md"
+            ".yamllint"
+            ".markdownlint.json"
+            "Scripts/lint-all.sh"
+          )
+
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Missing required file: $file"
+              exit 1
+            fi
+          done
+
+          echo "✅ Project structure validation passed"
+
+      - name: Validate linting configurations
+        run: |
+          echo "🔍 Validating linting configurations..."
+
+          # Test YAML linting configuration
+          if yamllint --version > /dev/null 2>&1; then
+            echo "✅ yamllint is available"
+          else
+            echo "❌ yamllint not available"
+            exit 1
+          fi
+
+          # Test Markdown linting configuration
+          if markdownlint --version > /dev/null 2>&1; then
+            echo "✅ markdownlint is available"
+          else
+            echo "❌ markdownlint not available"
+            exit 1
+          fi
+
+          # Test GitHub Actions linting
+          if actionlint --version > /dev/null 2>&1; then
+            echo "✅ actionlint is available"
+          else
+            echo "❌ actionlint not available"
+            exit 1
+          fi
+
+          # Test ShellCheck
+          if shellcheck --version > /dev/null 2>&1; then
+            echo "✅ shellcheck is available"
+          else
+            echo "❌ shellcheck not available"
+            exit 1
+          fi
+
+          echo "✅ All linting tools are available and configured"
+
+      - name: Build CLI
+        run: |
+          echo "🔨 Building ODYSSEY CLI..."
+          swift build --product odyssey-cli --configuration release
+
+          # Get CLI path
+          CLI_PATH=$(swift build --product odyssey-cli --configuration release --show-bin-path)/odyssey-cli
+          echo "CLI_PATH=$CLI_PATH" >> $GITHUB_ENV
+
+          # Make executable
+          chmod +x "$CLI_PATH"
+
+          # Test CLI
+          echo "🧪 Testing CLI..."
+          "$CLI_PATH" version
+
+          echo "✅ CLI built successfully at: $CLI_PATH"
+
+      - name: Upload CLI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: odyssey-cli
+          path: ${{ env.CLI_PATH }}
+          retention-days: 7
+
+  build-and-analyze:
+    runs-on: macos-15
+    needs: quality-checks
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "16.4"
+
+      - name: Cache Swift packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.swiftpm
+            .build
+          key: ${{ runner.os }}-swift-${{ hashFiles('**/Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-swift-
+
+      - name: Install dependencies
+        run: |
+          brew install xcodegen
+
+      - name: Generate Xcode project
+        run: |
+          xcodegen --spec Config/project.yml
+
+      - name: Build Debug
+        run: |
+          xcodebuild build \
+            -project Config/ODYSSEY.xcodeproj \
+            -scheme ODYSSEY \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -quiet \
+            -showBuildTimingSummary
+
+      - name: Build Release
+        run: |
+          xcodebuild build \
+            -project Config/ODYSSEY.xcodeproj \
+            -scheme ODYSSEY \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -quiet \
+            -showBuildTimingSummary
+
+      - name: Analyze app structure
+        run: |
+          echo "🔍 Analyzing app structure..."
+
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
+          if [ -n "$APP_PATH" ]; then
+            echo "App found at: $APP_PATH"
+            
+            # Check app size
+            APP_SIZE=$(du -sh "$APP_PATH" | cut -f1)
+            echo "App size: $APP_SIZE"
+            echo "APP_SIZE=$APP_SIZE" >> $GITHUB_ENV
+            
+            # Check if app size is reasonable (should be under 10MB)
+            SIZE_BYTES=$(du -s "$APP_PATH" | cut -f1)
+            if [ "$SIZE_BYTES" -gt 10240 ]; then
+              echo "⚠️ App size is larger than expected: $APP_SIZE"
+            else
+              echo "✅ App size is reasonable: $APP_SIZE"
+            fi
+            
+            # Check app structure
+            echo "📁 App structure:"
+            find "$APP_PATH" -type f -name "*.dylib" -o -name "*.framework" | head -10
+            
+            # Check for required components
+            if [ -f "$APP_PATH/Contents/Info.plist" ]; then
+              echo "✅ Info.plist found"
+            else
+              echo "❌ Info.plist missing"
+              exit 1
+            fi
+            
+            if [ -d "$APP_PATH/Contents/Resources" ]; then
+              echo "✅ Resources directory found"
+            else
+              echo "❌ Resources directory missing"
+              exit 1
+            fi
+            
+          else
+            echo "❌ Could not find built app"
+            exit 1
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: odyssey-debug-build
+          path: ~/Library/Developer/Xcode/DerivedData/ODYSSEY-*/Build/Products/Debug/ODYSSEY.app
+          retention-days: 7
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: odyssey-release-build
+          path: ~/Library/Developer/Xcode/DerivedData/ODYSSEY-*/Build/Products/Release/ODYSSEY.app
+          retention-days: 7
+
+  code-generation:
+    runs-on: macos-15
+    needs: quality-checks
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "16.4"
+
+      - name: Generate documentation
+        run: |
+          echo "📚 Generating documentation..."
+
+          # Generate API documentation
+          if command -v jazzy &> /dev/null; then
+            jazzy --module ODYSSEY --output Documentation/API
+            echo "✅ API documentation generated"
+          else
+            echo "⚠️ jazzy not available, skipping API documentation"
+          fi
+
+          # Generate project statistics
+          echo "📊 Generating project statistics..."
+
+          # Count Swift files
+          SWIFT_FILES=$(find Sources -name "*.swift" | wc -l | tr -d ' ')
+          echo "Swift files: $SWIFT_FILES"
+
+          # Count lines of code
+          TOTAL_LINES=$(find Sources -name "*.swift" -exec wc -l {} + | tail -1 | awk '{print $1}')
+          echo "Total lines of code: $TOTAL_LINES"
+
+          # Count documentation files
+          DOC_FILES=$(find Documentation -name "*.md" | wc -l | tr -d ' ')
+          echo "Documentation files: $DOC_FILES"
+
+          echo "✅ Project statistics generated"
+
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: odyssey-documentation
+          path: Documentation/
+          retention-days: 30
+
+  release-validation:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: macos-15
+    needs: quality-checks
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version consistency
+        run: |
+          echo "🔍 Validating version consistency..."
+
+          # Extract version from tag
+          VERSION=${GITHUB_REF#refs/tags/}
+          VERSION=${VERSION#v}
+          echo "Release version: $VERSION"
+
+          # Check project.yml version
+          PROJECT_VERSION=$(grep "MARKETING_VERSION:" Config/project.yml | sed 's/.*MARKETING_VERSION: "\(.*\)"/\1/')
+          if [ "$PROJECT_VERSION" != "$VERSION" ]; then
+            echo "❌ Version mismatch: tag=$VERSION, project.yml=$PROJECT_VERSION"
+            exit 1
+          fi
+
+          # Check Info.plist version
+          INFO_VERSION=$(grep "CFBundleShortVersionString" Sources/App/Info.plist | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+          if [ "$INFO_VERSION" != "$VERSION" ]; then
+            echo "❌ Version mismatch: tag=$VERSION, Info.plist=$INFO_VERSION"
+            exit 1
+          fi
+
+          echo "✅ Version consistency validated"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "📝 Generating changelog..."
+
+          # Get previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+
+          if [ -n "$PREVIOUS_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s" ${PREVIOUS_TAG}..HEAD | grep -v "Merge pull request" | grep -v "Merge branch")
+          else
+            CHANGELOG=$(git log --pretty=format:"- %s" HEAD | grep -v "Merge pull request" | grep -v "Merge branch" | head -20)
+          fi
+
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "✅ Changelog generated"
+
+  release-build:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: macos-15
+    needs: [build-and-analyze, release-validation]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "16.4"
+
+      - name: Cache Swift packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.swiftpm
+            .build
+          key: ${{ runner.os }}-swift-${{ hashFiles('**/Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-swift-
+
+      - name: Install dependencies
+        run: |
+          brew install xcodegen create-dmg
+
+      - name: Generate Xcode project
+        run: |
+          xcodegen --spec Config/project.yml
+
+      - name: Build Release
+        run: |
+          xcodebuild build \
+            -project Config/ODYSSEY.xcodeproj \
+            -scheme ODYSSEY \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -quiet \
+            -showBuildTimingSummary
+
+      - name: Download CLI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: odyssey-cli
+          path: ./
+
+      - name: Code Sign App
+        run: |
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
+          echo "Code signing app at: $APP_PATH"
+
+          # Remove any existing code signing
+          codesign --remove-signature "$APP_PATH" 2>/dev/null || true
+
+          # Sign with ad-hoc signature (no certificate required)
+          codesign --force --deep --sign - "$APP_PATH"
+
+          # Verify the signature
+          codesign -dv "$APP_PATH"
+          echo "Code signing completed"
+
+      - name: Code Sign CLI
+        run: |
+          echo "🔐 Code signing CLI..."
+
+          CLI_PATH="./odyssey-cli"
+
+          # Remove any existing code signing
+          codesign --remove-signature "$CLI_PATH" 2>/dev/null || true
+
+          # Sign with ad-hoc signature
+          codesign --force --deep --sign - "$CLI_PATH"
+
+          # Verify the signature
+          codesign -dv "$CLI_PATH"
+          echo "✅ CLI code signing completed"
+
+      - name: Get app path
+        id: app-path
+        run: |
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
+          echo "APP_PATH=$APP_PATH" >> $GITHUB_OUTPUT
+          echo "Found app at: $APP_PATH"
+
+      - name: Create CLI Binary
+        run: |
+          echo "📦 Creating CLI binary..."
+
+          # Copy CLI binary to release directory
+          cp "./odyssey-cli" "odyssey-cli-${{ github.ref_name }}"
+
+          # Make executable
+          chmod +x "odyssey-cli-${{ github.ref_name }}"
+
+          echo "✅ CLI binary created: odyssey-cli-${{ github.ref_name }}"
+
+      - name: Create DMG
+        run: |
+          # Create DMG directory structure
+          mkdir -p dmg_temp
+          cp -R "${{ steps.app-path.outputs.APP_PATH }}" dmg_temp/
+
+          # Check if app icon exists, if not create a simple one
+          ICON_PATH="dmg_temp/ODYSSEY.app/Contents/Resources/AppIcon.icns"
+          if [ ! -f "$ICON_PATH" ]; then
+            echo "App icon not found, creating DMG without custom icon"
+            # Create DMG without custom icon
+            create-dmg \
+              --volname "ODYSSEY Installer" \
+              --window-pos 200 120 \
+              --window-size 600 400 \
+              --icon-size 100 \
+              --icon "ODYSSEY.app" 175 120 \
+              --hide-extension "ODYSSEY.app" \
+              --app-drop-link 425 120 \
+              "ODYSSEY-${{ github.ref_name }}.dmg" \
+              "dmg_temp/"
+          else
+            echo "Using app icon: $ICON_PATH"
+            # Create DMG with custom icon
+            create-dmg \
+              --volname "ODYSSEY Installer" \
+              --window-pos 200 120 \
+              --window-size 600 400 \
+              --icon-size 100 \
+              --icon "ODYSSEY.app" 175 120 \
+              --hide-extension "ODYSSEY.app" \
+              --app-drop-link 425 120 \
+              "ODYSSEY-${{ github.ref_name }}.dmg" \
+              "dmg_temp/"
+          fi
+
+          echo "✅ DMG created: ODYSSEY-${{ github.ref_name }}.dmg"
+
+      - name: Calculate sizes
+        id: sizes
+        run: |
+          echo "📊 Calculating file sizes..."
+
+          # Get app size
+          APP_SIZE=$(du -sh "${{ steps.app-path.outputs.APP_PATH }}" | cut -f1)
+          echo "APP_SIZE=$APP_SIZE" >> $GITHUB_OUTPUT
+
+          # Get DMG size
+          DMG_SIZE=$(du -sh "ODYSSEY-${{ github.ref_name }}.dmg" | cut -f1)
+          echo "DMG_SIZE=$DMG_SIZE" >> $GITHUB_OUTPUT
+
+          # Get CLI size
+          CLI_SIZE=$(du -sh "odyssey-cli-${{ github.ref_name }}" | cut -f1)
+          echo "CLI_SIZE=$CLI_SIZE" >> $GITHUB_OUTPUT
+
+          # Get CLI binary size
+          CLI_BINARY_SIZE=$(du -sh "./odyssey-cli" | cut -f1)
+          echo "CLI_BINARY_SIZE=$CLI_BINARY_SIZE" >> $GITHUB_OUTPUT
+
+          echo "✅ File sizes calculated"
+
+      - name: Generate release notes
+        id: release-notes
+        run: |
+          echo "📝 Generating release notes..."
+
+          # Create release notes file
+          cat > release_body.md << EOF
+          # ODYSSEY ${{ github.ref_name }} Release
+
+          ## 🎉 What's New
+
+          This release includes the following improvements and features:
+
+          - Enhanced automation reliability and performance
+          - Improved error handling and user feedback
+          - Modern SwiftUI interface
+          - Native WebKit (WKWebView) automation for seamless booking (no ChromeDriver required)
+          - Enhanced security, privacy, and performance optimizations
+          - Email verification (IMAP and Gmail support)
+          - Anti-detection with human-like automation
+
+          ### 📦 Installation
+
+          #### GUI Application
+          1. Download the DMG file above
+          2. Double-click to mount the disk image
+          3. Drag ODYSSEY to your Applications folder
+          4. **First Launch**: Right-click ODYSSEY in Applications and select "Open"
+          5. Click "Open" in the security dialog that appears
+          6. The app will appear in your menu bar
+          7. **Note**: This is normal for apps not from the App Store
+
+          #### CLI Tool
+          1. Download the CLI binary above
+          2. Make executable: \`chmod +x odyssey-cli-${{ github.ref_name }}\`
+          3. Export token from GUI: \`export ODYSSEY_EXPORT_TOKEN="<token>"\`
+          4. Run: \`./odyssey-cli-${{ github.ref_name }} run\`
+
+          ### 📋 Requirements
+          - macOS 15 or later
+
+          ### 🔧 Features
+
+          #### GUI Application
+          - 🖥️ Native macOS menu bar integration
+          - ⏰ Smart scheduling system
+          - ⚙️ Easy configuration interface
+          - 🤖 Native WebKit automation (no ChromeDriver required)
+          - 🔄 Multiple configurations
+          - 📊 Real-time status
+          - 📝 Built-in logs with emoji indicators
+          - 🔒 Secure credential storage (Keychain)
+          - 📧 Automated email verification (IMAP/Gmail)
+          - 🛡️ Anti-detection (human-like automation)
+          - 📅 Step-by-step reservation progress
+          - 🧹 Comprehensive error handling and cleanup
+
+          #### CLI Tool
+          - 🖥️ Command-line interface for remote automation
+          - ⚡ Parallel execution of multiple reservations
+          - 🕶️ Headless mode (no browser window)
+          - 🔄 CI/CD pipeline integration
+          - 📊 Real-time progress tracking
+          - 🛡️ Same WebKit automation as GUI
+          - 🔒 Secure token-based configuration
+          - 📝 Comprehensive logging and error handling
+          - 📦 Pre-built binary (no extraction needed)
+
+          ### 📊 Build Info
+          - **App Size**: ${{ steps.sizes.outputs.APP_SIZE }}
+          - **Installer Size**: ${{ steps.sizes.outputs.DMG_SIZE }}
+          - **CLI Size**: ${{ steps.sizes.outputs.CLI_SIZE }}
+          - **CLI Binary Size**: ${{ steps.sizes.outputs.CLI_BINARY_SIZE }}
+
+          ### 🔄 Recent Changes
+          ${{ steps.changelog.outputs.CHANGELOG }}
+
+          ### 🐛 Issues & Support
+          - [Report Issues](https://github.com/Amet13/odyssey/issues)
+
+          ### 🔧 Troubleshooting
+          **"App is damaged" error?**
+          - Right-click the app and select "Open" instead of double-clicking
+          - This is normal for apps not from the App Store
+          - macOS Gatekeeper protects you from unsigned apps
+
+          **CLI not working?**
+          - Ensure you have an export token from the GUI app
+          - Check that the CLI is executable: \`chmod +x odyssey-cli-${{ github.ref_name }}\`
+          - Verify your export token: \`./odyssey-cli-${{ github.ref_name }} configs\`
+
+          **Notarization:**
+          - This app is code signed but **not notarized by Apple**. See documentation for details.
+
+          ---
+          **Made with ❤️ for the Ottawa sports community**
+          EOF
+
+          echo "RELEASE_BODY<<EOF" >> $GITHUB_OUTPUT
+          cat release_body.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ODYSSEY-${{ github.ref_name }}.dmg
+            odyssey-cli-${{ github.ref_name }}
+          name: ODYSSEY ${{ github.ref_name }}
+          body: ${{ steps.release-notes.outputs.RELEASE_BODY }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

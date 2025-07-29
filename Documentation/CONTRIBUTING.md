@@ -49,7 +49,7 @@ We use the following labels to help contributors find suitable tasks:
 
 ## 📝 How to Check Logs
 
-- Open **Console.app** (Applications > Utilities)
+- Open **Console.app** (Applications → Utilities)
 - Search for `ODYSSEY` or `com.odyssey.app`
 - Look for emoji log messages for quick status identification
 - Sensitive data is masked or marked as private
@@ -107,7 +107,7 @@ The CLI tool is an integral part of ODYSSEY, providing remote automation capabil
 2. **Test Commands**: `./.build/arm64-apple-macosx/debug/odyssey-cli help`
 3. **Export Token**: Generate token from GUI for testing
 4. **Test Automation**: `export ODYSSEY_EXPORT_TOKEN="<exported_token>" && ./odyssey-cli run`
-5. **Test GitHub Actions**: Verify `.github/workflows/odyssey-automation.yml` works correctly
+5. **Test GitHub Actions**: Verify `.github/workflows/reservation-automation.yml` works correctly
 
 ### Supported CLI Commands
 
@@ -162,7 +162,7 @@ struct Config {
 ### Design Principles
 
 - **Native macOS Feel** - Follow macOS design guidelines
-- **Accessibility** - Ensure VoiceOver and keyboard navigation work
+- **Accessibility** - Ensure VoiceOver and basic accessibility features work
 - **Dark Mode** - Support both light and dark appearances
 - **Responsive** - Handle different window sizes gracefully
 

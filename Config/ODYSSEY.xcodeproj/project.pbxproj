@@ -21,12 +21,14 @@
 		63F3DD9E40F3A0D96D713AB2 /* ReservationStatusManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D816DD0E16D5EE6F9F3CD84A /* ReservationStatusManager.swift */; };
 		6CE722921ABA9CF63AF4D2AE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34B7DED97B75C8D92AE1A31 /* ContentView.swift */; };
 		75DEE1A4DC3401DA8285BAD6 /* EmailCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF7F9263A160A352A9E2E0E7 /* EmailCore.swift */; };
+		7A893D2888B4F0510D2042A7 /* WebKitAntiDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15BB9045C1DD2BAC3F1E8E6 /* WebKitAntiDetection.swift */; };
 		7AB843B692B99A297F71AFA2 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D958E5CB6EBC1B6F06E168 /* UserSettings.swift */; };
 		82BF69EBE3B57623F100A29E /* WebDriverStealth.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBCC4A2B64370ACAF412BF87 /* WebDriverStealth.swift */; };
 		87A323E74E31D54CDF5ED611 /* Protocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C6FA2694660A932F8CC5A /* Protocols.swift */; };
 		87BEA07219CB32EABEA725D0 /* EmailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3419A41E593FC7E578492598 /* EmailService.swift */; };
 		8B1ED020B66221020312C147 /* ReservationConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0EBA9D765D3068E55BA51C /* ReservationConfig.swift */; };
 		905062F2527E06FEDA546FA1 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB48B132242AD260155FF55 /* KeychainService.swift */; };
+		930217F31DAA51EAEEFF647D /* WebKitHumanBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1408CA62AA2B81C39FCA33DC /* WebKitHumanBehavior.swift */; };
 		9DD08B43DF3B58266C3DFA76 /* WebKitCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43D2EBFB5C84EC50958D1ACF /* WebKitCore.swift */; };
 		A1335E6664D5449F09663909 /* ReservationErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */; };
 		A9A2F3FB377649F3A070A9A4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 34C024E102B748548377EE51 /* Localizable.strings */; };
@@ -42,6 +44,7 @@
 		DD43208043CCB4AFD742447C /* GodModeStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2D953F23B3F12AD69F00F1 /* GodModeStateManager.swift */; };
 		E2CDCC931C7C13AD6F4D8DD4 /* UserSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88087B5FF17E55461F2F9181 /* UserSettingsManager.swift */; };
 		EA6EEFF8B30707E8E262F49C /* SleepManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D0B7AB72792B20FDA3B016F /* SleepManager.swift */; };
+		ECA1E0EFE58010D0AFB031E4 /* ConflictDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6753FCAC1521C4E3F3955E3 /* ConflictDetectionService.swift */; };
 		F05B25DDE894D852395A3F67 /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5826B323326A302ABB246BD /* ExportView.swift */; };
 		FA8FDED3BB6BF7B43C24F5B5 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9F32A0A5C6C800FBB7769711 /* AppIcon.icns */; };
 		FDB4E4B45EF27FAEDEAA1CA6 /* ConfigurationValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D919BE144ACD180810E16915 /* ConfigurationValidator.swift */; };
@@ -49,6 +52,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1408CA62AA2B81C39FCA33DC /* WebKitHumanBehavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitHumanBehavior.swift; sourceTree = "<group>"; };
 		1CA820C244D658473331FE59 /* ODYSSEY.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ODYSSEY.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1D0B7AB72792B20FDA3B016F /* SleepManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepManager.swift; sourceTree = "<group>"; };
 		293C6FA2694660A932F8CC5A /* Protocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Protocols.swift; sourceTree = "<group>"; };
@@ -77,6 +81,7 @@
 		A5826B323326A302ABB246BD /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
 		A7A301E1B3374676F73BCE2C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		AE2D953F23B3F12AD69F00F1 /* GodModeStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GodModeStateManager.swift; sourceTree = "<group>"; };
+		B15BB9045C1DD2BAC3F1E8E6 /* WebKitAntiDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitAntiDetection.swift; sourceTree = "<group>"; };
 		D401C9E0BDAD61E6DECC196A /* ODYSSEYApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ODYSSEYApp.swift; sourceTree = "<group>"; };
 		D69C877E24F28F08FF142CE1 /* FacilityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FacilityService.swift; sourceTree = "<group>"; };
 		D816DD0E16D5EE6F9F3CD84A /* ReservationStatusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationStatusManager.swift; sourceTree = "<group>"; };
@@ -89,6 +94,7 @@
 		E4C0A077490B2B2685EBD99A /* SharedVerificationCodePool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedVerificationCodePool.swift; sourceTree = "<group>"; };
 		EF7F9263A160A352A9E2E0E7 /* EmailCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailCore.swift; sourceTree = "<group>"; };
 		F23E39878914FA1362DBDFB3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		F6753FCAC1521C4E3F3955E3 /* ConflictDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictDetectionService.swift; sourceTree = "<group>"; };
 		FBDB0490C4EDFE8E4C23D5C0 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -141,6 +147,7 @@
 			children = (
 				A24793F2A98C565ED5F83A84 /* CLIExportService.swift */,
 				9F37E32A2DEAB7D80A5148F2 /* Configuration.swift */,
+				F6753FCAC1521C4E3F3955E3 /* ConflictDetectionService.swift */,
 				EF7F9263A160A352A9E2E0E7 /* EmailCore.swift */,
 				3419A41E593FC7E578492598 /* EmailService.swift */,
 				D69C877E24F28F08FF142CE1 /* FacilityService.swift */,
@@ -154,8 +161,10 @@
 				88087B5FF17E55461F2F9181 /* UserSettingsManager.swift */,
 				9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */,
 				DBCC4A2B64370ACAF412BF87 /* WebDriverStealth.swift */,
+				B15BB9045C1DD2BAC3F1E8E6 /* WebKitAntiDetection.swift */,
 				43D2EBFB5C84EC50958D1ACF /* WebKitCore.swift */,
 				2D4A3E2796AC58ABB58A6817 /* WebKitDebugWindowManager.swift */,
+				1408CA62AA2B81C39FCA33DC /* WebKitHumanBehavior.swift */,
 				DBE72B37B5F3E7A883443BF1 /* WebKitNavigation.swift */,
 				92BBD57449782EDCECED3713 /* WebKitScriptManager.swift */,
 				48D6507655544E5D9BC6CABF /* WebKitService.swift */,
@@ -315,6 +324,7 @@
 				183F0E2E156DB04F2DEB8013 /* Configuration.swift in Sources */,
 				C31CF17307DDA59BA42606BC /* ConfigurationDetailView.swift in Sources */,
 				FDB4E4B45EF27FAEDEAA1CA6 /* ConfigurationValidator.swift in Sources */,
+				ECA1E0EFE58010D0AFB031E4 /* ConflictDetectionService.swift in Sources */,
 				6CE722921ABA9CF63AF4D2AE /* ContentView.swift in Sources */,
 				75DEE1A4DC3401DA8285BAD6 /* EmailCore.swift in Sources */,
 				87BEA07219CB32EABEA725D0 /* EmailService.swift in Sources */,
@@ -340,8 +350,10 @@
 				2A9DC792EE6E7E2AB34E109C /* ValidationService.swift in Sources */,
 				DC6BD4AFB504DDB4F2D9BD47 /* WebDriverProtocols.swift in Sources */,
 				82BF69EBE3B57623F100A29E /* WebDriverStealth.swift in Sources */,
+				7A893D2888B4F0510D2042A7 /* WebKitAntiDetection.swift in Sources */,
 				9DD08B43DF3B58266C3DFA76 /* WebKitCore.swift in Sources */,
 				AA4730C31D341AD6C3669020 /* WebKitDebugWindowManager.swift in Sources */,
+				930217F31DAA51EAEEFF647D /* WebKitHumanBehavior.swift in Sources */,
 				29D2C89D986A595CDA1C030E /* WebKitNavigation.swift in Sources */,
 				0E70C434A5115D2792406E89 /* WebKitScriptManager.swift in Sources */,
 				38B4C58FCF95A17F7FD0F910 /* WebKitService.swift in Sources */,

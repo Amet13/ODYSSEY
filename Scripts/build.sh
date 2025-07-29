@@ -155,7 +155,7 @@ fi
 
 # Find the built app
 print_status "step" "Locating built application..."
-LATEST_APP_PATH=$(ls -td ~/Library/Developer/Xcode/DerivedData/ODYSSEY-*/Build/Products/Debug/ODYSSEY.app 2>/dev/null | head -1)
+LATEST_APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -path "*/Build/Products/Debug/*" -type d -exec ls -td {} + 2>/dev/null | head -1)
 
 if [ -z "$LATEST_APP_PATH" ]; then
     print_status "error" "Could not find built application"
@@ -210,7 +210,7 @@ if pgrep -f "$PROJECT_NAME" > /dev/null; then
     
     # Wait for process to terminate
     print_status "info" "Waiting for process to terminate..."
-    for i in {1..10}; do
+    for _ in {1..10}; do
         if ! pgrep -f "$PROJECT_NAME" > /dev/null; then
             print_status "success" "Process terminated successfully"
             break
@@ -234,7 +234,7 @@ open "$APP_PATH"
 
 # Wait for the app to launch and verify it's running
 print_status "info" "Waiting for app to launch..."
-for i in {1..15}; do
+for _ in {1..15}; do
     if pgrep -f "$PROJECT_NAME" > /dev/null; then
         print_status "success" "$PROJECT_NAME launched successfully!"
         break

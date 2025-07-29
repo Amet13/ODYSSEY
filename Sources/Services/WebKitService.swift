@@ -68,6 +68,11 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     private var debugWindow: NSWindow?
     private var instanceId: String = "default"
 
+    // Anti-detection and human behavior services
+    private var antiDetectionService: WebKitAntiDetection?
+    private var humanBehaviorService: WebKitHumanBehavior?
+    private var debugWindowManager: WebKitDebugWindowManager?
+
     // Configuration for the current automation run
     public var currentConfig: ReservationConfig? {
         didSet {
@@ -173,6 +178,12 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     private func setupWebView() {
         logger.info("🔧 Setting up new WebView for instance: \(self.instanceId).")
+
+        // Initialize anti-detection and human behavior services
+        antiDetectionService = WebKitAntiDetection(instanceId: instanceId)
+        humanBehaviorService = WebKitHumanBehavior(instanceId: instanceId)
+        debugWindowManager = WebKitDebugWindowManager()
+
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = WKUserContentController()
 
@@ -252,52 +263,18 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     @MainActor
     private func setupDebugWindow() {
-        // Check user settings to determine if browser window should be shown
-        let userSettings = UserSettingsManager.shared.userSettings
-        if !userSettings.showBrowserWindow {
-            logger.info("🪟 Browser window hidden (user setting: hide window - recommended to avoid captcha detection)")
+        guard let webView, let debugWindowManager else {
+            logger.warning("⚠️ Cannot setup debug window: WebView or debug window manager not available")
             return
         }
 
-        // Check if browser window already exists
-        if debugWindow != nil {
-            logger.info("🪟 Browser window already exists, reusing existing window.")
-            debugWindow?.makeKeyAndOrderFront(nil)
-            return
-        }
-        // Set realistic window size (random from common MacBook resolutions)
-        let windowSizes = AppConstants.windowSizes
-        let selectedSize = windowSizes.randomElement() ?? windowSizes[0]
-        // Create a visible window for debugging
-        let window = NSWindow(
-            contentRect: NSRect(x: 200, y: 200, width: selectedSize.width, height: selectedSize.height),
-            styleMask: [.titled, .closable, .resizable],
-            backing: .buffered,
-            defer: false,
-            )
-        window.title = "ODYSSEY Web Automation"
-        window.isReleasedWhenClosed = false
-        window.level = .normal
-        window.delegate = self // Set window delegate to monitor closure
-        if let webView {
-            window.contentView = webView
-        }
-        window.makeKeyAndOrderFront(nil)
-        debugWindow = window
-        logger
-            .info(
-                "Browser window for WKWebView created and shown with size: \(selectedSize.width)x\(selectedSize.height)",
-                )
+        debugWindowManager.showDebugWindow(webView: webView, config: currentConfig)
     }
 
     @MainActor
     private func updateWindowTitle(with config: ReservationConfig) {
-        guard let window = debugWindow else { return }
-        let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
-        let schedule = ReservationConfig.formatScheduleInfoInline(config: config)
-        let newTitle = "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(schedule)"
-        window.title = newTitle
-        logger.info("📝 Updated browser window title to: \(newTitle).")
+        guard let debugWindowManager else { return }
+        debugWindowManager.updateWindowTitle(with: config)
     }
 
     private func injectAutomationScripts() {
@@ -462,496 +439,15 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     }
 
     private func injectAntiDetectionScripts() {
-        let antiDetectionScript = """
-        // Comprehensive anti-detection measures to avoid reCAPTCHA detection
-        (function() {
-            // Generate unique fingerprint for this instance
-            const instanceId = '\(instanceId)';
-            const instanceHash = instanceId.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+        guard let webView, let antiDetectionService else {
+            logger.warning("⚠️ Cannot inject anti-detection scripts: WebView or service not available")
+            return
+        }
 
-            // Random screen sizes for realism (common MacBook resolutions)
-            const screenSizes = [
-                { width: 1440, height: 900, pixelRatio: 2 },   // MacBook Air 13"
-                { width: 1680, height: 1050, pixelRatio: 2 }  // MacBook Pro 15"
-            ];
-
-            const selectedScreen = screenSizes[instanceHash % screenSizes.length];
-
-            // Real Chrome user agents (updated regularly)
-            const userAgents = [
-                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
-                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15',
-                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15'
-            ];
-
-            const selectedUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
-
-            // Override navigator properties
-            Object.defineProperty(navigator, 'webdriver', {
-                get: () => undefined,
-                configurable: true
-            });
-
-            Object.defineProperty(navigator, 'platform', {
-                get: () => 'MacIntel',
-                configurable: true
-            });
-
-            Object.defineProperty(navigator, 'languages', {
-                get: () => ['en-US', 'en'],
-                configurable: true
-            });
-
-            Object.defineProperty(navigator, 'language', {
-                get: () => 'en-US',
-                configurable: true
-            });
-
-            Object.defineProperty(navigator, 'hardwareConcurrency', {
-                get: () => 8,
-                configurable: true
-            });
-
-            Object.defineProperty(navigator, 'maxTouchPoints', {
-                get: () => 0,
-                configurable: true
-            });
-
-            Object.defineProperty(navigator, 'vendor', {
-                get: () => 'Google Inc.',
-                configurable: true
-            });
-
-            Object.defineProperty(navigator, 'userAgent', {
-                get: () => selectedUserAgent,
-                configurable: true
-            });
-
-            // Realistic plugins
-            const mockPlugins = [
-                { name: 'Chrome PDF Plugin', filename: 'internal-pdf-viewer', description: 'Portable Document Format' },
-                { name: 'Chrome PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai', description: '' },
-                { name: 'Native Client', filename: 'internal-nacl-plugin', description: '' }
-            ];
-
-            Object.defineProperty(navigator, 'plugins', {
-                get: () => {
-                    const plugins = [];
-                    mockPlugins.forEach((plugin, index) => {
-                        plugins[index] = {
-                            name: plugin.name,
-                            filename: plugin.filename,
-                            description: plugin.description,
-                            length: 1
-                        };
-                    });
-                    plugins.length = mockPlugins.length;
-                    return plugins;
-                },
-                configurable: true
-            });
-
-            // Screen properties
-            Object.defineProperty(screen, 'width', {
-                get: () => selectedScreen.width,
-                configurable: true
-            });
-
-            Object.defineProperty(screen, 'height', {
-                get: () => selectedScreen.height,
-                configurable: true
-            });
-
-            Object.defineProperty(screen, 'availWidth', {
-                get: () => selectedScreen.width,
-                configurable: true
-            });
-
-            Object.defineProperty(screen, 'availHeight', {
-                get: () => selectedScreen.height - 23, // Menu bar height
-                configurable: true
-            });
-
-            Object.defineProperty(screen, 'colorDepth', {
-                get: () => 24,
-                configurable: true
-            });
-
-            Object.defineProperty(screen, 'pixelDepth', {
-                get: () => 24,
-                configurable: true
-            });
-
-            // Window properties
-            Object.defineProperty(window, 'devicePixelRatio', {
-                get: () => selectedScreen.pixelRatio,
-                configurable: true
-            });
-
-            Object.defineProperty(window, 'outerWidth', {
-                get: () => selectedScreen.width,
-                configurable: true
-            });
-
-            Object.defineProperty(window, 'outerHeight', {
-                get: () => selectedScreen.height,
-                configurable: true
-            });
-
-            Object.defineProperty(window, 'innerWidth', {
-                get: () => selectedScreen.width,
-                configurable: true
-            });
-
-            Object.defineProperty(window, 'innerHeight', {
-                get: () => selectedScreen.height - 23,
-                configurable: true
-            });
-
-            // Chrome runtime object
-            Object.defineProperty(window, 'chrome', {
-                get: () => ({
-                    runtime: {
-                        onConnect: undefined,
-                        onMessage: undefined,
-                        connect: function() { return { postMessage: function() {} }; },
-                        sendMessage: function() {}
-                    },
-                    loadTimes: function() {
-                        return {
-                            commitLoadTime: Date.now() / 1000,
-                            connectionInfo: 'h2',
-                            finishDocumentLoadTime: Date.now() / 1000,
-                            finishLoadTime: Date.now() / 1000,
-                            firstPaintAfterLoadTime: Date.now() / 1000,
-                            navigationType: 'Other',
-                            npnNegotiatedProtocol: 'h2',
-                            requestTime: Date.now() / 1000,
-                            startLoadTime: Date.now() / 1000,
-                            wasAlternateProtocolAvailable: false,
-                            wasFetchedViaSpdy: true,
-                            wasNpnNegotiated: true
-                        };
-                    }
-                }),
-                configurable: true
-            });
-
-            // Document properties
-            Object.defineProperty(document, 'hidden', {
-                get: () => false,
-                configurable: true
-            });
-
-            Object.defineProperty(document, 'visibilityState', {
-                get: () => 'visible',
-                configurable: true
-            });
-
-            // Timezone and locale
-            Object.defineProperty(Intl, 'DateTimeFormat', {
-                get: () => function() {
-                    return {
-                        resolvedOptions: function() {
-                            return {
-                                timeZone: 'America/Toronto',
-                                locale: 'en-US'
-                            };
-                        }
-                    };
-                },
-                configurable: true
-            });
-
-            // WebGL fingerprinting protection
-            const getParameter = WebGLRenderingContext.prototype.getParameter;
-            WebGLRenderingContext.prototype.getParameter = function(parameter) {
-                if (parameter === 37445) {
-                    return 'Intel Inc.';
-                }
-                if (parameter === 37446) {
-                    return 'Intel Iris OpenGL Engine';
-                }
-                return getParameter.call(this, parameter);
-            };
-
-            // Canvas fingerprinting protection
-            const originalGetContext = HTMLCanvasElement.prototype.getContext;
-            HTMLCanvasElement.prototype.getContext = function(type) {
-                const context = originalGetContext.call(this, type);
-                if (type === '2d') {
-                    const originalFillText = context.fillText;
-                    context.fillText = function() {
-                        return originalFillText.apply(this, arguments);
-                    };
-                }
-                return context;
-            };
-
-            // Touch events (even though Mac doesn't have touch)
-            Object.defineProperty(window, 'ontouchstart', {
-                get: () => null,
-                set: () => {},
-                configurable: true
-            });
-
-            Object.defineProperty(window, 'ontouchmove', {
-                get: () => null,
-                set: () => {},
-                configurable: true
-            });
-
-            Object.defineProperty(window, 'ontouchend', {
-                get: () => null,
-                set: () => {},
-                configurable: true
-            });
-
-            // Media devices
-            if (navigator.mediaDevices) {
-                Object.defineProperty(navigator.mediaDevices, 'enumerateDevices', {
-                    get: () => function() {
-                        return Promise.resolve([
-                            { deviceId: 'default', kind: 'audioinput', label: 'Default - MacBook Pro Microphone' },
-                            { deviceId: 'default', kind: 'audiooutput', label: 'Default - MacBook Pro Speakers' }
-                        ]);
-                    },
-                    configurable: true
-                });
-            }
-
-            // Font enumeration protection
-            if (document.fonts) {
-                Object.defineProperty(document.fonts, 'ready', {
-                    get: () => Promise.resolve(),
-                    configurable: true
-                });
-            }
-
-            // Add realistic mouse movement patterns
-            let lastMouseX = Math.random() * selectedScreen.width;
-            let lastMouseY = Math.random() * selectedScreen.height;
-
-            // Override mouse event properties to be more realistic
-            const originalMouseEvent = window.MouseEvent;
-            window.MouseEvent = function(type, init) {
-                if (!init) init = {};
-                if (!init.clientX) init.clientX = lastMouseX + Math.random() * 10 - 5;
-                if (!init.clientY) init.clientY = lastMouseY + Math.random() * 10 - 5;
-                lastMouseX = init.clientX;
-                lastMouseY = init.clientY;
-                return new originalMouseEvent(type, init);
-            };
-            window.MouseEvent.prototype = originalMouseEvent.prototype;
-
-            // Add realistic timing patterns
-            const originalSetTimeout = window.setTimeout;
-            window.setTimeout = function(fn, delay) {
-                // Add small random variations to timing
-                const adjustedDelay = delay + Math.random() * 50 - 25;
-                return originalSetTimeout(fn, Math.max(0, adjustedDelay));
-            };
-
-            // Add realistic scroll behavior
-            const originalScrollIntoView = Element.prototype.scrollIntoView;
-            Element.prototype.scrollIntoView = function(options) {
-                // Add small delay to scroll behavior
-                setTimeout(() => {
-                    originalScrollIntoView.call(this, options);
-                }, Math.random() * 100);
-            };
-
-            // Performance timing protection
-            if (window.performance && window.performance.timing) {
-                const timing = window.performance.timing;
-                const now = Date.now();
-                Object.defineProperty(timing, 'navigationStart', {
-                    get: () => now - Math.random() * 1000,
-                    configurable: true
-                });
-            }
-
-            // Advanced tab detection prevention
-            // Override localStorage and sessionStorage to be instance-specific
-            const originalLocalStorage = window.localStorage;
-            const originalSessionStorage = window.sessionStorage;
-
-            // Create unique storage keys for this instance
-            const storagePrefix = 'odyssey_' + instanceHash + '_';
-
-            // Override localStorage
-            Object.defineProperty(window, 'localStorage', {
-                get: () => ({
-                    getItem: function(key) {
-                        return originalLocalStorage.getItem(storagePrefix + key);
-                    },
-                    setItem: function(key, value) {
-                        return originalLocalStorage.setItem(storagePrefix + key, value);
-                    },
-                    removeItem: function(key) {
-                        return originalLocalStorage.removeItem(storagePrefix + key);
-                    },
-                    clear: function() {
-                        // Only clear our instance's data
-                        const keys = Object.keys(originalLocalStorage);
-                        keys.forEach(k => {
-                            if (k.startsWith(storagePrefix)) {
-                                originalLocalStorage.removeItem(k);
-                            }
-                        });
-                    },
-                    key: function(index) {
-                        const keys = Object.keys(originalLocalStorage).filter(k => k.startsWith(storagePrefix));
-                        return keys[index] ? keys[index].substring(storagePrefix.length) : null;
-                    },
-                    get length() {
-                        return Object.keys(originalLocalStorage).filter(k => k.startsWith(storagePrefix)).length;
-                    }
-                }),
-                configurable: true
-            });
-
-            // Override sessionStorage
-            Object.defineProperty(window, 'sessionStorage', {
-                get: () => ({
-                    getItem: function(key) {
-                        return originalSessionStorage.getItem(storagePrefix + key);
-                    },
-                    setItem: function(key, value) {
-                        return originalSessionStorage.setItem(storagePrefix + key, value);
-                    },
-                    removeItem: function(key) {
-                        return originalSessionStorage.removeItem(storagePrefix + key);
-                    },
-                    clear: function() {
-                        // Only clear our instance's data
-                        const keys = Object.keys(originalSessionStorage);
-                        keys.forEach(k => {
-                            if (k.startsWith(storagePrefix)) {
-                                originalSessionStorage.removeItem(k);
-                            }
-                        });
-                    },
-                    key: function(index) {
-                        const keys = Object.keys(originalSessionStorage).filter(k => k.startsWith(storagePrefix));
-                        return keys[index] ? keys[index].substring(storagePrefix.length) : null;
-                    },
-                    get length() {
-                        return Object.keys(originalSessionStorage).filter(k => k.startsWith(storagePrefix)).length;
-                    }
-                }),
-                configurable: true
-            });
-
-            // Override IndexedDB to be instance-specific
-            if (window.indexedDB) {
-                const originalOpen = window.indexedDB.open;
-                window.indexedDB.open = function(name, version) {
-                    return originalOpen.call(this, storagePrefix + name, version);
-                };
-            }
-
-            // Override cookies to be instance-specific
-            const originalDocumentCookie = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie');
-            Object.defineProperty(document, 'cookie', {
-                get: function() {
-                    const cookies = originalDocumentCookie.get.call(this);
-                    return cookies.split(';').filter(cookie =>
-                        cookie.trim().startsWith(storagePrefix)
-                    ).map(cookie =>
-                        cookie.trim().substring(storagePrefix.length)
-                    ).join('; ');
-                },
-                set: function(value) {
-                    return originalDocumentCookie.set.call(this, storagePrefix + value);
-                },
-                configurable: true
-            });
-
-            // Override WebSocket to add unique headers
-            const originalWebSocket = window.WebSocket;
-            window.WebSocket = function(url, protocols) {
-                const ws = new originalWebSocket(url, protocols);
-                ws.addEventListener('open', function() {
-                    // Add unique headers to WebSocket connection
-                    if (ws.readyState === WebSocket.OPEN) {
-                        ws.send(JSON.stringify({
-                            type: 'odyssey_instance',
-                            instanceId: instanceId,
-                            timestamp: Date.now()
-                        }));
-                    }
-                });
-                return ws;
-            };
-            window.WebSocket.prototype = originalWebSocket.prototype;
-
-            // Override fetch to add unique headers
-            const originalFetch = window.fetch;
-            window.fetch = function(input, init) {
-                if (!init) init = {};
-                if (!init.headers) init.headers = {};
-
-                // Add unique headers to avoid request correlation
-                init.headers['X-Odyssey-Instance'] = instanceId;
-                init.headers['X-Odyssey-Timestamp'] = Date.now().toString();
-
-                return originalFetch.call(this, input, init);
-            };
-
-            // Override XMLHttpRequest to add unique headers
-            const originalXHROpen = XMLHttpRequest.prototype.open;
-            XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
-                const xhr = this;
-                originalXHROpen.call(this, method, url, async, user, password);
-
-                // Add unique headers after opening
-                this.addEventListener('readystatechange', function() {
-                    if (xhr.readyState === XMLHttpRequest.HEADERS_RECEIVED) {
-                        xhr.setRequestHeader('X-Odyssey-Instance', instanceId);
-                        xhr.setRequestHeader('X-Odyssey-Timestamp', Date.now().toString());
-                    }
-                });
-            };
-
-            // Override navigator.connection to be unique
-            if (navigator.connection) {
-                Object.defineProperty(navigator.connection, 'effectiveType', {
-                    get: () => ['4g', '3g', '2g'][instanceHash % 3],
-                    configurable: true
-                });
-            }
-
-            // Add unique device memory
-            Object.defineProperty(navigator, 'deviceMemory', {
-                get: () => [4, 8, 16][instanceHash % 3],
-                configurable: true
-            });
-
-            // Add unique battery API
-            if (navigator.getBattery) {
-                const originalGetBattery = navigator.getBattery;
-                navigator.getBattery = function() {
-                    return Promise.resolve({
-                        charging: Math.random() > 0.5,
-                        chargingTime: Math.random() * 3600,
-                        dischargingTime: Math.random() * 7200,
-                        level: Math.random()
-                    });
-                };
-            }
-
-            console.log('[ODYSSEY] Comprehensive anti-detection measures activated for instance: ' + instanceId);
-            console.log('[ODYSSEY] Screen: ' + selectedScreen.width + 'x' + selectedScreen.height + ' @' + selectedScreen.pixelRatio + 'x');
-            console.log('[ODYSSEY] User Agent: ' + selectedUserAgent.substring(0, 50) + '...');
-            console.log('[ODYSSEY] Storage prefix: ' + storagePrefix);
-        })();
-        """
-
-        let script = WKUserScript(source: antiDetectionScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
-        webView?.configuration.userContentController.addUserScript(script)
+        Task {
+            await antiDetectionService.injectAntiDetectionScripts(into: webView)
+            await antiDetectionService.injectHumanBehaviorScripts(into: webView)
+        }
     }
 
     @MainActor
@@ -1388,12 +884,16 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     // MARK: - Reservation-specific Methods
 
     public func findAndClickElement(withText text: String) async -> Bool {
-        guard webView != nil else {
-            logger.error("❌ WebView not initialized.")
+        guard let _ = webView, let humanBehaviorService else {
+            logger.error("❌ WebView or human behavior service not initialized.")
             return false
         }
 
         logger.info("🔍 Searching for sport button: '\(text, privacy: .private)'.")
+
+        // Add human-like delay before interaction
+        await humanBehaviorService.addHumanDelay()
+
         let script = """
         (function() {
             try {
@@ -1429,7 +929,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             logger.info("🔘 [ButtonClick] JS result: \(String(describing: result), privacy: .public)")
             if let str = result as? String {
                 if str == "clicked" || str == "dispatched" {
-                    try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second sleep
+                    // Add human-like delay after successful click
+                    await humanBehaviorService.addHumanDelay()
                     return true
                 } else if str.starts(with: "error:") {
                     logger.error("❌ [ButtonClick] JS error: \(str, privacy: .public)")

@@ -196,7 +196,7 @@ final class ValidationService {
 /**
  Result of validation operations
  */
-struct ValidationResult {
+public struct ValidationResult {
     let isValid: Bool
     let errors: [String]
 

@@ -27,6 +27,12 @@ struct ConfigurationDetailView: View {
     @State private var validationMessage = ""
     @State private var isEditingExistingConfig = false
     @State private var validationErrors: [String] = []
+    let configurationValidator = ConfigurationValidator.shared
+
+    // Conflict detection
+    @StateObject private var conflictDetectionService = ConflictDetectionService.shared
+    @State private var detectedConflicts: [ReservationConflict] = []
+    @State private var showingConflictAlert = false
 
     var body: some View {
         ZStack {
@@ -64,6 +70,10 @@ struct ConfigurationDetailView: View {
                         configNameSection
                         Divider().padding(.vertical, AppConstants.paddingSmall)
                         schedulingSection
+                        if !detectedConflicts.isEmpty {
+                            Divider().padding(.vertical, AppConstants.paddingSmall)
+                            conflictDetectionSection
+                        }
                     }
                     .padding(.horizontal, AppConstants.sectionPadding)
                     .padding(.vertical, AppConstants.sectionPadding)
@@ -81,12 +91,40 @@ struct ConfigurationDetailView: View {
         } message: {
             Text(validationMessage)
         }
+        .alert("Configuration Conflicts Detected", isPresented: $showingConflictAlert) {
+            Button("Review Conflicts") { }
+            Button("Save Anyway", role: .destructive) {
+                let convertedSlots: [ReservationConfig.Weekday: [TimeSlot]] = dayTimeSlots
+                    .mapValues { $0.map { TimeSlot(time: $0) } }
+                let newConfig = ReservationConfig(
+                    id: config?.id ?? UUID(),
+                    name: name,
+                    facilityURL: facilityURL,
+                    sportName: sportName,
+                    numberOfPeople: numberOfPeople,
+                    isEnabled: isEnabled,
+                    dayTimeSlots: convertedSlots,
+                    )
+                onSave(newConfig)
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text(conflictDetectionService.getConflictSummary(detectedConflicts))
+        }
         .onAppear {
             if !didInitializeSlots {
                 dayTimeSlots = config?.dayTimeSlots.mapValues { $0.map(\.time) } ?? [:]
                 didInitializeSlots = true
             }
             loadConfiguration()
+            updateConflicts()
+        }
+        .onChange(of: dayTimeSlots) {
+            updateConflicts()
+        }
+        .onChange(of: facilityURL) {
+            updateConflicts()
         }
         .sheet(isPresented: $showDayPicker) {
             DayPickerView(selectedDays: Set(dayTimeSlots.keys), onAdd: { day in
@@ -389,6 +427,25 @@ struct ConfigurationDetailView: View {
             dayTimeSlots: convertedSlots,
             )
 
+        // Validate configuration before saving
+        let validationResult = configurationValidator.validateReservationConfig(newConfig)
+        if !validationResult.isValid {
+            validationErrors = validationResult.errors
+            showingValidationAlert = true
+            validationMessage = validationResult.errorMessage
+            return
+        }
+
+        // Check for conflicts with existing configurations
+        let existingConfigs = configurationManager.settings.configurations.filter { $0.id != newConfig.id }
+        let conflicts = conflictDetectionService.validateNewConfiguration(newConfig, against: existingConfigs)
+
+        if !conflicts.isEmpty {
+            detectedConflicts = conflicts
+            showingConflictAlert = true
+            return
+        }
+
         onSave(newConfig)
         dismiss()
     }
@@ -398,10 +455,19 @@ struct ConfigurationDetailView: View {
      - Returns: Bool indicating if the configuration is valid.
      */
     private var isValidConfiguration: Bool {
-        !name.isEmpty &&
-            isValidFacilityURL(facilityURL) &&
-            !sportName.isEmpty &&
-            !dayTimeSlots.isEmpty
+        let tempConfig = ReservationConfig(
+            id: config?.id ?? UUID(),
+            name: name,
+            facilityURL: facilityURL,
+            sportName: sportName,
+            numberOfPeople: numberOfPeople,
+            isEnabled: isEnabled,
+            dayTimeSlots: dayTimeSlots.mapValues { $0.map { TimeSlot(time: $0) } },
+            )
+
+        let validationResult = configurationValidator.validateReservationConfig(tempConfig)
+        validationErrors = validationResult.errors
+        return validationResult.isValid
     }
 
     /**
@@ -582,6 +648,87 @@ struct ConfigurationDetailView: View {
             isEnabled: isEnabled,
             dayTimeSlots: dayTimeSlots.mapValues { $0.map { TimeSlot(time: $0) } },
             )
+    }
+
+    private var conflictDetectionSection: some View {
+        VStack(alignment: .leading, spacing: AppConstants.spacingMedium) {
+            HStack {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.orange)
+                Text("Potential Conflicts")
+                    .font(.system(size: AppConstants.primaryFont))
+                    .fontWeight(.semibold)
+                Spacer()
+            }
+
+            ForEach(detectedConflicts) { conflict in
+                VStack(alignment: .leading, spacing: AppConstants.spacingTiny) {
+                    HStack {
+                        Image(systemName: severityIcon(for: conflict.severity))
+                            .foregroundColor(severityColor(for: conflict.severity))
+                        Text(conflict.type.rawValue)
+                            .font(.system(size: AppConstants.secondaryFont))
+                            .fontWeight(.medium)
+                        Spacer()
+                        Text(conflict.severity.rawValue)
+                            .font(.system(size: AppConstants.tertiaryFont))
+                            .foregroundColor(severityColor(for: conflict.severity))
+                    }
+
+                    Text(conflict.message)
+                        .font(.system(size: AppConstants.secondaryFont))
+                        .foregroundColor(.odysseySecondaryText)
+
+                    ForEach(conflict.details, id: \.self) { detail in
+                        Text("• \(detail)")
+                            .font(.system(size: AppConstants.tertiaryFont))
+                            .foregroundColor(.odysseySecondaryText)
+                    }
+                }
+                .padding(AppConstants.paddingSmall)
+                .background(
+                    RoundedRectangle(cornerRadius: AppConstants.cornerRadiusSmall)
+                        .fill(severityColor(for: conflict.severity).opacity(0.1)),
+                    )
+            }
+        }
+    }
+
+    private func severityIcon(for severity: ConflictSeverity) -> String {
+        switch severity {
+        case .critical:
+            return "xmark.circle.fill"
+        case .warning:
+            return "exclamationmark.triangle.fill"
+        case .info:
+            return "info.circle.fill"
+        }
+    }
+
+    private func severityColor(for severity: ConflictSeverity) -> Color {
+        switch severity {
+        case .critical:
+            return .red
+        case .warning:
+            return .orange
+        case .info:
+            return .blue
+        }
+    }
+
+    private func updateConflicts() {
+        let tempConfig = ReservationConfig(
+            id: config?.id ?? UUID(),
+            name: name,
+            facilityURL: facilityURL,
+            sportName: sportName,
+            numberOfPeople: numberOfPeople,
+            isEnabled: isEnabled,
+            dayTimeSlots: dayTimeSlots.mapValues { $0.map { TimeSlot(time: $0) } },
+            )
+
+        let existingConfigs = configurationManager.settings.configurations.filter { $0.id != tempConfig.id }
+        detectedConflicts = conflictDetectionService.validateNewConfiguration(tempConfig, against: existingConfigs)
     }
 }
 

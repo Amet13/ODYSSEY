@@ -4,8 +4,8 @@
   <p><strong>Ottawa Drop-in Your Sports & Schedule Easily Yourself</strong></p>
   <p><em>macOS Menu Bar App + Command Line Interface for Sports Reservation Automation</em></p>
   <p>
-    <a href="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml">
-      <img src="https://github.com/Amet13/ODYSSEY/actions/workflows/ci.yml/badge.svg" alt="CI Status">
+    <a href="https://github.com/Amet13/ODYSSEY/actions/workflows/pipeline.yml">
+<img src="https://github.com/Amet13/ODYSSEY/actions/workflows/pipeline.yml/badge.svg" alt="Pipeline Status">
     </a>
     <a href="https://github.com/Amet13/ODYSSEY/releases">
       <img src="https://img.shields.io/github/v/release/Amet13/ODYSSEY?label=version" alt="Latest Release">
@@ -51,6 +51,7 @@
 | 📧 Email Verification       | Automated IMAP/Gmail verification for reservation confirmations |
 | 🕵️‍♂️ Anti-Detection           | Human-like automation with browser window monitoring            |
 | 🎨 Dark Mode Polish         | Fully adaptive UI for both light and dark appearances           |
+| 🔍 Conflict Detection       | Automatic detection of scheduling and facility conflicts        |
 
 ## 📦 Installation
 
@@ -91,91 +92,21 @@
    ./odyssey-cli run
    ```
 
-## 🎯 Usage
+## 🎯 Quick Usage Guide
 
-### 🖥️ GUI Version Usage
+### 🖥️ GUI Version
 
-#### 1️⃣ Add a Reservation Configuration
+1. **Add configurations** via the menu bar app
+2. **Configure email** for verification
+3. **Enable auto-run** and let ODYSSEY handle the rest!
 
-- Click the ODYSSEY menu bar icon
-- Click **Add Configuration** or **+** button
-- Fill in the facility URL, select sport name, and daytime slot
+### 💻 CLI Version
 
-<div align="center">
-  <img src="Documentation/Images/add_config.png" width="300">
-</div>
+1. **Export configuration** from the GUI app
+2. **Set environment variable**: `export ODYSSEY_EXPORT_TOKEN="<token>"`
+3. **Run**: `./odyssey-cli run`
 
-#### 2️⃣ Set Up Contact Data
-
-- Click **Settings**
-- Fill in your name and phone
-- Fill in your email credentials
-- Click **Test Email**
-- Configure your preferences and test email connection
-
-<div align="center">
-  <img src="Documentation/Images/settings.png" width="300">
-</div>
-
-#### 3️⃣ Configure Reservations
-
-- **Manual Run**: Click **Run Now** for immediate execution
-- **Auto Run**: Enable toggle; runs at 6PM, 2 days before your event
-- **Edit Configuration** (optional)
-- **Delete Configuration** (optional)
-
-<div align="center">
-  <img src="Documentation/Images/main_empty.png" width="300">
-  <img src="Documentation/Images/main_configs.png" width="300">
-</div>
-
-> **💡 Tip**: Keep your laptop awake during reservation automation. While ODYSSEY can prevent sleep before autorun, it's best to ensure your Mac doesn't go to sleep during the reservation process for optimal reliability.
-
-### ℹ️ About ODYSSEY
-
-Learn more about ODYSSEY's features and capabilities through the About view:
-
-- Click the ODYSSEY menu bar icon
-- Select **About** from the menu
-- View app information, version, and feature list
-
-<div align="center">
-  <img src="Documentation/Images/about.png" width="300">
-</div>
-
-### 💻 CLI Version Usage
-
-The CLI version provides the same automation capabilities as the GUI but runs from the command line, perfect for:
-
-- **Remote servers** and headless automation
-- **CI/CD pipelines** and scheduled jobs
-- **Advanced users** who prefer command-line tools
-- **Server deployments** where GUI is not available
-
-#### How to Export a Token
-
-1. **Configure in GUI**: Use the GUI app to set up your reservations and settings
-2. **Export Configuration**: Click the export button in the GUI
-3. **Copy Token**: Copy the generated export token
-4. **Set Environment Variable**:
-   ```bash
-   export ODYSSEY_EXPORT_TOKEN="<your_exported_token>"
-   ```
-5. **Run CLI**: Use the CLI commands above to automate reservations
-
-<div align="center">
-  <img src="Documentation/Images/export.png" width="300">
-</div>
-
-#### GitHub Actions Automation
-
-For automated scheduling, you can use the included GitHub Actions workflow:
-
-1. **Fork the repository** and add your export token as a GitHub secret
-2. **Enable the workflow** in your fork's Actions tab
-3. **Sit back** and let GitHub Actions run your reservations automatically!
-
-See [CLI Documentation](Documentation/CLI.md#github-actions-integration) for detailed setup instructions.
+**📖 For detailed usage instructions, see [USER_GUIDE.md](Documentation/USER_GUIDE.md)**
 
 ## 📊 Logs & Debugging
 
@@ -184,43 +115,20 @@ See [CLI Documentation](Documentation/CLI.md#github-actions-integration) for det
   - Look for emoji indicators for quick status identification
 - All sensitive data is masked or marked as private in logs
 
-## 🛠️ Troubleshooting & FAQ
+## 🛠️ Quick Troubleshooting
 
 ### Common Issues
 
-#### ❌ Automation fails with reCAPTCHA or bot detection
-
-- Try running the app at a different time or with a different network
-- Make sure your configuration matches the facility's current website structure
-- For advanced troubleshooting, see the [developer documentation](Documentation/DEVELOPMENT.md)
-
-#### 📧 Email verification not working
-
-- Double-check your IMAP/Gmail credentials and App Password (for Gmail)
-- Test your email connection in Settings
-- Check for typos in your email address or server
-- For Gmail, ensure 2FA is enabled and you are using an [App Password](https://support.google.com/accounts/answer/185833?hl=en)
-
-#### 🔒 Keychain or credential errors
-
-- If you see a Keychain error banner, try re-entering your credentials in Settings
-- Make sure you have granted Keychain access to ODYSSEY
-- Restart the app after updating credentials
-
-#### 🕵️‍♂️ App does not appear in menu bar
-
-- Ensure you are running macOS 15 or later
-- Check that the app is not running in the Dock (it should only appear in the menu bar)
-
-#### 📝 Logs not showing in Console.app
-
-- Search for `ODYSSEY` or `com.odyssey.app` in Console
-- Make sure logging is enabled in your system settings
+- **❌ Automation fails**: Try different times, check facility website structure
+- **📧 Email issues**: Verify IMAP credentials and App Password (for Gmail)
+- **🔒 Keychain errors**: Re-enter credentials in Settings
+- **🕵️‍♂️ App not visible**: Ensure macOS 15+, check menu bar (not Dock)
 
 ### Where to Get Help
 
-- [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
-- See the [full documentation](Documentation/DEVELOPMENT.md) for advanced troubleshooting
+- **[GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)** - Report bugs
+- **[USER_GUIDE.md](Documentation/USER_GUIDE.md)** - Detailed troubleshooting
+- **[DEVELOPMENT.md](Documentation/DEVELOPMENT.md)** - Advanced debugging
 
 ## 🤝 Contributing
 
@@ -230,9 +138,18 @@ See [CONTRIBUTING.md](Documentation/CONTRIBUTING.md) for detailed contribution g
 
 - 🔒 Credentials are securely stored in the macOS Keychain—never in plain text or UserDefaults
 - 🌐 All network requests use HTTPS; App Transport Security (ATS) is strictly enforced
-- 📝 The app is code signed for distribution, but is **not notarized by Apple** (no Apple Developer account). To enable notarization, see [DEVELOPMENT.md](Documentation/DEVELOPMENT.md) and `Scripts/create-release.sh` for detailed instructions
+- 📝 The app is code signed for distribution but is **not notarized by Apple** (no Apple Developer account). To enable notarization, see [DEVELOPMENT.md](Documentation/DEVELOPMENT.md) and `Scripts/create-release.sh` for detailed instructions
 - 🚫 No user data is ever sent externally without your explicit consent. All automation runs locally
 - See [DEVELOPMENT.md](Documentation/DEVELOPMENT.md) for full security and compliance details
+
+## 📚 Documentation
+
+- **[USER_GUIDE.md](Documentation/USER_GUIDE.md)** - Comprehensive user guide
+- **[CLI.md](Documentation/CLI.md)** - Command-line interface documentation
+- **[DEVELOPMENT.md](Documentation/DEVELOPMENT.md)** - Development workflow and guidelines
+- **[CONTRIBUTING.md](Documentation/CONTRIBUTING.md)** - Contribution guidelines
+- **[ACCESSIBILITY.md](Documentation/ACCESSIBILITY.md)** - Accessibility features and guidelines
+- **[SCRIPTS.md](Documentation/SCRIPTS.md)** - Complete scripts documentation and usage guide
 
 ## 📄 License
 
