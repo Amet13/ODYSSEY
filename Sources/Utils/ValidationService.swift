@@ -194,7 +194,7 @@ final class ValidationService {
             errors
                 .append(
                     "Number of people must be between \(AppConstants.minNumberOfPeople) and \(AppConstants.maxNumberOfPeople)",
-                    )
+                )
         }
 
         // Validate time slots

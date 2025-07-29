@@ -126,6 +126,6 @@ public final class SharedVerificationCodePool: ObservableObject, @unchecked Send
         logger
             .info(
                 "✅ SharedCodePool: Marked code \(String(repeating: "*", count: code.count)) as consumed by instance \(instanceId)",
-                )
+            )
     }
 }

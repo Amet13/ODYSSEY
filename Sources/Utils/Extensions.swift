@@ -112,7 +112,7 @@ extension View {
                         .background(Color.black.opacity(AppConstants.opacityLight))
                 }
             },
-            )
+        )
     }
 }
 

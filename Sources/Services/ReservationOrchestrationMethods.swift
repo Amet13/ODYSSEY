@@ -166,7 +166,7 @@ public final class ReservationOrchestrationMethods {
         let sportTyped = await WebKitService.shared.typeText(
             config.sportName,
             into: "input[name='sport'], select[name='sport'], .sport-selector",
-            )
+        )
         guard sportTyped else {
             throw ReservationError.sportButtonNotFound
         }
@@ -186,7 +186,7 @@ public final class ReservationOrchestrationMethods {
             let timeTyped = await WebKitService.shared.typeText(
                 timeString,
                 into: "input[name='time'], select[name='time'], .time-selector",
-                )
+            )
             guard timeTyped else {
                 throw ReservationError.timeSlotSelectionFailed
             }
@@ -212,7 +212,7 @@ public final class ReservationOrchestrationMethods {
         let peopleTyped = await WebKitService.shared.typeText(
             "\(count)",
             into: "input[name='people'], input[name='participants'], .people-input",
-            )
+        )
         guard peopleTyped else {
             throw ReservationError.numberOfPeopleFieldNotFound
         }
@@ -234,7 +234,7 @@ public final class ReservationOrchestrationMethods {
             phoneNumber: userSettings.phoneNumber,
             email: userSettings.imapEmail,
             name: userSettings.name,
-            )
+        )
 
         guard contactFilled else {
             throw ReservationError.contactInfoFieldNotFound
@@ -274,7 +274,7 @@ public final class ReservationOrchestrationMethods {
         let codeTyped = await WebKitService.shared.typeText(
             code,
             into: "input[name='code'], input[name='verification'], .code-input",
-            )
+        )
         guard codeTyped else {
             throw ReservationError.emailVerificationFailed
         }
@@ -328,7 +328,7 @@ public final class ReservationOrchestrationMethods {
                     in: content,
                     options: [],
                     range: NSRange(location: 0, length: content.count),
-                    )
+                )
             {
                 guard let range = Range(match.range(at: 1), in: content) else {
                     continue
@@ -354,7 +354,7 @@ public final class ReservationOrchestrationMethods {
         _ status: ReservationRunStatus,
         for configId: String?,
         runType _: ReservationRunType,
-        ) {
+    ) {
         // This would typically update a status manager
         logger.info("📊 Updated reservation status: \(status.description) for config: \(configId ?? "unknown")")
     }

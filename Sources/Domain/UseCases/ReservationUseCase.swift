@@ -54,7 +54,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
             createdAt: reservation.createdAt,
             updatedAt: Date(),
             result: nil,
-            )
+        )
 
         try await repository.save(updatedReservation)
 
@@ -70,7 +70,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
                 createdAt: reservation.createdAt,
                 updatedAt: Date(),
                 result: result,
-                )
+            )
 
             try await repository.save(finalReservation)
 
@@ -83,7 +83,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
                 success: false,
                 message: error.localizedDescription,
                 details: ["error": String(describing: error)],
-                )
+            )
 
             let failedReservation = Reservation(
                 id: reservation.id,
@@ -92,7 +92,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
                 createdAt: reservation.createdAt,
                 updatedAt: Date(),
                 result: errorResult,
-                )
+            )
 
             try await repository.save(failedReservation)
 
@@ -115,7 +115,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
             createdAt: reservation.createdAt,
             updatedAt: Date(),
             result: reservation.result,
-            )
+        )
 
         try await repository.save(cancelledReservation)
         logger.info("✅ Reservation cancelled successfully")
@@ -192,7 +192,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
                 "sport": config.sportName,
                 "time": extractTimeSlot(from: config.dayTimeSlots),
             ],
-            )
+        )
     }
 
     private func handleEmailVerification() async throws {
@@ -317,7 +317,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
             phoneNumber: userSettings.phoneNumber,
             email: userSettings.imapEmail,
             name: userSettings.name,
-            )
+        )
 
         guard contactFilled else {
             throw DomainError.automation(.elementNotFound("Contact form"))

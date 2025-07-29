@@ -41,7 +41,7 @@ public final class WebKitHumanBehavior: ObservableObject {
         logger
             .debug(
                 "⏱️ Adding page transition delay: \(String(format: "%.2f", self.pageTransitionDelay))s for instance: \(self.instanceId)",
-                )
+            )
         try? await Task.sleep(nanoseconds: UInt64(pageTransitionDelay * 1_000_000_000))
     }
 
@@ -149,7 +149,7 @@ public final class WebKitHumanBehavior: ObservableObject {
         selector: String,
         text: String,
         description: String,
-        ) async {
+    ) async {
         logger.info("⌨️ Simulating human text input: \(description) for instance: \(self.instanceId).")
 
         // Add pre-input delay

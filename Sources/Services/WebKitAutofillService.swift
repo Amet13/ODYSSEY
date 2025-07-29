@@ -107,7 +107,7 @@ public final class WebKitAutofillService {
         phoneNumber: String,
         email: String,
         name: String,
-        ) async -> Bool {
+    ) async -> Bool {
         logger.info("👤 Filling all contact fields with autofill")
 
         guard webKitService?.webView != nil else {
@@ -133,7 +133,7 @@ public final class WebKitAutofillService {
         phoneNumber: String,
         email: String,
         name: String,
-        ) async -> Bool {
+    ) async -> Bool {
         guard let webView = webKitService?.webView else { return false }
 
         let script = """
@@ -277,7 +277,7 @@ public final class WebKitAutofillService {
         phoneNumber: String,
         email: String,
         name: String,
-        ) async -> Bool {
+    ) async -> Bool {
         guard let webView = webKitService?.webView else { return false }
 
         let script = """

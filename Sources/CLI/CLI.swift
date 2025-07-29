@@ -234,84 +234,26 @@ struct CLI {
             }
 
             // Check individual config statuses
-            let currentConfigStatuses = await MainActor.run {
-                let statusManager = ReservationStatusManager.shared
-                return configStatuses.keys.reduce(into: [UUID: ReservationRunStatus]()) { result, configId in
-                    if let lastRunInfo = statusManager.getLastRunInfo(for: configId) {
-                        result[configId] = lastRunInfo.status
-                    }
-                }
-            }
+            let currentConfigStatuses = await getCurrentConfigStatuses(configStatuses: configStatuses)
 
-            // Show status changes
-            if status != lastStatus {
-                switch status {
-                case .running:
-                    if !hasStarted {
-                        print("🔄 Status: Starting automation...")
-                        logToTerminal("🚀 Reservation automation started", level: "INFO")
-                        hasStarted = true
-                    }
-                case .success:
-                    // Do not print success here; wait for all configs to finish
-                    break
-                case let .failed(error):
-                    print("❌ Status: Some reservations failed!")
-                    print("💡 Error: \(error)")
-                    logToTerminal("❌ Reservation failed: \(error)", level: "ERROR")
-                case .idle:
-                    if hasStarted {
-                        print("ℹ️ Status: Automation idle")
-                    }
-                case .stopped:
-                    print("⏹️ Status: Automation stopped")
-                    logToTerminal("⏹️ Automation stopped", level: "WARNING")
-                }
-                lastStatus = status
-            }
+            // Handle status changes
+            await handleStatusChange(status: status, lastStatus: &lastStatus, hasStarted: &hasStarted)
 
-            // Show individual config status changes
-            for (configId, configStatus) in currentConfigStatuses {
-                if configStatuses[configId] != configStatus {
-                    configStatuses[configId] = configStatus
-                    if let configName = await getConfigName(for: configId) {
-                        switch configStatus {
-                        case .running:
-                            print("   🔄 \(configName): Starting...")
-                        case .success:
-                            print("   ✅ \(configName): Completed successfully!")
-                        case let .failed(error):
-                            print("   ❌ \(configName): Failed - \(error)")
-                        case .idle:
-                            break // Don't show idle status
-                        case .stopped:
-                            print("   ⏹️ \(configName): Stopped")
-                        }
-                    }
-                }
-            }
+            // Handle individual config status changes
+            await handleConfigStatusChanges(
+                currentConfigStatuses: currentConfigStatuses,
+                configStatuses: &configStatuses,
+            )
 
-            // Show real-time logs every 2 seconds
-            if attempts % 2 == 0, attempts > lastLogCheck {
-                await showRecentLogs()
-                lastLogCheck = attempts
-            }
+            // Show logs and progress
+            await showLogsAndProgress(
+                attempts: attempts,
+                lastLogCheck: &lastLogCheck,
+                lastProgressUpdate: &lastProgressUpdate,
+            )
 
-            // Show progress updates every 10 seconds
-            if attempts % 10 == 0, attempts > lastProgressUpdate {
-                print("⏳ Still running... (\(attempts)s)")
-                lastProgressUpdate = attempts
-            }
-
-            // Check if all configs are done (success or failed)
-            let allDone = configStatuses.values.count(where: { status in
-                switch status {
-                case .success, .failed: return true
-                default: return false
-                }
-            }) == configStatuses.count
-
-            if allDone {
+            // Check if all configs are done
+            if await areAllConfigsDone(configStatuses: configStatuses) {
                 await printDetailedResults(configIds: configIds, finalStatuses: configStatuses)
                 break
             }
@@ -326,6 +268,107 @@ struct CLI {
             logToTerminal("⏰ Reservations timed out after 5 minutes", level: "ERROR")
             await printDetailedResults(configIds: configIds, finalStatuses: configStatuses, timedOut: true)
         }
+    }
+
+    private static func getCurrentConfigStatuses(configStatuses: [UUID: ReservationRunStatus]) async
+        -> [UUID: ReservationRunStatus]
+    {
+        await MainActor.run {
+            let statusManager = ReservationStatusManager.shared
+            return configStatuses.keys.reduce(into: [UUID: ReservationRunStatus]()) { result, configId in
+                if let lastRunInfo = statusManager.getLastRunInfo(for: configId) {
+                    result[configId] = lastRunInfo.status
+                }
+            }
+        }
+    }
+
+    private static func handleStatusChange(
+        status: ReservationRunStatus,
+        lastStatus: inout ReservationRunStatus,
+        hasStarted: inout Bool,
+    ) async {
+        if status != lastStatus {
+            switch status {
+            case .running:
+                if !hasStarted {
+                    print("🔄 Status: Starting automation...")
+                    logToTerminal("🚀 Reservation automation started", level: "INFO")
+                    hasStarted = true
+                }
+            case .success:
+                // Do not print success here; wait for all configs to finish
+                break
+            case let .failed(error):
+                print("❌ Status: Some reservations failed!")
+                print("💡 Error: \(error)")
+                logToTerminal("❌ Reservation failed: \(error)", level: "ERROR")
+            case .idle:
+                if hasStarted {
+                    print("ℹ️ Status: Automation idle")
+                }
+            case .stopped:
+                print("⏹️ Status: Automation stopped")
+                logToTerminal("⏹️ Automation stopped", level: "WARNING")
+            }
+            lastStatus = status
+        }
+    }
+
+    private static func handleConfigStatusChanges(
+        currentConfigStatuses: [UUID: ReservationRunStatus],
+        configStatuses: inout [UUID: ReservationRunStatus],
+    ) async {
+        for (configId, configStatus) in currentConfigStatuses {
+            if configStatuses[configId] != configStatus {
+                configStatuses[configId] = configStatus
+                if let configName = await getConfigName(for: configId) {
+                    printConfigStatus(configName: configName, status: configStatus)
+                }
+            }
+        }
+    }
+
+    private static func printConfigStatus(configName: String, status: ReservationRunStatus) {
+        switch status {
+        case .running:
+            print("   🔄 \(configName): Starting...")
+        case .success:
+            print("   ✅ \(configName): Completed successfully!")
+        case let .failed(error):
+            print("   ❌ \(configName): Failed - \(error)")
+        case .idle:
+            break // Don't show idle status
+        case .stopped:
+            print("   ⏹️ \(configName): Stopped")
+        }
+    }
+
+    private static func showLogsAndProgress(
+        attempts: Int,
+        lastLogCheck: inout Int,
+        lastProgressUpdate: inout Int,
+    ) async {
+        // Show real-time logs every 2 seconds
+        if attempts % 2 == 0, attempts > lastLogCheck {
+            await showRecentLogs()
+            lastLogCheck = attempts
+        }
+
+        // Show progress updates every 10 seconds
+        if attempts % 10 == 0, attempts > lastProgressUpdate {
+            print("⏳ Still running... (\(attempts)s)")
+            lastProgressUpdate = attempts
+        }
+    }
+
+    private static func areAllConfigsDone(configStatuses: [UUID: ReservationRunStatus]) async -> Bool {
+        configStatuses.values.count(where: { status in
+            switch status {
+            case .success, .failed: return true
+            default: return false
+            }
+        }) == configStatuses.count
     }
 
     private static func getConfigName(for configId: UUID) async -> String? {
@@ -354,7 +397,7 @@ struct CLI {
             case .info: "📝"
             }
 
-            let configPrefix = logEntry.configName != nil ? "[\(logEntry.configName!)] " : ""
+            let configPrefix = logEntry.configName.map { "[\($0)] " } ?? ""
             print("   \(levelIcon) [\(timestamp)] \(configPrefix)\(logEntry.message)")
         }
 
@@ -368,7 +411,7 @@ struct CLI {
         configIds: [UUID],
         finalStatuses: [UUID: ReservationRunStatus],
         timedOut: Bool = false,
-        ) async {
+    ) async {
         print("\n📊 Detailed Results:")
         print("===================")
         let configs = await MainActor.run { ConfigurationManager.shared.settings.configurations }
@@ -430,7 +473,7 @@ struct CLI {
 
             print(
                 "🔍 Found \(configsToRun.count) configurations scheduled for today (\(priorDays) days before reservation)",
-                )
+            )
 
             if configsToRun.isEmpty {
                 handleEmptyConfigurations(exportConfig, priorDays: priorDays)
@@ -707,7 +750,7 @@ struct CLI {
                 print("\(bold("Phone")): ***\(String(exportConfig.userSettings.phoneNumber.suffix(3)))")
                 print(
                     "\(bold("Email")): ***@\(exportConfig.userSettings.imapEmail.components(separatedBy: "@").last ?? "unknown")",
-                    )
+                )
                 print("\(bold("IMAP Password")): ***")
             }
 

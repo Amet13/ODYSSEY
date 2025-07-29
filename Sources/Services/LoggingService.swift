@@ -12,6 +12,13 @@ public final class LoggingService: ObservableObject {
 
     private init() { }
 
+    public enum LogLevel: String, CaseIterable, Sendable {
+        case info = "INFO"
+        case warning = "WARNING"
+        case error = "ERROR"
+        case success = "SUCCESS"
+    }
+
     public struct LogEntry: Identifiable, Sendable {
         public let id = UUID()
         public let timestamp: Date
@@ -19,28 +26,21 @@ public final class LoggingService: ObservableObject {
         public let level: LogLevel
         public let configId: UUID?
         public let configName: String?
-
-        public enum LogLevel: String, CaseIterable, Sendable {
-            case info = "INFO"
-            case warning = "WARNING"
-            case error = "ERROR"
-            case success = "SUCCESS"
-        }
     }
 
     public func log(
         _ message: String,
-        level: LogEntry.LogLevel = .info,
+        level: LogLevel = .info,
         configId: UUID? = nil,
         configName: String? = nil,
-        ) {
+    ) {
         let entry = LogEntry(
             timestamp: Date(),
             message: message,
             level: level,
             configId: configId,
             configName: configName,
-            )
+        )
 
         recentLogs.append(entry)
 
@@ -120,7 +120,7 @@ extension LoggingService: LoggingServiceProtocol {
         _ error: UnifiedErrorProtocol,
         context: String,
         category _: LoggerCategory,
-        ) {
+    ) {
         Task { @MainActor in
             let contextPrefix = context.isEmpty ? "" : "[\(context)] "
             let technicalDetails = error.technicalDetails != nil ? " (\(error.technicalDetails ?? "No details"))" : ""

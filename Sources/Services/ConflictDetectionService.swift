@@ -53,7 +53,7 @@ public final class ConflictDetectionService: ObservableObject {
                         config1: config1,
                         config2: config2,
                         details: overlappingSlots,
-                        )
+                    )
                     conflicts.append(conflict)
                 }
             }
@@ -70,7 +70,7 @@ public final class ConflictDetectionService: ObservableObject {
     private func findOverlappingTimeSlots(
         between config1: ReservationConfig,
         and config2: ReservationConfig,
-        ) -> [String] {
+    ) -> [String] {
         var overlappingSlots: [String] = []
 
         for (weekday1, timeSlots1) in config1.dayTimeSlots {
@@ -104,7 +104,7 @@ public final class ConflictDetectionService: ObservableObject {
     public func validateNewConfiguration(
         _ newConfig: ReservationConfig,
         against existingConfigs: [ReservationConfig],
-        ) -> [ReservationConflict] {
+    ) -> [ReservationConflict] {
         let allConfigs = existingConfigs + [newConfig]
         return detectConflicts(in: allConfigs).filter { conflict in
             conflict.config1.id == newConfig.id || conflict.config2.id == newConfig.id
