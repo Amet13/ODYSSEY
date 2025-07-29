@@ -253,9 +253,9 @@ public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol
 
     private func handleError(_ error: KeychainError) {
         lastError = error
-        logger.error("❌ Keychain error: \(error.localizedDescription)")
+        logger.error("❌ Keychain error: \(error.localizedDescription).")
         onError?(error)
-        logger.error("❌ Keychain error: \(error.localizedDescription)")
+        logger.error("❌ Keychain error: \(error.localizedDescription).")
     }
 
     public func clearAllOdysseyItems() -> Result<Void, KeychainError> {

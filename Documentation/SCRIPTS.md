@@ -10,7 +10,7 @@ ODYSSEY includes 6 automation scripts to streamline development, building, deplo
 
 All ODYSSEY scripts follow bash best practices and are validated using multiple linters. These checks are automatically run in the CI pipeline on every commit and pull request.
 
-### Quality Standards
+### 📊 Quality Standards
 
 - **ShellCheck Compliance**: All scripts pass ShellCheck with minimal warnings
 - **YAML Linting**: All YAML files validated with yamllint
@@ -21,7 +21,7 @@ All ODYSSEY scripts follow bash best practices and are validated using multiple 
 - **Function Organization**: Clear function structure with descriptive names
 - **Documentation**: Comprehensive inline comments and usage examples
 
-### Linting Results
+### 📊 Linting Results
 
 ```bash
 # Run all linters
@@ -38,7 +38,7 @@ actionlint .github/workflows/*.yml
 - ✅ **Markdown Linting**: All documentation passes with only line length warnings (acceptable)
 - ✅ **GitHub Actions**: All workflows pass with only ShellCheck warnings in embedded scripts (acceptable)
 
-### 1. **lint-all.sh** - Comprehensive Linting Script
+### 🧹 1. **lint-all.sh** - Comprehensive Linting Script
 
 **Purpose**: Runs all linters for comprehensive code quality validation.
 
@@ -74,9 +74,7 @@ actionlint .github/workflows/*.yml
 
 **CI Integration**: This script is automatically run in the unified CI/CD pipeline to ensure code quality on every commit and pull request.
 
----
-
-### 2. **build.sh** - Main Build Script
+### 🔨 2. **build.sh** - Main Build Script
 
 **Purpose**: Primary build script that handles the complete build process for both GUI and CLI versions.
 
@@ -108,9 +106,7 @@ actionlint .github/workflows/*.yml
 
 **Output**: Built app in `~/Library/Developer/Xcode/DerivedData/` and CLI tool in `.build/arm64-apple-macosx/release/`
 
----
-
-### 3. **setup-dev.sh** - Development Environment Setup
+### ⚙️ 3. **setup-dev.sh** - Development Environment Setup
 
 **Purpose**: Automates the complete setup of the development environment for new developers.
 
@@ -148,9 +144,7 @@ actionlint .github/workflows/*.yml
 ./Scripts/setup-dev.sh validate
 ```
 
----
-
-### 4. **deploy.sh** - Deployment Automation
+### 🚀 4. **deploy.sh** - Deployment Automation
 
 **Purpose**: Automates the complete deployment process including building, packaging, and releasing.
 
@@ -192,9 +186,7 @@ actionlint .github/workflows/*.yml
 ./Scripts/deploy.sh dmg
 ```
 
----
-
-### 5. **create-release.sh** - Release Management
+### 📦 5. **create-release.sh** - Release Management
 
 **Purpose**: Manages version updates, changelog generation, and release preparation.
 
@@ -227,9 +219,7 @@ actionlint .github/workflows/*.yml
 ./Scripts/create-release.sh --dry-run 3.2.0
 ```
 
----
-
-### 6. **logs.sh** - Log Monitoring
+### 📊 6. **logs.sh** - Log Monitoring
 
 **Purpose**: Monitors system logs for ODYSSEY app activity and debugging.
 
@@ -263,11 +253,9 @@ log stream --predicate 'subsystem == "com.odyssey.app"' --info --debug
 log stream --predicate 'process == "ODYSSEY"' --info --debug
 ```
 
----
-
 ## 🚀 Quick Start Guide
 
-### For New Developers
+### 👨‍💻 For New Developers
 
 1. **Setup Environment**:
 
@@ -286,7 +274,7 @@ log stream --predicate 'process == "ODYSSEY"' --info --debug
    ./Scripts/logs.sh
    ```
 
-### For Regular Development
+### 🔧 For Regular Development
 
 1. **Build and Test**:
 
@@ -305,7 +293,7 @@ log stream --predicate 'process == "ODYSSEY"' --info --debug
    ./Scripts/logs.sh
    ```
 
-### For Releases
+### 📦 For Releases
 
 1. **Create Release**:
 
@@ -318,11 +306,9 @@ log stream --predicate 'process == "ODYSSEY"' --info --debug
    ./Scripts/deploy.sh release
    ```
 
----
-
 ## 🔍 Troubleshooting
 
-### Common Issues
+### ⚠️ Common Issues
 
 **Build Script Issues**:
 
@@ -342,7 +328,7 @@ log stream --predicate 'process == "ODYSSEY"' --info --debug
 - **"DMG creation fails"**: Install create-dmg: `brew install create-dmg`
 - **"GitHub release fails"**: Check GitHub token and permissions
 
-### Getting Help
+### 🆘 Getting Help
 
 1. **Check Script Help**:
 
@@ -363,8 +349,6 @@ log stream --predicate 'process == "ODYSSEY"' --info --debug
    ./Scripts/setup-dev.sh validate
    ```
 
----
-
 ## 📚 Related Documentation
 
 - **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development workflow and guidelines
@@ -372,18 +356,16 @@ log stream --predicate 'process == "ODYSSEY"' --info --debug
 - **[CLI.md](CLI.md)** - Command-line interface documentation
 - **[USER_GUIDE.md](USER_GUIDE.md)** - User guide for the application
 
----
-
 ## 🎯 Best Practices
 
-### Script Usage
+### 📋 Script Usage
 
 1. **Always run from project root**: All scripts expect to be run from the ODYSSEY directory
 2. **Check prerequisites**: Use `./Scripts/setup-dev.sh validate` to check your environment
 3. **Monitor logs**: Use `./Scripts/logs.sh` during development and testing
 4. **Use dry-run**: Test release scripts with `--dry-run` before actual releases
 
-### Linting Configuration
+### ⚙️ Linting Configuration
 
 The project includes configuration files to ignore acceptable warnings:
 
@@ -399,7 +381,7 @@ These configurations ensure that linting focuses on critical issues while ignori
 - CI/CD script warnings (ShellCheck in embedded scripts)
 - Style preferences (opening brace spacing, trailing commas)
 
-### CI/CD Integration
+### 🔄 CI/CD Integration
 
 The GitHub Actions pipeline (`.github/workflows/pipeline.yml`) automatically uses these configuration files:
 
@@ -410,7 +392,7 @@ The GitHub Actions pipeline (`.github/workflows/pipeline.yml`) automatically use
 
 This ensures that CI/CD builds won't fail due to acceptable warnings, while still catching critical issues.
 
-### Development Workflow
+### 🔧 Development Workflow
 
 1. **Setup**: `./Scripts/setup-dev.sh setup`
 2. **Build**: `./Scripts/build.sh`
@@ -418,17 +400,15 @@ This ensures that CI/CD builds won't fail due to acceptable warnings, while stil
 4. **Monitor**: Use `./Scripts/logs.sh` for debugging
 5. **Release**: Use `./Scripts/create-release.sh` and `./Scripts/deploy.sh`
 
-### Maintenance
+### 🔧 Maintenance
 
 - **Regular validation**: Run `./Scripts/setup-dev.sh validate` periodically
 - **Update tools**: Use `./Scripts/setup-dev.sh tools` to update development tools
 - **Clean builds**: Use `./Scripts/deploy.sh clean` when experiencing build issues
 
----
-
 ## 📝 Script Maintenance
 
-### Adding New Scripts
+### ➕ Adding New Scripts
 
 When adding new scripts:
 
@@ -438,7 +418,7 @@ When adding new scripts:
 4. **Add logging**: Use colored output functions for consistency
 5. **Update documentation**: Add the script to this documentation
 
-### Script Standards
+### 📋 Script Standards
 
 All scripts should:
 
@@ -449,8 +429,6 @@ All scripts should:
 - ✅ Provide help/usage information
 - ✅ Handle errors gracefully
 - ✅ Include comprehensive comments
-
----
 
 ## 🎉 Conclusion
 

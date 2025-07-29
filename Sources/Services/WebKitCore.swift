@@ -163,9 +163,9 @@ class WebKitCore: NSObject, ObservableObject {
         let userSettings = UserSettingsManager.shared.userSettings
         if userSettings.showBrowserWindow {
             debugWindowManager?.showDebugWindow(webView: webView, config: currentConfig)
-            logger.info("🪟 Browser window shown (user setting: show window)")
+            logger.info("🪟 Browser window shown (user setting: show window).")
         } else {
-            logger.info("🪟 Browser window hidden (user setting: hide window - recommended to avoid captcha detection)")
+            logger.info("🪟 Browser window hidden (user setting: hide window - recommended to avoid captcha detection).")
         }
     }
 

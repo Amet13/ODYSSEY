@@ -1,25 +1,33 @@
 ## 🚀 Description
 
-Please describe your changes in detail:
-
-- What feature, fix, or improvement does this PR introduce?
-- Why is it needed?
+Brief description of the changes made in this pull request.
 
 ## 🧪 Testing
 
-- [ ] The app builds and runs successfully locally
+- [ ] I have tested my changes thoroughly
+- [ ] All existing functionality still works
+- [ ] New functionality has been tested
+- [ ] I have tested on both light and dark mode
+- [ ] I have tested with VoiceOver accessibility
 
 ## 📸 Screenshots (if applicable)
 
-_Add screenshots or screen recordings to help explain your changes._
+Add screenshots or GIFs to show the changes visually.
 
 ## 📋 Checklist
 
-- [ ] I have read the [contributing guidelines](Documentation/CONTRIBUTING.md)
-- [ ] I have updated documentation as needed
-- [ ] I have added a descriptive PR title and description
-- [ ] I have linked relevant issues (if any)
+- [ ] My code follows the project's style guidelines
+- [ ] I have run `./Scripts/lint-all.sh` and all checks pass
+- [ ] I have run `./Scripts/build.sh` and the build succeeds
+- [ ] I have updated relevant documentation
+- [ ] I have added appropriate logging with emoji indicators
+- [ ] My changes are backward compatible
+- [ ] I have tested the CLI version if applicable
 
 ## 🔗 Related Issues
 
-_Reference any related issues or discussions here._
+Closes #[issue_number]
+
+## 📝 Additional Notes
+
+Any additional information that reviewers should know about this pull request.

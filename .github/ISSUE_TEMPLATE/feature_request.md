@@ -1,57 +1,57 @@
 ---
-
 name: "✨ Feature Request"
-description: "Suggest a new feature or improvement for ODYSSEY."
-title: "[Feature] "
-labels: [enhancement]
-assignees: []
-body:
+about: "Suggest an idea for ODYSSEY"
+title: "[FEATURE] "
+labels: ["enhancement", "triage"]
+assignees: ""
+---
 
-- type: markdown
-  attributes:
-  value: | ## ✨ Feature Request
-  Please describe your idea or suggestion in detail.
+## ✨ Feature Request
 
-- type: input
-  id: summary
-  attributes:
-  label: "Summary"
-  description: "A clear and concise description of the feature."
-  placeholder: "Add support for..."
-  validations:
-  required: true
+### 📋 Description
 
-- type: textarea
-  id: motivation
-  attributes:
-  label: "Motivation"
-  description: "Why is this feature important? What problem does it solve?"
-  placeholder: "This would help users by..."
-  validations:
-  required: true
+A clear and concise description of the feature you'd like to see in ODYSSEY.
 
-- type: textarea
-  id: proposal
-  attributes:
-  label: "Proposed Solution"
-  description: "Describe your proposed solution or implementation."
-  placeholder: "I suggest..."
-  validations:
-  required: false
+### 🎯 Problem Statement
 
-- type: textarea
-  id: alternatives
-  attributes:
-  label: "Alternatives Considered"
-  description: "Have you considered any alternative solutions?"
-  placeholder: "Alternatively, we could..."
-  validations:
-  required: false
+A clear and concise description of what problem this feature would solve. For example:
 
-- type: checkboxes
-  id: terms
-  attributes:
-  label: "Checklist"
-  options: - label: "I have searched existing issues."
-  required: true - label: "I am not requesting a duplicate feature."
-  required: true
+- "I'm always frustrated when [...]"
+- "It would be helpful if ODYSSEY could [...]"
+- "This would improve the user experience by [...]"
+
+### 💡 Proposed Solution
+
+A clear and concise description of what you want to happen.
+
+### 🔄 Alternative Solutions
+
+A clear and concise description of any alternative solutions or features you've considered.
+
+### 📊 Impact Assessment
+
+- **👥 User Impact**: How many users would benefit from this feature?
+- **🔧 Implementation Complexity**: How complex would this be to implement?
+- **📱 Platform Impact**: Does this affect both GUI and CLI versions?
+- **🛡️ Security Impact**: Are there any security considerations?
+
+### 📸 Mockups/Screenshots
+
+If applicable, add mockups or screenshots to help illustrate your idea.
+
+### 📋 Additional Context
+
+Add any other context or screenshots about the feature request here, including:
+
+- **🔗 Related Issues**: Links to related issues or discussions
+- **📚 Documentation**: References to relevant documentation
+- **🎨 UI/UX Considerations**: Any UI/UX thoughts or requirements
+- **🔧 Technical Considerations**: Any technical implementation details
+
+### 📝 Checklist
+
+- [ ] I have searched existing issues for similar requests
+- [ ] I have provided a clear problem statement
+- [ ] I have described the proposed solution
+- [ ] I have considered alternative solutions
+- [ ] I have assessed the impact and complexity

@@ -20,11 +20,11 @@ public final class WebKitAntiDetection: ObservableObject {
 
     public init(instanceId: String = "default") {
         self.instanceId = instanceId
-        logger.info("🔧 WebKitAntiDetection initialized for instance: \(instanceId)")
+        logger.info("🔧 WebKitAntiDetection initialized for instance: \(instanceId).")
     }
 
     deinit {
-        logger.info("🧹 WebKitAntiDetection deinitialized for instance: \(self.instanceId)")
+        logger.info("🧹 WebKitAntiDetection deinitialized for instance: \(self.instanceId).")
     }
 
     // MARK: - Anti-Detection Scripts
@@ -32,7 +32,7 @@ public final class WebKitAntiDetection: ObservableObject {
     /// Injects basic anti-detection scripts into the WebView
     /// - Parameter webView: The WebView to inject scripts into
     public func injectAntiDetectionScripts(into webView: WKWebView) async {
-        logger.info("🛡️ Injecting anti-detection scripts for instance: \(self.instanceId)")
+        logger.info("🛡️ Injecting anti-detection scripts for instance: \(self.instanceId).")
 
         let antiDetectionScript = """
         (function() {
@@ -97,16 +97,16 @@ public final class WebKitAntiDetection: ObservableObject {
 
         do {
             _ = try await webView.evaluateJavaScript(antiDetectionScript)
-            logger.info("✅ Anti-detection scripts injected successfully")
+            logger.info("✅ Anti-detection scripts injected successfully.")
         } catch {
-            logger.error("❌ Failed to inject anti-detection scripts: \(error.localizedDescription)")
+            logger.error("❌ Failed to inject anti-detection scripts: \(error.localizedDescription).")
         }
     }
 
     /// Injects enhanced human-like behavior scripts
     /// - Parameter webView: The WebView to inject scripts into
     public func injectHumanBehaviorScripts(into webView: WKWebView) async {
-        logger.info("👤 Injecting human behavior scripts for instance: \(self.instanceId)")
+        logger.info("👤 Injecting human behavior scripts for instance: \(self.instanceId).")
 
         let humanBehaviorScript = """
         (function() {
@@ -149,9 +149,9 @@ public final class WebKitAntiDetection: ObservableObject {
 
         do {
             _ = try await webView.evaluateJavaScript(humanBehaviorScript)
-            logger.info("✅ Human behavior scripts injected successfully")
+            logger.info("✅ Human behavior scripts injected successfully.")
         } catch {
-            logger.error("❌ Failed to inject human behavior scripts: \(error.localizedDescription)")
+            logger.error("❌ Failed to inject human behavior scripts: \(error.localizedDescription).")
         }
     }
 
@@ -160,7 +160,7 @@ public final class WebKitAntiDetection: ObservableObject {
     /// Simulates human-like mouse movements
     /// - Parameter webView: The WebView to simulate movements in
     public func simulateMouseMovements(in webView: WKWebView) async {
-        logger.info("🖱️ Simulating human-like mouse movements for instance: \(self.instanceId)")
+        logger.info("🖱️ Simulating human-like mouse movements for instance: \(self.instanceId).")
 
         let mouseMovementScript = """
         (function() {
@@ -198,9 +198,9 @@ public final class WebKitAntiDetection: ObservableObject {
 
         do {
             _ = try await webView.evaluateJavaScript(mouseMovementScript)
-            logger.info("✅ Mouse movements simulated successfully")
+            logger.info("✅ Mouse movements simulated successfully.")
         } catch {
-            logger.error("❌ Failed to simulate mouse movements: \(error.localizedDescription)")
+            logger.error("❌ Failed to simulate mouse movements: \(error.localizedDescription).")
         }
     }
 
@@ -210,7 +210,7 @@ public final class WebKitAntiDetection: ObservableObject {
     ///   - text: The text to type
     ///   - elementSelector: The selector for the input element
     public func simulateHumanTyping(in webView: WKWebView, text: String, elementSelector: String) async {
-        logger.info("⌨️ Simulating human typing for instance: \(self.instanceId)")
+        logger.info("⌨️ Simulating human typing for instance: \(self.instanceId).")
 
         let typingScript = """
         (function() {
@@ -257,9 +257,9 @@ public final class WebKitAntiDetection: ObservableObject {
 
         do {
             _ = try await webView.evaluateJavaScript(typingScript)
-            logger.info("✅ Human typing simulated successfully")
+            logger.info("✅ Human typing simulated successfully.")
         } catch {
-            logger.error("❌ Failed to simulate human typing: \(error.localizedDescription)")
+            logger.error("❌ Failed to simulate human typing: \(error.localizedDescription).")
         }
     }
 
@@ -268,7 +268,7 @@ public final class WebKitAntiDetection: ObservableObject {
     /// Records user activity for anti-detection
     public func recordActivity() {
         lastActivityTime = Date()
-        logger.debug("📊 Activity recorded for instance: \(self.instanceId)")
+        logger.debug("📊 Activity recorded for instance: \(self.instanceId).")
     }
 
     /// Gets the time since last activity

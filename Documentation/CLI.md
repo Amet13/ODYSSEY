@@ -1,6 +1,6 @@
 # ODYSSEY CLI Documentation
 
-The ODYSSEY Command Line Interface (CLI) provides remote automation capabilities for running reservations without the GUI, perfect for CLI pipelines and server environments.
+The ODYSSEY Command Line Interface (CLI) provides remote automation capabilities for running reservations without the GUI, perfect for CI/CD pipelines and server environments.
 
 ## 🎯 Overview
 
@@ -13,15 +13,15 @@ Both versions use the same powerful WebKit automation engine, ensuring consisten
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### 📋 Prerequisites
 
 See [REQUIREMENTS.md](REQUIREMENTS.md) for complete system requirements.
 
-### Installation
+### ⚙️ Installation
 
 See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
 
-### Basic Usage
+### 🎯 Basic Usage
 
 ```bash
 # Set your export token
@@ -37,7 +37,7 @@ export ODYSSEY_EXPORT_TOKEN="<exported_token>"
 | ---------------------- | -------- | ------- | ------------------------------------------------------------ |
 | `ODYSSEY_EXPORT_TOKEN` | ✅ Yes   | -       | Export token from GUI containing configurations and settings |
 
-### Example Environment Setup
+### ⚙️ Example Environment Setup
 
 ```bash
 # Required: Your export token from the GUI
@@ -48,7 +48,7 @@ export ODYSSEY_EXPORT_TOKEN="<exported_token>"
 
 ## 🛠️ Commands
 
-### `run [--now] [--prior <days>]`
+### ▶️ `run [--now] [--prior <days>]`
 
 Run real reservations for configurations scheduled N days before reservation day using the same automation engine as the GUI app.
 
@@ -72,7 +72,7 @@ Run real reservations for configurations scheduled N days before reservation day
 - ✅ **Error Handling**: Displays detailed error messages if reservation fails
 - ✅ **Timeout Protection**: 5-minute timeout to prevent hanging
 
-### `configs`
+### 📋 `configs`
 
 List all available configurations from the export token.
 
@@ -85,17 +85,17 @@ List all available configurations from the export token.
    Facility: Richcraftkanata
    People: 1
    Time Slots:
-     Tue: 9:30 AM
+     Tue: 9:30 AM
 
 2. ✅ Cardelrec - Bootcamp
    Sport: Bootcamp
    Facility: Cardelrec
    People: 1
    Time Slots:
-     Tue: 7:00 AM
+     Tue: 7:00 AM
 ```
 
-### `settings [--unmask]`
+### ⚙️ `settings [--unmask]`
 
 Show user settings from export token.
 
@@ -103,7 +103,7 @@ Show user settings from export token.
 # Show masked settings (default)
 ./odyssey-cli settings
 📋 User Settings:
-==============================
+==================================================
 Name: John
 Phone: ***890
 Email: ***@domain.com
@@ -113,7 +113,7 @@ IMAP Server: imap.domain.com
 # Show unmasked settings (for debugging)
 ./odyssey-cli settings --unmask
 📋 User Settings:
-==============================
+==================================================
 Name: John
 Phone: 1234567890
 Email: johndoe@gmail.com
@@ -121,7 +121,7 @@ IMAP Password: my-s3cur3-p@ssw0rd
 IMAP Server: imap.gmail.com
 ```
 
-### `help`
+### ❓ `help`
 
 Show CLI help and usage information.
 
@@ -129,7 +129,7 @@ Show CLI help and usage information.
 ./odyssey-cli help
 ```
 
-### `version`
+### 📊 `version`
 
 Show CLI version information.
 
@@ -148,7 +148,7 @@ The export token is a compressed, base64-encoded configuration optimized for CLI
 
 ## 🧪 Verifying Your Configuration
 
-### Step 1: Generate Export Token
+### 📋 Step 1: Generate Export Token
 
 1. Open the ODYSSEY GUI app
 2. Click "Export" in the main view
@@ -160,13 +160,13 @@ The export token is a compressed, base64-encoded configuration optimized for CLI
   <img src="Images/export.png" width="300">
 </div>
 
-### Step 2: Set Environment Variable
+### ⚙️ Step 2: Set Environment Variable
 
 ```bash
 export ODYSSEY_EXPORT_TOKEN="<exported_token>"
 ```
 
-### Step 3: Verify the Configuration
+### ✅ Step 3: Verify the Configuration
 
 ```bash
 # List available configurations
@@ -181,11 +181,11 @@ export ODYSSEY_EXPORT_TOKEN="<exported_token>"
 
 ## 🔄 CLI Integration
 
-### GitHub Actions Integration
+### 🚀 GitHub Actions Integration
 
 The CLI can be integrated into GitHub Actions for automated reservation booking.
 
-#### Step 1: Fork the Repository
+#### 📋 Step 1: Fork the Repository
 
 1. **Fork ODYSSEY**: Go to [https://github.com/Amet13/ODYSSEY](https://github.com/Amet13/ODYSSEY) and click "Fork"
 2. **Clone your fork**:
@@ -194,7 +194,7 @@ The CLI can be integrated into GitHub Actions for automated reservation booking.
    cd ODYSSEY
    ```
 
-#### Step 2: Add GitHub Secret
+#### 🔐 Step 2: Add GitHub Secret
 
 1. **Go to your fork**: Navigate to your forked repository on GitHub
 2. **Settings**: Click on "Settings" tab
@@ -205,7 +205,7 @@ The CLI can be integrated into GitHub Actions for automated reservation booking.
    - **Value**: Your exported token from the GUI app
 6. **Save**: Click "Add secret"
 
-#### Step 3: Use the Workflow
+#### ⚙️ Step 3: Use the Workflow
 
 The workflow file is already included in the repository. It will automatically:
 
@@ -215,9 +215,9 @@ The workflow file is already included in the repository. It will automatically:
 
 ## 🔍 Troubleshooting
 
-### Common Issues
+### ⚠️ Common Issues
 
-#### WebKit Issues
+#### 🌐 WebKit Issues
 
 ```bash
 # CLI always runs in headless mode
@@ -235,17 +235,17 @@ log show --predicate 'subsystem == "com.odyssey.cli"' --last 1h
 
 ## 🖥️ Remote Server Deployment
 
-### Server Requirements
+### 📋 Server Requirements
 
 The CLI uses WebKit which requires macOS and a graphical environment. For remote server deployment:
 
-#### macOS Servers (Recommended)
+#### 🖥️ macOS Servers (Recommended)
 
 ```bash
 ./odyssey-cli run
 ```
 
-### Important Notes
+### ⚠️ Important Notes
 
 - **Linux servers are not supported** due to WebKit dependencies
 - **Only macOS servers** with GUI capabilities are supported

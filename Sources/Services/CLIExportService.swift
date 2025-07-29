@@ -70,7 +70,7 @@ public final class CLIExportService: ObservableObject {
         }
 
         for (index, config) in selectedConfigs.enumerated() {
-            logger.info("🔍 Config \(index + 1): \(config.name)")
+            logger.info("🔍 Config \(index + 1): \(config.name).")
             logger.info("   - Day time slots count: \(config.dayTimeSlots.count)")
             for (day, slots) in config.dayTimeSlots {
                 logger.info("   - \(day.rawValue): \(slots.count) slots")
@@ -97,7 +97,7 @@ public final class CLIExportService: ObservableObject {
         let compressedData = try (jsonData as NSData).compressed(using: .lzfse)
         let base64String = compressedData.base64EncodedString()
 
-        logger.info("✅ CI export created with \(selectedConfigs.count) configurations")
+        logger.info("✅ CI export created with \(selectedConfigs.count) configurations.")
 
         return base64String
     }

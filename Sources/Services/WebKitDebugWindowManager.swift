@@ -23,11 +23,11 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
 
     override init() {
         super.init()
-        logger.info("🔧 WebKitDebugWindowManager initialized")
+        logger.info("🔧 WebKitDebugWindowManager initialized.")
     }
 
     deinit {
-        logger.info("🧹 WebKitDebugWindowManager deinitialized")
+        logger.info("🧹 WebKitDebugWindowManager deinitialized.")
         debugWindow = nil
     }
 
@@ -39,7 +39,7 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
     ///   - config: The current reservation configuration
     public func showDebugWindow(webView: WKWebView?, config: ReservationConfig?) {
         guard let webView else {
-            logger.warning("⚠️ Cannot show debug window: WebView is nil")
+            logger.warning("⚠️ Cannot show debug window: WebView is nil.")
             return
         }
 
@@ -48,7 +48,7 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
         // Check user settings to determine if window should be shown
         let userSettings = UserSettingsManager.shared.userSettings
         if !userSettings.showBrowserWindow {
-            logger.info("🪟 Debug window hidden (user setting: hide window - recommended to avoid captcha detection)")
+            logger.info("🪟 Debug window hidden (user setting: hide window - recommended to avoid captcha detection).")
             return
         }
 
@@ -57,7 +57,7 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
         }
 
         guard let window = debugWindow else {
-            logger.error("❌ Failed to create debug window")
+            logger.error("❌ Failed to create debug window.")
             return
         }
 
@@ -68,7 +68,7 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
         if !isWindowVisible {
             window.makeKeyAndOrderFront(nil)
             isWindowVisible = true
-            logger.info("🪟 Debug window shown")
+            logger.info("🪟 Debug window shown.")
         }
 
         updateWindowTitle(with: config)
@@ -85,7 +85,7 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
         debugWindow = nil
         isWindowVisible = false
         currentConfig = nil
-        logger.info("🪟 Debug window closed")
+        logger.info("🪟 Debug window closed.")
     }
 
     /// Updates the window title with configuration information
@@ -111,7 +111,7 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
         debugWindow = nil
         isWindowVisible = false
         currentConfig = nil
-        logger.info("🪟 Debug window force closed")
+        logger.info("🪟 Debug window force closed.")
     }
 
     /// Checks if the debug window is currently visible
@@ -150,7 +150,7 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
         window.hasShadow = true
 
         debugWindow = window
-        logger.info("✅ Debug window created successfully")
+        logger.info("✅ Debug window created successfully.")
     }
 
     private func updateWindowContent(webView: WKWebView) {
@@ -160,7 +160,7 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
         webView.frame = window.contentView?.bounds ?? webView.frame
         window.contentView = webView
 
-        logger.info("✅ Debug window content updated")
+        logger.info("✅ Debug window content updated.")
     }
 
     private func cleanup() {
@@ -173,7 +173,7 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
         guard let window = notification.object as? NSWindow, window == debugWindow else { return }
 
         isWindowVisible = false
-        logger.info("🪟 Debug window closing")
+        logger.info("🪟 Debug window closing.")
     }
 
     public func windowDidResize(_ notification: Notification) {
@@ -190,7 +190,7 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
 
         // Log window position for debugging
         let frame = window.frame
-        logger.info("🪟 Debug window moved to: (\(frame.origin.x), \(frame.origin.y))")
+        logger.info("🪟 Debug window moved to: (\(frame.origin.x), \(frame.origin.y)).")
     }
 }
 

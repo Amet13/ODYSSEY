@@ -25,9 +25,9 @@ extension WebKitCore {
         if userSettings.showBrowserWindow {
             // Show browser window for visibility
             showDebugWindow()
-            logger.info("🪟 Browser window shown (user setting: show window)")
+            logger.info("🪟 Browser window shown (user setting: show window).")
         } else {
-            logger.info("🪟 Browser window hidden (user setting: hide window - recommended to avoid captcha detection)")
+            logger.info("🪟 Browser window hidden (user setting: hide window - recommended to avoid captcha detection).")
         }
 
         logger.info("✅ WebKit service connected successfully.")
@@ -36,7 +36,7 @@ extension WebKitCore {
     /// Navigates to a specific URL
     /// - Parameter url: The URL to navigate to
     func navigateToURL(_ url: String) async throws {
-        logger.info("🌐 Navigating to URL: \(url, privacy: .private)")
+        logger.info("🌐 Navigating to URL: \(url, privacy: .private).")
 
         guard webView != nil else {
             logger.error("❌ WebView is nil, cannot navigate.")
@@ -63,7 +63,7 @@ extension WebKitCore {
         // Wait for navigation to complete using a simple approach
         // For now, we'll just return true since the navigation delegate will handle completion
 
-        logger.info("✅ Navigation completed successfully for URL: \(url, privacy: .private)")
+        logger.info("✅ Navigation completed successfully for URL: \(url, privacy: .private).")
     }
 
     /// Disconnects from the WebKit service
@@ -165,21 +165,21 @@ extension WebKitCore {
     ///   - timeout: Maximum time to wait in seconds
     /// - Returns: True if text appears, false if timeout
     func waitForText(_ text: String, timeout: TimeInterval = 10.0) async -> Bool {
-        logger.info("⏳ Waiting for text: '\(text, privacy: .private)'")
+        logger.info("⏳ Waiting for text: '\(text, privacy: .private)'.")
 
         let checkInterval: TimeInterval = 0.5
         let startTime = Date()
 
         while Date().timeIntervalSince(startTime) < timeout {
             if await pageContainsText(text) {
-                logger.info("✅ Text found: '\(text, privacy: .private)'")
+                logger.info("✅ Text found: '\(text, privacy: .private)'.")
                 return true
             }
 
             try? await Task.sleep(nanoseconds: UInt64(checkInterval * 1_000_000_000))
         }
 
-        logger.warning("⏰ Text not found within timeout: '\(text, privacy: .private)'")
+        logger.warning("⏰ Text not found within timeout: '\(text, privacy: .private)'.")
         return false
     }
 
@@ -189,7 +189,7 @@ extension WebKitCore {
     ///   - timeout: Maximum time to wait in seconds
     /// - Returns: True if element appears, false if timeout
     func waitForElement(_ selector: String, timeout: TimeInterval = 10.0) async -> Bool {
-        logger.info("⏳ Waiting for element: '\(selector)'")
+        logger.info("⏳ Waiting for element: '\(selector)'.")
 
         let script = """
         (function() {
@@ -205,14 +205,14 @@ extension WebKitCore {
             let exists = await evaluateJavaScript(script) as? Bool ?? false
 
             if exists {
-                logger.info("✅ Element found: '\(selector)'")
+                logger.info("✅ Element found: '\(selector)'.")
                 return true
             }
 
             try? await Task.sleep(nanoseconds: UInt64(checkInterval * 1_000_000_000))
         }
 
-        logger.warning("⏰ Element not found within timeout: '\(selector)'")
+        logger.warning("⏰ Element not found within timeout: '\(selector)'.")
         return false
     }
 }

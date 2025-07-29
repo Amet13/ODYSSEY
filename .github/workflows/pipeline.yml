@@ -56,28 +56,28 @@ jobs:
       - name: Run ShellCheck
         run: |
           echo "🔍 Running ShellCheck on bash scripts..."
-          shellcheck Scripts/*.sh || echo "⚠️ ShellCheck found issues (mostly acceptable warnings)"
+          shellcheck Scripts/*.sh || echo "⚠️ ShellCheck found issues (mostly acceptable warnings)."
 
       - name: Run YAML Linting
         run: |
           echo "🔍 Running YAML Linting..."
-          yamllint --config-file .yamllint Config/project.yml .github/workflows/*.yml || echo "⚠️ YAML Linting found issues (acceptable warnings ignored)"
+          yamllint --config-file .yamllint Config/project.yml .github/workflows/*.yml || echo "⚠️ YAML Linting found issues (acceptable warnings ignored)."
 
       - name: Run Markdown Linting
         run: |
           echo "🔍 Running Markdown Linting..."
-          markdownlint --config .markdownlint.json README.md Documentation/*.md .github/*.md || echo "⚠️ Markdown Linting found issues (acceptable warnings ignored)"
+          markdownlint --config .markdownlint.json README.md Documentation/*.md .github/*.md || echo "⚠️ Markdown Linting found issues (acceptable warnings ignored)."
 
       - name: Run GitHub Actions Linting
         run: |
           echo "🔍 Running GitHub Actions Linting..."
-          actionlint -shellcheck="" .github/workflows/*.yml || echo "⚠️ GitHub Actions Linting found issues (acceptable warnings ignored)"
+          actionlint -shellcheck="" .github/workflows/*.yml || echo "⚠️ GitHub Actions Linting found issues (acceptable warnings ignored)."
 
       - name: Run Comprehensive Linting
         run: |
           echo "🧹 Running comprehensive linting check..."
           chmod +x Scripts/lint-all.sh
-          ./Scripts/lint-all.sh || echo "⚠️ Comprehensive linting found issues (acceptable warnings ignored)"
+          ./Scripts/lint-all.sh || echo "⚠️ Comprehensive linting found issues (acceptable warnings ignored)."
 
       - name: Check code formatting
         run: |

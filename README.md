@@ -24,7 +24,7 @@
 2. **Install**: Open the `.dmg`, drag ODYSSEY to `Applications`.
 3. **Launch**: Find ODYSSEY in your menu bar (top right).
 4. **Configure**: Click the icon, add your settings and configurations.
-5. **Automate!** Enable autorun and sit back and let ODYSSEY book your sports for you! 🎉
+5. **Automate!** Enable autorun and sit back while ODYSSEY books your sports for you! 🎉
 
 ### 💻 CLI Version (Command Line Interface)
 

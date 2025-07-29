@@ -4,281 +4,287 @@ Thank you for your interest in contributing to ODYSSEY! This document provides g
 
 ## 🎯 Overview
 
-ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
+ODYSSEY is a **dual-interface application**:
 
 - **🖥️ GUI Version**: Native macOS menu bar app with SwiftUI interface
 - **💻 CLI Version**: Command-line interface for remote automation
 
-Both versions share the same backend services and automation engine, so contributions can affect both interfaces.
+Both versions use the same powerful WebKit automation engine, ensuring consistent behavior and reliability.
 
 ## 🎯 Quick Start
 
-1. **Fork the repository** on GitHub
-2. **Clone your fork** locally
-3. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-4. **Make your changes** following our guidelines
-5. **Test thoroughly** - ensure everything works
-6. **Commit with clear messages**
-7. **Push to your branch** and open a Pull Request
+1. **📋 Read the Documentation**: Start with [DEVELOPMENT.md](DEVELOPMENT.md) for development setup
+2. **🔧 Setup Environment**: Run `./Scripts/setup-dev.sh setup`
+3. **🏗️ Build Project**: Run `./Scripts/build.sh`
+4. **📝 Choose an Issue**: Pick an issue from the [Issues](https://github.com/Amet13/ODYSSEY/issues) page
+5. **🔀 Create Branch**: Create a feature branch for your work
+6. **💻 Make Changes**: Follow the coding guidelines below
+7. **🧪 Test Changes**: Ensure all tests pass and linting is clean
+8. **📋 Submit PR**: Create a pull request with detailed description
 
 ## 🏷️ Issue Labels & Good First Issues
 
-We use the following labels to help contributors find suitable tasks:
-
 ### 🟢 Good First Issues
 
-- `good first issue` - Perfect for new contributors
-- `documentation` - Documentation improvements
-- `ui/ux` - User interface improvements (including dark mode polish)
-- `fun/polish` - Add or improve UI delight, animations, or polish
+These are perfect for new contributors:
+
+- **🐞 Bug fixes**: Small, isolated bugs
+- **📝 Documentation**: Improving docs and comments
+- **🎨 UI polish**: Minor UI improvements
+- **🔧 Configuration**: Adding new linting rules or build configurations
+- **📊 Logging**: Improving log messages and formatting
 
 ### 🟡 Intermediate Issues
 
-- `enhancement` - New features or improvements
-- `bug` - Bug fixes
-- `performance` - Performance optimizations
-- `refactoring` - Code improvements
+These require more experience:
+
+- **✨ New features**: Adding new functionality
+- **🔧 Architecture**: Improving code structure
+- **⚡ Performance**: Optimizing existing code
+- **🛡️ Security**: Security improvements
+- **🧪 Testing**: Adding tests and test coverage
 
 ### 🔴 Advanced Issues
 
-- `architecture` - Major architectural changes
-- `security` - Security-related improvements
-- `automation` - Web automation enhancements
-- `integration` - Third-party integrations
-- `cli` - Command-line interface improvements
+These are complex and require deep understanding:
+
+- **🏗️ Core architecture**: Major architectural changes
+- **🔄 Automation engine**: WebKit automation improvements
+- **🔒 Security features**: Advanced security implementations
+- **📱 Platform features**: macOS-specific features
 
 ## 📝 How to Check Logs
 
-- Open **Console.app** (Applications → Utilities)
-- Search for `ODYSSEY` or `com.odyssey.app`
-- Look for emoji log messages for quick status identification
-- Sensitive data is masked or marked as private
+ODYSSEY uses comprehensive logging with emoji indicators:
+
+```bash
+# Monitor logs in real-time
+./Scripts/logs.sh
+
+# Or use Console.app
+open -a Console
+# Search for: com.odyssey.app
+```
+
+**Log Categories**:
+
+- 🚀 Success messages
+- ⚠️ Warning messages
+- ❌ Error messages
+- 🔍 Debug information
+- ℹ️ General information
 
 ## 🐞 How to Report Bugs
 
-1. Go to [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
-2. Click 'New Issue' and use the bug report template
-3. Include:
-   - Steps to reproduce
-   - Expected vs actual behavior
-   - macOS version, ODYSSEY version, Xcode version
-   - Relevant logs (from Console.app)
-   - Screenshots if possible
+1. **🔍 Check Existing Issues**: Search [Issues](https://github.com/Amet13/ODYSSEY/issues) first
+2. **📝 Use Bug Template**: Use the bug report template
+3. **📊 Include Logs**: Attach relevant logs from Console.app
+4. **🖥️ System Info**: Include macOS version and ODYSSEY version
+5. **📋 Steps to Reproduce**: Provide clear, step-by-step instructions
 
 ## ✨ How to Suggest Features
 
-1. Go to [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
-2. Click 'New Issue' and use the feature request template
-3. Describe your idea, motivation, and possible solutions
+1. **💡 Check Roadmap**: See if it's already planned
+2. **📝 Use Feature Template**: Use the feature request template
+3. **🎯 Be Specific**: Describe the problem and proposed solution
+4. **📊 Consider Impact**: Explain how it benefits users
+5. **🔧 Consider Implementation**: Think about technical feasibility
 
 ## 🚀 Code Contributions
 
-### Getting Started
+### 📋 Getting Started
 
-1. **Fork the repository**
-2. **Create a feature branch**
+1. **🔧 Setup Environment**:
+
    ```bash
-   git checkout -b feature/amazing-feature
+   ./Scripts/setup-dev.sh setup
    ```
-3. **Make your changes** following the coding guidelines
-4. **Test thoroughly** - Ensure your changes work as expected
-5. **Commit with clear messages**
-6. **Push to your branch**
-   ```bash
-   git push origin feature/amazing-feature
-   ```
-7. **Open a Pull Request** on GitHub
 
-## 🖥️ CLI Development
-
-The CLI tool is an integral part of ODYSSEY, providing remote automation capabilities.
-
-### CLI Contribution Guidelines
-
-- **Shared Services**: CLI uses the same backend services as the GUI
-- **Environment Variables**: All configuration should be environment-based
-- **Error Handling**: Provide clear error messages for CLI users
-- **Documentation**: Update CLI documentation when adding new commands
-- **Testing**: Test CLI commands with real export tokens
-
-### CLI Development Workflow
-
-1. **Build CLI**: `swift build --product odyssey-cli`
-2. **Test Commands**: `./.build/arm64-apple-macosx/debug/odyssey-cli help`
-3. **Export Token**: Generate token from GUI for testing
-4. **Test Automation**: `export ODYSSEY_EXPORT_TOKEN="<exported_token>" && ./odyssey-cli run`
-5. **Test GitHub Actions**: Verify `.github/workflows/reservation-automation.yml` works correctly
-
-### Supported CLI Commands
-
-- `run [--now] [--prior <days>]` - Run reservations (with optional immediate execution and prior days)
-- `configs` - List all configurations from export token
-- `settings [--unmask]` - Show user settings (with optional unmasking)
-- `help` - Show CLI help and usage
-- `version` - Show CLI version information
-
-## 🧑‍💻 Coding Guidelines
-
-### Swift Style Guide
-
-- **Readability over brevity** - Code should be self-documenting
-- **Consistency** - Follow existing patterns in the codebase
-- **Safety** - Use Swift's type system and safety features
-- **Performance** - Consider performance implications
-
-#### Naming Conventions
-
-```swift
-// ✅ Good: Clear, descriptive names
-struct ReservationConfiguration {
-    let facilityURL: URL
-    let sportName: String
-    var isEnabled: Bool
-}
-
-// ✅ Good: Descriptive function names
-func calculateNextAutorunTime() -> Date? {
-    // Implementation
-}
-
-// ❌ Bad: Unclear names
-struct Config {
-    let url: URL
-    let sport: String
-    var enabled: Bool
-}
-```
-
-### Architecture Principles
-
-- **Protocol-Oriented Design** - Use protocols for interfaces
-- **Separation of Concerns** - Each component has a single responsibility
-- **Dependency Injection** - Use singletons for shared services and dependency injection patterns
-- **Reactive Programming** - Use Combine for state management
-- **Error Handling** - Use structured error handling throughout
-
-## 🎨 UI/UX Guidelines
-
-### Design Principles
-
-- **Native macOS Feel** - Follow macOS design guidelines
-- **Accessibility** - Ensure VoiceOver and basic accessibility features work
-- **Dark Mode** - Support both light and dark appearances
-- **Responsive** - Handle different window sizes gracefully
-
-### Color Usage
-
-```swift
-// ✅ Use semantic colors that adapt to appearance
-Color.odysseyPrimary
-Color.odysseyBackground
-Color.odysseyText
-
-// ❌ Don't use hardcoded colors
-Color.blue
-Color.white
-Color.black
-```
-
-## 🔒 Security Guidelines
-
-### Data Privacy
-
-- **Local Processing** - All automation runs locally
-- **Secure Storage** - Use Keychain for sensitive data
-- **Input Validation** - Validate and sanitize all inputs
-- **Logging Privacy** - Mask sensitive data in logs
-
-### Code Security
-
-```swift
-// ✅ Good: Secure credential storage
-KeychainService.shared.storeCredentials(email: email, password: password)
-
-// ❌ Bad: Plain text storage
-UserDefaults.standard.set(password, forKey: "password")
-```
-
-## 📚 Documentation Standards
-
-### Code Comments
-
-- **JSDoc Style** - Use JSDoc-style comments for public APIs
-- **Usage Examples** - Include usage examples in documentation
-- **Parameter Documentation** - Document all parameters and return values
-- **Error Documentation** - Document possible errors and exceptions
-
-### README Updates
-
-- **Feature Documentation** - Document new features in README
-- **Installation Instructions** - Keep installation steps current
-- **Usage Examples** - Provide clear usage examples
-- **Troubleshooting** - Add common issues and solutions
-
-## 🚀 Release Process
-
-### Before Submitting a PR
-
-1. **Run the build script**
+2. **🏗️ Build Project**:
 
    ```bash
    ./Scripts/build.sh
    ```
 
-2. **Fix all linting errors**
+3. **🔀 Create Branch**:
 
    ```bash
-   swiftlint lint
+   git checkout -b feature/your-feature-name
    ```
 
-3. **Test thoroughly**
+4. **💻 Make Changes**: Follow coding guidelines below
 
-   - Test on different macOS versions
-   - Test with different configurations
-   - Test error scenarios
+5. **🧪 Test Changes**:
 
-4. **Update documentation**
-   - Update README if needed
-   - Update CHANGELOG.md
-   - Update inline documentation
+   ```bash
+   ./Scripts/lint-all.sh
+   ./Scripts/build.sh
+   ```
 
-### PR Review Process
+6. **📋 Submit PR**: Create pull request with detailed description
 
-1. **Self-Review** - Review your own changes first
-2. **Code Review** - Address reviewer feedback
-3. **Testing** - Ensure all tests pass
-4. **Documentation** - Update documentation as needed
-5. **Merge** - Merge after approval
+### 💻 CLI Development
+
+#### 🔧 CLI Architecture
+
+The CLI uses the same backend services as the GUI:
+
+- **🔄 Shared Services**: WebKitService, ConfigurationManager, etc.
+- **📋 Environment Variables**: All configuration via environment
+- **🛡️ Headless Mode**: Always runs without browser window
+- **📊 Token-Based**: Uses export tokens from GUI for configuration
+
+#### 🔧 CLI Development Workflow
+
+1. **📋 Export Token**: Generate token from GUI app
+2. **⚙️ Set Environment**: `export ODYSSEY_EXPORT_TOKEN="<token>"`
+3. **🧪 Test Commands**: Test all CLI commands
+4. **📊 Monitor Logs**: Use `./Scripts/logs.sh` for debugging
+
+#### 📋 Supported CLI Commands
+
+- `run` - Execute reservations
+- `configs` - List configurations
+- `settings` - Show user settings
+- `help` - Show help
+- `version` - Show version
+
+#### 🔄 CLI Integration
+
+- **🚀 GitHub Actions**: Automated reservation booking
+- **🖥️ Remote Servers**: macOS server deployment
+- **📊 CI/CD**: Integration with build pipelines
+
+## 🧑‍💻 Coding Guidelines
+
+### 📋 Swift Style Guide
+
+Follow the official Swift style guide and project-specific rules:
+
+#### 📝 Naming Conventions
+
+```swift
+// ✅ Good: Clear, descriptive names
+let reservationConfiguration: ReservationConfig
+let webKitService: WebKitServiceProtocol
+
+// ✅ Good: Descriptive function names
+func simulateHumanClick(in webView: WKWebView, selector: String)
+func validateConfiguration(_ config: ReservationConfig) -> Bool
+
+// ❌ Bad: Unclear names
+let config: Config
+let service: Service
+func click()
+func validate()
+```
+
+#### 🏗️ Architecture Principles
+
+- **📋 Protocol-Oriented**: Use protocols for better testability
+- **🔧 Dependency Injection**: Use ServiceRegistry for shared services
+- **📊 Error Handling**: Use structured error types
+- **🔒 Security**: Always use Keychain for sensitive data
+- **📱 UI/UX**: Follow macOS Human Interface Guidelines
+
+#### 🎨 Design Principles
+
+- **📱 Native Feel**: Use native macOS UI patterns
+- **🎨 Accessibility**: Support VoiceOver and accessibility features
+- **🌙 Dark Mode**: Support both light and dark appearances
+- **📊 Responsive**: Handle different window sizes gracefully
+
+#### 🎨 Color Usage
+
+```swift
+// ✅ Use semantic colors that adapt to appearance
+Text("Hello")
+    .foregroundColor(.primary)
+
+// ❌ Don't use hardcoded colors
+Text("Hello")
+    .foregroundColor(.black)
+```
+
+### 🔒 Security Guidelines
+
+- **🔐 Credentials**: Always use Keychain for sensitive data
+- **🛡️ Validation**: Validate all user inputs
+- **📊 Logging**: Never log sensitive information
+- **🔒 Network**: Use HTTPS for all network requests
+
+```swift
+// ✅ Good: Secure credential storage
+KeychainService.shared.storeValue("password", forKey: "email")
+
+// ❌ Bad: Plain text storage
+UserDefaults.standard.set("password", forKey: "email")
+```
+
+### 📚 Documentation Standards
+
+- **📝 Code Comments**: Use JSDoc-style comments for all public APIs
+- **📋 README Updates**: Update documentation when adding features
+- **📊 API Documentation**: Document all public interfaces
+- **📝 Changelog**: Update CHANGELOG.md for all changes
+
+```swift
+/// Simulates human-like clicking behavior in a WebView
+/// - Parameters:
+///   - webView: The WebView to interact with
+///   - selector: The CSS selector for the element to click
+///   - description: Description for logging purposes
+/// - Throws: WebKitError if the click operation fails
+func simulateHumanClick(in webView: WKWebView, selector: String, description: String) async throws
+```
+
+### 📋 Before Submitting a PR
+
+1. **🧪 Run Tests**: Ensure all tests pass
+2. **📊 Run Linting**: `./Scripts/lint-all.sh`
+3. **🏗️ Build Project**: `./Scripts/build.sh`
+4. **📝 Update Docs**: Update relevant documentation
+5. **📋 Check Logs**: Verify logging is consistent
+6. **🎨 Test UI**: Test on both light and dark mode
+7. **📱 Test Accessibility**: Test with VoiceOver
+
+### 📋 PR Review Process
+
+1. **📋 Automated Checks**: CI/CD pipeline runs automatically
+2. **👀 Code Review**: Maintainers review the code
+3. **🧪 Testing**: Verify functionality works as expected
+4. **📊 Documentation**: Ensure docs are updated
+5. **🎨 UI/UX**: Verify UI changes follow guidelines
+6. **🔒 Security**: Check for security implications
+7. **📋 Merge**: Merge after approval
 
 ## 🤝 Community Guidelines
 
-### Communication
+### 💬 Communication
 
-- **Be Respectful** - Treat everyone with respect
-- **Be Helpful** - Help other contributors
-- **Be Patient** - Understand that everyone is learning
-- **Be Constructive** - Provide constructive feedback
+- **🤝 Be Respectful**: Treat everyone with respect
+- **📝 Be Clear**: Use clear, concise language
+- **🔍 Be Helpful**: Help others when you can
+- **📊 Be Patient**: Understand that maintainers are volunteers
 
-### Getting Help
+### 🆘 Getting Help
 
-- **GitHub Issues** - For bugs and feature requests
-- **Documentation** - Check existing documentation first
-- **Code Examples** - Look at existing code for patterns
+- **📋 Documentation**: Check [DEVELOPMENT.md](DEVELOPMENT.md) first
+- **🐞 Issues**: Search existing issues for solutions
+- **💬 Discussions**: Use GitHub Discussions for questions
+- **📧 Contact**: Reach out to maintainers if needed
 
 ## 🛡️ Security Best Practices
 
-- 🔒 **Credentials:** Always use the macOS Keychain for sensitive data.
-- 🌐 **Network:** All requests must use HTTPS. No exceptions.
-- 📝 **Code Signing:** All builds for distribution must be code signed.
-- 🔍 **Input Validation:** Validate and sanitize all user inputs.
-- 📊 **Logging:** Use `privacy: .private` for sensitive data in logs.
+- **🔐 Never commit secrets**: Use environment variables and secrets
+- **🛡️ Validate inputs**: Always validate user inputs
+- **📊 Secure logging**: Never log sensitive information
+- **🔒 Use Keychain**: Always use Keychain for credentials
+- **📱 Follow guidelines**: Follow Apple's security guidelines
 
-## 🙌 Need Help?
+## 📚 Additional Resources
 
-- Open an issue on [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
-- See the [README](../README.md) for user-facing instructions
-- For advanced troubleshooting, check the logs in Console.app and enable "Show browser window" in God Mode Advanced Settings to monitor automation
-
----
-
-Thank you for contributing to ODYSSEY! 🚀
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development setup and workflow
+- **[USER_GUIDE.md](USER_GUIDE.md)** - User guide for the application
+- **[CLI.md](CLI.md)** - CLI documentation
+- **[SCRIPTS.md](SCRIPTS.md)** - Script documentation

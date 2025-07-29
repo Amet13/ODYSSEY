@@ -16,11 +16,11 @@ public final class GodModeStateManager: ObservableObject, @unchecked Sendable {
 
     public func toggleGodModeUI() {
         isGodModeUIEnabled.toggle()
-        logger.info("⌨️ God Mode UI toggled to: \(self.isGodModeUIEnabled)")
+        logger.info("⌨️ God Mode UI toggled to: \(self.isGodModeUIEnabled).")
     }
 
     public func setGodModeUI(_ enabled: Bool) {
         isGodModeUIEnabled = enabled
-        logger.info("⌨️ God Mode UI set to: \(self.isGodModeUIEnabled)")
+        logger.info("⌨️ God Mode UI set to: \(self.isGodModeUIEnabled).")
     }
 }

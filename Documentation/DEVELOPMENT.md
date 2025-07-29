@@ -1,4 +1,6 @@
-# ODYSSEY Development Guide
+# 🎯 ODYSSEY Development Guide
+
+This document provides comprehensive development guidelines, setup instructions, and workflow information for contributing to ODYSSEY.
 
 ## 🎯 Overview
 
@@ -7,103 +9,69 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 - **🖥️ GUI Version**: Native macOS menu bar app with SwiftUI interface
 - **💻 CLI Version**: Command-line interface for remote automation
 
-Both versions share the same backend services and automation engine.
+Both versions share the same backend services and automation engine, so contributions can affect both interfaces.
 
 ## 🖥️ System Requirements
 
-See [REQUIREMENTS.md](REQUIREMENTS.md) for complete system requirements.
+- **macOS 15.0 or later**
+- **Xcode 16.0 or later**
+- **Swift 6.1 or later**
+- **Homebrew** (for installing development dependencies)
 
 ## 🚀 Quick Start (For Developers)
 
-1. **Clone the repository:**
+1. **Clone the repository**:
+
    ```bash
    git clone https://github.com/Amet13/ODYSSEY.git
    cd ODYSSEY
    ```
-2. **Install dependencies:**
+
+2. **Setup development environment**:
+
    ```bash
-   brew install xcodegen swiftlint
+   ./Scripts/setup-dev.sh setup
    ```
-3. **Generate Xcode project:**
-   ```bash
-   xcodegen
-   ```
-4. **Build and run:**
+
+3. **Build the project**:
+
    ```bash
    ./Scripts/build.sh
    ```
-5. **(Optional) Open in Xcode:**
+
+4. **Open in Xcode**:
+
    ```bash
    open Config/ODYSSEY.xcodeproj
    ```
-6. **Run code quality checks:**
+
+5. **Run the app**:
+
    ```bash
-   swiftlint lint
+   ./Scripts/build.sh
+   ```
+
+6. **Monitor logs** (in another terminal):
+   ```bash
+   ./Scripts/logs.sh
    ```
 
 ## 🏗️ Architecture Principles
 
-- **Protocol-Oriented Design:** Clear interfaces for all services and models
-- **Separation of Concerns:** Each service/component has a single responsibility
-- **Dependency Injection:** Use singletons for shared services and dependency injection patterns
-- **Reactive Programming:** Use Combine for state management and async operations
-- **Centralized Validation:** All input validation in `ValidationService`
-- **Centralized Constants:** All constants in `AppConstants`
-- **Error Recovery:** Graceful error handling and fallback strategies
-- **Performance:** Optimized for memory usage and responsiveness
-- **Security:** Local processing, secure credential storage, and privacy by design
-
-## 🐞 Debugging & Troubleshooting
-
-- **Browser Window:** Optional for development and support. By default, automation runs invisibly. Enable "Show browser window" in God Mode Advanced Settings to monitor automation and diagnose issues.
-- **God Mode:** Advanced parallel execution mode accessible via Cmd+G keyboard shortcut for running multiple reservations simultaneously.
-- **Logs:** All logs use `os.log` with emoji indicators. Sensitive data is masked or marked as private.
-- **Console.app:** View logs by searching for `ODYSSEY` or `com.odyssey.app`.
-- **Error Handling:** All errors are logged with context and user-friendly messages are shown in the UI.
-- **LoadingStateManager:** Provides in-app banners and progress indicators for async operations and errors.
+- **Protocol-Oriented Design**: Use protocols for interfaces and dependency injection
+- **Separation of Concerns**: Each component has a single responsibility
+- **Reactive Programming**: Use Combine for state management and async operations
+- **Error Handling**: Use structured error handling throughout
+- **Security First**: Always use Keychain for sensitive data
+- **Performance**: Optimize for memory usage and responsiveness
+- **Validation**: Centralized validation in `ValidationService`
+- **Constants**: Centralized constants in `AppConstants`
 
 ## 🧪 Code Quality & Testing
 
-- **SwiftLint:** Enforced code style and best practices
-- **SwiftFormat:** Automatic code formatting
-- **ShellCheck:** Bash script linting and best practices
-- **YAML Linting:** yamllint for configuration and workflow files
-- **Markdown Linting:** markdownlint for documentation quality
-- **GitHub Actions Linting:** actionlint for workflow validation
-- **Comprehensive Documentation:** All public APIs and services are documented
-- **Self-Review:** All changes should be self-reviewed before submission
-- **Zero Linter Errors:** All code must pass all linters before merging
+### Automated Quality Checks
 
-### Example: Running All Checks
-
-```bash
-# Run all linters locally
-./Scripts/lint-all.sh
-
-# Or run individual linters
-./Scripts/build.sh
-shellcheck Scripts/*.sh
-yamllint Config/project.yml .github/workflows/*.yml
-markdownlint README.md Documentation/*.md .github/*.md
-actionlint .github/workflows/*.yml
-```
-
-### CI/CD Pipeline Integration
-
-The project includes a unified CI/CD automation pipeline through GitHub Actions that handles both continuous integration and releases:
-
-#### Unified Pipeline Structure
-
-**Single Workflow**: `.github/workflows/pipeline.yml` handles all automation:
-
-- **Quality Checks**: Runs on every push and pull request
-- **Build & Analysis**: Creates and analyzes both Debug and Release builds
-- **Documentation Generation**: Auto-generates project documentation
-- **Release Pipeline**: Automated release creation (triggered by version tags)
-
-#### Automated Workflows
-
-**Quality Checks (Every Push/PR)**
+The project includes comprehensive automated quality checks:
 
 - ✅ SwiftLint code quality checks
 - ✅ SwiftFormat code formatting validation
@@ -114,25 +82,45 @@ The project includes a unified CI/CD automation pipeline through GitHub Actions 
 - ✅ Comprehensive linting with `lint-all.sh`
 - ✅ CLI build and testing
 
-**Build & Analysis (After Quality Checks)**
+### Example: Running All Checks
 
-- ✅ Xcode project generation with XcodeGen
-- ✅ Debug and Release builds for GUI app
-- ✅ CLI binary compilation and testing
-- ✅ App structure analysis and size validation
-- ✅ Build artifact uploads for debugging
-- ✅ Documentation generation and upload
+```bash
+# Run all quality checks
+./Scripts/lint-all.sh
 
-**Release Pipeline (Tag-triggered)**
+# Build and test
+./Scripts/build.sh
 
-- ✅ Version consistency validation (tag vs project.yml vs Info.plist)
-- ✅ Changelog generation from git commits since last tag
-- ✅ DMG installer creation with app icon
-- ✅ CLI binary packaging with version naming
-- ✅ Code signing for both applications
-- ✅ GitHub Releases publication with comprehensive notes
-- ✅ File size tracking and reporting
-- ✅ Professional release notes with installation instructions
+# Monitor logs
+./Scripts/logs.sh
+```
+
+### CI/CD Pipeline Integration
+
+The unified CI/CD pipeline (`.github/workflows/pipeline.yml`) automatically runs all quality checks on every commit and pull request.
+
+#### Unified Pipeline Structure
+
+The pipeline includes:
+
+- ✅ **Quality Checks**: SwiftLint, SwiftFormat, ShellCheck, YAML/Markdown linting
+- ✅ **Build Validation**: Xcode project generation with XcodeGen
+- ✅ **Debug and Release builds** for GUI app
+- ✅ **CLI binary compilation** and testing
+- ✅ **App structure analysis** and size validation
+- ✅ **Build artifact uploads** for debugging
+- ✅ **Documentation generation** and upload
+
+#### Automated Workflows
+
+- ✅ **Version consistency validation** (tag vs project.yml vs Info.plist)
+- ✅ **Changelog generation** from git commits since last tag
+- ✅ **DMG installer creation** with app icon
+- ✅ **CLI binary packaging** with version naming
+- ✅ **Code signing** for both applications
+- ✅ **GitHub Releases publication** with comprehensive notes
+- ✅ **File size tracking** and reporting
+- ✅ **Professional release notes** with installation instructions
 
 #### Pipeline Benefits
 
@@ -146,34 +134,19 @@ The project includes a unified CI/CD automation pipeline through GitHub Actions 
 
 ## 🧪 Testing
 
-- **Manual Testing:**
-  - Always test new features manually in the app UI.
-- **CLI Testing:**
-  - Test CLI commands: `./.build/arm64-apple-macosx/debug/odyssey-cli help`
-  - Verify CLI builds with: `swift build --product odyssey-cli`
-- **Linting:**
-  - Run `./Scripts/build.sh` to check formatting and linting before every commit.
-- **GitHub Actions:**
-  - Test the workflow file: `.github/workflows/reservation-automation.yml`
-  - Verify it works with real export tokens in a fork
+### GUI Testing
 
-## 🖥️ CLI Development
+- **Manual Testing**: Test all UI interactions and automation flows
+- **Log Monitoring**: Use `./Scripts/logs.sh` to monitor real-time logs
+- **Browser Window**: Optional for development and support. By default, automation runs invisibly. Enable "Show browser window" in God Mode Advanced Settings to monitor automation and diagnose issues.
 
-The CLI tool shares the same backend services as the GUI app, providing remote automation capabilities.
-
-### CLI Architecture
-
-- **Shared Services**: Uses the same `WebKitService`, `ConfigurationManager`, and other core services
-- **Environment-Based**: Configured via environment variables for CI/CD integration
-- **Token-Based**: Uses export tokens from the GUI for configuration
-- **Headless Mode**: Runs without browser windows for server environments
-
-### CLI Development Workflow
+### CLI Testing
 
 1. **Build CLI**: `swift build --product odyssey-cli`
 2. **Test Commands**: `./.build/arm64-apple-macosx/debug/odyssey-cli help`
-3. **Export Token**: Use GUI to generate export token for testing
+3. **Export Token**: Generate token from GUI for testing
 4. **Test Automation**: `export ODYSSEY_EXPORT_TOKEN="<exported_token>" && ./odyssey-cli run`
+5. **Test GitHub Actions**: Verify `.github/workflows/reservation-automation.yml` works correctly
 
 ### Supported CLI Commands
 

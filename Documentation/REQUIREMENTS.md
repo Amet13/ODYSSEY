@@ -2,45 +2,45 @@
 
 This document contains the centralized requirements for ODYSSEY that are referenced by all other documentation files.
 
-## System Requirements
+## 🖥️ System Requirements
 
-### For Users
+### 👥 For Users
 
 - **macOS 15.0 or later**
 
-### For Developers
+### 👨‍💻 For Developers
 
 - **macOS 15.0 or later**
 - **Xcode 16.0 or later**
 - **Swift 6.1 or later**
 - **Homebrew** (for installing development dependencies)
 
-## Development Dependencies
+## 📦 Development Dependencies
 
-### Required Tools
+### 🛠️ Required Tools
 
 - **XcodeGen** - For project generation
 - **SwiftLint** - For code quality
 - **SwiftFormat** - For code formatting
 - **create-dmg** - For installer creation
 
-### Optional Tools
+### 🔧 Optional Tools
 
 - **shellcheck** - For bash script linting
 - **yamllint** - For YAML file linting
 - **markdownlint** - For Markdown file linting
 - **actionlint** - For GitHub Actions linting
 
-## Installation Commands
+## ⚙️ Installation Commands
 
-### For Users
+### 👥 For Users
 
 ```bash
 # Download from GitHub Releases
 # No additional installation required - drag to Applications folder
 ```
 
-### For Developers
+### 👨‍💻 For Developers
 
 ```bash
 # Install Homebrew (if not already installed)
@@ -53,16 +53,16 @@ brew install xcodegen swiftlint swiftformat create-dmg shellcheck yamllint markd
 ./Scripts/setup-dev.sh
 ```
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
-### Common Issues
+### ⚠️ Common Issues
 
 - **"App is damaged" error**: Right-click and select "Open" instead of double-clicking
 - **"macOS version too old"**: Update to macOS 15.0+
 - **"Xcode version mismatch"**: Use Xcode 16+ (check with `xcodebuild -version`)
 - **"Homebrew installation fails"**: Check internet connection and try again
 
-### Development Issues
+### 🔧 Development Issues
 
 - **Build failures**: Run `./Scripts/build.sh` to check for issues
 - **Linting errors**: Run `./Scripts/lint-all.sh` to identify and fix issues

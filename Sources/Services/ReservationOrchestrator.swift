@@ -941,7 +941,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                             }
 
                             if !allFinalized {
-                                logger.info("🔄 Waiting for all statuses to finalize... (\(waitTime)s)")
+                                logger.info("🔄 Waiting for all statuses to finalize... (\(waitTime)s).")
                             }
                         }
 

@@ -1,84 +1,56 @@
 ---
-
 name: "🐞 Bug Report"
-description: "Report a bug to help us improve ODYSSEY."
-title: "[Bug] "
-labels: [bug]
-assignees: []
-body:
+about: "Create a report to help us improve ODYSSEY"
+title: "[BUG] "
+labels: ["bug", "triage"]
+assignees: ""
+---
 
-- type: markdown
-  attributes:
-  value: | ## 🐞 Bug Report
-  Please fill out the following information to help us reproduce and fix the issue.
+## 🐞 Bug Report
 
-- type: input
-  id: summary
-  attributes:
-  label: "Summary"
-  description: "A clear and concise description of the bug."
-  placeholder: "The app crashes when..."
-  validations:
-  required: true
+### 📋 Description
 
-- type: textarea
-  id: steps
-  attributes:
-  label: "Steps to Reproduce"
-  description: "How can we reproduce the bug?"
-  placeholder: "1. Go to...\n2. Click on...\n3. See error..."
-  validations:
-  required: true
+A clear and concise description of what the bug is.
 
-- type: textarea
-  id: expected
-  attributes:
-  label: "Expected Behavior"
-  description: "What did you expect to happen?"
-  placeholder: "The app should..."
-  validations:
-  required: true
+### 🔄 Steps to Reproduce
 
-- type: textarea
-  id: actual
-  attributes:
-  label: "Actual Behavior"
-  description: "What actually happened?"
-  placeholder: "Instead, the app..."
-  validations:
-  required: true
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
 
-- type: input
-  id: version
-  attributes:
-  label: "App Version"
-  description: "Which version of ODYSSEY are you using? (see About or version badge)"
-  placeholder: "e.g. 1.0.0"
-  validations:
-  required: false
+### ✅ Expected Behavior
 
-- type: input
-  id: os
-  attributes:
-  label: "macOS Version"
-  description: "Which version of macOS are you using?"
-  placeholder: "e.g. macOS 15"
-  validations:
-  required: false
+A clear and concise description of what you expected to happen.
 
-- type: textarea
-  id: logs
-  attributes:
-  label: "Relevant Logs / Screenshots"
-  description: "Paste any relevant logs, error messages, or screenshots."
-  placeholder: "Paste logs or drag screenshots here."
-  validations:
-  required: false
+### ❌ Actual Behavior
 
-- type: checkboxes
-  id: terms
-  attributes:
-  label: "Checklist"
-  options: - label: "I have searched existing issues."
-  required: true - label: "I am not reporting a duplicate."
-  required: true
+A clear and concise description of what actually happened.
+
+### 📊 System Information
+
+- **🖥️ macOS Version**: [e.g., macOS 15.0]
+- **📱 ODYSSEY Version**: [e.g., 1.0.0]
+- **🔧 Xcode Version**: [e.g., 16.4] (if applicable)
+- **💻 CLI Version**: [e.g., 1.0.0] (if applicable)
+
+### 📸 Screenshots
+
+If applicable, add screenshots to help explain your problem.
+
+### 📋 Additional Context
+
+Add any other context about the problem here, including:
+
+- **📊 Logs**: Relevant logs from Console.app
+- **🔧 Configuration**: Your ODYSSEY configuration details
+- **🖥️ Environment**: Any relevant environment details
+- **📱 Steps Taken**: What you've already tried to resolve the issue
+
+### 📝 Checklist
+
+- [ ] I have searched existing issues for duplicates
+- [ ] I have provided all required information
+- [ ] I have included relevant logs from Console.app
+- [ ] I have tested on a clean installation
+- [ ] I have provided clear steps to reproduce

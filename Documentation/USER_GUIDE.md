@@ -14,17 +14,17 @@
 
 ## 🚀 Getting Started
 
-### System Requirements
+### 📋 System Requirements
 
 See [REQUIREMENTS.md](REQUIREMENTS.md) for complete system requirements.
 
-### Installation
+### ⚙️ Installation
 
 See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
 
 ## 🖥️ GUI Version Guide
 
-### First Time Setup
+### 🎯 First Time Setup
 
 1. **Launch ODYSSEY** - Click the menu bar icon
 2. **Add Configuration** - Click the "+" button
@@ -37,7 +37,7 @@ See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
   <p><em>Main screen when no configurations are added</em></p>
 </div>
 
-### Adding a Reservation Configuration
+### ➕ Adding a Reservation Configuration
 
 1. Click **Add Configuration** or the "+" button
 2. Fill in the required fields:
@@ -53,9 +53,9 @@ See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
   <p><em>Adding a new reservation configuration</em></p>
 </div>
 
-### Configuration Details
+### ⚙️ Configuration Details
 
-#### Facility URL Format
+#### 🌐 Facility URL Format
 
 ```
 https://reservation.frontdesksuite.ca/rcfs/[facility-name]
@@ -63,7 +63,7 @@ https://reservation.frontdesksuite.ca/rcfs/[facility-name]
 
 **Example**: `https://reservation.frontdesksuite.ca/rcfs/cardelrec`
 
-#### Sport Names
+#### 🏀 Sport Names
 
 Common sport names include:
 
@@ -73,31 +73,31 @@ Common sport names include:
 - Soccer
 - and many more...
 
-#### Time Slots
+#### ⏰ Time Slots
 
 - Select the day of the week
 - Choose the time for your reservation
 - You can have multiple configurations for different times
 
-### Managing Configurations
+### 🔧 Managing Configurations
 
-#### Enable/Disable
+#### ✅ Enable/Disable
 
 - Use the toggle switch to enable/disable automatic runs
 - Disabled configurations won't run automatically
 
-#### Edit Configuration
+#### ✏️ Edit Configuration
 
 - Click the pencil icon to edit a configuration
 - All fields can be modified
 - Changes are saved immediately
 
-#### Delete Configuration
+#### 🗑️ Delete Configuration
 
 - Click the trash icon to delete a configuration
 - This action cannot be undone
 
-#### Run Manually
+#### ▶️ Run Manually
 
 - Click the play button to run a configuration immediately
 - Useful for testing or immediate bookings
@@ -119,14 +119,14 @@ For detailed CLI usage, commands, and advanced features, see **[CLI.md](CLI.md)*
 
 ## ⚙️ Configuration Management
 
-### Best Practices
+### 📋 Best Practices
 
 1. **Use Descriptive Names**: Name your configurations clearly
 2. **Test First**: Always run a manual test before enabling auto-run
 3. **Monitor Logs**: Check Console.app for detailed logs
 4. **Backup Configurations**: Export your configurations regularly
 
-### Configuration Validation
+### ✅ Configuration Validation
 
 ODYSSEY automatically validates your configurations:
 
@@ -139,17 +139,17 @@ ODYSSEY automatically validates your configurations:
 
 ODYSSEY automatically detects potential conflicts:
 
-### Conflict Types
+### ⚠️ Conflict Types
 
 1. **Time Slot Overlaps**: When configurations have overlapping times
 
-### Conflict Severity Levels
+### 🚦 Conflict Severity Levels
 
 - **🔴 Critical**: Must be resolved before saving
 - **🟡 Warning**: Should be reviewed
 - **🔵 Information**: Informational only
 
-### Resolving Conflicts
+### 🔧 Resolving Conflicts
 
 1. **Review Conflicts**: Check the conflict details
 2. **Modify Configurations**: Adjust times, facilities, or settings
@@ -158,7 +158,7 @@ ODYSSEY automatically detects potential conflicts:
 
 ## 📧 Email Setup
 
-### Gmail Setup (Recommended)
+### 📧 Gmail Setup (Recommended)
 
 1. **Enable 2-Factor Authentication** on your Google account
 2. **Generate App Password**:
@@ -172,7 +172,7 @@ ODYSSEY automatically detects potential conflicts:
 
 Other email providers that support IMAP could be used too.
 
-### Testing Email Connection
+### 🧪 Testing Email Connection
 
 1. Click **Settings** in ODYSSEY
 2. Fill in your email credentials
@@ -187,9 +187,9 @@ Other email providers that support IMAP could be used too.
 
 ## 🔧 Troubleshooting
 
-### Common Issues
+### ⚠️ Common Issues
 
-#### Automation Fails
+#### 🔄 Automation Fails
 
 **Symptoms**: Automation stops or shows errors
 **Solutions**:
@@ -199,7 +199,7 @@ Other email providers that support IMAP could be used too.
 - Try running at a different time
 - Check Console.app for detailed logs
 
-#### Email Verification Fails
+#### 📧 Email Verification Fails
 
 **Symptoms**: No verification emails received
 **Solutions**:
@@ -209,7 +209,7 @@ Other email providers that support IMAP could be used too.
 - Ensure IMAP is enabled for your email
 - For Gmail, use App Password, not regular password
 
-#### App Not Appearing in Menu Bar
+#### 🖥️ App Not Appearing in Menu Bar
 
 **Symptoms**: ODYSSEY icon not visible
 **Solutions**:
@@ -219,7 +219,7 @@ Other email providers that support IMAP could be used too.
 - Ensure macOS 15+ is installed (see [REQUIREMENTS.md](REQUIREMENTS.md))
 - Check System Preferences → Dock & Menu Bar
 
-#### Keychain Errors
+#### 🔑 Keychain Errors
 
 **Symptoms**: Credential storage errors
 **Solutions**:
@@ -228,7 +228,7 @@ Other email providers that support IMAP could be used too.
 - Grant Keychain access when prompted
 - Restart the app after updating credentials
 
-### Getting Help
+### 🆘 Getting Help
 
 1. **Check Logs**: Use Console.app to view detailed logs
 2. **GitHub Issues**: Report bugs on [GitHub](https://github.com/Amet13/ODYSSEY/issues)
@@ -236,20 +236,20 @@ Other email providers that support IMAP could be used too.
 
 ## 🔒 Security & Privacy
 
-### Data Protection
+### 🛡️ Data Protection
 
 - **Local Processing**: All automation runs on your device
 - **Secure Storage**: Credentials stored in macOS Keychain
 - **No External Data**: No user data sent to external servers
 - **HTTPS Only**: All network requests use secure connections
 
-### Privacy Features
+### 🔒 Privacy Features
 
 - **Masked Logs**: Sensitive data is masked in logs
 - **Private Logging**: Email addresses and credentials are private
 - **User Consent**: No data collection without explicit consent
 
-### Security Best Practices
+### 🔐 Security Best Practices
 
 1. **Use App Passwords**: For Gmail, use App Passwords, not regular passwords
 2. **Regular Updates**: Keep ODYSSEY updated to the latest version
@@ -258,7 +258,7 @@ Other email providers that support IMAP could be used too.
 
 ## 📊 Monitoring & Logs
 
-### Viewing Logs
+### 📋 Viewing Logs
 
 1. Open **Console.app** (Applications → Utilities → Console)
 2. Search for `com.odyssey.app`
@@ -268,14 +268,14 @@ Other email providers that support IMAP could be used too.
    - ❌ Errors
    - 🔍 Debug information
 
-### Log Levels
+### 📊 Log Levels
 
 - **Info**: General operation messages
 - **Warning**: Potential issues
 - **Error**: Failed operations
 - **Debug**: Detailed technical information
 
-### Log Filtering
+### 🔍 Log Filtering
 
 ```bash
 # Filter by subsystem
@@ -287,7 +287,3 @@ log stream --predicate 'category == "WebKitService"'
 # Filter by level
 log stream --predicate 'level >= 2'
 ```
-
----
-
-**Need Help?** Check the [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues) or see [DEVELOPMENT.md](DEVELOPMENT.md) for advanced troubleshooting.

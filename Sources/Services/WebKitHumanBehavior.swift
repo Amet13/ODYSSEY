@@ -20,11 +20,11 @@ public final class WebKitHumanBehavior: ObservableObject {
 
     public init(instanceId: String = "default") {
         self.instanceId = instanceId
-        logger.info("🔧 WebKitHumanBehavior initialized for instance: \(instanceId)")
+        logger.info("🔧 WebKitHumanBehavior initialized for instance: \(instanceId).")
     }
 
     deinit {
-        logger.info("🧹 WebKitHumanBehavior deinitialized for instance: \(self.instanceId)")
+        logger.info("🧹 WebKitHumanBehavior deinitialized for instance: \(self.instanceId).")
     }
 
     // MARK: - Human-Like Delays
@@ -32,7 +32,7 @@ public final class WebKitHumanBehavior: ObservableObject {
     /// Adds a random human-like delay
     public func addHumanDelay() async {
         let delay = Double.random(in: minDelay ... maxDelay)
-        logger.debug("⏱️ Adding human delay: \(String(format: "%.2f", delay))s for instance: \(self.instanceId)")
+        logger.debug("⏱️ Adding human delay: \(String(format: "%.2f", delay))s for instance: \(self.instanceId).")
         try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
     }
 
@@ -48,7 +48,7 @@ public final class WebKitHumanBehavior: ObservableObject {
     /// Adds a typing delay
     public func addTypingDelay() async {
         let delay = AppConstants.typingDelay
-        logger.debug("⏱️ Adding typing delay: \(String(format: "%.2f", delay))s for instance: \(self.instanceId)")
+        logger.debug("⏱️ Adding typing delay: \(String(format: "%.2f", delay))s for instance: \(self.instanceId).")
         try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
     }
 
@@ -60,7 +60,7 @@ public final class WebKitHumanBehavior: ObservableObject {
     ///   - selector: The CSS selector for the element
     ///   - description: Description of the action for logging
     public func simulateHumanClick(in webView: WKWebView, selector: String, description: String) async {
-        logger.info("🖱️ Simulating human click: \(description) for instance: \(self.instanceId)")
+        logger.info("🖱️ Simulating human click: \(description) for instance: \(self.instanceId).")
 
         // Add pre-click delay
         await addHumanDelay()
@@ -129,12 +129,12 @@ public final class WebKitHumanBehavior: ObservableObject {
         do {
             let result = try await webView.evaluateJavaScript(clickScript) as? Bool ?? false
             if result {
-                logger.info("✅ Human click simulated successfully: \(description)")
+                logger.info("✅ Human click simulated successfully: \(description).")
             } else {
-                logger.warning("⚠️ Human click simulation failed: \(description)")
+                logger.warning("⚠️ Human click simulation failed: \(description).")
             }
         } catch {
-            logger.error("❌ Failed to simulate human click: \(error.localizedDescription)")
+            logger.error("❌ Failed to simulate human click: \(error.localizedDescription).")
         }
     }
 
@@ -150,7 +150,7 @@ public final class WebKitHumanBehavior: ObservableObject {
         text: String,
         description: String,
     ) async {
-        logger.info("⌨️ Simulating human text input: \(description) for instance: \(self.instanceId)")
+        logger.info("⌨️ Simulating human text input: \(description) for instance: \(self.instanceId).")
 
         // Add pre-input delay
         await addHumanDelay()
@@ -208,12 +208,12 @@ public final class WebKitHumanBehavior: ObservableObject {
         do {
             let result = try await webView.evaluateJavaScript(inputScript) as? Bool ?? false
             if result {
-                logger.info("✅ Human text input simulated successfully: \(description)")
+                logger.info("✅ Human text input simulated successfully: \(description).")
             } else {
-                logger.warning("⚠️ Human text input simulation failed: \(description)")
+                logger.warning("⚠️ Human text input simulation failed: \(description).")
             }
         } catch {
-            logger.error("❌ Failed to simulate human text input: \(error.localizedDescription)")
+            logger.error("❌ Failed to simulate human text input: \(error.localizedDescription).")
         }
     }
 
@@ -223,7 +223,7 @@ public final class WebKitHumanBehavior: ObservableObject {
     ///   - direction: The scroll direction
     ///   - distance: The scroll distance
     public func simulateHumanScrolling(in webView: WKWebView, direction: ScrollDirection, distance: Int = 300) async {
-        logger.info("📜 Simulating human scrolling: \(direction.rawValue) for instance: \(self.instanceId)")
+        logger.info("📜 Simulating human scrolling: \(direction.rawValue) for instance: \(self.instanceId).")
 
         await addHumanDelay()
 
@@ -262,9 +262,9 @@ public final class WebKitHumanBehavior: ObservableObject {
 
         do {
             _ = try await webView.evaluateJavaScript(scrollScript)
-            logger.info("✅ Human scrolling simulated successfully")
+            logger.info("✅ Human scrolling simulated successfully.")
         } catch {
-            logger.error("❌ Failed to simulate human scrolling: \(error.localizedDescription)")
+            logger.error("❌ Failed to simulate human scrolling: \(error.localizedDescription).")
         }
     }
 
@@ -275,7 +275,7 @@ public final class WebKitHumanBehavior: ObservableObject {
     public func recordBehaviorPattern(_ pattern: BehaviorPattern) {
         behaviorPatterns.append(pattern)
         lastInteractionTime = Date()
-        logger.debug("📊 Behavior pattern recorded: \(pattern.description) for instance: \(self.instanceId)")
+        logger.debug("📊 Behavior pattern recorded: \(pattern.description) for instance: \(self.instanceId).")
     }
 
     /// Gets recent behavior patterns
@@ -289,7 +289,7 @@ public final class WebKitHumanBehavior: ObservableObject {
     public func clearOldBehaviorPatterns() {
         let cutoffTime = Date().addingTimeInterval(-3_600) // 1 hour ago
         behaviorPatterns = behaviorPatterns.filter { $0.timestamp > cutoffTime }
-        logger.debug("🧹 Cleared old behavior patterns for instance: \(self.instanceId)")
+        logger.debug("🧹 Cleared old behavior patterns for instance: \(self.instanceId).")
     }
 }
 

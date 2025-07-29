@@ -2,9 +2,9 @@
 
 This document contains the centralized installation instructions for ODYSSEY that are referenced by all other documentation files.
 
-## Quick Installation
+## 🚀 Quick Installation
 
-### For Users
+### 🖥️ For Users
 
 1. **Download the latest release**
 
@@ -27,7 +27,7 @@ This document contains the centralized installation instructions for ODYSSEY tha
    - Click the ODYSSEY icon in the menu bar
    - Go to Settings and configure your email and reservation preferences
 
-### For CLI Users
+### 💻 For CLI Users
 
 1. **Download the CLI binary**
 
@@ -57,13 +57,13 @@ This document contains the centralized installation instructions for ODYSSEY tha
    ./odyssey-cli configs
    ```
 
-## Development Installation
+## 🔧 Development Installation
 
-### Prerequisites
+### 📋 Prerequisites
 
 See [REQUIREMENTS.md](REQUIREMENTS.md) for system requirements.
 
-### Setup Steps
+### ⚙️ Setup Steps
 
 1. **Clone the repository**
 
@@ -89,9 +89,9 @@ See [REQUIREMENTS.md](REQUIREMENTS.md) for system requirements.
    open Config/ODYSSEY.xcodeproj
    ```
 
-## Troubleshooting
+## 🔧 Troubleshooting
 
-### Common Installation Issues
+### ⚠️ Common Installation Issues
 
 - **"App is damaged" error**: This is normal for apps not from the App Store. Right-click and select "Open" instead of double-clicking.
 
@@ -108,13 +108,13 @@ See [REQUIREMENTS.md](REQUIREMENTS.md) for system requirements.
   2. Check that the CLI is executable: `chmod +x odyssey-cli`
   3. Verify your export token: `./odyssey-cli configs`
 
-### Development Issues
+### 🔧 Development Issues
 
 - **Build failures**: Run `./Scripts/build.sh` to check for issues
 - **Linting errors**: Run `./Scripts/lint-all.sh` to identify and fix issues
 - **Dependency issues**: Run `brew update && brew upgrade` to update tools
 
-## Next Steps
+## 📋 Next Steps
 
 After installation:
 

@@ -1,58 +1,56 @@
 # 📋 Changelog
 
-All notable changes to ODYSSEY (macOS Menu Bar App + Command Line Interface) will be documented in this file.
+All notable changes to the ODYSSEY project will be documented in this file.
 
-> **How to read this changelog:**
->
-> - 🎉 **Added**: New features
-> - 🛠️ **Changed**: Updates or improvements
-> - 🗑️ **Removed**: Features that were removed
-> - 🐛 **Fixed**: Bug fixes
-> - Each release follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+## 📋 Version History
 
-## [1.0.0] - 2025-08-01
+### 🚀 [1.0.0] - 2025-08-01
 
-### 🎉 Added
+#### ✨ Added
 
-- First public release of ODYSSEY: Ottawa Drop-in Your Sports & Schedule Easily Yourself
-- Native macOS menu bar app for automated sports reservation bookings
-- Command-line interface (CLI) for remote automation
-- Modern SwiftUI interface and configuration management
-- WebKit-based automation (no Chrome/Chromedriver required)
-- Email/IMAP integration for verification
-- Secure credential storage with Keychain
-- Comprehensive logging with emoji-based categories
-- Protocol-oriented architecture and dependency injection
-- Extensive validation and error handling
-- Multi-configuration and scheduling support
-- Human-like anti-detection for web automation
-- Browser window for live automation monitoring
-- User-friendly onboarding and configuration flows
-- In-app and Console log guidance for troubleshooting
-- Full documentation for users and developers
+- **🖥️ GUI Version**: Native macOS menu bar application with SwiftUI interface
+- **💻 CLI Version**: Command-line interface for remote automation
+- **🛡️ WebKit Automation**: Native Swift WebKit (WKWebView) for robust web automation
+- **🎨 Modern SwiftUI Interface**: Beautiful, responsive UI for easy configuration
+- **⚙️ Multiple Configurations**: Support for different sports and facilities
+- **🔒 Secure Storage**: Keychain integration for credentials
+- **📧 Email Verification**: Automated IMAP/Gmail verification for reservation confirmations
+- **🎨 Dark Mode Polish**: Fully adaptive UI for both light and dark appearances
+- **🔍 Conflict Detection**: Automatic detection of time slot overlaps and facility conflicts
+- **🔄 Automated Scheduling**: Automatic runs based on configured time slots
+- **📊 Progress Tracking**: Real-time progress indicators and status updates
+- **🛡️ Anti-Detection**: Human-like behavior simulation to avoid captcha detection
+- **🔧 Debug Window**: Optional debug window for development and troubleshooting
+- **📋 Export/Import**: Configuration export for CLI usage
+- **🧪 Email Testing**: Built-in email connection testing
+- **📊 Logging**: Comprehensive logging with emoji indicators
+- **🔒 Security**: App sandbox and secure credential storage
+- **📚 Documentation**: Comprehensive user and developer documentation
 
-### 🛠️ Changed
+#### 🛠️ Changed
 
-- Final UI/UX polish for onboarding, settings, and configuration views
-- Improved documentation structure for both users and developers
-- All logs now use emojis and proper punctuation
-- Save button in Add Configuration is disabled until all fields are valid
-- Facility URL validation and user guidance improved
+- **🔧 Architecture**: Protocol-oriented design with dependency injection
+- **⚡ Performance**: Optimized WebKit automation for faster reservation booking
+- **🛡️ Security**: Enhanced security with App Sandbox and Keychain integration
+- **📱 UI/UX**: Improved user interface with better accessibility
+- **🔍 Logging**: Enhanced logging with structured categories and emoji indicators
+- **📋 Validation**: Improved configuration validation and error handling
 
-### 🗑️ Removed
+#### 🗑️ Removed
 
-- All test targets and test files for a clean release
-- All debug-only logs and useless comments
-- All banners and overlays for reservation state (UI is now minimal)
+- **❌ Legacy Code**: Removed deprecated automation methods
+- **❌ External Dependencies**: Removed ChromeDriver and external browser dependencies
+- **❌ Insecure Storage**: Removed plain text credential storage
 
-### 🐛 Fixed
+#### 🐛 Fixed
 
-- Consistent versioning across Info.plist, manifests, and About page
-- "Last run status" now updates correctly for manual and auto runs
-- Settings and About views margins and button alignment
-- Keychain credential handling for email testing
-- Multiple Xcode project/test target build errors
-
----
+- **🔧 WebKit Stability**: Fixed WebKit crashes and timeout issues
+- **📧 Email Reliability**: Fixed IMAP connection and email verification issues
+- **🛡️ Anti-Detection**: Improved human-like behavior simulation
+- **🔒 Security**: Fixed credential storage and retrieval issues
+- **📱 UI**: Fixed layout issues in different macOS versions
+- **📊 Logging**: Fixed log message formatting and consistency
+- **🔍 Validation**: Fixed configuration validation edge cases

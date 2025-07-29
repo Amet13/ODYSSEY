@@ -9,11 +9,11 @@ public final class ConflictDetectionService: ObservableObject {
     private let logger = Logger(subsystem: "com.odyssey.app", category: "ConflictDetectionService")
 
     private init() {
-        logger.info("🔧 ConflictDetectionService initialized")
+        logger.info("🔧 ConflictDetectionService initialized.")
     }
 
     deinit {
-        logger.info("🧹 ConflictDetectionService deinitialized")
+        logger.info("🧹 ConflictDetectionService deinitialized.")
     }
 
     // MARK: - Conflict Detection
@@ -27,7 +27,7 @@ public final class ConflictDetectionService: ObservableObject {
         // Check for time slot conflicts
         conflicts.append(contentsOf: detectTimeSlotConflicts(in: configurations))
 
-        logger.info("🔍 Detected \(conflicts.count) conflicts in \(configurations.count) configurations")
+        logger.info("🔍 Detected \(conflicts.count) conflicts in \(configurations.count) configurations.")
         return conflicts
     }
 
