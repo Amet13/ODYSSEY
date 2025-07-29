@@ -836,6 +836,12 @@ struct ConfigurationRowView: View {
                     statusColor: .gray,
                     iconName: "questionmark.circle",
                 )
+            case .stopped:
+                LastRunStatusInfo(
+                    statusKey: "stopped",
+                    statusColor: .orange,
+                    iconName: "stop.circle.fill",
+                )
             }
             let runTypeKey = switch lastRun.runType {
             case .manual: " (manual)"
@@ -925,7 +931,3 @@ struct DeleteConfirmationModal: View {
         .padding(AppConstants.sectionPadding)
     }
 }
-
-// MARK: - Onboarding/Help View
-
-// (OnboardingHelpView struct and its implementation removed)

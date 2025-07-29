@@ -13,6 +13,74 @@ final class ValidationService {
 
     init() { }
 
+    // MARK: - Utility Functions
+
+    /**
+     Check if a string is not empty
+     - Parameter value: The string to validate
+     - Returns: True if the string is not empty
+     */
+    func isNotEmpty(_ value: String) -> Bool {
+        return !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    /**
+     Check if a string is empty
+     - Parameter value: The string to validate
+     - Returns: True if the string is empty
+     */
+    func isEmpty(_ value: String) -> Bool {
+        return value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    /**
+     Check if a collection is not empty
+     - Parameter collection: The collection to validate
+     - Returns: True if the collection is not empty
+     */
+    func isNotEmpty(_ collection: some Collection) -> Bool {
+        return !collection.isEmpty
+    }
+
+    /**
+     Check if a collection is empty
+     - Parameter collection: The collection to validate
+     - Returns: True if the collection is empty
+     */
+    func isEmpty(_ collection: some Collection) -> Bool {
+        return collection.isEmpty
+    }
+
+    /**
+     Check if a number is within a valid range
+     - Parameters:
+     - value: The number to validate
+     - min: Minimum allowed value
+     - max: Maximum allowed value
+     - Returns: True if the number is within the valid range
+     */
+    func isInRange(_ value: Int, min: Int, max: Int) -> Bool {
+        return value >= min && value <= max
+    }
+
+    /**
+     Check if a number is positive
+     - Parameter value: The number to validate
+     - Returns: True if the number is positive
+     */
+    func isPositive(_ value: Int) -> Bool {
+        return value > 0
+    }
+
+    /**
+     Check if a number is non-negative
+     - Parameter value: The number to validate
+     - Returns: True if the number is non-negative
+     */
+    func isNonNegative(_ value: Int) -> Bool {
+        return value >= 0
+    }
+
     // MARK: - Email Validation
 
     /**

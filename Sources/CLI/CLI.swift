@@ -6,6 +6,27 @@ import os.log
 private enum ANSI {
     static let bold = "\u{001B}[1m"
     static let reset = "\u{001B}[0m"
+    static let green = "\u{001B}[32m"
+    static let yellow = "\u{001B}[33m"
+    static let red = "\u{001B}[31m"
+    static let blue = "\u{001B}[34m"
+}
+
+// Direct terminal logging for CLI
+private func logToTerminal(_ message: String, level: String = "INFO") {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "HH:mm:ss"
+    let timestamp = formatter.string(from: Date())
+
+    let color: String = switch level {
+    case "SUCCESS": ANSI.green
+    case "WARNING": ANSI.yellow
+    case "ERROR": ANSI.red
+    case "INFO": ANSI.blue
+    default: ""
+    }
+
+    print("\(color)[\(timestamp)] \(message)\(ANSI.reset)")
 }
 
 // Initialize services for CLI
@@ -110,7 +131,7 @@ struct CLI {
             userSettings.imapPassword = cliUserSettings.imapPassword
             userSettings.imapServer = cliUserSettings.imapServer
             userSettings.emailProvider = UserSettings.EmailProvider
-                .imap // Default to IMAP since we removed emailProvider from CLIUserSettings
+                .imap
             userSettings.preventSleepForAutorun = cliUserSettings.preventSleepForAutorun
             userSettings.autoCloseDebugWindowOnFailure = cliUserSettings.autoCloseDebugWindowOnFailure
 
@@ -190,12 +211,19 @@ struct CLI {
         }
     }
 
-    private static func waitForReservationCompletion() async {
+    private static func waitForReservationCompletion(configIds: [UUID]) async {
         var attempts = 0
         let maxAttempts = 300 // 5 minutes timeout
         var lastStatus = ReservationRunStatus.idle
         var lastProgressUpdate = 0
         var lastLogCheck = 0
+        var hasStarted = false
+        var configStatuses: [UUID: ReservationRunStatus] = [:]
+
+        // Initialize config statuses
+        for configId in configIds {
+            configStatuses[configId] = .idle
+        }
 
         print("📊 Monitoring reservation progress...")
         print()
@@ -205,37 +233,28 @@ struct CLI {
                 ReservationOrchestrator.shared.lastRunStatus
             }
 
-            // Show status changes
-            if status != lastStatus {
-                switch status {
-                case .running:
-                    print("🔄 Status: Starting automation...")
-                case .success:
-                    print("✅ Status: All reservations completed successfully!")
-                    await printDetailedResults()
-                case let .failed(error):
-                    print("❌ Status: Some reservations failed!")
-                    print("💡 Error: \(error)")
-                    await printDetailedResults()
-                case .idle:
-                    print("ℹ️ Status: Automation idle")
-                }
-                lastStatus = status
-            }
+            // Check individual config statuses
+            let currentConfigStatuses = await getCurrentConfigStatuses(configStatuses: configStatuses)
 
-            // Show real-time logs every 2 seconds
-            if attempts % 2 == 0, attempts > lastLogCheck {
-                await showRecentLogs()
-                lastLogCheck = attempts
-            }
+            // Handle status changes
+            await handleStatusChange(status: status, lastStatus: &lastStatus, hasStarted: &hasStarted)
 
-            // Show progress updates every 10 seconds
-            if attempts % 10 == 0, attempts > lastProgressUpdate {
-                print("⏳ Still running... (\(attempts)s)")
-                lastProgressUpdate = attempts
-            }
+            // Handle individual config status changes
+            await handleConfigStatusChanges(
+                currentConfigStatuses: currentConfigStatuses,
+                configStatuses: &configStatuses,
+            )
 
-            if status != .running {
+            // Show logs and progress
+            await showLogsAndProgress(
+                attempts: attempts,
+                lastLogCheck: &lastLogCheck,
+                lastProgressUpdate: &lastProgressUpdate,
+            )
+
+            // Check if all configs are done
+            if await areAllConfigsDone(configStatuses: configStatuses) {
+                await printDetailedResults(configIds: configIds, finalStatuses: configStatuses)
                 break
             }
 
@@ -243,69 +262,191 @@ struct CLI {
             attempts += 1
         }
 
+        // If timed out, print summary with current statuses
         if attempts >= maxAttempts {
             print("⏰ Reservations timed out after 5 minutes")
-            await printDetailedResults()
+            logToTerminal("⏰ Reservations timed out after 5 minutes", level: "ERROR")
+            await printDetailedResults(configIds: configIds, finalStatuses: configStatuses, timedOut: true)
+        }
+    }
+
+    private static func getCurrentConfigStatuses(configStatuses: [UUID: ReservationRunStatus]) async
+        -> [UUID: ReservationRunStatus]
+    {
+        await MainActor.run {
+            let statusManager = ReservationStatusManager.shared
+            return configStatuses.keys.reduce(into: [UUID: ReservationRunStatus]()) { result, configId in
+                if let lastRunInfo = statusManager.getLastRunInfo(for: configId) {
+                    result[configId] = lastRunInfo.status
+                }
+            }
+        }
+    }
+
+    private static func handleStatusChange(
+        status: ReservationRunStatus,
+        lastStatus: inout ReservationRunStatus,
+        hasStarted: inout Bool,
+    ) async {
+        if status != lastStatus {
+            switch status {
+            case .running:
+                if !hasStarted {
+                    print("🔄 Status: Starting automation...")
+                    logToTerminal("🚀 Reservation automation started", level: "INFO")
+                    hasStarted = true
+                }
+            case .success:
+                // Do not print success here; wait for all configs to finish
+                break
+            case let .failed(error):
+                print("❌ Status: Some reservations failed!")
+                print("💡 Error: \(error)")
+                logToTerminal("❌ Reservation failed: \(error)", level: "ERROR")
+            case .idle:
+                if hasStarted {
+                    print("ℹ️ Status: Automation idle")
+                }
+            case .stopped:
+                print("⏹️ Status: Automation stopped")
+                logToTerminal("⏹️ Automation stopped", level: "WARNING")
+            }
+            lastStatus = status
+        }
+    }
+
+    private static func handleConfigStatusChanges(
+        currentConfigStatuses: [UUID: ReservationRunStatus],
+        configStatuses: inout [UUID: ReservationRunStatus],
+    ) async {
+        for (configId, configStatus) in currentConfigStatuses {
+            if configStatuses[configId] != configStatus {
+                configStatuses[configId] = configStatus
+                if let configName = await getConfigName(for: configId) {
+                    printConfigStatus(configName: configName, status: configStatus)
+                }
+            }
+        }
+    }
+
+    private static func printConfigStatus(configName: String, status: ReservationRunStatus) {
+        switch status {
+        case .running:
+            print("   🔄 \(configName): Starting...")
+        case .success:
+            print("   ✅ \(configName): Completed successfully!")
+        case let .failed(error):
+            print("   ❌ \(configName): Failed - \(error)")
+        case .idle:
+            break // Don't show idle status
+        case .stopped:
+            print("   ⏹️ \(configName): Stopped")
+        }
+    }
+
+    private static func showLogsAndProgress(
+        attempts: Int,
+        lastLogCheck: inout Int,
+        lastProgressUpdate: inout Int,
+    ) async {
+        // Show real-time logs every 2 seconds
+        if attempts % 2 == 0, attempts > lastLogCheck {
+            await showRecentLogs()
+            lastLogCheck = attempts
+        }
+
+        // Show progress updates every 10 seconds
+        if attempts % 10 == 0, attempts > lastProgressUpdate {
+            print("⏳ Still running... (\(attempts)s)")
+            lastProgressUpdate = attempts
+        }
+    }
+
+    private static func areAllConfigsDone(configStatuses: [UUID: ReservationRunStatus]) async -> Bool {
+        configStatuses.values.count(where: { status in
+            switch status {
+            case .success, .failed: return true
+            default: return false
+            }
+        }) == configStatuses.count
+    }
+
+    private static func getConfigName(for configId: UUID) async -> String? {
+        // Try to get config name from ConfigurationManager
+        await MainActor.run {
+            let configs = ConfigurationManager.shared.settings.configurations
+            return configs.first { $0.id == configId }?.name ?? "Unknown Config"
         }
     }
 
     private static func showRecentLogs() async {
-        // Capture recent logs from the system log
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/log")
-        process.arguments = [
-            "show",
-            "--predicate", "subsystem == \"com.odyssey.app\"",
-            "--last", "5s",
-            "--info",
-            "--debug",
-        ]
+        // Get logs directly from LoggingService
+        let recentLogs = await MainActor.run {
+            LoggingService.shared.getRecentLogs(limit: 5)
+        }
 
-        let pipe = Pipe()
-        process.standardOutput = pipe
+        for logEntry in recentLogs {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "HH:mm:ss"
+            let timestamp = formatter.string(from: logEntry.timestamp)
 
-        do {
-            try process.run()
-            process.waitUntilExit()
-
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            if let output = String(data: data, encoding: .utf8) {
-                let lines = output.components(separatedBy: .newlines)
-                let relevantLines = lines.filter { line in
-                    line.contains("WebKit") ||
-                        line.contains("reservation") ||
-                        line.contains("automation") ||
-                        line.contains("CLI") ||
-                        line.contains("navigating") ||
-                        line.contains("clicking") ||
-                        line.contains("filling") ||
-                        line.contains("success") ||
-                        line.contains("error") ||
-                        line.contains("failed")
-                }
-
-                for line in relevantLines.suffix(3)
-                    where !line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                { // Show last 3 relevant lines
-                    // Extract the log message part
-                    if let messageStart = line.range(of: "] ") {
-                        let message = String(line[messageStart.upperBound...])
-                        print("   📝 \(message)")
-                    }
-                }
+            let levelIcon = switch logEntry.level {
+            case .success: "✅"
+            case .warning: "⚠️"
+            case .error: "❌"
+            case .info: "📝"
             }
-        } catch {
-            // Silently fail if log command is not available
+
+            let configPrefix = logEntry.configName.map { "[\($0)] " } ?? ""
+            print("   \(levelIcon) [\(timestamp)] \(configPrefix)\(logEntry.message)")
+        }
+
+        // If no recent logs, show a progress indicator
+        if recentLogs.isEmpty {
+            print("   ⏳ Processing reservation steps...")
         }
     }
 
-    private static func printDetailedResults() async {
-        await MainActor.run {
-            // Note: We can't access statusManager directly, so we'll show basic results
-            // We can add a public method to ReservationOrchestrator to get detailed results
-            print()
-            print("📋 Results Summary:")
-            print("==================")
+    private static func printDetailedResults(
+        configIds: [UUID],
+        finalStatuses: [UUID: ReservationRunStatus],
+        timedOut: Bool = false,
+    ) async {
+        print("\n📊 Detailed Results:")
+        print("===================")
+        let configs = await MainActor.run { ConfigurationManager.shared.settings.configurations }
+        var allSucceeded = true
+        for configId in configIds {
+            let configName = configs.first { $0.id == configId }?.name ?? "Unknown Config"
+            let status = finalStatuses[configId] ?? .idle
+            switch status {
+            case .success:
+                print("✅ \(configName): Success")
+            case let .failed(error):
+                print("❌ \(configName): Failed - \(error)")
+                allSucceeded = false
+            case .running:
+                if timedOut {
+                    print("⏳ \(configName): Timed out (did not complete)")
+                } else {
+                    print("⏳ \(configName): Still running (unexpected)")
+                }
+                allSucceeded = false
+            case .idle:
+                print("⚪️ \(configName): Idle (not started)")
+                allSucceeded = false
+            case .stopped:
+                print("⏹️ \(configName): Stopped")
+                allSucceeded = false
+            }
+        }
+        print()
+        if allSucceeded {
+            print("✅ All reservations completed successfully!")
+        } else if timedOut {
+            print("⏰ Some reservations did not complete in time.")
+        } else {
+            print("❌ Some reservations failed.")
         }
     }
 
@@ -367,7 +508,7 @@ struct CLI {
             }
 
             // Wait for completion
-            await waitForReservationCompletion()
+            await waitForReservationCompletion(configIds: configsToRun.map(\.id))
 
             print()
 
@@ -424,7 +565,7 @@ struct CLI {
         print("⏰ Waiting \(Int(timeInterval)) seconds...")
 
         // Wait in 10-second intervals to show progress
-        let waitInterval: TimeInterval = 10
+        let waitInterval: TimeInterval = AppConstants.waitInterval
         var remainingTime = timeInterval
 
         while remainingTime > 0 {

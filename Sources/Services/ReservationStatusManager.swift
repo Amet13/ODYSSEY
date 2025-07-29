@@ -55,7 +55,7 @@ public final class ReservationStatusManager: ObservableObject, @unchecked Sendab
         if let existing = lastRunInfo[configId] {
             // Prevent overwriting .success with .failed for the same runType and date (within 5 minutes window).
             if existing.status == .success, case .failed = status {
-                let timeWindow: TimeInterval = 5 * 60 // 5 minutes.
+                let timeWindow: TimeInterval = AppConstants.timeWindowMinutes // 5 minutes.
                 if
                     let existingDate = existing.date, let newDate = date,
                     abs(existingDate.timeIntervalSince(newDate)) < timeWindow, existing.runType == runType
@@ -71,7 +71,7 @@ public final class ReservationStatusManager: ObservableObject, @unchecked Sendab
         lastRunInfo[configId] = LastRunInfo(status: status, date: date, runType: runType)
     }
 
-    public struct LastRunInfo: Equatable, Codable {
+    public struct LastRunInfo: Equatable, Codable, Sendable {
         public let status: ReservationRunStatus
         public let date: Date?
         public let runType: ReservationRunType

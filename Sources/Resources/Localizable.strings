@@ -27,4 +27,4 @@
 "about_feature_webkit" = "Native WebKit automation";
 "about_feature_email" = "Email verification support";
 "about_feature_multi_config" = "Multiple configuration support";
-"about_feature_cli" = "CLI for remote automation"; 
+"about_feature_cli" = "CLI for remote automation";

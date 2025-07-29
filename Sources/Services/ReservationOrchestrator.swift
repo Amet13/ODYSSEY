@@ -2,130 +2,7 @@ import Combine
 import Foundation
 import os.log
 
-/**
- ReservationError defines all possible errors that can occur during the reservation automation process.
-
- This enum is used throughout the automation flow to provide detailed, user-friendly error messages and to support structured error handling and logging.
- */
-public enum ReservationError: Error, Codable, LocalizedError, UnifiedErrorProtocol {
-    /// Network error with a message.
-    case network(String)
-    /// Facility not found with a message.
-    case facilityNotFound(String)
-    /// Slot unavailable with a message.
-    case slotUnavailable(String)
-    /// Automation failed with a message
-    case automationFailed(String)
-    /// Unknown error with a message
-    case unknown(String)
-    /// Page failed to load in time
-    case pageLoadTimeout
-    /// Group size page failed to load in time
-    case groupSizePageLoadTimeout
-    /// Number of people field not found
-    case numberOfPeopleFieldNotFound
-    /// Confirm button not found
-    case confirmButtonNotFound
-    /// Failed to select time slot
-    case timeSlotSelectionFailed
-    /// Contact info page failed to load in time
-    case contactInfoPageLoadTimeout
-    /// Contact info field not found
-    case contactInfoFieldNotFound
-    /// Contact info confirm button not found
-    case contactInfoConfirmButtonNotFound
-    /// Email verification failed
-    case emailVerificationFailed
-    /// Sport button not found
-    case sportButtonNotFound
-    /// WebKit operation timed out
-    case webKitTimeout
-
-    /// Human-readable error description for each case
-    public var errorDescription: String? {
-        return userFriendlyMessage
-    }
-
-    /// Unique error code for categorization and debugging
-    public var errorCode: String {
-        switch self {
-        case .network: return "RESERVATION_NETWORK_001"
-        case .facilityNotFound: return "RESERVATION_FACILITY_001"
-        case .slotUnavailable: return "RESERVATION_SLOT_001"
-        case .automationFailed: return "RESERVATION_AUTOMATION_001"
-        case .unknown: return "RESERVATION_UNKNOWN_001"
-        case .pageLoadTimeout: return "RESERVATION_TIMEOUT_001"
-        case .groupSizePageLoadTimeout: return "RESERVATION_TIMEOUT_002"
-        case .numberOfPeopleFieldNotFound: return "RESERVATION_ELEMENT_001"
-        case .confirmButtonNotFound: return "RESERVATION_ELEMENT_002"
-        case .timeSlotSelectionFailed: return "RESERVATION_SELECTION_001"
-        case .contactInfoPageLoadTimeout: return "RESERVATION_TIMEOUT_003"
-        case .contactInfoFieldNotFound: return "RESERVATION_ELEMENT_003"
-        case .contactInfoConfirmButtonNotFound: return "RESERVATION_ELEMENT_004"
-        case .emailVerificationFailed: return "RESERVATION_EMAIL_001"
-        case .sportButtonNotFound: return "RESERVATION_ELEMENT_005"
-        case .webKitTimeout: return "RESERVATION_TIMEOUT_004"
-        }
-    }
-
-    /// Category for grouping similar errors
-    public var errorCategory: ErrorCategory {
-        switch self {
-        case .network: return .network
-        case .facilityNotFound, .slotUnavailable: return .validation
-        case .automationFailed, .sportButtonNotFound, .confirmButtonNotFound, .numberOfPeopleFieldNotFound,
-             .contactInfoFieldNotFound, .contactInfoConfirmButtonNotFound: return .automation
-        case .pageLoadTimeout, .groupSizePageLoadTimeout, .contactInfoPageLoadTimeout, .webKitTimeout: return .system
-        case .emailVerificationFailed: return .authentication
-        case .timeSlotSelectionFailed: return .automation
-        case .unknown: return .unknown
-        }
-    }
-
-    /// User-friendly error message for UI display
-    public var userFriendlyMessage: String {
-        switch self {
-        case let .network(msg): return "Network error: \(msg)"
-        case let .facilityNotFound(msg): return "Facility not found: \(msg)"
-        case let .slotUnavailable(msg): return "Slot unavailable: \(msg)"
-        case let .automationFailed(msg): return "Automation failed: \(msg)"
-        case let .unknown(msg): return "Unknown error: \(msg)"
-        case .pageLoadTimeout: return "Page failed to load in time."
-        case .groupSizePageLoadTimeout: return "Group size page failed to load in time."
-        case .numberOfPeopleFieldNotFound: return "Number of people field not found."
-        case .confirmButtonNotFound: return "Confirm button not found."
-        case .timeSlotSelectionFailed: return "Failed to select time slot."
-        case .contactInfoPageLoadTimeout: return "Contact info page failed to load in time."
-        case .contactInfoFieldNotFound: return "Contact info field not found."
-        case .contactInfoConfirmButtonNotFound: return "Contact info confirm button not found."
-        case .emailVerificationFailed: return "Email verification failed."
-        case .sportButtonNotFound: return "Sport button not found."
-        case .webKitTimeout: return "WebKit operation timed out."
-        }
-    }
-
-    /// Technical details for debugging (optional)
-    public var technicalDetails: String? {
-        switch self {
-        case let .network(msg): return "Network request failed: \(msg)"
-        case let .facilityNotFound(msg): return "Facility URL validation failed: \(msg)"
-        case let .slotUnavailable(msg): return "Time slot selection failed: \(msg)"
-        case let .automationFailed(msg): return "Web automation sequence failed: \(msg)"
-        case let .unknown(msg): return "Unexpected error occurred: \(msg)"
-        case .pageLoadTimeout: return "Page load exceeded timeout threshold"
-        case .groupSizePageLoadTimeout: return "Group size page load exceeded timeout threshold"
-        case .numberOfPeopleFieldNotFound: return "DOM element for number of people not found"
-        case .confirmButtonNotFound: return "DOM element for confirm button not found"
-        case .timeSlotSelectionFailed: return "Time slot selection automation failed"
-        case .contactInfoPageLoadTimeout: return "Contact info page load exceeded timeout threshold"
-        case .contactInfoFieldNotFound: return "DOM element for contact info not found"
-        case .contactInfoConfirmButtonNotFound: return "DOM element for contact info confirm button not found"
-        case .emailVerificationFailed: return "Email verification process failed"
-        case .sportButtonNotFound: return "DOM element for sport selection not found"
-        case .webKitTimeout: return "WebKit operation exceeded timeout threshold"
-        }
-    }
-}
+// Note: ReservationError is now defined in ReservationError.swift
 
 // MARK: - ReservationRunStatusCodable (Top-level)
 
@@ -138,78 +15,12 @@ public struct ReservationRunStatusCodable: Codable, Equatable {
 
 // MARK: - Reservation Run Types and Status (Top-level)
 
-// Run type for automation (manual, automatic, godmode)
-public enum ReservationRunType: String, Codable, Equatable, Sendable {
-    case manual
-    case automatic
-    case godmode
-    public var description: String {
-        switch self {
-        case .manual: return "(manual)"
-        case .automatic: return "(auto)"
-        case .godmode: return "(god mode)"
-        }
-    }
-}
-
-// Status of a reservation automation run, with Codable for persistence
-public enum ReservationRunStatus: Codable, Equatable, Sendable {
-    case idle
-    case running
-    case success
-    case failed(String)
-
-    public var description: String {
-        switch self {
-        case .idle: return "Idle"
-        case .running: return "Running"
-        case .success: return "Successful"
-        case let .failed(error): return "Failed: \(error)"
-        }
-    }
-
-    // Codable conformance
-    enum CodingKeys: String, CodingKey {
-        case idle, running, success, failed
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        if container.contains(.idle) { self = .idle } else if container.contains(.running) { self = .running }
-        else if container.contains(.success) { self = .success } else if container.contains(.failed) {
-            let error = try container.decode(String.self, forKey: .failed)
-            self = .failed(error)
-        } else {
-            throw DecodingError.dataCorrupted(.init(
-                codingPath: decoder.codingPath,
-                debugDescription: "Unknown ReservationRunStatus",
-            ))
-        }
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        switch self {
-        case .idle: try container.encode(true, forKey: .idle)
-        case .running: try container.encode(true, forKey: .running)
-        case .success: try container.encode(true, forKey: .success)
-        case let .failed(error): try container.encode(error, forKey: .failed)
-        }
-    }
-
-    public static func == (lhs: ReservationRunStatus, rhs: ReservationRunStatus) -> Bool {
-        switch (lhs, rhs) {
-        case (.idle, .idle): return true
-        case (.running, .running): return true
-        case (.success, .success): return true
-        case let (.failed(lhsError), .failed(rhsError)): return lhsError == rhsError
-        default: return false
-        }
-    }
-}
+// Note: ReservationRunType and ReservationRunStatus are now defined in ReservationRunStatus.swift
 
 @MainActor
-public final class ReservationOrchestrator: ObservableObject, @unchecked Sendable {
+public final class ReservationOrchestrator: ObservableObject, @unchecked Sendable,
+    @preconcurrency ReservationOrchestratorProtocol
+{
     public static let shared = ReservationOrchestrator()
     public var lastRunStatus: ReservationRunStatus { statusManager.lastRunStatus }
 
@@ -291,6 +102,19 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 await errorHandler.handleReservationError(error, config: config, runType: runType)
             }
         }
+    }
+
+    // Protocol-compliant version
+    public func runReservation(for config: ReservationConfig, type: ReservationRunType) async {
+        // Call the original method with the correct parameter name
+        runReservation(for: config, runType: type)
+    }
+
+    public func stopReservation() async {
+        logger.info("🛑 Stopping reservation...")
+        statusManager.lastRunStatus = .stopped
+        statusManager.isRunning = false
+        // Additional cleanup logic can be added here
     }
 
     /**
@@ -398,57 +222,134 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
     private func performReservation(for config: ReservationConfig, runType: ReservationRunType) async throws {
         statusManager.currentTask = "Starting reservation for \(config.name)"
         currentConfig = config
+
+        // Log to direct logging service for CLI access
+        LoggingService.shared.log(
+            "Starting reservation for \(config.name)",
+            level: .info,
+            configId: config.id,
+            configName: config.name,
+        )
+
         await updateTask("Checking WebKit service state")
         if !webKitService.isServiceValid() {
             logger.info("🔄 WebKit service not in valid state, resetting.")
+            LoggingService.shared.log(
+                "WebKit service not in valid state, resetting",
+                level: .warning,
+                configId: config.id,
+                configName: config.name,
+            )
             await webKitService.reset()
         }
         webKitService.onWindowClosed = { [weak self] runType in
             Task { await self?.handleManualWindowClosure(runType: runType) }
         }
         await updateTask("Starting WebKit session")
+        LoggingService.shared.log("Starting WebKit session", level: .info, configId: config.id, configName: config.name)
         try await webKitService.connect()
         webKitService.currentConfig = config
         await updateTask("Navigating to facility")
+        LoggingService.shared.log("Navigating to facility", level: .info, configId: config.id, configName: config.name)
         try await webKitService.navigateToURL(config.facilityURL)
         await updateTask("Checking for cookie consent...")
         await updateTask("Waiting for page to load")
         let domReady = await webKitService.waitForDOMReady()
         if !domReady {
             logger.error("⏰ DOM failed to load properly within timeout.")
+            LoggingService.shared.log(
+                "DOM failed to load properly within timeout",
+                level: .error,
+                configId: config.id,
+                configName: config.name,
+            )
             self.userError = ReservationError.pageLoadTimeout.errorDescription
             throw ReservationError.pageLoadTimeout
         }
         logger.info("✅ Page loaded successfully.")
+        LoggingService.shared.log(
+            "Page loaded successfully",
+            level: .success,
+            configId: config.id,
+            configName: config.name,
+        )
         await updateTask("Looking for sport: \(config.sportName)")
         logger.info("🔍 Searching for sport button with text: '\(config.sportName, privacy: .private)'.")
+        LoggingService.shared.log(
+            "Searching for sport button: \(config.sportName)",
+            level: .info,
+            configId: config.id,
+            configName: config.name,
+        )
         let buttonClicked = await webKitService.findAndClickElement(withText: config.sportName)
         if buttonClicked {
             logger.info("✅ Successfully clicked sport button: \(config.sportName, privacy: .private).")
+            LoggingService.shared.log(
+                "Successfully clicked sport button",
+                level: .success,
+                configId: config.id,
+                configName: config.name,
+            )
             await updateTask("Waiting for group size page...")
             let groupSizePageReady = await webKitService.waitForGroupSizePage()
             if !groupSizePageReady {
                 logger.error("⏰ Group size page failed to load within timeout.")
+                LoggingService.shared.log(
+                    "Group size page failed to load within timeout",
+                    level: .error,
+                    configId: config.id,
+                    configName: config.name,
+                )
                 self.userError = ReservationError.groupSizePageLoadTimeout.errorDescription
                 throw ReservationError.groupSizePageLoadTimeout
             }
             logger.info("✅ Group size page loaded successfully.")
+            LoggingService.shared.log(
+                "Group size page loaded successfully",
+                level: .success,
+                configId: config.id,
+                configName: config.name,
+            )
             await updateTask("Setting number of people: \(config.numberOfPeople)")
             let peopleFilled = await webKitService.fillNumberOfPeople(config.numberOfPeople)
             if !peopleFilled {
                 logger.error("❌ Failed to fill number of people field.")
+                LoggingService.shared.log(
+                    "Failed to fill number of people field",
+                    level: .error,
+                    configId: config.id,
+                    configName: config.name,
+                )
                 self.userError = ReservationError.numberOfPeopleFieldNotFound.errorDescription
                 throw ReservationError.numberOfPeopleFieldNotFound
             }
             logger.info("✅ Successfully filled number of people: \(config.numberOfPeople).")
+            LoggingService.shared.log(
+                "Successfully filled number of people: \(config.numberOfPeople)",
+                level: .success,
+                configId: config.id,
+                configName: config.name,
+            )
             await updateTask("Confirming group size...")
             let confirmClicked = await webKitService.clickConfirmButton()
             if !confirmClicked {
                 logger.error("❌ Failed to click confirm button.")
+                LoggingService.shared.log(
+                    "Failed to click confirm button",
+                    level: .error,
+                    configId: config.id,
+                    configName: config.name,
+                )
                 self.userError = ReservationError.confirmButtonNotFound.errorDescription
                 throw ReservationError.confirmButtonNotFound
             }
             logger.info("✅ Successfully clicked confirm button.")
+            LoggingService.shared.log(
+                "Successfully clicked confirm button",
+                level: .success,
+                configId: config.id,
+                configName: config.name,
+            )
             await updateTask("Waiting for time selection page...")
             logger.info("⏭️ Skipping time selection page detection - page already loaded.")
             await updateTask("Selecting time slot...")
@@ -458,14 +359,38 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 let dayName = day.shortName
                 let timeString = timeSlot.formattedTime()
                 logger.info("📅 Attempting to select: \(dayName) at \(timeString, privacy: .private).")
+                LoggingService.shared.log(
+                    "Attempting to select time slot: \(dayName) at \(timeString)",
+                    level: .info,
+                    configId: config.id,
+                    configName: config.name,
+                )
                 let timeSlotSelected = await webKitService.selectTimeSlot(dayName: dayName, timeString: timeString)
                 if !timeSlotSelected {
                     logger.error("❌ Failed to select time slot: \(dayName) at \(timeString, privacy: .private).")
+                    LoggingService.shared.log(
+                        "Failed to select time slot: \(dayName) at \(timeString)",
+                        level: .error,
+                        configId: config.id,
+                        configName: config.name,
+                    )
                     throw ReservationError.timeSlotSelectionFailed
                 }
                 logger.info("✅ Successfully selected time slot: \(dayName) at \(timeString, privacy: .private).")
+                LoggingService.shared.log(
+                    "Successfully selected time slot: \(dayName) at \(timeString)",
+                    level: .success,
+                    configId: config.id,
+                    configName: config.name,
+                )
             } else {
                 logger.warning("⚠️ No time slots configured, skipping time selection.")
+                LoggingService.shared.log(
+                    "No time slots configured, skipping time selection",
+                    level: .warning,
+                    configId: config.id,
+                    configName: config.name,
+                )
             }
             await updateTask("Waiting for contact information page...")
             let contactInfoPageReady = await withTimeout(seconds: 10, operation: { @MainActor in
@@ -473,10 +398,30 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             }) ?? false
             if !contactInfoPageReady {
                 logger.error("⏰ Contact information page failed to load within timeout.")
+                LoggingService.shared.log(
+                    "Contact information page failed to load within timeout",
+                    level: .error,
+                    configId: config.id,
+                    configName: config.name,
+                )
                 self.userError = ReservationError.contactInfoPageLoadTimeout.errorDescription
                 throw ReservationError.contactInfoPageLoadTimeout
             }
             logger.info("✅ Contact information page loaded successfully.")
+            LoggingService.shared.log(
+                "Contact information page loaded successfully",
+                level: .success,
+                configId: config.id,
+                configName: config.name,
+            )
+            await updateTask("Filling contact information...")
+            LoggingService.shared.log(
+                "Filling contact information",
+                level: .info,
+                configId: config.id,
+                configName: config.name,
+            )
+
             logger.info("📝 Proceeding with browser autofill-style form filling to avoid triggering captchas.")
             await updateTask("Filling contact information with simultaneous autofill...")
             let userSettings = UserSettingsManager.shared.userSettings
@@ -488,10 +433,23 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             )
             if !allFieldsFilled {
                 logger.error("❌ Failed to fill all contact fields simultaneously.")
+                LoggingService.shared.log(
+                    "Failed to fill all contact fields simultaneously",
+                    level: .error,
+                    configId: config.id,
+                    configName: config.name,
+                )
                 self.userError = ReservationError.contactInfoFieldNotFound.errorDescription
                 throw ReservationError.contactInfoFieldNotFound
             }
             logger.info("✅ Successfully filled all contact fields simultaneously with autofill and human movements.")
+            LoggingService.shared.log(
+                "Successfully filled all contact fields simultaneously",
+                level: .success,
+                configId: config.id,
+                configName: config.name,
+            )
+
             await updateTask("Confirming contact information...")
             let verificationStart = Date()
             var contactConfirmClicked = false
@@ -500,6 +458,12 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             while !contactConfirmClicked, retryCount < maxRetries {
                 if retryCount > 0 {
                     logger.info("🔄 Retry attempt \(retryCount) for confirm button click.")
+                    LoggingService.shared.log(
+                        "Retry attempt \(retryCount) for confirm button click",
+                        level: .warning,
+                        configId: config.id,
+                        configName: config.name,
+                    )
                     await updateTask("Retrying confirmation... (Attempt \(retryCount + 1)/\(maxRetries))")
                     logger.info("🛡️ Applying essential anti-detection for retry attempt \(retryCount).")
                     await updateTask("Applying anti-detection measures...")
@@ -515,6 +479,12 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                             .warning(
                                 "Retry text detected after confirm button click - will retry with enhanced measures",
                             )
+                        LoggingService.shared.log(
+                            "Retry text detected after confirm button click",
+                            level: .warning,
+                            configId: config.id,
+                            configName: config.name,
+                        )
                         contactConfirmClicked = false
                         retryCount += 1
                         logger.info("🛡️ Applying additional essential measures after retry text detection.")
@@ -523,6 +493,12 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                         try? await Task.sleep(nanoseconds: UInt64.random(in: 1_500_000_000 ... 2_200_000_000))
                     } else {
                         logger.info("✅ Successfully clicked contact confirm button (no retry text detected).")
+                        LoggingService.shared.log(
+                            "Successfully clicked contact confirm button",
+                            level: .success,
+                            configId: config.id,
+                            configName: config.name,
+                        )
                         break
                     }
                 } else {
@@ -531,35 +507,86 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             }
             if !contactConfirmClicked {
                 logger.error("❌ Failed to click contact confirm button after \(maxRetries) attempts.")
+                LoggingService.shared.log(
+                    "Failed to click contact confirm button after \(maxRetries) attempts",
+                    level: .error,
+                    configId: config.id,
+                    configName: config.name,
+                )
                 self.userError = ReservationError.contactInfoConfirmButtonNotFound.errorDescription
                 throw ReservationError.contactInfoConfirmButtonNotFound
             }
             logger.info("✅ Successfully clicked contact confirm button.")
+            LoggingService.shared.log(
+                "Successfully clicked contact confirm button",
+                level: .success,
+                configId: config.id,
+                configName: config.name,
+            )
+
             await updateTask("Checking for email verification...")
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             let verificationRequired = await webKitService.isEmailVerificationRequired()
             if verificationRequired {
                 logger.info("📧 Email verification required, starting verification process.")
+                LoggingService.shared.log(
+                    "Email verification required, starting verification process",
+                    level: .info,
+                    configId: config.id,
+                    configName: config.name,
+                )
                 let verificationSuccess = await webKitService
                     .handleEmailVerification(verificationStart: verificationStart)
                 if !verificationSuccess {
                     logger.error("❌ Email verification failed.")
+                    LoggingService.shared.log(
+                        "Email verification failed",
+                        level: .error,
+                        configId: config.id,
+                        configName: config.name,
+                    )
                     self.userError = ReservationError.emailVerificationFailed.errorDescription
                     throw ReservationError.emailVerificationFailed
                 }
                 logger.info("✅ Email verification completed successfully.")
+                LoggingService.shared.log(
+                    "Email verification completed successfully",
+                    level: .success,
+                    configId: config.id,
+                    configName: config.name,
+                )
                 await updateTask("Waiting for confirmation page to load...")
                 logger.info("⏳ Waiting for page navigation to complete after email verification.")
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
                 let domReady = await webKitService.waitForDOMReady()
                 if domReady {
                     logger.info("✅ Confirmation page loaded successfully.")
+                    LoggingService.shared.log(
+                        "Confirmation page loaded successfully",
+                        level: .success,
+                        configId: config.id,
+                        configName: config.name,
+                    )
                 } else {
                     logger.warning("⚠️ DOM ready check failed, but continuing with click result as success indicator.")
+                    LoggingService.shared.log(
+                        "DOM ready check failed, but continuing",
+                        level: .warning,
+                        configId: config.id,
+                        configName: config.name,
+                    )
                 }
             }
+
             await updateTask("Finishing reservation...")
             logger.info("🎉 Reservation completed successfully - all steps completed.")
+            LoggingService.shared.log(
+                "Reservation completed successfully - all steps completed",
+                level: .success,
+                configId: config.id,
+                configName: config.name,
+            )
+
             await MainActor.run {
                 // Only set isRunning = false for single reservations (manual runs)
                 // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
@@ -577,9 +604,14 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             await webKitService.disconnect(closeWindow: true)
             return
         } else {
-            logger.error("❌ Failed to click sport button: \(config.sportName, privacy: .private).")
+            logger.error("❌ Failed to find and click sport button: \(config.sportName, privacy: .private).")
+            LoggingService.shared.log(
+                "Failed to find and click sport button: \(config.sportName)",
+                level: .error,
+                configId: config.id,
+                configName: config.name,
+            )
             self.userError = ReservationError.sportButtonNotFound.errorDescription
-            await webKitService.disconnect(closeWindow: true)
             throw ReservationError.sportButtonNotFound
         }
     }
@@ -680,11 +712,12 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 logger.info("📝 Filling contact information with simultaneous autofill for \(config.name).")
                 let userSettings = UserSettingsManager.shared.userSettings
                 let phoneNumber = userSettings.phoneNumber.replacingOccurrences(of: "-", with: "")
-                let allFieldsFilled = await separateWebKitService.fillAllContactFieldsWithAutofillAndHumanMovements(
-                    phoneNumber: phoneNumber,
-                    email: userSettings.imapEmail,
-                    name: userSettings.name,
-                )
+                let allFieldsFilled = await separateWebKitService.autofillService?
+                    .fillAllContactFieldsWithAutofillAndHumanMovements(
+                        phoneNumber: phoneNumber,
+                        email: userSettings.imapEmail,
+                        name: userSettings.name,
+                    ) ?? false
                 if !allFieldsFilled {
                     logger.error("❌ Failed to fill all contact fields for \(config.name).")
                     throw ReservationError.contactInfoFieldNotFound
@@ -868,14 +901,14 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
     private func trackGodModeCompletion(configs: [ReservationConfig], runType: ReservationRunType) async {
         let completionRunType = runType // capture for closure
         logger.info("📊 Starting God Mode completion tracking for \(configs.count) configurations.")
-        let maxWaitTime: TimeInterval = 300
-        let checkInterval: TimeInterval = 2.0
+        let maxWaitTime: TimeInterval = AppConstants.verificationCodeTimeout
+        let checkInterval: TimeInterval = AppConstants.retryDelay
         let startTime = Date()
         while Date().timeIntervalSince(startTime) < maxWaitTime {
             let completedConfigs = configs.filter { config in
                 if let lastRunInfo = self.statusManager.lastRunInfo[config.id] {
                     switch lastRunInfo.status {
-                    case .success, .failed: return true
+                    case .success, .failed, .stopped: return true
                     case .idle, .running: return false
                     }
                 }
@@ -923,7 +956,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                         var allFinalized = false
                         var waitTime: TimeInterval = 0
                         let maxWaitTime: TimeInterval = AppConstants.maxWaitTimeForGodModeSeconds
-                        let checkInterval: TimeInterval = 0.5
+                        let checkInterval: TimeInterval = AppConstants.checkIntervalShort
 
                         while !allFinalized, waitTime < maxWaitTime {
                             try? await Task.sleep(nanoseconds: UInt64(checkInterval * 1_000_000_000))
@@ -933,7 +966,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                             allFinalized = configs.allSatisfy { config in
                                 if let lastRunInfo = self.statusManager.lastRunInfo[config.id] {
                                     switch lastRunInfo.status {
-                                    case .success, .failed: return true
+                                    case .success, .failed, .stopped: return true
                                     case .idle, .running: return false
                                     }
                                 }

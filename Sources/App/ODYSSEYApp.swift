@@ -341,6 +341,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             calendar.date(bySettingHour: 18, minute: 0, second: 0, of: date) ?? date
         }
 
+        // Extract time components from the stored autorun time
         let autorunHour = calendar.component(.hour, from: autorunTime)
         let autorunMinute = calendar.component(.minute, from: autorunTime)
         let autorunSecond = calendar.component(.second, from: autorunTime)
@@ -350,14 +351,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let autorunTimeInSeconds = autorunHour * 3_600 + autorunMinute * 60 + autorunSecond
         let timeDifference = abs(currentTimeInSeconds - autorunTimeInSeconds)
 
+        let currentTimeStr = "\(currentHour):\(currentMinute):\(currentSecond)"
+        let autorunTimeStr = "\(autorunHour):\(autorunMinute):\(autorunSecond)"
+
         if timeDifference > 2 {
-            let currentTimeStr = "\(currentHour):\(currentMinute):\(currentSecond)"
-            let autorunTimeStr = "\(autorunHour):\(autorunMinute):\(autorunSecond)"
-            logger
-                .info(
-                    "🔍 DEBUG: Time mismatch - current: \(currentTimeStr), autorun: \(autorunTimeStr), difference: \(timeDifference)s",
-                )
+            logger.info(
+                "🔍 DEBUG: Time mismatch - current: \(currentTimeStr), autorun: \(autorunTimeStr), difference: \(timeDifference)s",
+            )
             return false
+        } else {
+            logger.info(
+                "✅ DEBUG: Time match found - current: \(currentTimeStr), autorun: \(autorunTimeStr), difference: \(timeDifference)s",
+            )
         }
 
         // For each enabled day, check if today is 2 days before that day
@@ -373,11 +378,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Autorun should be 2 days before reservation day
             let autorunDay = calendar.date(byAdding: .day, value: -2, to: reservationDay) ?? reservationDay
 
-            logger.info(
-                "🔍 DEBUG: Config '\(config.name)' - Day: \(day.rawValue), targetWeekday: \(targetWeekday), " +
-                    "currentWeekday: \(currentWeekday), daysUntilTarget: \(daysUntilTarget), " +
-                    "reservationDay: \(reservationDay), autorunDay: \(autorunDay), today: \(today)",
-            )
+            logger
+                .info(
+                    "🔍 DEBUG: Config '\(config.name)' - Day: \(day.rawValue), targetWeekday: \(targetWeekday), " +
+                        "currentWeekday: \(currentWeekday), daysUntilTarget: \(daysUntilTarget), " +
+                        "reservationDay: \(reservationDay), autorunDay: \(autorunDay), today: \(today)",
+                )
 
             if calendar.isDate(today, inSameDayAs: autorunDay) {
                 logger.info("🔍 DEBUG: Config '\(config.name)' - MATCH FOUND!")

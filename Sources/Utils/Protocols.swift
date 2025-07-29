@@ -3,6 +3,24 @@ import Foundation
 import os.log
 import WebKit
 
+// MARK: - Shared Types
+
+public struct Email {
+    public let id: String
+    public let from: String
+    public let subject: String
+    public let body: String
+    public let date: Date
+
+    public init(id: String, from: String, subject: String, body: String, date: Date) {
+        self.id = id
+        self.from = from
+        self.subject = subject
+        self.body = body
+        self.date = date
+    }
+}
+
 /**
  ServiceRegistry is a singleton for dependency injection and service lookup.
  */
@@ -159,6 +177,22 @@ public protocol WebKitServiceProtocol: AnyObject {
      - Returns: True if successful.
      */
     func handleEmailVerification(verificationStart: Date) async -> Bool
+
+    /**
+     Finds and clicks an element using a CSS selector.
+     - Parameter selector: The CSS selector to find the element.
+     - Returns: True if the element was found and clicked.
+     */
+    func findAndClickElement(_ selector: String) async -> Bool
+
+    /**
+     Types text into an element using a CSS selector.
+     - Parameters:
+     - text: The text to type.
+     - selector: The CSS selector to find the element.
+     - Returns: True if successful.
+     */
+    func typeText(_ text: String, into selector: String) async -> Bool
 }
 
 // MARK: - EmailService Protocol
@@ -168,6 +202,13 @@ public protocol EmailServiceProtocol: AnyObject {
     var isTesting: Bool { get }
     var lastTestResult: EmailService.TestResult? { get }
     var userFacingError: String? { get }
+
+    /**
+     Searches for verification emails in the user's inbox.
+     - Returns: Array of emails that might contain verification codes.
+     - Throws: An error if the search fails.
+     */
+    func searchForVerificationEmails() async throws -> [Email]
     // ... add other methods as needed ...
 }
 

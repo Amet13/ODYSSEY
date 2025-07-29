@@ -74,6 +74,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     private var antiDetectionService: WebKitAntiDetection?
     private var humanBehaviorService: WebKitHumanBehavior?
     private var debugWindowManager: WebKitDebugWindowManager?
+    public var autofillService: WebKitAutofillService?
+    public var reservationMethods: WebKitReservationMethods?
 
     // Configuration for the current automation run
     public var currentConfig: ReservationConfig? {
@@ -185,6 +187,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         antiDetectionService = WebKitAntiDetection(instanceId: instanceId)
         humanBehaviorService = WebKitHumanBehavior(instanceId: instanceId)
         debugWindowManager = WebKitDebugWindowManager()
+        autofillService = WebKitAutofillService(webKitService: self)
+        reservationMethods = WebKitReservationMethods(webKitService: self)
 
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = WKUserContentController()
@@ -884,6 +888,69 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     // MARK: - Reservation-specific Methods
 
+    public func findAndClickElement(_ selector: String) async -> Bool {
+        return await findAndClickElement(withText: selector)
+    }
+
+    public func fillAllContactFieldsWithAutofillAndHumanMovements(
+        phoneNumber: String,
+        email: String,
+        name: String,
+    ) async -> Bool {
+        logger.info("👤 Filling contact fields with autofill and human movements")
+        return await autofillService?.fillAllContactFieldsWithAutofillAndHumanMovements(
+            phoneNumber: phoneNumber,
+            email: email,
+            name: name,
+        ) ?? false
+    }
+
+    public func typeText(_ text: String, into selector: String) async -> Bool {
+        logger.info("⌨️ Typing text '\(text)' into selector: \(selector)")
+        guard let webView else {
+            logger.error("❌ WebView not initialized")
+            return false
+        }
+
+        do {
+            let script = """
+            (function() {
+                try {
+                    const element = document.querySelector('\(selector)');
+                    if (!element) {
+                        console.log('[ODYSSEY] Element not found for selector: \(selector)');
+                        return false;
+                    }
+
+                    element.focus();
+                    element.value = '';
+                    element.value = '\(text)';
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+
+                    console.log('[ODYSSEY] Text typed successfully: \(text)');
+                    return true;
+                } catch (error) {
+                    console.error('[ODYSSEY] Error typing text:', error);
+                    return false;
+                }
+            })();
+            """
+
+            let result = try await webView.evaluateJavaScript(script)
+            if let found = result as? Bool, found {
+                logger.info("✅ Text typed successfully: \(text)")
+                return true
+            } else {
+                logger.error("❌ Failed to type text: \(text)")
+                return false
+            }
+        } catch {
+            logger.error("❌ Error typing text: \(error.localizedDescription)")
+            return false
+        }
+    }
+
     public func findAndClickElement(withText text: String) async -> Bool {
         guard let _ = webView, let humanBehaviorService else {
             logger.error("❌ WebView or human behavior service not initialized.")
@@ -1002,7 +1069,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return false
         }
         let start = Date()
-        let timeout: TimeInterval = 10
+        let timeout: TimeInterval = AppConstants.shortTimeout
         while Date().timeIntervalSince(start) < timeout {
             let script = """
             (function() {
@@ -1164,8 +1231,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return false
         }
 
-        let timeout: TimeInterval = 10
-        let pollInterval: TimeInterval = 0.5
+        let timeout: TimeInterval = AppConstants.shortTimeout
+        let pollInterval: TimeInterval = AppConstants.checkIntervalShort
         let start = Date()
         var pollCount = 0
         while Date().timeIntervalSince(start) < timeout {
@@ -2603,8 +2670,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return false
         }
 
-        let timeout: TimeInterval = 60 // 60 seconds
-        let pollInterval: TimeInterval = 1.0
+        let timeout: TimeInterval = AppConstants.mediumTimeout // 60 seconds
+        let pollInterval: TimeInterval = AppConstants.pollInterval
         let start = Date()
 
         logger.info("Waiting for verification page to load (timeout: \(timeout)s)")
@@ -2695,9 +2762,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         logger.info("📧 Fetching verification code from email...")
 
         // Initial wait before checking for the email
-        let initialWait: TimeInterval = 10.0 // 10 seconds
-        let maxTotalWait: TimeInterval = 300.0 // 5 minutes
-        let retryDelay: TimeInterval = 2.0 // 2 seconds
+        let initialWait: TimeInterval = AppConstants.initialWait // 10 seconds
+        let maxTotalWait: TimeInterval = AppConstants.maxTotalWait // 5 minutes
+        let retryDelay: TimeInterval = AppConstants.retryDelay // 2 seconds
         let deadline = Date().addingTimeInterval(maxTotalWait)
         let emailService = EmailService.shared
 
@@ -2759,9 +2826,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         logger.info("📧 Fetching all verification codes from email for instance: \(self.instanceId)")
 
         // Initial wait before checking for the email
-        let initialWait: TimeInterval = 10.0 // 10 seconds
-        let maxTotalWait: TimeInterval = 300.0 // 5 minutes
-        let retryDelay: TimeInterval = 2.0 // 2 seconds
+        let initialWait: TimeInterval = AppConstants.initialWait // 10 seconds
+        let maxTotalWait: TimeInterval = AppConstants.maxTotalWait // 5 minutes
+        let retryDelay: TimeInterval = AppConstants.retryDelay // 2 seconds
         let deadline = Date().addingTimeInterval(maxTotalWait)
 
         // Use shared email service but with instance-specific logging and timing
@@ -3788,611 +3855,6 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 onWindowClosed(.manual)
             }
         }
-    }
-
-    // MARK: - Browser Autofill Methods (Less Likely to Trigger Captchas)
-
-    /// Fills form fields using browser autofill behavior instead of human typing
-    /// This mimics how browsers fill forms when users click autofill suggestions
-    public func fillFieldWithAutofill(selector: String, value: String) async -> Bool {
-        guard let webView else {
-            logger.error("WebView not initialized")
-            return false
-        }
-
-        let script = """
-        (function() {
-            try {
-                const field = document.querySelector('\(selector)');
-                if (!field) {
-                    console.log('[ODYSSEY] Field not found for selector: \(selector)');
-                    return false;
-                }
-
-                // Scroll field into view (browser autofill behavior)
-                field.scrollIntoView({ behavior: 'auto', block: 'center' });
-
-                // Focus the field (browser autofill behavior)
-                field.focus();
-
-                // Clear existing value
-                field.value = '';
-
-                // Simulate browser autofill: set value instantly and dispatch events
-                // This mimics how browsers fill forms when users click autofill suggestions
-                field.value = '\(value)';
-
-                // Dispatch events that browsers trigger during autofill
-                field.dispatchEvent(new Event('input', { bubbles: true }));
-                field.dispatchEvent(new Event('change', { bubbles: true }));
-
-                // Trigger autocomplete event (common in autofill scenarios)
-                field.dispatchEvent(new Event('autocomplete', { bubbles: true }));
-
-                // Blur the field (browser autofill behavior)
-                field.blur();
-
-                console.log('[ODYSSEY] Autofill-style field filling completed for: \(selector)');
-                return true;
-
-            } catch (error) {
-                console.error('[ODYSSEY] Error in autofill field filling:', error);
-                return false;
-            }
-        })();
-        """
-
-        do {
-            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
-            if result {
-                logger.info("Successfully filled field with autofill behavior: \(selector)")
-                // Minimal delay after autofill (browsers don't wait long after autofill)
-                try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 300_000_000))
-                return true
-            } else {
-                logger.error("Failed to fill field with autofill behavior: \(selector)")
-                return false
-            }
-        } catch {
-            logger.error("Error filling field with autofill behavior: \(error.localizedDescription)")
-            return false
-        }
-    }
-
-    /// Fills phone number using browser autofill behavior
-    public func fillPhoneNumberWithAutofill(_ phoneNumber: String) async -> Bool {
-        guard let webView else {
-            logger.error("WebView not initialized")
-            return false
-        }
-
-        let script = """
-        (function() {
-            try {
-                // Try multiple selectors to find the phone field
-                let phoneField = document.getElementById('phone') ||
-                               document.getElementById('telephone') ||
-                               document.getElementById('phoneNumber') ||
-                               document.querySelector('input[type="tel"]') ||
-                               document.querySelector('input[name*="phone"]') ||
-                               document.querySelector('input[name*="tel"]') ||
-                               document.querySelector('input[placeholder*="phone"]') ||
-                               document.querySelector('input[placeholder*="tel"]') ||
-                               document.querySelector('input[placeholder*="Phone"]') ||
-                               document.querySelector('input[placeholder*="Telephone"]');
-
-                console.log('[ODYSSEY] Phone field found for autofill:', phoneField ? {
-                    type: phoneField.type,
-                    name: phoneField.name,
-                    id: phoneField.id,
-                    placeholder: phoneField.placeholder
-                } : 'NOT FOUND');
-
-                if (phoneField) {
-                    // Browser autofill behavior: scroll into view
-                    phoneField.scrollIntoView({ behavior: 'auto', block: 'center' });
-
-                    // Focus and clear
-                    phoneField.focus();
-                    phoneField.value = '';
-
-                    // Autofill-style: set value instantly
-                    phoneField.value = '\(phoneNumber)';
-
-                    // Dispatch autofill events
-                    phoneField.dispatchEvent(new Event('input', { bubbles: true }));
-                    phoneField.dispatchEvent(new Event('change', { bubbles: true }));
-                    phoneField.dispatchEvent(new Event('autocomplete', { bubbles: true }));
-
-                    // Blur (browser autofill behavior)
-                    phoneField.blur();
-
-                    console.log('[ODYSSEY] Phone autofill completed with:', phoneField.value);
-                    return true;
-                } else {
-                    console.error('[ODYSSEY] Phone field not found for autofill');
-                    return false;
-                }
-            } catch (error) {
-                console.error('[ODYSSEY] Error in phone autofill:', error);
-                return false;
-            }
-        })();
-        """
-
-        do {
-            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
-            if result {
-                logger.info("Successfully filled phone number with autofill behavior")
-                // Minimal delay after autofill
-                try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 300_000_000))
-                return true
-            } else {
-                logger.error("Failed to fill phone number with autofill - field not found")
-                return false
-            }
-        } catch {
-            logger.error("Error filling phone number with autofill: \(error.localizedDescription)")
-            return false
-        }
-    }
-
-    /// Fills email using browser autofill behavior
-    public func fillEmailWithAutofill(_ email: String) async -> Bool {
-        guard let webView else {
-            logger.error("WebView not initialized")
-            return false
-        }
-
-        let script = """
-        (function() {
-            try {
-                // Try multiple selectors to find the email field
-                let emailField = document.getElementById('email') ||
-                               document.getElementById('emailAddress') ||
-                               document.querySelector('input[type="email"]') ||
-                               document.querySelector('input[name*="email"]') ||
-                               document.querySelector('input[placeholder*="email"]') ||
-                               document.querySelector('input[placeholder*="Email"]');
-
-                console.log('[ODYSSEY] Email field found for autofill:', emailField ? {
-                    type: emailField.type,
-                    name: emailField.name,
-                    id: emailField.id,
-                    placeholder: emailField.placeholder
-                } : 'NOT FOUND');
-
-                if (emailField) {
-                    // Browser autofill behavior: scroll into view
-                    emailField.scrollIntoView({ behavior: 'auto', block: 'center' });
-
-                    // Focus and clear
-                    emailField.focus();
-                    emailField.value = '';
-
-                    // Autofill-style: set value instantly
-                    emailField.value = '\(email)';
-
-                    // Dispatch autofill events
-                    emailField.dispatchEvent(new Event('input', { bubbles: true }));
-                    emailField.dispatchEvent(new Event('change', { bubbles: true }));
-                    emailField.dispatchEvent(new Event('autocomplete', { bubbles: true }));
-
-                    // Blur (browser autofill behavior)
-                    emailField.blur();
-
-                    console.log('[ODYSSEY] Email autofill completed with:', emailField.value);
-                    return true;
-                } else {
-                    console.error('[ODYSSEY] Email field not found for autofill');
-                    return false;
-                }
-            } catch (error) {
-                console.error('[ODYSSEY] Error in email autofill:', error);
-                return false;
-            }
-        })();
-        """
-
-        do {
-            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
-            if result {
-                logger.info("Successfully filled email with autofill behavior")
-                // Minimal delay after autofill
-                try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 300_000_000))
-                return true
-            } else {
-                logger.error("Failed to fill email with autofill - field not found")
-                return false
-            }
-        } catch {
-            logger.error("Error filling email with autofill: \(error.localizedDescription)")
-            return false
-        }
-    }
-
-    /// Fills name using browser autofill behavior
-    public func fillNameWithAutofill(_ name: String) async -> Bool {
-        guard let webView else {
-            logger.error("WebView not initialized")
-            return false
-        }
-
-        let script = """
-        (function() {
-            try {
-                // Try multiple selectors to find the name field
-                let nameField = document.querySelector('input[id^="field"]') ||
-                              document.getElementById('name') ||
-                              document.getElementById('fullName') ||
-                              document.getElementById('firstName') ||
-                              document.querySelector('input[name*="name"]') ||
-                              document.querySelector('input[placeholder*="name"]') ||
-                              document.querySelector('input[placeholder*=\"Name\"]') ||
-                              document.querySelector('input[placeholder*=\"Full Name\"]');
-
-                console.log('[ODYSSEY] Name field found for autofill:', nameField ? {
-                    type: nameField.type,
-                    name: nameField.name,
-                    id: nameField.id,
-                    placeholder: nameField.placeholder
-                } : 'NOT FOUND');
-
-                if (nameField) {
-                    // Browser autofill behavior: scroll into view
-                    nameField.scrollIntoView({ behavior: 'auto', block: 'center' });
-
-                    // Focus and clear
-                    nameField.focus();
-                    nameField.value = '';
-
-                    // Autofill-style: set value instantly
-                    nameField.value = '\(name)';
-
-                    // Dispatch autofill events
-                    nameField.dispatchEvent(new Event('input', { bubbles: true }));
-                    nameField.dispatchEvent(new Event('change', { bubbles: true }));
-                    nameField.dispatchEvent(new Event('autocomplete', { bubbles: true }));
-
-                    // Blur (browser autofill behavior)
-                    nameField.blur();
-
-                    console.log('[ODYSSEY] Name autofill completed with:', nameField.value);
-                    return true;
-                } else {
-                    console.error('[ODYSSEY] Name field not found for autofill');
-                    return false;
-                }
-            } catch (error) {
-                console.error('[ODYSSEY] Error in name autofill:', error);
-                return false;
-            }
-        })();
-        """
-
-        do {
-            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
-            if result {
-                logger.info("Successfully filled name with autofill behavior")
-                // Minimal delay after autofill
-                try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 300_000_000))
-                return true
-            } else {
-                logger.error("Failed to fill name with autofill - field not found")
-                return false
-            }
-        } catch {
-            logger.error("Error filling name with autofill: \(error.localizedDescription)")
-            return false
-        }
-    }
-
-    /// Fills all contact fields simultaneously with browser autofill behavior
-    /// and then simulates human-like movements before clicking confirm
-    public func fillAllContactFieldsWithAutofillAndHumanMovements(
-        phoneNumber: String,
-        email: String,
-        name: String,
-    ) async -> Bool {
-        guard let webView else {
-            logger.error("WebView not initialized")
-            return false
-        }
-
-        logger.info("Starting simultaneous contact form filling with autofill behavior")
-
-        let script = """
-        (function() {
-            try {
-                // Find all contact fields
-                let phoneField = document.getElementById('phone') ||
-                               document.getElementById('telephone') ||
-                               document.getElementById('phoneNumber') ||
-                               document.querySelector('input[type="tel"]') ||
-                               document.querySelector('input[name*="phone"]') ||
-                               document.querySelector('input[name*="tel"]') ||
-                               document.querySelector('input[placeholder*="phone"]') ||
-                               document.querySelector('input[placeholder*="tel"]') ||
-                               document.querySelector('input[placeholder*="Phone"]') ||
-                               document.querySelector('input[placeholder*="Telephone"]');
-
-                let emailField = document.getElementById('email') ||
-                               document.getElementById('emailAddress') ||
-                               document.querySelector('input[type="email"]') ||
-                               document.querySelector('input[name*="email"]') ||
-                               document.querySelector('input[placeholder*="email"]') ||
-                               document.querySelector('input[placeholder*="Email"]');
-
-                let nameField = document.querySelector('input[id^="field"]') ||
-                              document.getElementById('name') ||
-                              document.getElementById('fullName') ||
-                              document.getElementById('firstName') ||
-                              document.querySelector('input[name*="name"]') ||
-                              document.querySelector('input[placeholder*="name"]') ||
-                              document.querySelector('input[placeholder*="Name"]') ||
-                              document.querySelector('input[placeholder*="Full Name"]');
-
-                console.log('[ODYSSEY] Contact fields found:', {
-                    phone: phoneField ? { id: phoneField.id, name: phoneField.name, type: phoneField.type } : 'NOT FOUND',
-                    email: emailField ? { id: emailField.id, name: emailField.name, type: emailField.type } : 'NOT FOUND',
-                    name: nameField ? { id: nameField.id, name: nameField.name, type: nameField.type } : 'NOT FOUND'
-                });
-
-                // Fill all fields simultaneously with browser autofill behavior
-                const fillFieldWithAutofill = (field, value) => {
-                    if (!field) return false;
-
-                    // Browser autofill behavior: scroll into view
-                    field.scrollIntoView({ behavior: 'auto', block: 'center' });
-
-                    // Focus and clear
-                    field.focus();
-                    field.value = '';
-
-                    // Autofill-style: set value instantly
-                    field.value = value;
-
-                    // Dispatch autofill events
-                    field.dispatchEvent(new Event('input', { bubbles: true }));
-                    field.dispatchEvent(new Event('change', { bubbles: true }));
-                    field.dispatchEvent(new Event('autocomplete', { bubbles: true }));
-
-                    // Blur (browser autofill behavior)
-                    field.blur();
-
-                    return true;
-                };
-
-                // Fill all fields simultaneously
-                const phoneFilled = fillFieldWithAutofill(phoneField, '\(phoneNumber)');
-                const emailFilled = fillFieldWithAutofill(emailField, '\(email)');
-                const nameFilled = fillFieldWithAutofill(nameField, '\(name)');
-
-                console.log('[ODYSSEY] Simultaneous autofill results:', {
-                    phone: phoneFilled,
-                    email: emailFilled,
-                    name: nameFilled
-                });
-
-                // Simulate human-like movements after filling
-                const simulateHumanMovements = () => {
-                    // Simulate mouse movements across the form
-                    const fields = [phoneField, emailField, nameField].filter(f => f);
-
-                    fields.forEach((field, index) => {
-                        setTimeout(() => {
-                            if (field) {
-                                const rect = field.getBoundingClientRect();
-                                const centerX = rect.left + rect.width / 2;
-                                const centerY = rect.top + rect.height / 2;
-
-                                // Simulate mouse hover over field
-                                field.dispatchEvent(new MouseEvent('mouseenter', {
-                                    bubbles: true,
-                                    clientX: centerX + Math.random() * 10 - 5,
-                                    clientY: centerY + Math.random() * 10 - 5
-                                }));
-
-                                field.dispatchEvent(new MouseEvent('mouseover', {
-                                    bubbles: true,
-                                    clientX: centerX + Math.random() * 10 - 5,
-                                    clientY: centerY + Math.random() * 10 - 5
-                                }));
-                            }
-                        }, index * 200 + Math.random() * 300);
-                    });
-
-                    // Simulate general mouse movements
-                    setTimeout(() => {
-                        document.dispatchEvent(new MouseEvent('mousemove', {
-                            bubbles: true,
-                            clientX: 300 + Math.random() * 200,
-                            clientY: 200 + Math.random() * 150
-                        }));
-                    }, 800 + Math.random() * 400);
-
-                    setTimeout(() => {
-                        document.dispatchEvent(new MouseEvent('mousemove', {
-                            bubbles: true,
-                            clientX: 400 + Math.random() * 200,
-                            clientY: 300 + Math.random() * 150
-                        }));
-                    }, 1200 + Math.random() * 400);
-
-                    // Simulate scrolling to review the form
-                    setTimeout(() => {
-                        window.scrollBy({
-                            top: -50 + Math.random() * 100,
-                            left: 0,
-                            behavior: 'smooth'
-                        });
-                    }, 1600 + Math.random() * 300);
-
-                    // Simulate clicking on empty space (reviewing the form)
-                    setTimeout(() => {
-                        document.body.dispatchEvent(new MouseEvent('click', {
-                            bubbles: true,
-                            clientX: 100 + Math.random() * 100,
-                            clientY: 100 + Math.random() * 100
-                        }));
-                    }, 2000 + Math.random() * 500);
-                };
-
-                // Start human movement simulation
-                simulateHumanMovements();
-
-                return phoneFilled && emailFilled && nameFilled;
-
-            } catch (error) {
-                console.error('[ODYSSEY] Error in simultaneous contact form filling:', error);
-                return false;
-            }
-        })();
-        """
-
-        do {
-            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
-            if result {
-                logger.info("Successfully filled all contact fields simultaneously with autofill behavior")
-
-                // Wait for human movements to complete (3-4 seconds total)
-                try? await Task.sleep(nanoseconds: UInt64.random(in: 3_000_000_000 ... 4_000_000_000))
-
-                // Additional human-like behavior before clicking confirm
-                await simulateEnhancedHumanMovementsBeforeConfirm()
-
-                return true
-            } else {
-                logger.error("Failed to fill all contact fields simultaneously")
-                return false
-            }
-        } catch {
-            logger.error("Error filling contact fields simultaneously: \(error.localizedDescription)")
-            return false
-        }
-    }
-
-    /// Simulates enhanced human-like movements specifically before clicking confirm button
-    public func simulateEnhancedHumanMovementsBeforeConfirm() async {
-        guard let webView else { return }
-
-        logger.info("🛡️ Simulating enhanced human-like movements before clicking confirm button")
-
-        // Simulate realistic mouse movements to the confirm button area
-        let script = """
-        (function() {
-            try {
-                // Find the confirm button to simulate movements towards it
-                const confirmButton = document.querySelector('button[type="submit"], input[type="submit"], .mdc-button, button:contains("Confirm"), button:contains("Submit")');
-
-                if (confirmButton) {
-                    const rect = confirmButton.getBoundingClientRect();
-                    const targetX = rect.left + rect.width / 2;
-                    const targetY = rect.top + rect.height / 2;
-
-                    // Simulate mouse movement path to the button
-                    const steps = 8;
-                    const startX = 200 + Math.random() * 100;
-                    const startY = 150 + Math.random() * 100;
-
-                    for (let i = 0; i <= steps; i++) {
-                        setTimeout(() => {
-                            const progress = i / steps;
-                            const currentX = startX + (targetX - startX) * progress + (Math.random() - 0.5) * 20;
-                            const currentY = startY + (targetY - startY) * progress + (Math.random() - 0.5) * 20;
-
-                            document.dispatchEvent(new MouseEvent('mousemove', {
-                                bubbles: true,
-                                clientX: currentX,
-                                clientY: currentY
-                            }));
-                        }, i * 150 + Math.random() * 100);
-                    }
-
-                    // Simulate hover over the button
-                    setTimeout(() => {
-                        confirmButton.dispatchEvent(new MouseEvent('mouseenter', {
-                            bubbles: true,
-                            clientX: targetX + Math.random() * 10 - 5,
-                            clientY: targetY + Math.random() * 10 - 5
-                        }));
-
-                        confirmButton.dispatchEvent(new MouseEvent('mouseover', {
-                            bubbles: true,
-                            clientX: targetX + Math.random() * 10 - 5,
-                            clientY: targetY + Math.random() * 10 - 5
-                        }));
-                    }, steps * 150 + 200);
-                }
-
-                // Simulate some random mouse movements in the form area
-                setTimeout(() => {
-                    document.dispatchEvent(new MouseEvent('mousemove', {
-                        bubbles: true,
-                        clientX: 250 + Math.random() * 200,
-                        clientY: 180 + Math.random() * 150
-                    }));
-                }, 500 + Math.random() * 300);
-
-                setTimeout(() => {
-                    document.dispatchEvent(new MouseEvent('mousemove', {
-                        bubbles: true,
-                        clientX: 350 + Math.random() * 200,
-                        clientY: 220 + Math.random() * 150
-                    }));
-                }, 1000 + Math.random() * 300);
-
-                // Simulate a small scroll to review the form
-                setTimeout(() => {
-                    window.scrollBy({
-                        top: -30 + Math.random() * 60,
-                        left: 0,
-                        behavior: 'smooth'
-                    });
-                }, 1500 + Math.random() * 400);
-
-                console.log('[ODYSSEY] Enhanced human movements before confirm completed');
-
-            } catch (error) {
-                console.error('[ODYSSEY] Error in enhanced human movements:', error);
-            }
-        })();
-        """
-
-        do {
-            _ = try await webView.evaluateJavaScript(script)
-
-            // Wait for movements to complete (2-3 seconds)
-            try? await Task.sleep(nanoseconds: UInt64.random(in: 2_000_000_000 ... 3_000_000_000))
-
-            logger.info("Enhanced human-like movements before confirm completed")
-        } catch {
-            logger.error("❌ Error simulating enhanced human movements: \(error.localizedDescription)")
-        }
-    }
-
-    /**
-     Loads the given URL in the WKWebView.
-     - Parameter url: The URL to load.
-     */
-    public func load(url _: URL) {
-        // Implementation not needed for current use case
-    }
-
-    /**
-     Executes the provided JavaScript in the WKWebView context.
-     - Parameter script: The JavaScript string to execute.
-     - Parameter completion: Completion handler with result or error.
-     */
-    public func executeJavaScript(_: String, completion _: @escaping (Result<Any?, Error>) -> Void) {
-        // Implementation not needed for current use case
-    }
-
-    /**
-     Cleans up the WKWebView and releases resources.
-     */
-    public func cleanup() {
-        logger.info("🧹 WebKitService cleanup called.")
     }
 }
 

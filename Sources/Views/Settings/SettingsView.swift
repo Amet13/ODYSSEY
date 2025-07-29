@@ -178,7 +178,6 @@ private struct SettingsContent: View {
                     Divider().padding(.horizontal, AppConstants.contentPadding)
                     AdvancedSettingsSection(tempSettings: $tempSettings, godModeEnabled: godModeEnabled)
                 }
-                // AuditLogSection removed
             }
             .contentShape(Rectangle())
             .onTapGesture {
@@ -371,11 +370,17 @@ private struct AdvancedSettingsSection: View {
                                         let calendar = Calendar.current
                                         let hour = calendar.component(.hour, from: newTime)
                                         let minute = calendar.component(.minute, from: newTime)
+                                        // Use a consistent base date (January 1, 2000) to avoid date-related issues
+                                        let baseDate = calendar.date(from: DateComponents(
+                                            year: 2_000,
+                                            month: 1,
+                                            day: 1,
+                                        )) ?? Date()
                                         let normalizedTime = calendar.date(
                                             bySettingHour: hour,
                                             minute: minute,
                                             second: 0,
-                                            of: Date(),
+                                            of: baseDate,
                                         ) ?? newTime
                                         tempSettings.customAutorunTime = normalizedTime
                                     },
@@ -548,15 +553,6 @@ private struct PasswordField: View {
                         )
                         .font(.caption)
                         .foregroundColor(.blue)
-                    }
-                } else {
-                    HStack {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                        Text("Gmail app password format is valid")
-                            .font(.caption)
-                            .foregroundColor(.green)
-                        Spacer()
                     }
                 }
             }
