@@ -69,7 +69,6 @@ public final class CLIExportService: ObservableObject {
             throw CLIExportError.noConfigurationsSelected
         }
 
-        // Debug: Log configuration details
         for (index, config) in selectedConfigs.enumerated() {
             logger.info("🔍 Config \(index + 1): \(config.name)")
             logger.info("   - Day time slots count: \(config.dayTimeSlots.count)")
@@ -87,7 +86,7 @@ public final class CLIExportService: ObservableObject {
         let exportConfig = CLIExportConfig(
             userSettings: userSettingsManager.userSettings,
             selectedConfigurations: selectedConfigs,
-            )
+        )
 
         // Encode to JSON
         let encoder = JSONEncoder()
@@ -179,12 +178,34 @@ public final class CLIExportService: ObservableObject {
 
 // MARK: - Errors
 
-public enum CLIExportError: LocalizedError {
+public enum CLIExportError: LocalizedError, UnifiedErrorProtocol {
     case noConfigurationsSelected
     case invalidBase64
     case compressionFailed
 
     public var errorDescription: String? {
+        return userFriendlyMessage
+    }
+
+    /// Unique error code for categorization and debugging
+    public var errorCode: String {
+        switch self {
+        case .noConfigurationsSelected: return "CLI_EXPORT_NOSELECT_001"
+        case .invalidBase64: return "CLI_EXPORT_BASE64_001"
+        case .compressionFailed: return "CLI_EXPORT_COMPRESS_001"
+        }
+    }
+
+    /// Category for grouping similar errors
+    public var errorCategory: ErrorCategory {
+        switch self {
+        case .noConfigurationsSelected: return .validation
+        case .invalidBase64, .compressionFailed: return .system
+        }
+    }
+
+    /// User-friendly error message for UI display
+    public var userFriendlyMessage: String {
         switch self {
         case .noConfigurationsSelected:
             return "No configurations selected for export"
@@ -192,6 +213,15 @@ public enum CLIExportError: LocalizedError {
             return "Invalid base64 encoded configuration"
         case .compressionFailed:
             return "Failed to compress configuration data"
+        }
+    }
+
+    /// Technical details for debugging (optional)
+    public var technicalDetails: String? {
+        switch self {
+        case .noConfigurationsSelected: return "No configurations were selected for CLI export"
+        case .invalidBase64: return "Base64 decoding failed for configuration data"
+        case .compressionFailed: return "Data compression failed during CLI export"
         }
     }
 }

@@ -3,6 +3,7 @@ import os.log
 
 /**
  ValidationService is responsible for centralized validation logic for user input, configuration, and data integrity throughout the app.
+ This is the single source of truth for all validation logic in the application.
  */
 @MainActor
 final class ValidationService {
@@ -120,11 +121,12 @@ final class ValidationService {
         // Validate number of people
         if
             config.numberOfPeople < AppConstants.minNumberOfPeople || config.numberOfPeople > AppConstants
-                .maxNumberOfPeople {
+                .maxNumberOfPeople
+        {
             errors
                 .append(
                     "Number of people must be between \(AppConstants.minNumberOfPeople) and \(AppConstants.maxNumberOfPeople)",
-                    )
+                )
         }
 
         // Validate time slots
@@ -196,7 +198,7 @@ final class ValidationService {
 /**
  Result of validation operations
  */
-struct ValidationResult {
+public struct ValidationResult {
     let isValid: Bool
     let errors: [String]
 

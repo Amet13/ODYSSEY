@@ -27,6 +27,7 @@ struct ContentView: View {
     // Countdown refresh for autorun scheduling
     @State private var countdownRefreshTrigger = false
     @State private var countdownTimer: Timer?
+    // Loading state management
 
     var body: some View {
         MainBody(
@@ -45,9 +46,8 @@ struct ContentView: View {
             showingHelp: $showingHelp,
             emailService: emailService,
             countdownRefreshTrigger: $countdownRefreshTrigger,
-            )
+        )
         .onAppear {
-            // When the main view appears, start a timer to update the autorun countdown every 30 seconds
             countdownRefreshTrigger.toggle()
             countdownTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
                 DispatchQueue.main.async {
@@ -63,7 +63,6 @@ struct ContentView: View {
             countdownTimer?.invalidate()
             countdownTimer = nil
 
-            // Remove notification observers.
             removeNotificationObservers()
         }
     }
@@ -75,7 +74,7 @@ struct ContentView: View {
             forName: AppConstants.addConfigurationNotification,
             object: nil,
             queue: .main,
-            ) { _ in
+        ) { _ in
             Task { @MainActor in
                 showingAddConfig = true
             }
@@ -85,7 +84,7 @@ struct ContentView: View {
             forName: AppConstants.openSettingsNotification,
             object: nil,
             queue: .main,
-            ) { _ in
+        ) { _ in
             Task { @MainActor in
                 showingSettings = true
             }
@@ -110,8 +109,7 @@ private struct MainBody: View {
     @Binding var showingAbout: Bool
     @Binding var showingGodModeConfig: Bool
     @Binding var showingExport: Bool
-    // Removed any white background or overlay from the UI, so all backgrounds are transparent or inherit the window.
-    // background
+
     @ObservedObject var godModeStateManager: GodModeStateManager
     @Binding var showingUserError: Bool
     @Binding var showingHelp: Bool
@@ -125,7 +123,9 @@ private struct MainBody: View {
                     godModeUIEnabled: $godModeStateManager.isGodModeUIEnabled,
                     showingAddConfig: $showingAddConfig,
                     simulateAutorunForToday: simulateAutorunForToday,
-                    )
+                )
+                .accessibilityElement()
+                .accessibilityLabel("ODYSSEY header with add configuration button")
                 Divider()
                 MainContentView(
                     configManager: configManager,
@@ -136,14 +136,19 @@ private struct MainBody: View {
                     formatCountdown: formatCountdown,
                     showingAddConfig: $showingAddConfig,
                     countdownRefreshTrigger: countdownRefreshTrigger,
-                    )
+                )
+                .accessibilityElement()
+                .accessibilityLabel("Reservation configurations list")
+
                 Divider()
                 FooterView(
                     showingSettings: $showingSettings,
                     showingAbout: $showingAbout,
                     showingExport: $showingExport,
                     hasConfigurations: !configManager.settings.configurations.isEmpty,
-                    )
+                )
+                .accessibilityElement()
+                .accessibilityLabel("ODYSSEY footer with settings and about buttons")
             }
             .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
             .background(Color(NSColor.windowBackgroundColor))
@@ -225,7 +230,7 @@ private struct MainBody: View {
                         minute: autorunMinute,
                         second: autorunSecond,
                         of: cronTime,
-                        ) ?? cronTime
+                    ) ?? cronTime
                     if finalCronTime > now {
                         if let currentNextCronTime = nextCronTime {
                             if finalCronTime < currentNextCronTime {
@@ -317,7 +322,6 @@ private struct MainBody: View {
         let configsForToday = configManager.getConfigurationsForDay(weekday)
         let enabledConfigs = configsForToday.filter(\.isEnabled)
         if enabledConfigs.isEmpty {
-            // If no enabled configs for today, run all enabled configs
             let allEnabledConfigs = configManager.settings.configurations.filter(\.isEnabled)
             orchestrator.runMultipleReservations(for: allEnabledConfigs, runType: .godmode)
         } else {
@@ -367,11 +371,9 @@ private struct HeaderView: View {
                 .buttonStyle(.borderedProminent)
                 .controlSize(.regular)
                 .help(NSLocalizedString("add_config_tooltip", comment: "Add a new reservation configuration"))
-                .accessibilityLabel(NSLocalizedString("add_configuration", comment: "Add Configuration"))
-                .accessibilityHint(NSLocalizedString(
-                    "add_config_tooltip",
-                    comment: "Add a new reservation configuration",
-                    ))
+                .accessibilityLabel("Add new reservation configuration")
+                .accessibilityHint("Double tap to create a new reservation configuration")
+                .accessibilityAddTraits(.isButton)
                 .keyboardShortcut("n", modifiers: .command)
             }
         }
@@ -427,7 +429,7 @@ private struct MainContentView: View {
                 getNextCronRunTime: getNextCronRunTime,
                 formatCountdown: formatCountdown,
                 countdownRefreshTrigger: countdownRefreshTrigger,
-                )
+            )
         }
     }
 }
@@ -441,9 +443,11 @@ private struct EmptyStateView: View {
             Image(systemName: "sportscourt")
                 .font(.system(size: AppConstants.iconLarge))
                 .foregroundColor(Color.odysseySecondaryText)
+                .accessibilityHidden(true)
             Text("No Reservations Configured")
                 .font(.system(size: AppConstants.primaryFont))
                 .fontWeight(.medium)
+                .accessibilityAddTraits(.isHeader)
             Text("Add your first reservation configuration to get started with automated booking.")
                 .font(.system(size: AppConstants.secondaryFont))
                 .foregroundColor(Color.odysseySecondaryText)
@@ -454,7 +458,9 @@ private struct EmptyStateView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.regular)
-            .accessibilityLabel("Add Configuration")
+            .accessibilityLabel("Add your first reservation configuration")
+            .accessibilityHint("Double tap to create your first reservation configuration")
+            .accessibilityAddTraits(.isButton)
             .keyboardShortcut("n", modifiers: .command)
             Spacer()
         }
@@ -477,19 +483,22 @@ private struct ConfigurationListView: View {
                 ForEach(
                     Array(configManager.settings.configurations.enumerated()),
                     id: \.element.id,
-                    ) { index, config in
+                ) { index, config in
                     ConfigurationRowView(
                         config: config,
                         nextAutorunInfo: getNextCronRunTime(config),
                         formatCountdown: formatCountdown,
                         lastRunInfo: statusManager.getLastRunInfo(for: config.id),
+                        isFocused: false,
                         onEdit: { selectedConfig = config },
                         onDelete: { configManager.removeConfiguration(config) },
                         onToggle: { configManager.toggleConfiguration(at: index) },
                         onRun: { orchestrator.runReservation(for: config, runType: .manual) },
-                        )
+                        onFocus: { },
+                    )
                     .accessibilityElement()
                     .accessibilityLabel("Reservation configuration for \(config.name)")
+                    .accessibilityAddTraits(.allowsDirectInteraction)
                     .id("\(config.id)-\(countdownRefreshTrigger)") // Force refresh when countdown trigger changes
                     if index < configManager.settings.configurations.count - 1 {
                         Divider()
@@ -603,80 +612,93 @@ struct ConfigurationRowView: View {
     let nextAutorunInfo: NextAutorunInfo?
     let formatCountdown: (Date) -> String
     let lastRunInfo: ReservationStatusManager.LastRunInfo?
+    let isFocused: Bool
     let onEdit: () -> Void
     let onDelete: () -> Void
     let onToggle: () -> Void
     let onRun: () -> Void
+    let onFocus: () -> Void
     @State private var isHovered = false
     @State private var isToggleHovered = false
     @State private var showingDeleteConfirmation = false
     @StateObject private var userSettingsManager = UserSettingsManager.shared
+
+    private var configurationHeaderRow: some View {
+        HStack(alignment: .top, spacing: AppConstants.spacingMedium) {
+            Text(config.name)
+                .font(.system(size: AppConstants.primaryFont))
+                .foregroundColor(Color.odysseyText)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            Spacer()
+            Button(action: onRun) {
+                Image(systemName: "play.fill")
+                    .foregroundColor(.odysseyAccent)
+            }
+            .buttonStyle(.bordered)
+            .help(NSLocalizedString("run_now_tooltip", comment: "Run this reservation now"))
+            .accessibilityLabel("Run \(config.name) reservation now")
+            .accessibilityHint("Double tap to run this reservation immediately")
+            .accessibilityAddTraits(.isButton)
+            Toggle("", isOn: Binding(
+                get: { config.isEnabled },
+                set: { _ in onToggle() },
+            ))
+            .toggleStyle(.switch)
+            .labelsHidden()
+            .help(NSLocalizedString(
+                "enable_autorun_tooltip",
+                comment: "Enable or disable autorun for this configuration",
+            ))
+            .accessibilityLabel("\(config.name) autorun is \(config.isEnabled ? "enabled" : "disabled")")
+            .accessibilityHint(
+                "Double tap to \(config.isEnabled ? "disable" : "enable") automatic runs for this configuration",
+            )
+            .accessibilityAddTraits(.allowsDirectInteraction)
+            Button(action: onEdit) {
+                Image(systemName: "pencil")
+                    .foregroundColor(.odysseyAccent)
+            }
+            .buttonStyle(.bordered)
+            .help(NSLocalizedString("edit_tooltip", comment: "Edit this configuration"))
+            .accessibilityLabel("Edit \(config.name) configuration")
+            .accessibilityHint("Double tap to edit this reservation configuration")
+            .accessibilityAddTraits(.isButton)
+            Button(action: {
+                showingDeleteConfirmation = true
+            }) {
+                Image(systemName: "trash")
+                    .foregroundColor(.odysseyError)
+            }
+            .buttonStyle(.bordered)
+            .help(NSLocalizedString("delete_tooltip", comment: "Delete this configuration"))
+            .accessibilityLabel("Delete \(config.name) configuration")
+            .accessibilityHint("Double tap to delete this reservation configuration")
+            .accessibilityAddTraits(.isButton)
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: AppConstants.spacingTiny) {
-            HStack(alignment: .top, spacing: AppConstants.spacingMedium) {
-                Text(config.name)
-                    .font(.system(size: AppConstants.primaryFont))
-                    .foregroundColor(Color.odysseyText)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                Spacer()
-                Button(action: onRun) {
-                    Image(systemName: "play.fill")
-                        .foregroundColor(.odysseyAccent)
-                }
-                .buttonStyle(.bordered)
-                .help(NSLocalizedString("run_now_tooltip", comment: "Run this reservation now"))
-                .accessibilityLabel(NSLocalizedString("run_now", comment: "Run Now"))
-                .accessibilityHint(NSLocalizedString("run_now_tooltip", comment: "Run this reservation now"))
-                Toggle("", isOn: Binding(
-                    get: { config.isEnabled },
-                    set: { _ in onToggle() },
-                    ))
-                .toggleStyle(.switch)
-                .labelsHidden()
-                .help(NSLocalizedString(
-                    "enable_autorun_tooltip",
-                    comment: "Enable or disable autorun for this configuration",
-                    ))
-                .accessibilityLabel(NSLocalizedString(
-                    "enable_autorun_tooltip",
-                    comment: "Enable or disable autorun for this configuration",
-                    ))
-                .accessibilityHint(NSLocalizedString(
-                    "enable_autorun_tooltip",
-                    comment: "Enable or disable autorun for this configuration",
-                    ))
-                Button(action: onEdit) {
-                    Image(systemName: "pencil")
-                        .foregroundColor(.odysseyAccent)
-                }
-                .buttonStyle(.bordered)
-                .help(NSLocalizedString("edit_tooltip", comment: "Edit this configuration"))
-                .accessibilityLabel(NSLocalizedString("edit_configuration", comment: "Edit Configuration"))
-                .accessibilityHint(NSLocalizedString("edit_tooltip", comment: "Edit this configuration"))
-                Button(action: {
-                    showingDeleteConfirmation = true
-                }) {
-                    Image(systemName: "trash")
-                        .foregroundColor(.odysseyError)
-                }
-                .buttonStyle(.bordered)
-                .help(NSLocalizedString("delete_tooltip", comment: "Delete this configuration"))
-                .accessibilityLabel(NSLocalizedString("delete_configuration", comment: "Delete Configuration"))
-                .accessibilityHint(NSLocalizedString("delete_tooltip", comment: "Delete this configuration"))
-            }
-            .accessibilityElement()
-            .accessibilityLabel("Reservation configuration for \(config.name)")
+            configurationHeaderRow
+                .accessibilityElement()
+                .accessibilityLabel("Reservation configuration for \(config.name)")
+                .accessibilityHint(
+                    "Configuration for \(config.sportName) at " +
+                        "\(ReservationConfig.extractFacilityName(from: config.facilityURL)) with \(config.numberOfPeople) people",
+                )
+                .accessibilityAddTraits(.allowsDirectInteraction)
+
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
             HStack(spacing: AppConstants.spacingTiny) {
                 SportIconView(
                     symbolName: SportIconMapper.iconForSport(config.sportName),
                     color: .odysseyAccent,
                     size: AppConstants.iconTiny,
-                    )
+                )
                 Text(
                     "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(formatScheduleInfoInline())",
-                    )
+                )
                 .font(.system(size: AppConstants.secondaryFont))
                 .foregroundColor(Color.odysseySecondaryText)
                 .fixedSize(horizontal: false, vertical: true)
@@ -702,12 +724,12 @@ struct ConfigurationRowView: View {
         .background(
             RoundedRectangle(cornerRadius: AppConstants.cardCornerRadius)
                 .fill(Color(NSColor.controlBackgroundColor).opacity(AppConstants.opacitySubtle)),
-            )
+        )
         .padding(.vertical, AppConstants.paddingTiny)
         .alert(
             "Delete Configuration",
             isPresented: $showingDeleteConfirmation,
-            ) {
+        ) {
             Button("Cancel", role: .cancel) { }
             Button("Delete", role: .destructive) {
                 onDelete()
@@ -795,25 +817,25 @@ struct ConfigurationRowView: View {
                     statusKey: "successful",
                     statusColor: .odysseySuccess,
                     iconName: "checkmark.circle.fill",
-                    )
+                )
             case .failed:
                 LastRunStatusInfo(
                     statusKey: "failed",
                     statusColor: .odysseyError,
                     iconName: "xmark.octagon.fill",
-                    )
+                )
             case .running:
                 LastRunStatusInfo(
                     statusKey: "Running...",
                     statusColor: .odysseyWarning,
                     iconName: "hourglass",
-                    )
+                )
             case .idle:
                 LastRunStatusInfo(
                     statusKey: "never",
                     statusColor: .gray,
                     iconName: "questionmark.circle",
-                    )
+                )
             }
             let runTypeKey = switch lastRun.runType {
             case .manual: " (manual)"
@@ -840,7 +862,7 @@ struct ConfigurationRowView: View {
                             .foregroundColor(statusInfo.statusColor)
                     }
                 },
-                )
+            )
         } else {
             // Configuration has never been run - show in grey
             return AnyView(
@@ -855,7 +877,7 @@ struct ConfigurationRowView: View {
                         .font(.system(size: AppConstants.tertiaryFont))
                         .foregroundColor(Color.odysseyGray)
                 },
-                )
+            )
         }
     }
 }
@@ -899,7 +921,7 @@ struct DeleteConfirmationModal: View {
             RoundedRectangle(cornerRadius: AppConstants.modalCornerRadius)
                 .fill(Color(NSColor.windowBackgroundColor))
                 .shadow(radius: AppConstants.shadowRadiusXXLarge),
-            )
+        )
         .padding(AppConstants.sectionPadding)
     }
 }

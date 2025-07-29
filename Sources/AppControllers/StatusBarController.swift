@@ -121,7 +121,7 @@ class StatusBarController: NSObject {
         }
 
         // Trigger add configuration through the ContentView
-        // This will be handled by the ContentView when it receives the notification
+
         NotificationCenter.default.post(name: AppConstants.addConfigurationNotification, object: nil)
     }
 

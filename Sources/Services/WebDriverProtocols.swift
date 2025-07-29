@@ -42,7 +42,7 @@ public protocol WebAutomationServiceProtocol: ObservableObject, Sendable {
     func selectTimeSlot(dayName: String, timeString: String) async -> Bool
     func waitForContactInfoPage() async -> Bool
     func fillAllContactFieldsWithAutofillAndHumanMovements(phoneNumber: String, email: String, name: String) async
-    -> Bool
+        -> Bool
     func addQuickPause() async
     func clickContactInfoConfirmButtonWithRetry() async -> Bool
     func detectRetryText() async -> Bool
@@ -89,7 +89,7 @@ public protocol WebElementProtocol {
 // MARK: - Web Driver Error Types.
 
 /// Errors thrown by the web driver.
-public enum WebDriverError: Error, LocalizedError {
+public enum WebDriverError: Error, LocalizedError, UnifiedErrorProtocol {
     /// Navigation to a URL failed.
     case navigationFailed(String)
     /// The requested web element was not found.
@@ -111,6 +111,36 @@ public enum WebDriverError: Error, LocalizedError {
 
     /// Human-readable error description.
     public var errorDescription: String? {
+        return userFriendlyMessage
+    }
+
+    /// Unique error code for categorization and debugging
+    public var errorCode: String {
+        switch self {
+        case .navigationFailed: return "WEBDRIVER_NAVIGATION_001"
+        case .elementNotFound: return "WEBDRIVER_ELEMENT_001"
+        case .clickFailed: return "WEBDRIVER_CLICK_001"
+        case .typeFailed: return "WEBDRIVER_TYPE_001"
+        case .scriptExecutionFailed: return "WEBDRIVER_SCRIPT_001"
+        case .timeout: return "WEBDRIVER_TIMEOUT_001"
+        case .connectionFailed: return "WEBDRIVER_CONNECTION_001"
+        case .invalidSelector: return "WEBDRIVER_SELECTOR_001"
+        case .staleElement: return "WEBDRIVER_STALE_001"
+        }
+    }
+
+    /// Category for grouping similar errors
+    public var errorCategory: ErrorCategory {
+        switch self {
+        case .navigationFailed, .connectionFailed: return .network
+        case .elementNotFound, .invalidSelector, .staleElement: return .automation
+        case .clickFailed, .typeFailed, .scriptExecutionFailed: return .automation
+        case .timeout: return .system
+        }
+    }
+
+    /// User-friendly error message for UI display
+    public var userFriendlyMessage: String {
         switch self {
         case let .navigationFailed(message):
             return "Navigation failed: \(message)"
@@ -130,6 +160,21 @@ public enum WebDriverError: Error, LocalizedError {
             return "Invalid selector: \(message)"
         case let .staleElement(message):
             return "Stale element: \(message)"
+        }
+    }
+
+    /// Technical details for debugging (optional)
+    public var technicalDetails: String? {
+        switch self {
+        case let .navigationFailed(message): return "WebKit navigation failed: \(message)"
+        case let .elementNotFound(message): return "DOM element not found: \(message)"
+        case let .clickFailed(message): return "Element click operation failed: \(message)"
+        case let .typeFailed(message): return "Text input operation failed: \(message)"
+        case let .scriptExecutionFailed(message): return "JavaScript execution failed: \(message)"
+        case let .timeout(message): return "Operation exceeded timeout: \(message)"
+        case let .connectionFailed(message): return "WebKit connection failed: \(message)"
+        case let .invalidSelector(message): return "CSS selector validation failed: \(message)"
+        case let .staleElement(message): return "Element became stale: \(message)"
         }
     }
 }

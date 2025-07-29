@@ -75,13 +75,11 @@ public final class SharedVerificationCodePool: ObservableObject, @unchecked Send
     ///   - since: Date to search from.
     /// - Returns: True if refresh is needed.
     private func shouldRefreshCodePool(for instanceId: String, since _: Date) -> Bool {
-        // If no codes available, refresh.
         if (codePool[instanceId] ?? []).isEmpty {
             logger.info("🔄 SharedCodePool: Refreshing - no codes available.")
             return true
         }
 
-        // If it's been more than the refresh interval since last fetch, refresh.
         if let lastFetch = lastFetchTime[instanceId] {
             let timeSinceLastFetch = Date().timeIntervalSince(lastFetch)
             if timeSinceLastFetch > AppConstants.codePoolRefreshIntervalSeconds {
@@ -128,6 +126,6 @@ public final class SharedVerificationCodePool: ObservableObject, @unchecked Send
         logger
             .info(
                 "✅ SharedCodePool: Marked code \(String(repeating: "*", count: code.count)) as consumed by instance \(instanceId)",
-                )
+            )
     }
 }

@@ -7,7 +7,7 @@ import os.log
 
  This enum is used throughout the automation flow to provide detailed, user-friendly error messages and to support structured error handling and logging.
  */
-public enum ReservationError: Error, Codable, LocalizedError {
+public enum ReservationError: Error, Codable, LocalizedError, UnifiedErrorProtocol {
     /// Network error with a message.
     case network(String)
     /// Facility not found with a message.
@@ -43,6 +43,47 @@ public enum ReservationError: Error, Codable, LocalizedError {
 
     /// Human-readable error description for each case
     public var errorDescription: String? {
+        return userFriendlyMessage
+    }
+
+    /// Unique error code for categorization and debugging
+    public var errorCode: String {
+        switch self {
+        case .network: return "RESERVATION_NETWORK_001"
+        case .facilityNotFound: return "RESERVATION_FACILITY_001"
+        case .slotUnavailable: return "RESERVATION_SLOT_001"
+        case .automationFailed: return "RESERVATION_AUTOMATION_001"
+        case .unknown: return "RESERVATION_UNKNOWN_001"
+        case .pageLoadTimeout: return "RESERVATION_TIMEOUT_001"
+        case .groupSizePageLoadTimeout: return "RESERVATION_TIMEOUT_002"
+        case .numberOfPeopleFieldNotFound: return "RESERVATION_ELEMENT_001"
+        case .confirmButtonNotFound: return "RESERVATION_ELEMENT_002"
+        case .timeSlotSelectionFailed: return "RESERVATION_SELECTION_001"
+        case .contactInfoPageLoadTimeout: return "RESERVATION_TIMEOUT_003"
+        case .contactInfoFieldNotFound: return "RESERVATION_ELEMENT_003"
+        case .contactInfoConfirmButtonNotFound: return "RESERVATION_ELEMENT_004"
+        case .emailVerificationFailed: return "RESERVATION_EMAIL_001"
+        case .sportButtonNotFound: return "RESERVATION_ELEMENT_005"
+        case .webKitTimeout: return "RESERVATION_TIMEOUT_004"
+        }
+    }
+
+    /// Category for grouping similar errors
+    public var errorCategory: ErrorCategory {
+        switch self {
+        case .network: return .network
+        case .facilityNotFound, .slotUnavailable: return .validation
+        case .automationFailed, .sportButtonNotFound, .confirmButtonNotFound, .numberOfPeopleFieldNotFound,
+             .contactInfoFieldNotFound, .contactInfoConfirmButtonNotFound: return .automation
+        case .pageLoadTimeout, .groupSizePageLoadTimeout, .contactInfoPageLoadTimeout, .webKitTimeout: return .system
+        case .emailVerificationFailed: return .authentication
+        case .timeSlotSelectionFailed: return .automation
+        case .unknown: return .unknown
+        }
+    }
+
+    /// User-friendly error message for UI display
+    public var userFriendlyMessage: String {
         switch self {
         case let .network(msg): return "Network error: \(msg)"
         case let .facilityNotFound(msg): return "Facility not found: \(msg)"
@@ -60,6 +101,28 @@ public enum ReservationError: Error, Codable, LocalizedError {
         case .emailVerificationFailed: return "Email verification failed."
         case .sportButtonNotFound: return "Sport button not found."
         case .webKitTimeout: return "WebKit operation timed out."
+        }
+    }
+
+    /// Technical details for debugging (optional)
+    public var technicalDetails: String? {
+        switch self {
+        case let .network(msg): return "Network request failed: \(msg)"
+        case let .facilityNotFound(msg): return "Facility URL validation failed: \(msg)"
+        case let .slotUnavailable(msg): return "Time slot selection failed: \(msg)"
+        case let .automationFailed(msg): return "Web automation sequence failed: \(msg)"
+        case let .unknown(msg): return "Unexpected error occurred: \(msg)"
+        case .pageLoadTimeout: return "Page load exceeded timeout threshold"
+        case .groupSizePageLoadTimeout: return "Group size page load exceeded timeout threshold"
+        case .numberOfPeopleFieldNotFound: return "DOM element for number of people not found"
+        case .confirmButtonNotFound: return "DOM element for confirm button not found"
+        case .timeSlotSelectionFailed: return "Time slot selection automation failed"
+        case .contactInfoPageLoadTimeout: return "Contact info page load exceeded timeout threshold"
+        case .contactInfoFieldNotFound: return "DOM element for contact info not found"
+        case .contactInfoConfirmButtonNotFound: return "DOM element for contact info confirm button not found"
+        case .emailVerificationFailed: return "Email verification process failed"
+        case .sportButtonNotFound: return "DOM element for sport selection not found"
+        case .webKitTimeout: return "WebKit operation exceeded timeout threshold"
         }
     }
 }
@@ -112,14 +175,15 @@ public enum ReservationRunStatus: Codable, Equatable, Sendable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        if container.contains(.idle) { self = .idle } else if container.contains(.running) { self = .running } else if container.contains(.success) { self = .success } else if container.contains(.failed) {
+        if container.contains(.idle) { self = .idle } else if container.contains(.running) { self = .running }
+        else if container.contains(.success) { self = .success } else if container.contains(.failed) {
             let error = try container.decode(String.self, forKey: .failed)
             self = .failed(error)
         } else {
             throw DecodingError.dataCorrupted(.init(
                 codingPath: decoder.codingPath,
                 debugDescription: "Unknown ReservationRunStatus",
-                ))
+            ))
         }
     }
 
@@ -170,7 +234,10 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
     public init(
         statusManager: ReservationStatusManager = ReservationStatusManager.shared,
         errorHandler: ReservationErrorHandler = ReservationErrorHandler.shared,
-        logger: Logger = Logger(subsystem: "com.odyssey.app", category: "ReservationOrchestrator"),
+        logger: Logger = Logger(
+            subsystem: "com.odyssey.app",
+            category: LoggerCategory.reservationOrchestrator.categoryName,
+        ),
         webKitService: WebKitServiceProtocol = ServiceRegistry.shared.resolve(WebKitServiceProtocol.self),
         configurationManager: ConfigurationManager = ConfigurationManager.shared
     ) {
@@ -186,10 +253,10 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         self.init(
             statusManager: ReservationStatusManager.shared,
             errorHandler: ReservationErrorHandler.shared,
-            logger: Logger(subsystem: "com.odyssey.app", category: "ReservationOrchestrator"),
+            logger: Logger(subsystem: "com.odyssey.app", category: LoggerCategory.reservationOrchestrator.categoryName),
             webKitService: ServiceRegistry.shared.resolve(WebKitServiceProtocol.self),
             configurationManager: ConfigurationManager.shared,
-            )
+        )
     }
 
     deinit {
@@ -270,7 +337,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     status: .failed("Emergency cleanup - automation was interrupted unexpectedly"),
                     date: Date(),
                     runType: .automatic,
-                    )
+                )
             }
         }
         await webKitService.disconnect(closeWindow: false)
@@ -291,7 +358,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     status: .failed("Emergency cleanup - automation was interrupted unexpectedly"),
                     date: Date(),
                     runType: .automatic,
-                    )
+                )
             }
         }
         await webKitService.disconnect(closeWindow: false)
@@ -314,7 +381,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     status: .failed("Reservation cancelled - window was closed manually"),
                     date: Date(),
                     runType: runType,
-                    )
+                )
             }
         }
         await webKitService.forceReset()
@@ -418,7 +485,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 phoneNumber: phoneNumber,
                 email: userSettings.imapEmail,
                 name: userSettings.name,
-                )
+            )
             if !allFieldsFilled {
                 logger.error("❌ Failed to fill all contact fields simultaneously.")
                 self.userError = ReservationError.contactInfoFieldNotFound.errorDescription
@@ -447,7 +514,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                         logger
                             .warning(
                                 "Retry text detected after confirm button click - will retry with enhanced measures",
-                                )
+                            )
                         contactConfirmClicked = false
                         retryCount += 1
                         logger.info("🛡️ Applying additional essential measures after retry text detection.")
@@ -506,7 +573,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             }
             logger.info("🎉 Reservation completed successfully for \(config.name).")
             logger.info("🧹 Cleaning up WebKit session after successful reservation.")
-            // Temporarily disable window closure callback to prevent false failure
             webKitService.onWindowClosed = nil
             await webKitService.disconnect(closeWindow: true)
             return
@@ -586,18 +652,18 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     let timeSlotSelected = await separateWebKitService.selectTimeSlot(
                         dayName: dayName,
                         timeString: timeString,
-                        )
+                    )
                     if !timeSlotSelected {
                         logger
                             .error(
                                 "Failed to select time slot for \(config.name): \(dayName) at \(timeString, privacy: .private)",
-                                )
+                            )
                         throw ReservationError.timeSlotSelectionFailed
                     }
                     logger
                         .info(
                             "Successfully selected time slot for \(config.name): \(dayName) at \(timeString, privacy: .private)",
-                            )
+                        )
                 } else {
                     logger.warning("⚠️ No time slots configured for \(config.name), skipping time selection.")
                 }
@@ -618,7 +684,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     phoneNumber: phoneNumber,
                     email: userSettings.imapEmail,
                     name: userSettings.name,
-                    )
+                )
                 if !allFieldsFilled {
                     logger.error("❌ Failed to fill all contact fields for \(config.name).")
                     throw ReservationError.contactInfoFieldNotFound
@@ -635,7 +701,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                         logger
                             .info(
                                 "Applying essential anti-detection for retry attempt \(retryCount) for \(config.name)",
-                                )
+                            )
                         await separateWebKitService.addQuickPause()
                         try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000 ... 1_800_000_000))
                     }
@@ -647,20 +713,20 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                             logger
                                 .warning(
                                     "Retry text detected after confirm button click for \(config.name) - will retry with enhanced measures",
-                                    )
+                                )
                             contactConfirmClicked = false
                             retryCount += 1
                             logger
                                 .info(
                                     "Applying additional essential measures after retry text detection for \(config.name)",
-                                    )
+                                )
                             await separateWebKitService.addQuickPause()
                             try? await Task.sleep(nanoseconds: UInt64.random(in: 1_500_000_000 ... 2_200_000_000))
                         } else {
                             logger
                                 .info(
                                     "Successfully clicked contact confirm button for \(config.name) (no retry text detected)",
-                                    )
+                                )
                             break
                         }
                     } else {
@@ -688,7 +754,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                                 status: .failed("Email verification failed."),
                                 date: Date(),
                                 runType: runType,
-                                )
+                            )
                             // Only set isRunning = false for single reservations (manual runs)
                             // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
                             if runType == .manual {
@@ -709,7 +775,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                         logger
                             .warning(
                                 "⚠️ DOM ready check failed for \(config.name), but continuing with click result as success indicator",
-                                )
+                            )
                     }
                 }
                 logger.info("🎉 Finishing reservation for \(config.name).")
@@ -723,7 +789,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     }
                 }
                 logger.info("🎉 Reservation completed successfully for \(config.name).")
-                // Temporarily disable window closure callback to prevent false failure
                 separateWebKitService.onWindowClosed = nil
             } else {
                 logger.error("❌ Failed to click sport button for \(config.name).")
@@ -737,7 +802,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     status: .failed(error.localizedDescription),
                     date: Date(),
                     runType: runType,
-                    )
+                )
                 // Only set isRunning = false for single reservations (manual runs)
                 // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
                 if runType == .manual {
@@ -748,7 +813,9 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             await separateWebKitService.disconnect(closeWindow: shouldClose)
             return
         }
-        await separateWebKitService.disconnect(closeWindow: true)
+        // Close window on success if showBrowserWindow is enabled
+        let shouldCloseOnSuccess = UserSettingsManager.shared.userSettings.showBrowserWindow
+        await separateWebKitService.disconnect(closeWindow: shouldCloseOnSuccess)
     }
 
     private func withTimeout<T: Sendable>(
@@ -774,15 +841,20 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         operation: @escaping @Sendable () async -> T
     ) async -> T? {
         await withTaskGroup(of: T?.self) { group in
-            group.addTask { await operation() }
+            group.addTask {
+                await operation()
+            }
+
             group.addTask {
                 try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
                 return nil
             }
+
             for await result in group {
                 group.cancelAll()
                 return result
             }
+
             return nil
         }
     }
@@ -842,7 +914,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                         logger
                             .info(
                                 "🔄 ReservationOrchestrator: God Mode completed - Mixed results: \(successfulConfigs.count) success, \(failedConfigs.count) failed",
-                                )
+                            )
                     }
                     self.statusManager.lastRunDate = Date()
                     logger.info("🔄 ReservationOrchestrator: Keeping icon filled until all statuses are finalized.")
@@ -878,14 +950,14 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                             .sleep(nanoseconds: UInt64(
                                 AppConstants
                                     .additionalWaitTimeForUIUpdatesSeconds * 1_000_000_000,
-                                ))
+                            ))
 
                         await MainActor.run {
                             self.statusManager.isRunning = false
                             logger
                                 .info(
                                     "🔄 ReservationOrchestrator: Final multiple reservation status - isRunning: \(self.statusManager.isRunning), status: \(self.statusManager.lastRunStatus.description)",
-                                    )
+                                )
                             // Allow sleep after autorun (automatic) reservations are done
                             if completionRunType == .automatic {
                                 SleepManager.allowSleep()
@@ -910,7 +982,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             logger
                 .info(
                     "🔄 ReservationOrchestrator: God Mode timeout status - isRunning: \(self.statusManager.isRunning), status: \(self.statusManager.lastRunStatus.description)",
-                    )
+                )
         }
     }
 }

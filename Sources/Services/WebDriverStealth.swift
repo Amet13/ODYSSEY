@@ -51,7 +51,6 @@ extension WebKitService {
         let lang = language?.components(separatedBy: ",").first ?? "en-US"
         let langs = language?.components(separatedBy: ",") ?? ["en-US", "en"]
         let script = """
-            // Remove webdriver property.
             Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
             // Fake plugins and languages
             Object.defineProperty(navigator, 'plugins', {get: () => [1,2,3,4,5]});

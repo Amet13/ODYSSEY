@@ -65,7 +65,7 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
             logger: Logger(subsystem: "com.odyssey.app", category: "UserSettingsManager"),
             userDefaults: .standard,
             settingsKey: "ODYSSEY_UserSettings",
-            )
+        )
     }
 
     // MARK: - Public Methods
@@ -75,7 +75,6 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
     public func updateSettings(_ settings: UserSettings) {
         userSettings = settings
         storeCredentialsInKeychain()
-        // Remove password from UserDefaults after storing in Keychain.
         userSettings.imapPassword = ""
         saveSettings()
     }
@@ -98,7 +97,7 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
             "name": userSettings.name,
             "phone": userSettings.getFormattedPhoneNumber(),
             "email": userSettings.imapEmail,
-            "server": userSettings.imapServer
+            "server": userSettings.imapServer,
         ]
     }
 
@@ -141,7 +140,7 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
             password: password,
             server: server,
             port: port,
-            )
+        )
         if case let .failure(error) = result {
             logger.error("❌ Keychain storage error: \(error.localizedDescription)")
         }

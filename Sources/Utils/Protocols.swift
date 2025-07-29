@@ -133,7 +133,7 @@ public protocol WebKitServiceProtocol: AnyObject {
      - Returns: True if successful.
      */
     func fillAllContactFieldsWithAutofillAndHumanMovements(phoneNumber: String, email: String, name: String) async
-    -> Bool
+        -> Bool
     /**
      Adds a quick pause (for human-like timing).
      */
@@ -336,16 +336,6 @@ protocol StatusBarControllerProtocol: AnyObject {
  * }
  * ```
  */
-protocol LoggingServiceProtocol {
-    /// Logs an informational message.
-    func info(_ message: String)
-    /// Logs an error message.
-    func error(_ message: String)
-    /// Logs a warning message.
-    func warning(_ message: String)
-    /// Logs a debug message.
-    func debug(_ message: String)
-}
 
 // MARK: - Validation Protocol
 
@@ -450,17 +440,85 @@ protocol TimerServiceProtocol {
  * Example:
  * ```swift
  * class MyErrorHandler: ErrorHandlingServiceProtocol {
- *   func handleError(_ error: Error, context: String) { ... }
- *   func logError(_ error: Error, withMessage message: String) { ... }
- *   func showUserFriendlyError(_ error: Error) { ... }
+ *   func handleError(_ error: Error, context: String, userFacing: Bool) { ... }
+ *   func logError(_ message: String, error: Error?, context: String) { ... }
+ *   func logWarning(_ message: String, context: String) { ... }
+ *   func logInfo(_ message: String, context: String) { ... }
+ *   func logSuccess(_ message: String, context: String) { ... }
  * }
  * ```
  */
-protocol ErrorHandlingServiceProtocol {
-    /// Handles an error with context.
-    func handleError(_ error: Error, context: String)
-    /// Logs an error with a custom message.
-    func logError(_ error: Error, withMessage message: String)
-    /// Shows a user-friendly error message.
-    func showUserFriendlyError(_ error: Error)
+
+// MARK: - Unified Error Protocol
+
+/**
+ * Protocol defining a unified error interface for consistent error handling across the application.
+ * All custom error types should conform to this protocol for better error management and logging.
+ *
+ * Example:
+ * ```swift
+ * enum MyCustomError: Error, UnifiedErrorProtocol {
+ *   case networkFailure(String)
+ *   case validationError(String)
+ *
+ *   var errorCode: String {
+ *     switch self {
+ *     case .networkFailure: return "NETWORK_001"
+ *     case .validationError: return "VALIDATION_001"
+ *     }
+ *   }
+ *
+ *   var errorCategory: ErrorCategory {
+ *     switch self {
+ *     case .networkFailure: return .network
+ *     case .validationError: return .validation
+ *     }
+ *   }
+ *
+ *   var userFriendlyMessage: String {
+ *     switch self {
+ *     case let .networkFailure(message): return "Network issue: \(message)"
+ *     case let .validationError(message): return "Validation error: \(message)"
+ *     }
+ *   }
+ * }
+ * ```
+ */
+public protocol UnifiedErrorProtocol: Error, LocalizedError {
+    /// Unique error code for categorization and debugging
+    var errorCode: String { get }
+
+    /// Category for grouping similar errors
+    var errorCategory: ErrorCategory { get }
+
+    /// User-friendly error message for UI display
+    var userFriendlyMessage: String { get }
+
+    /// Technical details for debugging (optional)
+    var technicalDetails: String? { get }
+}
+
+/**
+ * Categories for grouping errors by type
+ */
+public enum ErrorCategory: String, CaseIterable {
+    case network = "Network"
+    case validation = "Validation"
+    case authentication = "Authentication"
+    case automation = "Automation"
+    case configuration = "Configuration"
+    case system = "System"
+    case unknown = "Unknown"
+
+    var emoji: String {
+        switch self {
+        case .network: return "🌐"
+        case .validation: return "✅"
+        case .authentication: return "🔐"
+        case .automation: return "🤖"
+        case .configuration: return "⚙️"
+        case .system: return "💻"
+        case .unknown: return "❓"
+        }
+    }
 }

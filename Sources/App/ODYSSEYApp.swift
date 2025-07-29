@@ -54,6 +54,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Set up scheduling timer
         setupSchedulingTimer()
 
+        // Set up notification observers
+        setupNotificationObservers()
+
         // Initialize services
         initializeServices()
 
@@ -137,6 +140,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         logger.info("✅ Global keyboard shortcuts initialized")
     }
 
+    private func setupNotificationObservers() {
+        // Observe reschedule autorun notifications
+        NotificationCenter.default.addObserver(
+            forName: AppConstants.rescheduleAutorunNotification,
+            object: nil,
+            queue: .main,
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.logger.info("🔄 Rescheduling autorun due to settings change")
+                self?.schedulePreciseAutorun()
+            }
+        }
+    }
+
     private func setupSchedulingTimer() {
         // Schedule precise autorun at exactly 6:00:00 PM
         schedulePreciseAutorun()
@@ -214,18 +231,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let autorunMinute = calendar.component(.minute, from: autorunTime)
         let autorunSecond = calendar.component(.second, from: autorunTime)
 
-        // Debug: Log the current autorun time
         let timeType = useCustomTime ? "custom" : "default"
         logger
             .info(
                 "🔍 DEBUG: Current autorun time is set to \(autorunHour):\(autorunMinute):\(autorunSecond) (\(timeType))",
-                )
+            )
 
         // Calculate the next autorun time using the determined time
         var nextAutorun = calendar
             .date(bySettingHour: autorunHour, minute: autorunMinute, second: autorunSecond, of: now) ?? now
 
-        // If it's already past the autorun time today, schedule for tomorrow
         if nextAutorun <= now {
             nextAutorun = calendar.date(byAdding: .day, value: 1, to: nextAutorun) ?? nextAutorun
         }
@@ -236,7 +251,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         logger
             .info(
                 "🕕 Scheduling precise autorun for \(nextAutorun) (custom time: \(timeString), in \(timeUntilAutorun) seconds)",
-                )
+            )
 
         // Schedule the precise timer
         DispatchQueue.main.asyncAfter(deadline: .now() + timeUntilAutorun) { [self] in
@@ -260,7 +275,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         let configurations = configManager.settings.configurations
 
-        // Debug: Log all configurations
         logger.info("🔍 DEBUG: Found \(configurations.count) total configurations")
         for config in configurations {
             logger.info("🔍 DEBUG: Config '\(config.name)' - enabled days: \(config.dayTimeSlots.keys.map(\.rawValue))")
@@ -273,7 +287,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             configsToRun.append(config)
         }
 
-        // Debug: Log which configurations were selected
         logger.info("🔍 DEBUG: Selected \(configsToRun.count) configurations for autorun")
         for config in configsToRun {
             logger.info("🔍 DEBUG: Will run config '\(config.name)'")
@@ -338,10 +351,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let timeDifference = abs(currentTimeInSeconds - autorunTimeInSeconds)
 
         if timeDifference > 2 {
+            let currentTimeStr = "\(currentHour):\(currentMinute):\(currentSecond)"
+            let autorunTimeStr = "\(autorunHour):\(autorunMinute):\(autorunSecond)"
             logger
                 .info(
-                    "🔍 DEBUG: Time mismatch - current: \(currentHour):\(currentMinute):\(currentSecond), autorun: \(autorunHour):\(autorunMinute):\(autorunSecond), difference: \(timeDifference)s",
-                    )
+                    "🔍 DEBUG: Time mismatch - current: \(currentTimeStr), autorun: \(autorunTimeStr), difference: \(timeDifference)s",
+                )
             return false
         }
 
@@ -358,11 +373,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Autorun should be 2 days before reservation day
             let autorunDay = calendar.date(byAdding: .day, value: -2, to: reservationDay) ?? reservationDay
 
-            // Debug logging
-            logger
-                .info(
-                    "🔍 DEBUG: Config '\(config.name)' - Day: \(day.rawValue), targetWeekday: \(targetWeekday), currentWeekday: \(currentWeekday), daysUntilTarget: \(daysUntilTarget), reservationDay: \(reservationDay), autorunDay: \(autorunDay), today: \(today)",
-                    )
+            logger.info(
+                "🔍 DEBUG: Config '\(config.name)' - Day: \(day.rawValue), targetWeekday: \(targetWeekday), " +
+                    "currentWeekday: \(currentWeekday), daysUntilTarget: \(daysUntilTarget), " +
+                    "reservationDay: \(reservationDay), autorunDay: \(autorunDay), today: \(today)",
+            )
 
             if calendar.isDate(today, inSameDayAs: autorunDay) {
                 logger.info("🔍 DEBUG: Config '\(config.name)' - MATCH FOUND!")

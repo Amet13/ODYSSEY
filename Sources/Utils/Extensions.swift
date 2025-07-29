@@ -33,7 +33,8 @@ extension String {
 
         if
             let match = regex?.firstMatch(in: self, range: range),
-            let matchRange = Range(match.range, in: self) {
+            let matchRange = Range(match.range, in: self)
+        {
             return String(self[matchRange])
         }
         return nil
@@ -111,7 +112,7 @@ extension View {
                         .background(Color.black.opacity(AppConstants.opacityLight))
                 }
             },
-            )
+        )
     }
 }
 

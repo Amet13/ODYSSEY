@@ -106,7 +106,8 @@ public struct ReservationConfig: Identifiable, Equatable, Codable, Sendable {
             let nsrange = NSRange(url.startIndex ..< url.endIndex, in: url)
             if
                 let match = regex.firstMatch(in: url, options: [], range: nsrange),
-                let facilityRange = Range(match.range(at: 1), in: url) {
+                let facilityRange = Range(match.range(at: 1), in: url)
+            {
                 let facilityName = String(url[facilityRange])
                 return facilityName.capitalized
             }

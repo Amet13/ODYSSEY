@@ -15,33 +15,11 @@ Both versions use the same powerful WebKit automation engine, ensuring consisten
 
 ### Prerequisites
 
-- macOS 15 or later
-- Swift 6.1 or later
-- Xcode Command Line Tools
+See [REQUIREMENTS.md](REQUIREMENTS.md) for complete system requirements.
 
 ### Installation
 
-#### Option 1: Download Pre-built Binary (Recommended)
-
-```bash
-# Download from GitHub releases
-# Make executable
-chmod +x odyssey-cli
-
-# Test the CLI
-./odyssey-cli version
-```
-
-#### Option 2: Build from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/Amet13/ODYSSEY.git
-cd ODYSSEY
-
-# Build the CLI
-swift build --product odyssey-cli
-```
+See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
 
 ### Basic Usage
 
@@ -264,8 +242,6 @@ The CLI uses WebKit which requires macOS and a graphical environment. For remote
 #### macOS Servers (Recommended)
 
 ```bash
-# macOS servers with GUI capabilities work out of the box
-# For headless macOS servers, use Screen Sharing or VNC
 ./odyssey-cli run
 ```
 
@@ -274,7 +250,6 @@ The CLI uses WebKit which requires macOS and a graphical environment. For remote
 - **Linux servers are not supported** due to WebKit dependencies
 - **Only macOS servers** with GUI capabilities are supported
 - **CI/CD pipelines** should use macOS runners exclusively
-- **Virtual displays** are not needed on macOS servers
 
 ## 🤝 Support
 
