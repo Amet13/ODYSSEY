@@ -28,7 +28,6 @@ struct ContentView: View {
     @State private var countdownRefreshTrigger = false
     @State private var countdownTimer: Timer?
     // Loading state management
-    @StateObject private var loadingStateManager = LoadingStateManager.shared
 
     var body: some View {
         MainBody(
@@ -65,17 +64,7 @@ struct ContentView: View {
             countdownTimer?.invalidate()
             countdownTimer = nil
 
-            // Remove notification observers.
             removeNotificationObservers()
-        }
-        .overlay {
-            if loadingStateManager.isAnyLoading {
-                LoadingOverlay(
-                    message: loadingStateManager.currentLoadingMessage,
-                    showProgress: loadingStateManager.showProgress,
-                    progress: loadingStateManager.progress,
-                    )
-            }
         }
     }
 
@@ -121,8 +110,7 @@ private struct MainBody: View {
     @Binding var showingAbout: Bool
     @Binding var showingGodModeConfig: Bool
     @Binding var showingExport: Bool
-    // Removed any white background or overlay from the UI, so all backgrounds are transparent or inherit the window.
-    // background
+
     @ObservedObject var godModeStateManager: GodModeStateManager
     @Binding var showingUserError: Bool
     @Binding var showingHelp: Bool

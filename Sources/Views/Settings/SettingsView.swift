@@ -567,7 +567,6 @@ private struct TestEmailButton: View {
         VStack(spacing: AppConstants.spacingMedium) {
             if tempSettings.hasEmailConfigured {
                 Button(action: {
-                    // Temporarily update the actual settings for testing
                     let originalSettings = userSettingsManager.userSettings
                     userSettingsManager.userSettings = tempSettings
 

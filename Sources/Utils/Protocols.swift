@@ -336,16 +336,17 @@ protocol StatusBarControllerProtocol: AnyObject {
  * }
  * ```
  */
-protocol LoggingServiceProtocol {
-    /// Logs an informational message.
-    func info(_ message: String)
-    /// Logs an error message.
-    func error(_ message: String)
-    /// Logs a warning message.
-    func warning(_ message: String)
-    /// Logs a debug message.
-    func debug(_ message: String)
-}
+// Note: This protocol is now defined in LoggingService.swift
+// protocol LoggingServiceProtocol {
+//     /// Logs an informational message.
+//     func info(_ message: String)
+//     /// Logs an error message.
+//     func error(_ message: String)
+//     /// Logs a warning message.
+//     func warning(_ message: String)
+//     /// Logs a debug message.
+//     func debug(_ message: String)
+// }
 
 // MARK: - Validation Protocol
 
@@ -450,17 +451,24 @@ protocol TimerServiceProtocol {
  * Example:
  * ```swift
  * class MyErrorHandler: ErrorHandlingServiceProtocol {
- *   func handleError(_ error: Error, context: String) { ... }
- *   func logError(_ error: Error, withMessage message: String) { ... }
- *   func showUserFriendlyError(_ error: Error) { ... }
+ *   func handleError(_ error: Error, context: String, userFacing: Bool) { ... }
+ *   func logError(_ message: String, error: Error?, context: String) { ... }
+ *   func logWarning(_ message: String, context: String) { ... }
+ *   func logInfo(_ message: String, context: String) { ... }
+ *   func logSuccess(_ message: String, context: String) { ... }
  * }
  * ```
  */
-protocol ErrorHandlingServiceProtocol {
-    /// Handles an error with context.
-    func handleError(_ error: Error, context: String)
-    /// Logs an error with a custom message.
-    func logError(_ error: Error, withMessage message: String)
-    /// Shows a user-friendly error message.
-    func showUserFriendlyError(_ error: Error)
-}
+// Note: This protocol is now defined in ErrorHandlingService.swift
+// protocol ErrorHandlingServiceProtocol {
+//     /// Handles an error with context and user-facing option.
+//     func handleError(_ error: Error, context: String, userFacing: Bool)
+//     /// Logs an error with a custom message.
+//     func logError(_ message: String, error: Error?, context: String)
+//     /// Logs a warning message.
+//     func logWarning(_ message: String, context: String)
+//     /// Logs an info message.
+//     func logInfo(_ message: String, context: String)
+//     /// Logs a success message.
+//     func logSuccess(_ message: String, context: String)
+// }

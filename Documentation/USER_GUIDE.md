@@ -16,25 +16,11 @@
 
 ### System Requirements
 
-- **macOS 15.0 or later**
-- **Internet connection** for reservation automation
-- **Email account** for verification
+See [REQUIREMENTS.md](REQUIREMENTS.md) for complete system requirements.
 
 ### Installation
 
-#### GUI Version
-
-1. Download the latest `.dmg` from [Releases](https://github.com/Amet13/ODYSSEY/releases)
-2. Open the `.dmg` and drag ODYSSEY to `Applications`
-3. Launch ODYSSEY from Applications
-4. The app will appear in your menu bar (top right)
-
-#### CLI Version
-
-1. Download the `odyssey-cli` binary from [Releases](https://github.com/Amet13/ODYSSEY/releases)
-2. Make it executable: `chmod +x odyssey-cli`
-3. Export configuration from GUI app
-4. Set environment variable: `export ODYSSEY_EXPORT_TOKEN="<token>"`
+See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
 
 ## 🖥️ GUI Version Guide
 
@@ -228,7 +214,7 @@ ODYSSEY automatically detects potential conflicts:
 
 - Check Applications folder for ODYSSEY
 - Restart the app
-- Ensure macOS 15+ is installed
+- Ensure macOS 15+ is installed (see [REQUIREMENTS.md](REQUIREMENTS.md))
 - Check System Preferences → Dock & Menu Bar
 
 #### Keychain Errors

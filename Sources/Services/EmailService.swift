@@ -133,40 +133,21 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     ///   - server: The IMAP server
     /// - Returns: Validation result
     private func validateGmailSettings(email: String, password: String, server: String) -> Result<Void, IMAPError> {
-        guard isGmailAccount(email) else { return .success(()) }
+        guard ValidationService.shared.isGmailAccount(email) else { return .success(()) }
 
         // Check if server is correct for Gmail
         if server.lowercased() != "imap.gmail.com" {
             return .failure(.gmailAppPasswordRequired("Gmail accounts must use 'imap.gmail.com' as the server"))
         }
 
-        // Validate Gmail app password format: 16 characters in format "xxxx xxxx xxxx xxxx"
+        // Use centralized validation for Gmail app password
         let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        // Check if password matches the expected format: 4 groups of 4 characters separated by spaces
-        // Gmail app passwords can contain letters and numbers, not just lowercase letters
-        let appPasswordPattern = "^[a-zA-Z0-9]{4}\\s[a-zA-Z0-9]{4}\\s[a-zA-Z0-9]{4}\\s[a-zA-Z0-9]{4}$"
-        let appPasswordRegex = try? NSRegularExpression(pattern: appPasswordPattern)
-
-        if let regex = appPasswordRegex {
-            let range = NSRange(trimmedPassword.startIndex..., in: trimmedPassword)
-            if regex.firstMatch(in: trimmedPassword, range: range) == nil {
-                return .failure(
-                    .gmailAppPasswordRequired(
-                        "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx'",
-                        ),
-                    )
-            }
-        } else {
-            // Fallback validation if regex fails
-            let cleanedPassword = trimmedPassword.replacingOccurrences(of: " ", with: "")
-            if cleanedPassword.count != 16 || !cleanedPassword.allSatisfy({ $0.isLetter || $0.isNumber }) {
-                return .failure(
-                    .gmailAppPasswordRequired(
-                        "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx'",
-                        ),
-                    )
-            }
+        guard ValidationService.shared.validateGmailAppPassword(trimmedPassword) else {
+            return .failure(
+                .gmailAppPasswordRequired(
+                    "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx'",
+                    ),
+                )
         }
 
         return .success(())
@@ -1407,7 +1388,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     /// Fetches verification codes from emails using IMAP
     /// - Returns: Array of verification codes found
     private func fetchVerificationCodesFromEmails(since: Date) async -> [String] {
-        // Remove timeout wrapper to allow IMAP operation to complete.
         return await { [self] in
             let settings = self.userSettingsManager.userSettings
             let port: UInt16 = 993
@@ -1658,7 +1638,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                 }
             }
 
-            // Remove duplicates.
             ids = Array(Set(ids)).sorted()
 
             if ids.isEmpty {

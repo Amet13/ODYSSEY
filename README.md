@@ -20,7 +20,7 @@
 
 ### 🖥️ GUI Version (macOS Menu Bar App)
 
-**Requirements**: macOS 15 or later
+**Requirements**: See [REQUIREMENTS.md](Documentation/REQUIREMENTS.md)
 
 1. **Download** the latest `.dmg` from the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
 2. **Install**: Open the `.dmg`, drag ODYSSEY to `Applications`.
@@ -30,7 +30,7 @@
 
 ### 💻 CLI Version (Command Line Interface)
 
-**Requirements**: macOS 15 or later
+**Requirements**: See [REQUIREMENTS.md](Documentation/REQUIREMENTS.md)
 
 1. **Download** the CLI binary from the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
 2. **Export** your configuration from the GUI app.
@@ -55,42 +55,14 @@
 
 ## 📦 Installation
 
-### 🖥️ GUI Version (macOS Menu Bar App)
+For detailed installation instructions, see [INSTALLATION.md](Documentation/INSTALLATION.md).
 
-1. **Download the latest release**:
-   - Go to the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
-   - Download the latest `.dmg` installer for your macOS version.
-2. **Install the app**:
-   - Open the downloaded `.dmg` file.
-   - Drag the ODYSSEY app to your `Applications` folder.
-   - Eject the ODYSSEY disk image.
-3. **Launch ODYSSEY**:
-   - Open your `Applications` folder and double-click ODYSSEY.
-   - The app will appear in your menu bar (top right of your screen).
-4. **Initial Setup**:
-   - Click the ODYSSEY menu bar icon.
-   - You're ready to automate your bookings! 🎾
+### Quick Installation
 
-### 💻 CLI Version (Command Line Interface)
-
-1. **Download the CLI binary**:
-   - Go to the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
-   - Download the `odyssey-cli` binary for macOS.
-2. **Make it executable**:
-   ```bash
-   chmod +x odyssey-cli
-   ```
-3. **Export configuration from GUI**:
-   - Use the GUI app to configure your reservations.
-   - Export your configuration to get the `ODYSSEY_EXPORT_TOKEN`.
-4. **Set up environment**:
-   ```bash
-   export ODYSSEY_EXPORT_TOKEN="<your_exported_token>"
-   ```
-5. **Run reservations**:
-   ```bash
-   ./odyssey-cli run
-   ```
+1. **Download** the latest release from [GitHub Releases](https://github.com/Amet13/ODYSSEY/releases)
+2. **Install** by dragging to Applications folder
+3. **Launch** and configure your settings
+4. **Automate** your Ottawa Recreation reservations!
 
 ## 🎯 Quick Usage Guide
 

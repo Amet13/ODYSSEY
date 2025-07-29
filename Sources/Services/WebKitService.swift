@@ -19,7 +19,6 @@ import AppKit
 import Combine
 import Foundation
 import os.log
-import SwiftUI
 import WebKit
 
 // Wrapper to make JavaScript evaluation results sendable
@@ -46,6 +45,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     // Register this service for dependency injection
     static let registered: Void = {
         ServiceRegistry.shared.register(WebKitService.shared, for: WebKitServiceProtocol.self)
+        ServiceRegistry.shared.register(ErrorHandlingService.shared, for: ErrorHandlingServiceProtocol.self)
+        ServiceRegistry.shared.register(LoggingService.shared, for: LoggingServiceProtocol.self)
     }()
 
     // Published properties for UI binding and automation state
@@ -3580,7 +3581,6 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                     });
                 }
 
-                        // Remove common automation indicators.
         if (window.cdc_adoQpoasnfa76pfcZLmcfl_Array) {
             delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
         }

@@ -11,9 +11,7 @@ Both versions share the same backend services and automation engine.
 
 ## 🖥️ System Requirements
 
-- macOS 15 or later
-- Xcode 16 or later
-- Homebrew (for installing dependencies)
+See [REQUIREMENTS.md](REQUIREMENTS.md) for complete system requirements.
 
 ## 🚀 Quick Start (For Developers)
 

@@ -65,17 +65,7 @@ public final class ConfigurationValidator: ObservableObject {
     /// - Parameter url: The URL to validate
     /// - Returns: True if valid Ottawa recreation facility URL
     public func isValidFacilityURL(_ url: String) -> Bool {
-        guard let url = URL(string: url) else { return false }
-
-        // Check if it's a valid Ottawa recreation facility URL
-        let validDomains = ["reservation.frontdesksuite.ca"]
-        let validPathPrefix = "/rcfs/"
-
-        guard let host = url.host else { return false }
-        guard validDomains.contains(host) else { return false }
-        guard url.path.hasPrefix(validPathPrefix) else { return false }
-
-        return true
+        return ValidationService.shared.validateFacilityURL(url)
     }
 
     // MARK: - UserSettings Validation
@@ -115,24 +105,18 @@ public final class ConfigurationValidator: ObservableObject {
         return ValidationResult(isValid: errors.isEmpty, errors: errors)
     }
 
-    /// Validates phone number format
+    /// Validates phone number format using centralized validation
     /// - Parameter phoneNumber: The phone number to validate
     /// - Returns: True if valid phone number format
     private func isValidPhoneNumber(_ phoneNumber: String) -> Bool {
-        let pattern = AppConstants.patterns["phoneNumber"] ?? "^\\+?[1-9]\\d{1,14}$"
-        let regex = try? NSRegularExpression(pattern: pattern)
-        let range = NSRange(phoneNumber.startIndex ..< phoneNumber.endIndex, in: phoneNumber)
-        return regex?.firstMatch(in: phoneNumber, range: range) != nil
+        return ValidationService.shared.validatePhoneNumber(phoneNumber)
     }
 
-    /// Validates email format
+    /// Validates email format using centralized validation
     /// - Parameter email: The email to validate
     /// - Returns: True if valid email format
     private func isValidEmail(_ email: String) -> Bool {
-        let pattern = AppConstants.patterns["email"] ?? "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
-        let regex = try? NSRegularExpression(pattern: pattern)
-        let range = NSRange(email.startIndex ..< email.endIndex, in: email)
-        return regex?.firstMatch(in: email, range: range) != nil
+        return ValidationService.shared.validateEmail(email)
     }
 
     /// Validates IMAP server format
@@ -158,14 +142,11 @@ public final class ConfigurationValidator: ObservableObject {
 
     // MARK: - Gmail App Password Validation
 
-    /// Validates Gmail App Password format
+    /// Validates Gmail App Password format using centralized validation
     /// - Parameter password: The password to validate
     /// - Returns: True if valid Gmail App Password format
     public func isValidGmailAppPassword(_ password: String) -> Bool {
-        let pattern = AppConstants.patterns["gmailAppPassword"] ?? "^[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}$"
-        let regex = try? NSRegularExpression(pattern: pattern)
-        let range = NSRange(password.startIndex ..< password.endIndex, in: password)
-        return regex?.firstMatch(in: password, range: range) != nil
+        return ValidationService.shared.validateGmailAppPassword(password)
     }
 
     // MARK: - Verification Code Validation

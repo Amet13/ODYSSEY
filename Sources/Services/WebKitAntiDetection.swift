@@ -37,7 +37,6 @@ public final class WebKitAntiDetection: ObservableObject {
         let antiDetectionScript = """
         (function() {
             try {
-                // Remove webdriver property
                 if (navigator.webdriver !== undefined) {
                     Object.defineProperty(navigator, 'webdriver', {
                         get: () => undefined,
@@ -45,7 +44,6 @@ public final class WebKitAntiDetection: ObservableObject {
                     });
                 }
 
-                // Remove automation indicators
                 if (window.cdc_adoQpoasnfa76pfcZLmcfl_Array) {
                     delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
                 }

@@ -214,7 +214,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let autorunMinute = calendar.component(.minute, from: autorunTime)
         let autorunSecond = calendar.component(.second, from: autorunTime)
 
-        // Debug: Log the current autorun time
         let timeType = useCustomTime ? "custom" : "default"
         logger
             .info(
@@ -260,7 +259,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         let configurations = configManager.settings.configurations
 
-        // Debug: Log all configurations
         logger.info("🔍 DEBUG: Found \(configurations.count) total configurations")
         for config in configurations {
             logger.info("🔍 DEBUG: Config '\(config.name)' - enabled days: \(config.dayTimeSlots.keys.map(\.rawValue))")
@@ -273,7 +271,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             configsToRun.append(config)
         }
 
-        // Debug: Log which configurations were selected
         logger.info("🔍 DEBUG: Selected \(configsToRun.count) configurations for autorun")
         for config in configsToRun {
             logger.info("🔍 DEBUG: Will run config '\(config.name)'")
@@ -360,7 +357,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Autorun should be 2 days before reservation day
             let autorunDay = calendar.date(byAdding: .day, value: -2, to: reservationDay) ?? reservationDay
 
-            // Debug logging
             logger
                 .info(
                     "🔍 DEBUG: Config '\(config.name)' - Day: \(day.rawValue), targetWeekday: \(targetWeekday), currentWeekday: \(currentWeekday), daysUntilTarget: \(daysUntilTarget), reservationDay: \(reservationDay), autorunDay: \(autorunDay), today: \(today)",

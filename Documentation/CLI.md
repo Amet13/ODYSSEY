@@ -15,33 +15,11 @@ Both versions use the same powerful WebKit automation engine, ensuring consisten
 
 ### Prerequisites
 
-- macOS 15 or later
-- Swift 6.1 or later
-- Xcode Command Line Tools
+See [REQUIREMENTS.md](REQUIREMENTS.md) for complete system requirements.
 
 ### Installation
 
-#### Option 1: Download Pre-built Binary (Recommended)
-
-```bash
-# Download from GitHub releases
-# Make executable
-chmod +x odyssey-cli
-
-# Test the CLI
-./odyssey-cli version
-```
-
-#### Option 2: Build from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/Amet13/ODYSSEY.git
-cd ODYSSEY
-
-# Build the CLI
-swift build --product odyssey-cli
-```
+See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
 
 ### Basic Usage
 

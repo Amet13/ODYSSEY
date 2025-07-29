@@ -69,7 +69,6 @@ public final class CLIExportService: ObservableObject {
             throw CLIExportError.noConfigurationsSelected
         }
 
-        // Debug: Log configuration details
         for (index, config) in selectedConfigs.enumerated() {
             logger.info("🔍 Config \(index + 1): \(config.name)")
             logger.info("   - Day time slots count: \(config.dayTimeSlots.count)")
