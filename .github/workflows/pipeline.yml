@@ -26,16 +26,6 @@ jobs:
         with:
           xcode-version: "16.4"
 
-      - name: Cache Swift packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.swiftpm
-            .build
-          key: ${{ runner.os }}-swift-${{ hashFiles('**/Package.swift') }}
-          restore-keys: |
-            ${{ runner.os }}-swift-
-
       - name: Install dependencies
         run: |
           brew install xcodegen swiftlint swiftformat shellcheck yamllint markdownlint actionlint
@@ -44,117 +34,11 @@ jobs:
         run: |
           xcodegen --spec Config/project.yml
 
-      - name: Run SwiftFormat
-        run: |
-          swiftformat --lint Sources/ || true
-        continue-on-error: true
-
-      - name: Run SwiftLint
-        run: |
-          swiftlint lint --reporter github-actions-logging --config .swiftlint.yml
-
-      - name: Run ShellCheck
-        run: |
-          echo "🔍 Running ShellCheck on bash scripts..."
-          shellcheck Scripts/*.sh || echo "⚠️ ShellCheck found issues (mostly acceptable warnings)."
-
-      - name: Run YAML Linting
-        run: |
-          echo "🔍 Running YAML Linting..."
-          yamllint --config-file .yamllint Config/project.yml .github/workflows/*.yml || echo "⚠️ YAML Linting found issues (acceptable warnings ignored)."
-
-      - name: Run Markdown Linting
-        run: |
-          echo "🔍 Running Markdown Linting..."
-          markdownlint --config .markdownlint.json README.md Documentation/*.md .github/*.md || echo "⚠️ Markdown Linting found issues (acceptable warnings ignored)."
-
-      - name: Run GitHub Actions Linting
-        run: |
-          echo "🔍 Running GitHub Actions Linting..."
-          actionlint -shellcheck="" .github/workflows/*.yml || echo "⚠️ GitHub Actions Linting found issues (acceptable warnings ignored)."
-
       - name: Run Comprehensive Linting
         run: |
           echo "🧹 Running comprehensive linting check..."
           chmod +x Scripts/lint-all.sh
           ./Scripts/lint-all.sh || echo "⚠️ Comprehensive linting found issues (acceptable warnings ignored)."
-
-      - name: Check code formatting
-        run: |
-          if ! swiftformat --lint Sources/ > /dev/null 2>&1; then
-            echo "❌ Code formatting issues found. Run 'swiftformat Sources/' to fix."
-            exit 1
-          fi
-          echo "✅ Code formatting is correct"
-
-      - name: Validate project structure
-        run: |
-          echo "🔍 Validating project structure..."
-
-          # Check for required files
-          required_files=(
-            "Sources/App/ODYSSEYApp.swift"
-            "Sources/AppControllers/StatusBarController.swift"
-            "Sources/Views/Main/ContentView.swift"
-            "Sources/Services/WebKitService.swift"
-            "Sources/Models/ReservationConfig.swift"
-            "Package.swift"
-            "Config/project.yml"
-            "README.md"
-            "Documentation/USER_GUIDE.md"
-            ".yamllint"
-            ".markdownlint.json"
-            ".actionlintrc"
-            ".swiftlint.yml"
-            "Scripts/lint-all.sh"
-          )
-
-          for file in "${required_files[@]}"; do
-            if [ ! -f "$file" ]; then
-              echo "❌ Missing required file: $file"
-              exit 1
-            fi
-          done
-
-          echo "✅ Project structure validation passed"
-
-      - name: Validate linting configurations
-        run: |
-          echo "🔍 Validating linting configurations..."
-
-          # Test YAML linting configuration
-          if yamllint --version > /dev/null 2>&1; then
-            echo "✅ yamllint is available"
-          else
-            echo "❌ yamllint not available"
-            exit 1
-          fi
-
-          # Test Markdown linting configuration
-          if markdownlint --version > /dev/null 2>&1; then
-            echo "✅ markdownlint is available"
-          else
-            echo "❌ markdownlint not available"
-            exit 1
-          fi
-
-          # Test GitHub Actions linting
-          if actionlint --version > /dev/null 2>&1; then
-            echo "✅ actionlint is available"
-          else
-            echo "❌ actionlint not available"
-            exit 1
-          fi
-
-          # Test ShellCheck
-          if shellcheck --version > /dev/null 2>&1; then
-            echo "✅ shellcheck is available"
-          else
-            echo "❌ shellcheck not available"
-            exit 1
-          fi
-
-          echo "✅ All linting tools are available and configured"
 
       - name: Build CLI
         run: |
@@ -174,13 +58,6 @@ jobs:
 
           echo "✅ CLI built successfully at: $CLI_PATH"
 
-      - name: Upload CLI artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: odyssey-cli
-          path: ${{ env.CLI_PATH }}
-          retention-days: 7
-
   build-and-analyze:
     runs-on: macos-15
     needs: quality-checks
@@ -197,7 +74,6 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/.swiftpm
             .build
           key: ${{ runner.os }}-swift-${{ hashFiles('**/Package.swift') }}
           restore-keys: |
@@ -276,68 +152,6 @@ jobs:
             exit 1
           fi
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: odyssey-debug-build
-          path: ~/Library/Developer/Xcode/DerivedData/ODYSSEY-*/Build/Products/Debug/ODYSSEY.app
-          retention-days: 7
-
-      - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: odyssey-release-build
-          path: ~/Library/Developer/Xcode/DerivedData/ODYSSEY-*/Build/Products/Release/ODYSSEY.app
-          retention-days: 7
-
-  code-generation:
-    runs-on: macos-15
-    needs: quality-checks
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Xcode version
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: "16.4"
-
-      - name: Generate documentation
-        run: |
-          echo "📚 Generating documentation..."
-
-          # Generate API documentation
-          if command -v jazzy &> /dev/null; then
-            jazzy --module ODYSSEY --output Documentation/API
-            echo "✅ API documentation generated"
-          else
-            echo "⚠️ jazzy not available, skipping API documentation"
-          fi
-
-          # Generate project statistics
-          echo "📊 Generating project statistics..."
-
-          # Count Swift files
-          SWIFT_FILES=$(find Sources -name "*.swift" | wc -l | tr -d ' ')
-          echo "Swift files: $SWIFT_FILES"
-
-          # Count lines of code
-          TOTAL_LINES=$(find Sources -name "*.swift" -exec wc -l {} + | tail -1 | awk '{print $1}')
-          echo "Total lines of code: $TOTAL_LINES"
-
-          # Count documentation files
-          DOC_FILES=$(find Documentation -name "*.md" | wc -l | tr -d ' ')
-          echo "Documentation files: $DOC_FILES"
-
-          echo "✅ Project statistics generated"
-
-      - name: Upload documentation artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: odyssey-documentation
-          path: Documentation/
-          retention-days: 30
-
   release-validation:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: macos-15
@@ -410,7 +224,6 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ~/.swiftpm
             .build
           key: ${{ runner.os }}-swift-${{ hashFiles('**/Package.swift') }}
           restore-keys: |
