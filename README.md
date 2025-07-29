@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="Sources/Resources/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" alt="ODYSSEY Logo">
+  <img src="Sources/Resources/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" alt="ODYSSEY Logo" width="200" style="border-radius: 20px;">
   <h1>ODYSSEY</h1>
   <p><strong>Ottawa Drop-in Your Sports & Schedule Easily Yourself</strong></p>
   <p><em>macOS Menu Bar App + Command Line Interface for Sports Reservation Automation</em></p>

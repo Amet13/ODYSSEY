@@ -32,6 +32,11 @@ See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
 4. **Test Email** - Verify your email connection works
 5. **Run Test** - Try a manual run to verify everything works
 
+<div align="center">
+  <img src="Images/main_empty.png" width="400" alt="Main screen with no configurations">
+  <p><em>Main screen when no configurations are added</em></p>
+</div>
+
 ### Adding a Reservation Configuration
 
 1. Click **Add Configuration** or the "+" button
@@ -42,6 +47,11 @@ See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
    - **Number of People**: How many people in your group
    - **Time Slots**: Select days and times for your reservations
 3. Click **Save**
+
+<div align="center">
+  <img src="Images/add_config.png" width="400" alt="Add configuration screen">
+  <p><em>Adding a new reservation configuration</em></p>
+</div>
 
 ### Configuration Details
 
@@ -93,6 +103,11 @@ Common sport names include:
 
 - Click the play button to run a configuration immediately
 - Useful for testing or immediate bookings
+
+<div align="center">
+  <img src="Images/main_configs.png" width="400" alt="Main screen with configurations">
+  <p><em>Main screen with active configurations</em></p>
+</div>
 
 ## 💻 CLI Version
 
@@ -182,6 +197,11 @@ ODYSSEY automatically detects potential conflicts:
 3. Click **Test Email**
 4. Check your email for the test message
 5. If successful, your email is properly configured
+
+<div align="center">
+  <img src="Images/settings.png" width="400" alt="Settings screen">
+  <p><em>Settings screen for email configuration</em></p>
+</div>
 
 ## 🔧 Troubleshooting
 
