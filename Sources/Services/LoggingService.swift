@@ -5,80 +5,70 @@ import os.log
 @MainActor
 public final class LoggingService: ObservableObject {
     public static let shared = LoggingService()
-    private let logger = Logger(subsystem: "com.odyssey.app", category: "LoggingService")
+
+    @Published public var recentLogs: [LogEntry] = []
+    private let maxLogEntries = 50
+    private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "LoggingService")
 
     private init() { }
 
-    /// Logs info messages with consistent formatting
-    /// - Parameters:
-    ///   - message: The message to log
-    ///   - category: The category/context for the log
-    public nonisolated func info(_ message: String, category: LoggerCategory = .general) {
-        logger.info("\(category.emoji) [\(category.categoryName)] \(message)")
+    public struct LogEntry: Identifiable, Sendable {
+        public let id = UUID()
+        public let timestamp: Date
+        public let message: String
+        public let level: LogLevel
+        public let configId: UUID?
+        public let configName: String?
+
+        public enum LogLevel: String, CaseIterable, Sendable {
+            case info = "INFO"
+            case warning = "WARNING"
+            case error = "ERROR"
+            case success = "SUCCESS"
+        }
     }
 
-    /// Logs success messages with consistent formatting
-    /// - Parameters:
-    ///   - message: The success message to log
-    ///   - category: The category/context for the log
-    public nonisolated func success(_ message: String, category: LoggerCategory = .general) {
-        logger.info("✅ [\(category.categoryName)] \(message)")
-    }
-
-    /// Logs warning messages with consistent formatting
-    /// - Parameters:
-    ///   - message: The warning message to log
-    ///   - category: The category/context for the log
-    public nonisolated func warning(_ message: String, category: LoggerCategory = .general) {
-        logger.warning("⚠️ [\(category.categoryName)] \(message)")
-    }
-
-    /// Logs error messages with consistent formatting
-    /// - Parameters:
-    ///   - message: The error message to log
-    ///   - error: Optional error object
-    ///   - category: The category/context for the log
-    public nonisolated func error(_ message: String, error: Error? = nil, category: LoggerCategory = .general) {
-        let fullMessage = error != nil ? "\(message): \(error?.localizedDescription ?? "Unknown error")" : message
-        logger.error("❌ [\(category.categoryName)] \(fullMessage)")
-    }
-
-    /// Logs debug messages with consistent formatting
-    /// - Parameters:
-    ///   - message: The debug message to log
-    ///   - category: The category/context for the log
-    public nonisolated func debug(_ message: String, category: LoggerCategory = .general) {
-        logger.debug("🔍 [\(category.categoryName)] \(message)")
-    }
-
-    /// Logs unified errors with enhanced formatting
-    /// - Parameters:
-    ///   - error: The unified error to log
-    ///   - context: Additional context information
-    ///   - category: The category/context for the log
-    public nonisolated func logUnifiedError(
-        _ error: UnifiedErrorProtocol,
-        context: String = "",
-        category: LoggerCategory = .general,
+    public func log(
+        _ message: String,
+        level: LogEntry.LogLevel = .info,
+        configId: UUID? = nil,
+        configName: String? = nil,
         ) {
-        let contextPrefix = context.isEmpty ? "" : "[\(context)] "
-        let technicalDetails = error.technicalDetails != nil ? " (\(error.technicalDetails ?? "No details"))" : ""
-        let message = "\(contextPrefix)\(error.userFriendlyMessage)\(technicalDetails)"
-        logger.error("\(error.errorCategory.emoji) [\(category.categoryName)] \(error.errorCode): \(message)")
+        let entry = LogEntry(
+            timestamp: Date(),
+            message: message,
+            level: level,
+            configId: configId,
+            configName: configName,
+            )
+
+        recentLogs.append(entry)
+
+        // Keep only the most recent logs
+        if recentLogs.count > maxLogEntries {
+            recentLogs.removeFirst(recentLogs.count - maxLogEntries)
+        }
+
+        // Also log to system logger for debugging
+        switch level {
+        case .info:
+            logger.info("\(message)")
+        case .warning:
+            logger.warning("\(message)")
+        case .error:
+            logger.error("\(message)")
+        case .success:
+            logger.info("✅ \(message)")
+        }
     }
 
-    /// Creates a logger for a specific category
-    /// - Parameter category: The category name
-    /// - Returns: A Logger instance for the specified category
-    public nonisolated func logger(for category: LoggerCategory) -> Logger {
-        Logger(subsystem: "com.odyssey.app", category: category.categoryName)
+    public func getRecentLogs(for configId: UUID? = nil, limit: Int = 10) -> [LogEntry] {
+        let filtered = configId != nil ? recentLogs.filter { $0.configId == configId } : recentLogs
+        return Array(filtered.suffix(limit))
     }
 
-    /// Creates a logger for a specific category using string (for backward compatibility)
-    /// - Parameter category: The category name
-    /// - Returns: A Logger instance for the specified category
-    public nonisolated func logger(for category: String) -> Logger {
-        Logger(subsystem: "com.odyssey.app", category: category)
+    public func clearLogs() {
+        recentLogs.removeAll()
     }
 }
 
@@ -94,4 +84,52 @@ public protocol LoggingServiceProtocol: AnyObject {
     func logger(for category: LoggerCategory) -> Logger
 }
 
-extension LoggingService: LoggingServiceProtocol { }
+extension LoggingService: LoggingServiceProtocol {
+    public nonisolated func info(_ message: String, category _: LoggerCategory) {
+        Task { @MainActor in
+            log(message, level: .info)
+        }
+    }
+
+    public nonisolated func success(_ message: String, category _: LoggerCategory) {
+        Task { @MainActor in
+            log(message, level: .success)
+        }
+    }
+
+    public nonisolated func warning(_ message: String, category _: LoggerCategory) {
+        Task { @MainActor in
+            log(message, level: .warning)
+        }
+    }
+
+    public nonisolated func error(_ message: String, error: Error?, category _: LoggerCategory) {
+        Task { @MainActor in
+            let fullMessage = error != nil ? "\(message): \(error?.localizedDescription ?? "Unknown error")" : message
+            log(fullMessage, level: .error)
+        }
+    }
+
+    public nonisolated func debug(_ message: String, category _: LoggerCategory) {
+        Task { @MainActor in
+            log(message, level: .info) // Map debug to info for CLI display
+        }
+    }
+
+    public nonisolated func logUnifiedError(
+        _ error: UnifiedErrorProtocol,
+        context: String,
+        category _: LoggerCategory,
+        ) {
+        Task { @MainActor in
+            let contextPrefix = context.isEmpty ? "" : "[\(context)] "
+            let technicalDetails = error.technicalDetails != nil ? " (\(error.technicalDetails ?? "No details"))" : ""
+            let message = "\(contextPrefix)\(error.userFriendlyMessage)\(technicalDetails)"
+            log("\(error.errorCode): \(message)", level: .error)
+        }
+    }
+
+    public nonisolated func logger(for category: LoggerCategory) -> Logger {
+        Logger(subsystem: AppConstants.loggingSubsystem, category: category.categoryName)
+    }
+}

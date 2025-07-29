@@ -337,4 +337,4 @@ case "${1:-}" in
         ;;
 esac
 
-log_success "Setup completed!" 
+log_success "Setup completed!"

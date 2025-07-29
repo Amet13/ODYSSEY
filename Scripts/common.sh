@@ -50,7 +50,7 @@ measure_time() {
 # Function to check prerequisites
 check_prerequisites() {
     local missing_tools=()
-    
+
     # Check for required tools
     local required_tools=("xcodebuild" "xcodegen" "swift")
     for tool in "${required_tools[@]}"; do
@@ -58,13 +58,13 @@ check_prerequisites() {
             missing_tools+=("$tool")
         fi
     done
-    
+
     if [ ${#missing_tools[@]} -ne 0 ]; then
         print_status "error" "Missing required tools: ${missing_tools[*]}"
         print_status "info" "Install missing tools with: brew install ${missing_tools[*]}"
         exit 1
     fi
-    
+
     print_status "success" "All prerequisites satisfied"
 }
 
@@ -72,13 +72,13 @@ check_prerequisites() {
 check_optional_tools() {
     local optional_tools=("swiftlint" "swiftformat" "shellcheck" "yamllint" "markdownlint" "actionlint" "create-dmg")
     local missing_tools=()
-    
+
     for tool in "${optional_tools[@]}"; do
         if ! command_exists "$tool"; then
             missing_tools+=("$tool")
         fi
     done
-    
+
     if [ ${#missing_tools[@]} -ne 0 ]; then
         print_status "warning" "Optional tools missing: ${missing_tools[*]}"
         print_status "info" "Install with: brew install ${missing_tools[*]}"
@@ -98,7 +98,7 @@ validate_project_root() {
 # Function to clean previous builds
 clean_builds() {
     print_status "step" "Cleaning previous builds..."
-    
+
     # Clean Xcode build
     if [ -d "Config/ODYSSEY.xcodeproj" ]; then
         xcodebuild clean \
@@ -107,13 +107,13 @@ clean_builds() {
             -configuration Release \
             -quiet 2>/dev/null || true
     fi
-    
+
     # Clean Swift build
     swift package clean 2>/dev/null || true
-    
+
     # Remove previous DMG files
     rm -f ODYSSEY-*.dmg 2>/dev/null || true
-    
+
     print_status "success" "Build cleaned"
 }
 
@@ -149,4 +149,4 @@ show_usage() {
     echo "  --dry-run     Show what would be done without making changes"
     echo ""
     echo "For more information, see Documentation/SCRIPTS.md"
-} 
+}

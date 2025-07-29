@@ -71,7 +71,7 @@ public final class ReservationStatusManager: ObservableObject, @unchecked Sendab
         lastRunInfo[configId] = LastRunInfo(status: status, date: date, runType: runType)
     }
 
-    public struct LastRunInfo: Equatable, Codable {
+    public struct LastRunInfo: Equatable, Codable, Sendable {
         public let status: ReservationRunStatus
         public let date: Date?
         public let runType: ReservationRunType

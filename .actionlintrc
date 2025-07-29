@@ -14,4 +14,4 @@ ignore:
   - "expression.*validation"
 
 # Verbose output for debugging
-verbose: true 
+verbose: true
