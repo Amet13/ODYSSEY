@@ -465,7 +465,7 @@ The GitHub Actions pipeline (`.github/workflows/pipeline.yml`) automatically use
 
 - **SwiftLint**: Uses `.swiftlint.yml` configuration
 - **Markdown Linting**: Uses `.markdownlint.json` configuration
-- **GitHub Actions Linting**: Uses `.actionlintrc` configuration
+- **GitHub Actions Linting**: Uses `.actionlintrc` configuration (clean output)
 - **YAML Linting**: Uses `.yamllint` configuration
 
 This ensures that CI/CD builds won't fail due to acceptable warnings, while still catching critical issues.
