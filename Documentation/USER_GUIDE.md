@@ -61,7 +61,7 @@ See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
 https://reservation.frontdesksuite.ca/rcfs/[facility-name]
 ```
 
-**Example**: `https://reservation.frontdesksuite.ca/rcfs/ottawa`
+**Example**: `https://reservation.frontdesksuite.ca/rcfs/cardelrec`
 
 #### Sport Names
 

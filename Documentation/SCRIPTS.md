@@ -6,8 +6,6 @@ This document provides comprehensive information about all the scripts available
 
 ODYSSEY includes 6 automation scripts to streamline development, building, deployment, and maintenance tasks. All scripts are designed to run on macOS and include proper error handling, logging, and follow bash best practices.
 
-## 🔧 Available Scripts
-
 ## 📋 Script Quality & Linting
 
 All ODYSSEY scripts follow bash best practices and are validated using multiple linters. These checks are automatically run in the CI pipeline on every commit and pull request.
