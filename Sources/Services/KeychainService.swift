@@ -7,7 +7,7 @@ import Security
 /// Provides secure storage and retrieval of sensitive data like email credentials
 
 /// Keychain error type for detailed error reporting
-public enum KeychainError: Error, LocalizedError {
+public enum KeychainError: Error, LocalizedError, UnifiedErrorProtocol {
     case encodingFailed
     case itemAddFailed(OSStatus)
     case itemDeleteFailed(OSStatus)
@@ -16,6 +16,31 @@ public enum KeychainError: Error, LocalizedError {
     case unknown(OSStatus)
 
     public var errorDescription: String? {
+        return userFriendlyMessage
+    }
+
+    /// Unique error code for categorization and debugging
+    public var errorCode: String {
+        switch self {
+        case .encodingFailed: return "KEYCHAIN_ENCODING_001"
+        case .itemAddFailed: return "KEYCHAIN_ADD_001"
+        case .itemDeleteFailed: return "KEYCHAIN_DELETE_001"
+        case .itemNotFound: return "KEYCHAIN_NOTFOUND_001"
+        case .itemRetrieveFailed: return "KEYCHAIN_RETRIEVE_001"
+        case .unknown: return "KEYCHAIN_UNKNOWN_001"
+        }
+    }
+
+    /// Category for grouping similar errors
+    public var errorCategory: ErrorCategory {
+        switch self {
+        case .encodingFailed, .itemAddFailed, .itemDeleteFailed, .itemRetrieveFailed, .itemNotFound,
+             .unknown: return .system
+        }
+    }
+
+    /// User-friendly error message for UI display
+    public var userFriendlyMessage: String {
         switch self {
         case .encodingFailed:
             return "Failed to encode value for Keychain."
@@ -29,6 +54,18 @@ public enum KeychainError: Error, LocalizedError {
             return "Failed to retrieve item from Keychain: \(status)"
         case let .unknown(status):
             return "Unknown Keychain error: \(status)"
+        }
+    }
+
+    /// Technical details for debugging (optional)
+    public var technicalDetails: String? {
+        switch self {
+        case .encodingFailed: return "Data encoding failed for Keychain storage"
+        case let .itemAddFailed(status): return "Keychain SecItemAdd failed with status: \(status)"
+        case let .itemDeleteFailed(status): return "Keychain SecItemDelete failed with status: \(status)"
+        case .itemNotFound: return "Keychain SecItemCopyMatching returned errSecItemNotFound"
+        case let .itemRetrieveFailed(status): return "Keychain SecItemCopyMatching failed with status: \(status)"
+        case let .unknown(status): return "Unexpected Keychain operation failed with status: \(status)"
         }
     }
 }

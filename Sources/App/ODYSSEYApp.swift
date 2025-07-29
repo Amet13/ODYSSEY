@@ -224,7 +224,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         var nextAutorun = calendar
             .date(bySettingHour: autorunHour, minute: autorunMinute, second: autorunSecond, of: now) ?? now
 
-        // If it's already past the autorun time today, schedule for tomorrow
         if nextAutorun <= now {
             nextAutorun = calendar.date(byAdding: .day, value: 1, to: nextAutorun) ?? nextAutorun
         }

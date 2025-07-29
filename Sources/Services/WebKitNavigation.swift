@@ -219,7 +219,7 @@ extension WebKitCore {
 
 // MARK: - WebKit Errors
 
-enum WebKitError: Error, LocalizedError {
+enum WebKitError: Error, LocalizedError, UnifiedErrorProtocol {
     case webViewNotInitialized
     case invalidURL
     case navigationFailed
@@ -227,6 +227,31 @@ enum WebKitError: Error, LocalizedError {
     case timeout
 
     var errorDescription: String? {
+        return userFriendlyMessage
+    }
+
+    /// Unique error code for categorization and debugging
+    var errorCode: String {
+        switch self {
+        case .webViewNotInitialized: return "WEBKIT_INIT_001"
+        case .invalidURL: return "WEBKIT_URL_001"
+        case .navigationFailed: return "WEBKIT_NAV_001"
+        case .elementNotFound: return "WEBKIT_ELEMENT_001"
+        case .timeout: return "WEBKIT_TIMEOUT_001"
+        }
+    }
+
+    /// Category for grouping similar errors
+    var errorCategory: ErrorCategory {
+        switch self {
+        case .webViewNotInitialized, .invalidURL: return .system
+        case .navigationFailed, .elementNotFound: return .automation
+        case .timeout: return .system
+        }
+    }
+
+    /// User-friendly error message for UI display
+    var userFriendlyMessage: String {
         switch self {
         case .webViewNotInitialized:
             return "WebView is not initialized"
@@ -238,6 +263,17 @@ enum WebKitError: Error, LocalizedError {
             return "Element not found on page"
         case .timeout:
             return "Operation timed out"
+        }
+    }
+
+    /// Technical details for debugging (optional)
+    var technicalDetails: String? {
+        switch self {
+        case .webViewNotInitialized: return "WKWebView instance was not properly initialized"
+        case .invalidURL: return "URL validation failed for WebKit navigation"
+        case .navigationFailed: return "WebKit navigation operation failed"
+        case .elementNotFound: return "DOM element not found during WebKit operation"
+        case .timeout: return "WebKit operation exceeded timeout threshold"
         }
     }
 }

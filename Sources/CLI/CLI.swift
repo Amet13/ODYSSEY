@@ -428,7 +428,6 @@ struct CLI {
             // Autorun should be priorDays before reservation day
             let autorunDay = calendar.date(byAdding: .day, value: -priorDays, to: reservationDay) ?? reservationDay
 
-            // If this autorun day is in the future, it's a candidate
             if autorunDay > today {
                 if let currentNextRunDate = nextRunDate {
                     if autorunDay < currentNextRunDate {

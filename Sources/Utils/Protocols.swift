@@ -336,17 +336,6 @@ protocol StatusBarControllerProtocol: AnyObject {
  * }
  * ```
  */
-// Note: This protocol is now defined in LoggingService.swift
-// protocol LoggingServiceProtocol {
-//     /// Logs an informational message.
-//     func info(_ message: String)
-//     /// Logs an error message.
-//     func error(_ message: String)
-//     /// Logs a warning message.
-//     func warning(_ message: String)
-//     /// Logs a debug message.
-//     func debug(_ message: String)
-// }
 
 // MARK: - Validation Protocol
 
@@ -459,16 +448,77 @@ protocol TimerServiceProtocol {
  * }
  * ```
  */
-// Note: This protocol is now defined in ErrorHandlingService.swift
-// protocol ErrorHandlingServiceProtocol {
-//     /// Handles an error with context and user-facing option.
-//     func handleError(_ error: Error, context: String, userFacing: Bool)
-//     /// Logs an error with a custom message.
-//     func logError(_ message: String, error: Error?, context: String)
-//     /// Logs a warning message.
-//     func logWarning(_ message: String, context: String)
-//     /// Logs an info message.
-//     func logInfo(_ message: String, context: String)
-//     /// Logs a success message.
-//     func logSuccess(_ message: String, context: String)
-// }
+
+// MARK: - Unified Error Protocol
+
+/**
+ * Protocol defining a unified error interface for consistent error handling across the application.
+ * All custom error types should conform to this protocol for better error management and logging.
+ *
+ * Example:
+ * ```swift
+ * enum MyCustomError: Error, UnifiedErrorProtocol {
+ *   case networkFailure(String)
+ *   case validationError(String)
+ *
+ *   var errorCode: String {
+ *     switch self {
+ *     case .networkFailure: return "NETWORK_001"
+ *     case .validationError: return "VALIDATION_001"
+ *     }
+ *   }
+ *
+ *   var errorCategory: ErrorCategory {
+ *     switch self {
+ *     case .networkFailure: return .network
+ *     case .validationError: return .validation
+ *     }
+ *   }
+ *
+ *   var userFriendlyMessage: String {
+ *     switch self {
+ *     case let .networkFailure(message): return "Network issue: \(message)"
+ *     case let .validationError(message): return "Validation error: \(message)"
+ *     }
+ *   }
+ * }
+ * ```
+ */
+public protocol UnifiedErrorProtocol: Error, LocalizedError {
+    /// Unique error code for categorization and debugging
+    var errorCode: String { get }
+
+    /// Category for grouping similar errors
+    var errorCategory: ErrorCategory { get }
+
+    /// User-friendly error message for UI display
+    var userFriendlyMessage: String { get }
+
+    /// Technical details for debugging (optional)
+    var technicalDetails: String? { get }
+}
+
+/**
+ * Categories for grouping errors by type
+ */
+public enum ErrorCategory: String, CaseIterable {
+    case network = "Network"
+    case validation = "Validation"
+    case authentication = "Authentication"
+    case automation = "Automation"
+    case configuration = "Configuration"
+    case system = "System"
+    case unknown = "Unknown"
+
+    var emoji: String {
+        switch self {
+        case .network: return "🌐"
+        case .validation: return "✅"
+        case .authentication: return "🔐"
+        case .automation: return "🤖"
+        case .configuration: return "⚙️"
+        case .system: return "💻"
+        case .unknown: return "❓"
+        }
+    }
+}

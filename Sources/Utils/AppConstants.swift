@@ -287,3 +287,73 @@ public extension AppConstants {
     static let modalCornerRadius: CGFloat = cornerRadiusXXLarge
     static let inputCornerRadius: CGFloat = cornerRadiusSmall
 }
+
+// MARK: - Logger Categories
+
+/**
+ * Enum defining all logging categories used throughout the application.
+ * This prevents typos and ensures consistent category naming.
+ */
+public enum LoggerCategory: String, CaseIterable {
+    case general = "General"
+    case webKit = "WebKit"
+    case webKitService = "WebKitService"
+    case webKitCore = "WebKitCore"
+    case webKitNavigation = "WebKitNavigation"
+    case webKitAntiDetection = "WebKitAntiDetection"
+    case webKitHumanBehavior = "WebKitHumanBehavior"
+    case webKitDebugWindowManager = "WebKitDebugWindowManager"
+    case webKitScriptManager = "WebKitScriptManager"
+    case reservationOrchestrator = "ReservationOrchestrator"
+    case reservationStatusManager = "ReservationStatusManager"
+    case reservationErrorHandler = "ReservationErrorHandler"
+    case conflictDetectionService = "ConflictDetectionService"
+    case emailService = "EmailService"
+    case emailCore = "EmailCore"
+    case keychainService = "KeychainService"
+    case configurationManager = "ConfigurationManager"
+    case userSettingsManager = "UserSettingsManager"
+    case validationService = "ValidationService"
+    case errorHandlingService = "ErrorHandlingService"
+    case loggingService = "LoggingService"
+    case facilityService = "FacilityService"
+    case godModeStateManager = "GodModeStateManager"
+    case sharedVerificationCodePool = "SharedVerificationCodePool"
+    case cliExportService = "CLIExportService"
+    case appDelegate = "AppDelegate"
+    case statusBarController = "StatusBarController"
+    case configurationValidator = "ConfigurationValidator"
+    case cli = "CLI"
+
+    /// Returns the category name for use in logging
+    public var categoryName: String {
+        return rawValue
+    }
+
+    /// Returns the emoji prefix for visual identification in logs
+    var emoji: String {
+        switch self {
+        case .general: return "ℹ️"
+        case .webKit, .webKitService, .webKitCore, .webKitNavigation: return "🌐"
+        case .webKitAntiDetection, .webKitHumanBehavior: return "🤖"
+        case .webKitDebugWindowManager, .webKitScriptManager: return "🔧"
+        case .reservationOrchestrator, .reservationStatusManager: return "🚀"
+        case .reservationErrorHandler: return "❌"
+        case .conflictDetectionService: return "⚠️"
+        case .emailService, .emailCore: return "📧"
+        case .keychainService: return "🔐"
+        case .configurationManager, .userSettingsManager: return "⚙️"
+        case .validationService: return "✅"
+        case .errorHandlingService: return "🚨"
+        case .loggingService: return "📝"
+        case .facilityService: return "🏟️"
+        case .godModeStateManager: return "⌨️"
+        case .sharedVerificationCodePool: return "📦"
+        case .cliExportService: return "📤"
+        case .appDelegate: return "📱"
+        case .statusBarController: return "🍎"
+        case .configurationValidator: return "🔍"
+        case .cli: return "💻"
+        }
+    }
+}

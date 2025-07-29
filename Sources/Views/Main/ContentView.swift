@@ -48,7 +48,6 @@ struct ContentView: View {
             countdownRefreshTrigger: $countdownRefreshTrigger,
             )
         .onAppear {
-            // When the main view appears, start a timer to update the autorun countdown every 30 seconds
             countdownRefreshTrigger.toggle()
             countdownTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
                 DispatchQueue.main.async {
@@ -323,7 +322,6 @@ private struct MainBody: View {
         let configsForToday = configManager.getConfigurationsForDay(weekday)
         let enabledConfigs = configsForToday.filter(\.isEnabled)
         if enabledConfigs.isEmpty {
-            // If no enabled configs for today, run all enabled configs
             let allEnabledConfigs = configManager.settings.configurations.filter(\.isEnabled)
             orchestrator.runMultipleReservations(for: allEnabledConfigs, runType: .godmode)
         } else {

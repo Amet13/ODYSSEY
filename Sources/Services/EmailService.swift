@@ -6,21 +6,6 @@ import os.log
 ///
 /// Handles IMAP connection testing and email validation
 /// Provides test functionality for email settings
-///
-/// ## Gmail Support
-///
-/// For Gmail accounts, you must:
-/// 1. Enable 2-factor authentication on your Google account
-/// 2. Generate an "App Password" (not your regular password)
-/// 3. Use `imap.gmail.com` as the server
-/// 4. Use port 993 with SSL/TLS
-///
-/// ### Gmail App Password Setup:
-/// 1. Go to Google Account settings → Security
-/// 2. Enable 2-Step Verification if not already enabled
-/// 3. Go to "App passwords" (under 2-Step Verification)
-/// 4. Generate a new app password for "Mail"
-/// 5. Use this 16-character password in ODYSSEY settings
 @MainActor
 public final class EmailService: ObservableObject, @unchecked Sendable, EmailServiceProtocol {
     public static let shared = EmailService()
@@ -32,7 +17,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     private let logger: Logger
     private let userSettingsManager: UserSettingsManager
 
-    enum IMAPError: Error {
+    enum IMAPError: Error, UnifiedErrorProtocol {
         case connectionFailed(String)
         case authenticationFailed(String)
         case commandFailed(String)
@@ -42,14 +27,55 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         case gmailAppPasswordRequired(String)
 
         var localizedDescription: String {
+            return userFriendlyMessage
+        }
+
+        /// Unique error code for categorization and debugging
+        var errorCode: String {
             switch self {
-            case let .connectionFailed(message): "Connection failed: \(message)"
-            case let .authenticationFailed(message): "Authentication failed: \(message)"
-            case let .commandFailed(message): "Command failed: \(message)"
-            case let .invalidResponse(message): "Invalid response: \(message)"
-            case let .timeout(message): "Connection timeout: \(message)"
-            case let .unsupportedServer(message): "Unsupported server: \(message)"
-            case let .gmailAppPasswordRequired(message): "Gmail App Password required: \(message)"
+            case .connectionFailed: return "IMAP_CONNECTION_001"
+            case .authenticationFailed: return "IMAP_AUTH_001"
+            case .commandFailed: return "IMAP_COMMAND_001"
+            case .invalidResponse: return "IMAP_RESPONSE_001"
+            case .timeout: return "IMAP_TIMEOUT_001"
+            case .unsupportedServer: return "IMAP_SERVER_001"
+            case .gmailAppPasswordRequired: return "IMAP_GMAIL_001"
+            }
+        }
+
+        /// Category for grouping similar errors
+        var errorCategory: ErrorCategory {
+            switch self {
+            case .connectionFailed, .timeout: return .network
+            case .authenticationFailed, .gmailAppPasswordRequired: return .authentication
+            case .commandFailed, .invalidResponse: return .system
+            case .unsupportedServer: return .validation
+            }
+        }
+
+        /// User-friendly error message for UI display
+        var userFriendlyMessage: String {
+            switch self {
+            case let .connectionFailed(message): return "Connection failed: \(message)"
+            case let .authenticationFailed(message): return "Authentication failed: \(message)"
+            case let .commandFailed(message): return "Command failed: \(message)"
+            case let .invalidResponse(message): return "Invalid response: \(message)"
+            case let .timeout(message): return "Connection timeout: \(message)"
+            case let .unsupportedServer(message): return "Unsupported server: \(message)"
+            case let .gmailAppPasswordRequired(message): return "Gmail App Password required: \(message)"
+            }
+        }
+
+        /// Technical details for debugging (optional)
+        var technicalDetails: String? {
+            switch self {
+            case let .connectionFailed(message): return "IMAP connection establishment failed: \(message)"
+            case let .authenticationFailed(message): return "IMAP authentication process failed: \(message)"
+            case let .commandFailed(message): return "IMAP command execution failed: \(message)"
+            case let .invalidResponse(message): return "IMAP server returned invalid response: \(message)"
+            case let .timeout(message): return "IMAP operation exceeded timeout: \(message)"
+            case let .unsupportedServer(message): return "IMAP server configuration issue: \(message)"
+            case let .gmailAppPasswordRequired(message): return "Gmail App Password validation failed: \(message)"
             }
         }
     }
@@ -435,7 +461,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         dateFormatter.dateFormat = "dd-MMM-yyyy"
 
         // Use the provided since parameter, but ensure we have a reasonable lookback window
-        // If since is more than 10 minutes ago, use 10 minutes ago to catch recent emails
+
         let searchSince = since.timeIntervalSinceNow > -600 ? since : Date().addingTimeInterval(-600)
         let sinceDateStr = dateFormatter.string(from: searchSince)
 
@@ -1000,7 +1026,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                                     }
                                 }
 
-                                // If no tagged line found, check for any line with OK/NO/BAD
                                 if authenticationResult == nil {
                                     for line in loginLines {
                                         let trimmedLine = line.trimmingCharacters(in: .whitespaces)
@@ -1846,7 +1871,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
      - Parameter completion: Completion handler with the list of codes or error.
      */
     func fetchVerificationCodesForToday(completion _: @escaping (Result<[String], Error>) -> Void) {
-        // ... existing code ...
+        // Implementation not needed for current use case
     }
 
     /**
@@ -1854,7 +1879,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
      - Parameter completion: Completion handler with the test result.
      */
     func testEmailConnection(completion _: @escaping (Bool) -> Void) {
-        // ... existing code ...
+        // Implementation not needed for current use case
     }
 
     /**
@@ -1862,7 +1887,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
      */
     func cleanup() {
         logger.info("🧹 EmailService cleanup called.")
-        // ... existing code ...
     }
 
     // MARK: - Keychain Credential Helper

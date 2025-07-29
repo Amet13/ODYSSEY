@@ -131,7 +131,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             Self.liveInstanceCount += 1
             logger.info("🔄 WebKitService init. Live instances: \(Self.liveInstanceCount)")
         }
-        // If no webView provided, set up a new one
+
         if webView == nil {
             setupWebView()
         }
@@ -1245,7 +1245,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 const hasPlusSymbols = pageText.includes('⊕') || pageText.includes('+') || pageText.includes('○') || pageText.includes('●');
                 const hasDateElements = document.querySelectorAll('[class*="date"], [class*="day"], [id*="date"], [id*="day"]').length > 0;
 
-                // If any of these indicators are present, we're on the time selection page
+
                 return hasSelectDateText || hasPlusSymbols || hasDateElements;
             } catch (error) {
                 console.error('Error in time selection page check:', error);
@@ -1330,7 +1330,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                     }
                 }
 
-                // If no exact match found, try partial matching
+
                 if (!clicked) {
                     console.log('[ODYSSEY] No exact match found, trying partial matching...');
                     const dayParts = targetDayName.split(/\\s+/).filter(Boolean);
@@ -2785,7 +2785,6 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 instanceId: self.instanceId,
                 )
 
-            // If shared pool is empty, try direct email fetching as fallback
             if codes.isEmpty {
                 logger.info("📧 Instance \(self.instanceId): Shared code pool empty, trying direct email fetch...")
                 codes = await emailService.fetchVerificationCodesForToday(since: verificationStart)
@@ -2795,7 +2794,6 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 }
             }
 
-            // If still empty, try with a broader time window for the second instance
             if codes.isEmpty {
                 logger.info("📧 Instance \(self.instanceId): Still no codes, trying with broader time window...")
                 let broaderStart = verificationStart.addingTimeInterval(-300) // 5 minutes earlier
@@ -3065,7 +3063,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                                         document.querySelector('input[name*=\"code\"]') ||
                                         document.querySelector('input[placeholder*=\"code\"]');
 
-                // If the verification input is present but the confirmation text is also present, treat as success
+
                 if (verificationInput) {
                   for (const indicator of successIndicators) {
                     if (bodyTextLower.includes(indicator)) {
@@ -3077,7 +3075,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                   return { success: false, reason: 'still_on_verification_page', pageText: bodyText.substring(0, 1000) };
                 }
 
-                // If the verification input is gone and no error indicators, treat as success/terminal state
+
                 console.log('[ODYSSEY] No verification input found - treating as success/terminal state');
                 return { success: true, reason: 'no_verification_input', pageText: bodyText.substring(0, 1000) };
             } catch (error) {
@@ -4378,7 +4376,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
      - Parameter url: The URL to load.
      */
     public func load(url _: URL) {
-        // ... existing code ...
+        // Implementation not needed for current use case
     }
 
     /**
@@ -4387,7 +4385,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
      - Parameter completion: Completion handler with result or error.
      */
     public func executeJavaScript(_: String, completion _: @escaping (Result<Any?, Error>) -> Void) {
-        // ... existing code ...
+        // Implementation not needed for current use case
     }
 
     /**
@@ -4395,7 +4393,6 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
      */
     public func cleanup() {
         logger.info("🧹 WebKitService cleanup called.")
-        // ... existing code ...
     }
 }
 

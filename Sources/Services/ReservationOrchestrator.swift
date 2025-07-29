@@ -7,7 +7,7 @@ import os.log
 
  This enum is used throughout the automation flow to provide detailed, user-friendly error messages and to support structured error handling and logging.
  */
-public enum ReservationError: Error, Codable, LocalizedError {
+public enum ReservationError: Error, Codable, LocalizedError, UnifiedErrorProtocol {
     /// Network error with a message.
     case network(String)
     /// Facility not found with a message.
@@ -43,6 +43,47 @@ public enum ReservationError: Error, Codable, LocalizedError {
 
     /// Human-readable error description for each case
     public var errorDescription: String? {
+        return userFriendlyMessage
+    }
+
+    /// Unique error code for categorization and debugging
+    public var errorCode: String {
+        switch self {
+        case .network: return "RESERVATION_NETWORK_001"
+        case .facilityNotFound: return "RESERVATION_FACILITY_001"
+        case .slotUnavailable: return "RESERVATION_SLOT_001"
+        case .automationFailed: return "RESERVATION_AUTOMATION_001"
+        case .unknown: return "RESERVATION_UNKNOWN_001"
+        case .pageLoadTimeout: return "RESERVATION_TIMEOUT_001"
+        case .groupSizePageLoadTimeout: return "RESERVATION_TIMEOUT_002"
+        case .numberOfPeopleFieldNotFound: return "RESERVATION_ELEMENT_001"
+        case .confirmButtonNotFound: return "RESERVATION_ELEMENT_002"
+        case .timeSlotSelectionFailed: return "RESERVATION_SELECTION_001"
+        case .contactInfoPageLoadTimeout: return "RESERVATION_TIMEOUT_003"
+        case .contactInfoFieldNotFound: return "RESERVATION_ELEMENT_003"
+        case .contactInfoConfirmButtonNotFound: return "RESERVATION_ELEMENT_004"
+        case .emailVerificationFailed: return "RESERVATION_EMAIL_001"
+        case .sportButtonNotFound: return "RESERVATION_ELEMENT_005"
+        case .webKitTimeout: return "RESERVATION_TIMEOUT_004"
+        }
+    }
+
+    /// Category for grouping similar errors
+    public var errorCategory: ErrorCategory {
+        switch self {
+        case .network: return .network
+        case .facilityNotFound, .slotUnavailable: return .validation
+        case .automationFailed, .sportButtonNotFound, .confirmButtonNotFound, .numberOfPeopleFieldNotFound,
+             .contactInfoFieldNotFound, .contactInfoConfirmButtonNotFound: return .automation
+        case .pageLoadTimeout, .groupSizePageLoadTimeout, .contactInfoPageLoadTimeout, .webKitTimeout: return .system
+        case .emailVerificationFailed: return .authentication
+        case .timeSlotSelectionFailed: return .automation
+        case .unknown: return .unknown
+        }
+    }
+
+    /// User-friendly error message for UI display
+    public var userFriendlyMessage: String {
         switch self {
         case let .network(msg): return "Network error: \(msg)"
         case let .facilityNotFound(msg): return "Facility not found: \(msg)"
@@ -60,6 +101,28 @@ public enum ReservationError: Error, Codable, LocalizedError {
         case .emailVerificationFailed: return "Email verification failed."
         case .sportButtonNotFound: return "Sport button not found."
         case .webKitTimeout: return "WebKit operation timed out."
+        }
+    }
+
+    /// Technical details for debugging (optional)
+    public var technicalDetails: String? {
+        switch self {
+        case let .network(msg): return "Network request failed: \(msg)"
+        case let .facilityNotFound(msg): return "Facility URL validation failed: \(msg)"
+        case let .slotUnavailable(msg): return "Time slot selection failed: \(msg)"
+        case let .automationFailed(msg): return "Web automation sequence failed: \(msg)"
+        case let .unknown(msg): return "Unexpected error occurred: \(msg)"
+        case .pageLoadTimeout: return "Page load exceeded timeout threshold"
+        case .groupSizePageLoadTimeout: return "Group size page load exceeded timeout threshold"
+        case .numberOfPeopleFieldNotFound: return "DOM element for number of people not found"
+        case .confirmButtonNotFound: return "DOM element for confirm button not found"
+        case .timeSlotSelectionFailed: return "Time slot selection automation failed"
+        case .contactInfoPageLoadTimeout: return "Contact info page load exceeded timeout threshold"
+        case .contactInfoFieldNotFound: return "DOM element for contact info not found"
+        case .contactInfoConfirmButtonNotFound: return "DOM element for contact info confirm button not found"
+        case .emailVerificationFailed: return "Email verification process failed"
+        case .sportButtonNotFound: return "DOM element for sport selection not found"
+        case .webKitTimeout: return "WebKit operation exceeded timeout threshold"
         }
     }
 }
@@ -170,7 +233,10 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
     public init(
         statusManager: ReservationStatusManager = ReservationStatusManager.shared,
         errorHandler: ReservationErrorHandler = ReservationErrorHandler.shared,
-        logger: Logger = Logger(subsystem: "com.odyssey.app", category: "ReservationOrchestrator"),
+        logger: Logger = Logger(
+            subsystem: "com.odyssey.app",
+            category: LoggerCategory.reservationOrchestrator.categoryName,
+            ),
         webKitService: WebKitServiceProtocol = ServiceRegistry.shared.resolve(WebKitServiceProtocol.self),
         configurationManager: ConfigurationManager = ConfigurationManager.shared
     ) {
@@ -186,7 +252,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         self.init(
             statusManager: ReservationStatusManager.shared,
             errorHandler: ReservationErrorHandler.shared,
-            logger: Logger(subsystem: "com.odyssey.app", category: "ReservationOrchestrator"),
+            logger: Logger(subsystem: "com.odyssey.app", category: LoggerCategory.reservationOrchestrator.categoryName),
             webKitService: ServiceRegistry.shared.resolve(WebKitServiceProtocol.self),
             configurationManager: ConfigurationManager.shared,
             )
