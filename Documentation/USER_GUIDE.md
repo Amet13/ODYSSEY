@@ -14,10 +14,6 @@
 
 ## 🚀 Getting Started
 
-### 📋 System Requirements
-
-See [REQUIREMENTS.md](REQUIREMENTS.md) for complete system requirements.
-
 ### ⚙️ Installation
 
 See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
