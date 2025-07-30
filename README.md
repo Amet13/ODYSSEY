@@ -18,10 +18,10 @@
 
 ## 🚀 Quick Start
 
-1. **Download** the latest `.dmg` from the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
-2. **Install**: Open the `.dmg`, drag ODYSSEY to `Applications`.
-3. **Launch**: Find ODYSSEY in your menu bar (top right).
-4. **Configure**: Click the icon, add your settings and configurations.
+1. **Download** the latest `.dmg` from the [Releases page](https://github.com/Amet13/ODYSSEY/releases)
+2. **Install**: Open the `.dmg`, drag ODYSSEY to `Applications`
+3. **Launch**: Find ODYSSEY in your menu bar (top right)
+4. **Configure**: Click the icon, add your settings and configurations
 5. **Automate!** Enable autorun and sit back while ODYSSEY books your sports for you or run it manually! 🎉
 
 ## ✨ Key Features
