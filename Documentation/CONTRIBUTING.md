@@ -1,4 +1,4 @@
-# Contributing to ODYSSEY
+# 🤝 Contributing to ODYSSEY
 
 Thank you for your interest in contributing to ODYSSEY! This document provides guidelines and information for contributors.
 
