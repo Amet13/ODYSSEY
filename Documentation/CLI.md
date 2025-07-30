@@ -246,9 +246,3 @@ The CLI uses WebKit which requires macOS and a graphical environment. For remote
 - **Linux servers are not supported** due to WebKit dependencies
 - **Only macOS servers** with GUI capabilities are supported
 - **CI/CD pipelines** should use macOS runners exclusively
-
-## 🤝 Support
-
-- [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
-- [Development Documentation](DEVELOPMENT.md)
-- [Contributing Guidelines](CONTRIBUTING.md)
