@@ -11,7 +11,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
-# CYAN='\033[0;36m'  # Unused color - commented out
+
 NC='\033[0m' # No Color
 
 # Function to print colored output (unified logging)
@@ -27,7 +27,7 @@ print_status() {
     esac
 }
 
-# Alias functions for backward compatibility
+# Alias functions for consistency
 log_info() { print_status "info" "$1"; }
 log_success() { print_status "success" "$1"; }
 log_warning() { print_status "warning" "$1"; }

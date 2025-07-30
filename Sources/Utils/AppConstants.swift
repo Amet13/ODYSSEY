@@ -39,6 +39,30 @@ public enum AppConstants {
     public static let verificationEmailFrom = "noreply@frontdesksuite.com"
     public static let verificationEmailSubject = "Verify your email"
 
+    // MARK: - User Agent Strings
+
+    public static let defaultUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+    public static let safariUserAgent =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15"
+    public static let chromeUserAgent =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+
+    // MARK: - Error Codes
+
+    public static let errorCodes = [
+        "navigationFailed": "WEBDRIVER_NAVIGATION_001",
+        "elementNotFound": "WEBDRIVER_ELEMENT_001",
+        "clickFailed": "WEBDRIVER_CLICK_001",
+        "typeFailed": "WEBDRIVER_TYPE_001",
+        "scriptExecutionFailed": "WEBDRIVER_SCRIPT_001",
+        "timeout": "WEBDRIVER_TIMEOUT_001",
+        "connectionFailed": "WEBDRIVER_CONNECTION_001",
+        "invalidSelector": "WEBDRIVER_SELECTOR_001",
+        "staleElement": "WEBDRIVER_STALE_001",
+        "emailConnectionFailed": "EMAIL_CONNECTION_001",
+        "emailAuthFailed": "EMAIL_AUTH_001",
+    ]
+
     // MARK: - WebKit Configuration
 
     public static let webKitWindowWidth = 1_440
@@ -132,7 +156,6 @@ public extension AppConstants {
     static let spacingLarge: CGFloat = 12
     static let spacingXLarge: CGFloat = 16
     static let spacingXXLarge: CGFloat = 20
-    static let spacingXXXLarge: CGFloat = 24
     static let spacingHuge: CGFloat = 32
 
     // MARK: - Padding System
@@ -144,22 +167,6 @@ public extension AppConstants {
     static let paddingLarge: CGFloat = 16
     static let paddingXLarge: CGFloat = 20
     static let paddingXXLarge: CGFloat = 24
-    static let paddingXXXLarge: CGFloat = 32
-
-    // MARK: - Legacy Padding (for backward compatibility)
-
-    // These are kept for backward compatibility with existing code
-    // Consider migrating to the new padding system in future updates
-    static let paddingHorizontal: CGFloat = paddingXLarge
-    static let paddingHorizontalForm: CGFloat = paddingXXXLarge
-    static let paddingHorizontalSettings: CGFloat = paddingLarge
-    static let paddingVertical: CGFloat = paddingLarge
-    static let paddingVerticalForm: CGFloat = paddingXXLarge
-    static let paddingVerticalSmall: CGFloat = paddingSmall
-    static let paddingVerticalTiny: CGFloat = paddingTiny
-    static let paddingDivider: CGFloat = paddingTiny
-    static let paddingButton: CGFloat = paddingMedium
-    static let paddingOverlay: CGFloat = paddingXXLarge
 
     // MARK: - Typography System
 
@@ -169,25 +176,23 @@ public extension AppConstants {
     static let fontLarge: CGFloat = 12
     static let fontXLarge: CGFloat = 13
     static let fontXXLarge: CGFloat = 14
-    static let fontXXXLarge: CGFloat = 15
     static let fontHuge: CGFloat = 16
     static let fontGiant: CGFloat = 20
     static let fontMassive: CGFloat = 24
     static let fontEnormous: CGFloat = 28
     static let fontColossal: CGFloat = 32
 
-    // MARK: - Legacy Font Sizes (for backward compatibility)
+    // MARK: - Typography Aliases
 
-    // These are kept for backward compatibility with existing code
-    // Consider migrating to the new typography system in future updates
-    static let fontTitle: CGFloat = fontXXXLarge
+    // Common font size aliases for consistency
+    static let fontTitle: CGFloat = fontXXLarge
     static let fontTitle2: CGFloat = fontXXLarge
     static let fontTitle3: CGFloat = fontXLarge
     static let fontBody: CGFloat = fontXLarge
     static let fontSubheadline: CGFloat = fontLarge
     static let fontCaption: CGFloat = fontMedium
     static let fontCaption2: CGFloat = fontSmall
-    static let fontHeadline: CGFloat = fontXXXLarge
+    static let fontHeadline: CGFloat = fontXXLarge
 
     // MARK: - Corner Radius
 
@@ -197,7 +202,6 @@ public extension AppConstants {
     static let cornerRadiusLarge: CGFloat = 8
     static let cornerRadiusXLarge: CGFloat = 12
     static let cornerRadiusXXLarge: CGFloat = 16
-    static let cornerRadiusXXXLarge: CGFloat = 20
 
     // MARK: - Border Width
 
@@ -214,7 +218,6 @@ public extension AppConstants {
     static let shadowRadiusLarge: CGFloat = 8
     static let shadowRadiusXLarge: CGFloat = 12
     static let shadowRadiusXXLarge: CGFloat = 16
-    static let shadowRadiusXXXLarge: CGFloat = 20
 
     // MARK: - Opacity
 

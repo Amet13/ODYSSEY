@@ -32,7 +32,6 @@
 		6CE722921ABA9CF63AF4D2AE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34B7DED97B75C8D92AE1A31 /* ContentView.swift */; };
 		6E696B9F782E9B8979C22BD0 /* EmailConfigurationDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = E01F649A84C769D3AFDC525D /* EmailConfigurationDiagnostics.swift */; };
 		75DEE1A4DC3401DA8285BAD6 /* EmailCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF7F9263A160A352A9E2E0E7 /* EmailCore.swift */; };
-		7A3732AD35A3235656E347F0 /* NetworkConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB9FF8DF5CDABF002A135DAA /* NetworkConstants.swift */; };
 		7A893D2888B4F0510D2042A7 /* WebKitAntiDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15BB9045C1DD2BAC3F1E8E6 /* WebKitAntiDetection.swift */; };
 		7AB843B692B99A297F71AFA2 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D958E5CB6EBC1B6F06E168 /* UserSettings.swift */; };
 		82BF69EBE3B57623F100A29E /* WebDriverStealth.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBCC4A2B64370ACAF412BF87 /* WebDriverStealth.swift */; };
@@ -45,7 +44,6 @@
 		92E3FC6001B69E443EEA803C /* ErrorHandlingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80BD3B7A653E455C9E5675B0 /* ErrorHandlingService.swift */; };
 		930217F31DAA51EAEEFF647D /* WebKitHumanBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1408CA62AA2B81C39FCA33DC /* WebKitHumanBehavior.swift */; };
 		A1335E6664D5449F09663909 /* ReservationErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */; };
-		A22FA8E9552693C803CB3154 /* UIConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDCCFCD0C6B414CE72FDDB4D /* UIConstants.swift */; };
 		A83DED0DDB54243606F13C1C /* EmailParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD31B992137FEEE4CDC83C87 /* EmailParser.swift */; };
 		A9A2F3FB377649F3A070A9A4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 34C024E102B748548377EE51 /* Localizable.strings */; };
 		AA4730C31D341AD6C3669020 /* WebKitDebugWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4A3E2796AC58ABB58A6817 /* WebKitDebugWindowManager.swift */; };
@@ -149,9 +147,7 @@
 		F2867DB82C075495C71B2AB0 /* EmailGmailSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailGmailSupport.swift; sourceTree = "<group>"; };
 		F6753FCAC1521C4E3F3955E3 /* ConflictDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictDetectionService.swift; sourceTree = "<group>"; };
 		FAF4AC5D3A328CBF62B59A20 /* WebKitAutofillService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitAutofillService.swift; sourceTree = "<group>"; };
-		FB9FF8DF5CDABF002A135DAA /* NetworkConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkConstants.swift; sourceTree = "<group>"; };
 		FBDB0490C4EDFE8E4C23D5C0 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
-		FDCCFCD0C6B414CE72FDDB4D /* UIConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIConstants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -292,19 +288,9 @@
 			path = Main;
 			sourceTree = "<group>";
 		};
-		4ED889193BFF1157D9C86D3E /* Constants */ = {
-			isa = PBXGroup;
-			children = (
-				FB9FF8DF5CDABF002A135DAA /* NetworkConstants.swift */,
-				FDCCFCD0C6B414CE72FDDB4D /* UIConstants.swift */,
-			);
-			path = Constants;
-			sourceTree = "<group>";
-		};
 		52E3A4D69DBB641B69221C92 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				4ED889193BFF1157D9C86D3E /* Constants */,
 				E98836465897C2FC76492428 /* Protocols */,
 			);
 			path = Shared;
@@ -559,7 +545,6 @@
 				E9E8CD958D882FF539CF03CC /* LoadingView.swift in Sources */,
 				EFCBFA6AA385CA867DC23B4D /* LoggingService.swift in Sources */,
 				EB0FDF5315E76F9F5CA2C067 /* LoggingUtils.swift in Sources */,
-				7A3732AD35A3235656E347F0 /* NetworkConstants.swift in Sources */,
 				CB04374E216585BE1DBC7BF4 /* ODYSSEYApp.swift in Sources */,
 				87A323E74E31D54CDF5ED611 /* Protocols.swift in Sources */,
 				873F80B6EC6424DFE5C98B4D /* RepositoryProtocol.swift in Sources */,
@@ -580,7 +565,6 @@
 				08E92B69040CED9308FAFC6D /* SportIconMapper.swift in Sources */,
 				D0D38869F2FD5CFC3BE0DC22 /* StatusBarController.swift in Sources */,
 				D20942307AF9126384F3AEFC /* SuccessView.swift in Sources */,
-				A22FA8E9552693C803CB3154 /* UIConstants.swift in Sources */,
 				C9E01203A6D63380AE177E25 /* User.swift in Sources */,
 				7AB843B692B99A297F71AFA2 /* UserSettings.swift in Sources */,
 				E2CDCC931C7C13AD6F4D8DD4 /* UserSettingsManager.swift in Sources */,

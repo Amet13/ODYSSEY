@@ -13,4 +13,4 @@ echo ""
 log stream --predicate 'process == "ODYSSEY"' --info --debug
 
 # Alternative: Monitor system logs for ODYSSEY
-# log stream --predicate 'subsystem == "com.odyssey.app"' --info --debug
+# log stream --predicate 'subsystem == "com.odyssey.app"' --info --debug 

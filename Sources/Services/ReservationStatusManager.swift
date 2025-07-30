@@ -10,7 +10,7 @@ public final class ReservationStatusManager: ObservableObject, @unchecked Sendab
 
     @Published var lastRunDate: Date?
     @Published public var lastRunStatus: ReservationRunStatus = .idle
-    @Published var currentTask: String = ""
+    @Published var currentTask = ""
     @Published private(set) var lastRunInfo: [UUID: LastRunInfo] = [:] {
         didSet { saveLastRunInfo() }
     }

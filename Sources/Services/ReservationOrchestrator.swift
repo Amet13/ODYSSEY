@@ -2,8 +2,6 @@ import Combine
 import Foundation
 import os.log
 
-// Note: ReservationError is now defined in ReservationError.swift
-
 // MARK: - ReservationRunStatusCodable (Top-level)
 
 // Codable wrapper for run status, used for persistence and status tracking
@@ -12,10 +10,6 @@ public struct ReservationRunStatusCodable: Codable, Equatable {
     public let date: Date?
     public let runType: ReservationRunType
 }
-
-// MARK: - Reservation Run Types and Status (Top-level)
-
-// Note: ReservationRunType and ReservationRunStatus are now defined in ReservationRunStatus.swift
 
 @MainActor
 public final class ReservationOrchestrator: ObservableObject, @unchecked Sendable,

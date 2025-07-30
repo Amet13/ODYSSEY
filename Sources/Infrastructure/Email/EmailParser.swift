@@ -55,7 +55,7 @@ class EmailParser: EmailParserProtocol {
 
     func isVerificationEmail(_ email: Email) -> Bool {
         // Check if email is from verification sender
-        let isFromVerificationSender = email.from.contains(NetworkConstants.verificationEmailFrom)
+        let isFromVerificationSender = email.from.contains(AppConstants.verificationEmailFrom)
 
         // Check if subject contains verification keywords
         let subject = email.subject.lowercased()

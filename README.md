@@ -18,20 +18,11 @@
 
 ## 🚀 Quick Start
 
-### 🖥️ GUI Version (macOS Menu Bar App)
-
 1. **Download** the latest `.dmg` from the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
 2. **Install**: Open the `.dmg`, drag ODYSSEY to `Applications`.
 3. **Launch**: Find ODYSSEY in your menu bar (top right).
 4. **Configure**: Click the icon, add your settings and configurations.
-5. **Automate!** Enable autorun and sit back while ODYSSEY books your sports for you! 🎉
-
-### 💻 CLI Version (Command Line Interface)
-
-1. **Download** the latest CLI binary from the [Releases page](https://github.com/Amet13/ODYSSEY/releases).
-2. **Export** your configuration from the GUI app.
-3. **Set** the `ODYSSEY_EXPORT_TOKEN` environment variable.
-4. **Run** reservations with `./odyssey-cli run`! 🚀
+5. **Automate!** Enable autorun and sit back while ODYSSEY books your sports for you or run it manually! 🎉
 
 ## ✨ Features
 

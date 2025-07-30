@@ -35,8 +35,8 @@ public final class EmailCore: ObservableObject, @unchecked Sendable, EmailServic
         /// Unique error code for categorization and debugging
         var errorCode: String {
             switch self {
-            case .connectionFailed: return "EMAIL_CONNECTION_001"
-            case .authenticationFailed: return "EMAIL_AUTH_001"
+            case .connectionFailed: return AppConstants.errorCodes["emailConnectionFailed"] ?? "EMAIL_CONNECTION_001"
+            case .authenticationFailed: return AppConstants.errorCodes["emailAuthFailed"] ?? "EMAIL_AUTH_001"
             case .commandFailed: return "EMAIL_COMMAND_001"
             case .invalidResponse: return "EMAIL_RESPONSE_001"
             case .timeout: return "EMAIL_TIMEOUT_001"

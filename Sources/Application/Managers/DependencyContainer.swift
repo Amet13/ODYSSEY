@@ -30,8 +30,8 @@ class DependencyContainer {
             emailAddress: UserDefaults.standard.string(forKey: "email") ?? "",
             password: UserDefaults.standard.string(forKey: "password") ?? "",
             provider: .gmail,
-            imapServer: NetworkConstants.gmailImapServer,
-            imapPort: Int(NetworkConstants.gmailImapPort),
+            imapServer: AppConstants.gmailImapServer,
+            imapPort: Int(AppConstants.gmailImapPort),
             useSSL: true,
             )
         return EmailClient(settings: settings)

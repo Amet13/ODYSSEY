@@ -12,7 +12,7 @@ public struct ReservationConfig: Identifiable, Equatable, Codable, Sendable {
     public var numberOfPeople: Int = 1
 
     // Scheduling
-    public var isEnabled: Bool = true
+    public var isEnabled = true
 
     // Time preferences
     public var dayTimeSlots: [Weekday: [TimeSlot]] = [:]
@@ -177,8 +177,8 @@ public struct TimeSlot: Codable, Equatable, Sendable {
 /// Global application settings
 public struct AppSettings: Codable, Sendable {
     public var configurations: [ReservationConfig] = []
-    public var globalEnabled: Bool = true
-    public var autoStart: Bool = false
+    public var globalEnabled = true
+    public var autoStart = false
     public var logLevel: LogLevel = .info
 
     /// Logging levels for the application

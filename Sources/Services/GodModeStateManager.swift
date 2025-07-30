@@ -6,7 +6,7 @@ import os.log
 public final class GodModeStateManager: ObservableObject, @unchecked Sendable {
     public static let shared = GodModeStateManager()
 
-    @Published public var isGodModeUIEnabled: Bool = false
+    @Published public var isGodModeUIEnabled = false
 
     private let logger = Logger(subsystem: "com.odyssey.app", category: "GodModeStateManager")
 

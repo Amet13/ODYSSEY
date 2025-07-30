@@ -233,7 +233,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             server: server,
         )
 
-        if case let .failure(error, provider: _) = testResult {
+        if case .failure(let error, provider: _) = testResult {
             throw IMAPError.connectionFailed(error)
         }
 
@@ -283,7 +283,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     }
 
     /// Fetches all verification codes from emails from noreply@frontdesksuite.com received in the last 15 minutes.
-    /// - Returns: Array of 4-digit codes (oldest to newest).
+    /// - Returns: Array of 4-digit codes (chronological order).
     func fetchVerificationCodesForToday(since: Date) async -> [String] {
         let connectionID = UUID().uuidString
         let now = Date()
@@ -367,7 +367,8 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
         // Determine port and TLS settings based on server
         let server = settings.currentServer
-        let port: UInt16 = server == "imap.gmail.com" ? 993 : 993 // Default to 993 for most IMAP servers
+        let port: UInt16 = server == AppConstants.gmailImapServer ? AppConstants.gmailImapPort : AppConstants
+            .gmailImapPort // Default to 993 for most IMAP servers
         let useTLS = true // Most modern IMAP servers require TLS
 
         // Create a new connection for the actual email fetching
@@ -589,7 +590,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                     self.logger
                         .info("📧 EmailService: Email \(emailId) contained \(codes.count) verification codes: \(codes)")
 
-                    // Add codes to the set (automatically handles duplicates)
+                    // Add codes to the set
                     for code in codes {
                         allCodes.insert(code)
                     }
@@ -669,11 +670,11 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         // For Gmail, only try port 993 with SSL/TLS
         let portConfigurations: [(port: UInt16, useTLS: Bool, description: String)] = if server == "imap.gmail.com" {
             [
-                (port: UInt16(993), useTLS: true, description: "SSL/TLS (Gmail)"),
+                (port: UInt16(AppConstants.gmailImapPort), useTLS: true, description: "SSL/TLS (Gmail)"),
             ]
         } else {
             [
-                (port: UInt16(993), useTLS: true, description: "SSL/TLS"),
+                (port: UInt16(AppConstants.gmailImapPort), useTLS: true, description: "SSL/TLS"),
                 (port: UInt16(143), useTLS: false, description: "Plain"),
                 (port: UInt16(143), useTLS: true, description: "STARTTLS"),
             ]
@@ -1346,8 +1347,8 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             ("your verification code is[:\\s\\r\\n]*([0-9]{4})", "your verification code is"),
             ("your code is[:\\s\\r\\n]*([0-9]{4})", "your code is"),
             ("code is[:\\s\\r\\n]*([0-9]{4})", "code is"),
-            ("verification code[\\s:]*([0-9]{4})", "verification code (legacy)"),
-            ("code[\\s:]*([0-9]{4})", "code (legacy)"),
+            ("verification code[\\s:]*([0-9]{4})", "verification code"),
+            ("code[\\s:]*([0-9]{4})", "code"),
         ]
         var foundCodes: [String] = []
         for (pattern, context) in contextualPatterns {
@@ -1416,7 +1417,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     private func fetchVerificationCodesFromEmails(since: Date) async -> [String] {
         return await { [self] in
             let settings = self.userSettingsManager.userSettings
-            let port: UInt16 = 993
+            let port: UInt16 = AppConstants.gmailImapPort
             let server = settings.currentServer
             let email = settings.currentEmail
             let password = settings.currentPassword
@@ -1466,7 +1467,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                 inputStream: &inputStream,
                 outputStream: &outputStream,
             )
-            if port == 993 {
+            if port == AppConstants.gmailImapPort {
                 inputStream?.setProperty(StreamSocketSecurityLevel.tlSv1, forKey: .socketSecurityLevelKey)
                 outputStream?.setProperty(StreamSocketSecurityLevel.tlSv1, forKey: .socketSecurityLevelKey)
             }
@@ -1718,7 +1719,10 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
                 // Skip emails older than the provided timestamp.
                 if emailDate < since {
-                    logger.info("⏰ Skipping email ID \(id): Too old (\(emailDate))")
+                    logger
+                        .info(
+                            "⏰ Skipping email ID \(id, privacy: .private): Outside time range (\(emailDate, privacy: .private))",
+                        )
                     continue
                 }
 
@@ -1870,22 +1874,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     }
 
     /**
-     Connects to the IMAP server and fetches verification codes for today.
-     - Parameter completion: Completion handler with the list of codes or error.
-     */
-    func fetchVerificationCodesForToday(completion _: @escaping (Result<[String], Error>) -> Void) {
-        // Implementation not needed for current use case
-    }
-
-    /**
-     Tests the email connection and credentials.
-     - Parameter completion: Completion handler with the test result.
-     */
-    func testEmailConnection(completion _: @escaping (Bool) -> Void) {
-        // Implementation not needed for current use case
-    }
-
-    /**
      Cleans up any resources or cached data used by the EmailService.
      */
     func cleanup() {
@@ -1908,16 +1896,16 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         let settings = userSettingsManager.userSettings
         let email = settings.imapEmail
         let server = settings.imapServer
-        let port = 993 // Default IMAP port; adjust if needed
+        let port = AppConstants.gmailImapPort // Default IMAP port; adjust if needed
         guard !email.isEmpty, !server.isEmpty else {
             Task { @MainActor in self.userFacingError = "Email or server is missing. Please check your settings." }
             return nil
         }
-        let passwordResult = KeychainService.shared.retrieveEmailPassword(email: email, server: server, port: port)
+        let passwordResult = KeychainService.shared.retrieveEmailPassword(email: email, server: server, port: Int(port))
         switch passwordResult {
         case let .success(password):
             Task { @MainActor in self.userFacingError = nil }
-            return EmailCredentials(email: email, password: password, server: server, port: port)
+            return EmailCredentials(email: email, password: password, server: server, port: Int(port))
         case let .failure(error):
             Task { @MainActor in
                 self.userFacingError = error.localizedDescription
@@ -1946,8 +1934,8 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         let emails = verificationCodes.map { code in
             Email(
                 id: UUID().uuidString,
-                from: "noreply@frontdesksuite.com",
-                subject: "Verify your email",
+                from: AppConstants.verificationEmailFrom,
+                subject: AppConstants.verificationEmailSubject,
                 body: "Your verification code is: \(code)",
                 date: Date(),
             )
@@ -1959,10 +1947,10 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 }
 
 private final class IMAPConnectionState: @unchecked Sendable {
-    var connectionState: String = "preparing"
-    var handshakeCompleted: Bool = false
-    var authenticationCompleted: Bool = false
-    var didResume: Bool = false
+    var connectionState = "preparing"
+    var handshakeCompleted = false
+    var authenticationCompleted = false
+    var didResume = false
 }
 
 /// Helper function to add timeout to async operations

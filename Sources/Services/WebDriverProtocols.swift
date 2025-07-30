@@ -117,15 +117,15 @@ public enum WebDriverError: Error, LocalizedError, UnifiedErrorProtocol {
     /// Unique error code for categorization and debugging
     public var errorCode: String {
         switch self {
-        case .navigationFailed: return "WEBDRIVER_NAVIGATION_001"
-        case .elementNotFound: return "WEBDRIVER_ELEMENT_001"
-        case .clickFailed: return "WEBDRIVER_CLICK_001"
-        case .typeFailed: return "WEBDRIVER_TYPE_001"
-        case .scriptExecutionFailed: return "WEBDRIVER_SCRIPT_001"
-        case .timeout: return "WEBDRIVER_TIMEOUT_001"
-        case .connectionFailed: return "WEBDRIVER_CONNECTION_001"
-        case .invalidSelector: return "WEBDRIVER_SELECTOR_001"
-        case .staleElement: return "WEBDRIVER_STALE_001"
+        case .navigationFailed: return AppConstants.errorCodes["navigationFailed"] ?? "WEBDRIVER_NAVIGATION_001"
+        case .elementNotFound: return AppConstants.errorCodes["elementNotFound"] ?? "WEBDRIVER_ELEMENT_001"
+        case .clickFailed: return AppConstants.errorCodes["clickFailed"] ?? "WEBDRIVER_CLICK_001"
+        case .typeFailed: return AppConstants.errorCodes["typeFailed"] ?? "WEBDRIVER_TYPE_001"
+        case .scriptExecutionFailed: return AppConstants.errorCodes["scriptExecutionFailed"] ?? "WEBDRIVER_SCRIPT_001"
+        case .timeout: return AppConstants.errorCodes["timeout"] ?? "WEBDRIVER_TIMEOUT_001"
+        case .connectionFailed: return AppConstants.errorCodes["connectionFailed"] ?? "WEBDRIVER_CONNECTION_001"
+        case .invalidSelector: return AppConstants.errorCodes["invalidSelector"] ?? "WEBDRIVER_SELECTOR_001"
+        case .staleElement: return AppConstants.errorCodes["staleElement"] ?? "WEBDRIVER_STALE_001"
         }
     }
 

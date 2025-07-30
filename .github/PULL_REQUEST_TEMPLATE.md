@@ -21,7 +21,7 @@ Add screenshots or GIFs to show the changes visually.
 - [ ] I have run `./Scripts/build.sh` and the build succeeds
 - [ ] I have updated relevant documentation
 - [ ] I have added appropriate logging with emoji indicators
-- [ ] My changes are backward compatible
+- [ ] My changes follow the project's coding standards
 - [ ] I have tested the CLI version if applicable
 
 ## 🔗 Related Issues
