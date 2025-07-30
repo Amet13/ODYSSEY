@@ -1,5 +1,5 @@
 ---
-name: ODYSSEY Reservation Automation
+name: Scheduled Reservations - Automated Booking
 
 on:
   schedule:
@@ -9,7 +9,7 @@ on:
 jobs:
   run-reservations:
     runs-on: macos-15
-    name: Run ODYSSEY Reservations
+    name: Execute Scheduled Reservations
 
     steps:
       - name: Checkout code

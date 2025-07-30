@@ -1,0 +1,152 @@
+---
+name: CI/CD Pipeline - Build & Release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  # For PRs and main branch pushes - just lint and build
+  ci:
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/')
+    runs-on: macos-15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "16.4"
+
+      - name: Install dependencies
+        run: |
+          brew install xcodegen swiftlint swiftformat shellcheck yamllint markdownlint actionlint
+
+      - name: Setup development environment
+        run: |
+          chmod +x Scripts/setup-dev.sh
+          ./Scripts/setup-dev.sh setup
+
+      - name: Run comprehensive linting
+        run: |
+          chmod +x Scripts/lint-all.sh
+          ./Scripts/lint-all.sh
+
+      - name: Build and test
+        run: |
+          chmod +x Scripts/build.sh
+          ./Scripts/build.sh
+
+  # For releases - use our deploy script
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: macos-15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "16.4"
+
+      - name: Install dependencies
+        run: |
+          brew install xcodegen swiftlint swiftformat shellcheck yamllint markdownlint actionlint create-dmg
+
+      - name: Setup development environment
+        run: |
+          chmod +x Scripts/setup-dev.sh
+          ./Scripts/setup-dev.sh setup
+
+      - name: Run comprehensive linting
+        run: |
+          chmod +x Scripts/lint-all.sh
+          ./Scripts/lint-all.sh
+
+      - name: Build and prepare release
+        run: |
+          chmod +x Scripts/deploy.sh
+          ./Scripts/deploy.sh build
+
+      - name: Create DMG installer
+        run: |
+          chmod +x Scripts/deploy.sh
+          ./Scripts/deploy.sh dmg
+
+      - name: Code sign applications
+        run: |
+          chmod +x Scripts/deploy.sh
+          ./Scripts/deploy.sh sign
+
+      - name: Generate commit-based changelog
+        id: changelog
+        run: |
+          chmod +x Scripts/generate-changelog.sh
+          ./Scripts/generate-changelog.sh
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release_files/ODYSSEY.app
+            release_files/odyssey-cli
+          name: ODYSSEY ${{ github.ref_name }}
+          body: |
+            # 🚀 ODYSSEY ${{ github.ref_name }} Release
+
+            ## 📋 Changes
+
+            ${{ steps.changelog.outputs.CHANGELOG }}
+
+            ## 📦 Installation
+
+            ### 🖥️ GUI Application
+            1. Download `ODYSSEY.app` above
+            2. Drag to your Applications folder
+            3. Right-click and select "Open" on first launch
+
+            ### 💻 CLI Tool
+            1. Download `odyssey-cli` above
+            2. Make executable: `chmod +x odyssey-cli`
+            3. Export token from GUI: `export ODYSSEY_EXPORT_TOKEN="<token>"`
+            4. Run: `./odyssey-cli run`
+
+            ## ⚙️ Requirements
+            - macOS 15 or later
+
+            ## 🔧 Key Features
+
+            ### 🖥️ GUI Application
+            - Native macOS menu bar app with WebKit automation
+            - Smart scheduling and multiple configurations
+            - Secure Keychain storage and email verification
+
+            ### 💻 CLI Tool
+            - Headless automation for CI/CD and remote servers
+            - Same WebKit engine as GUI with parallel execution
+
+            ## 🛡️ Security
+            - This app is code signed but **not notarized by Apple**
+            - All automation runs locally on your machine
+            - No user data transmitted without consent
+
+            ## 🐛 Support
+            - [Report Issues](https://github.com/Amet13/ODYSSEY/issues)
+
+            ---
+            **Made with ❤️ for the Ottawa sports community**
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -19,8 +19,8 @@ let package = Package(
             name: "ODYSSEY",
             dependencies: ["ODYSSEYBackend"],
             path: "Sources",
-            exclude: ["App/Info.plist", "CLI"],
-            sources: ["App", "Views", "AppControllers"],
+            exclude: ["AppCore/Info.plist", "CLIApp"],
+            sources: ["AppCore", "Views", "Controllers"],
             resources: [
                 .process("Resources")
             ]
@@ -28,14 +28,14 @@ let package = Package(
         .executableTarget(
             name: "ODYSSEYCLI",
             dependencies: ["ODYSSEYBackend"],
-            path: "Sources/CLI",
-            sources: ["CLI.swift"]
+            path: "Sources/CLIApp",
+            sources: ["CLIEntryPoint.swift"]
         ),
         .target(
             name: "ODYSSEYBackend",
             path: "Sources",
-            exclude: ["App", "Views", "AppControllers", "CLI", "App/Info.plist"],
-            sources: ["Models", "Services", "Utils"],
+            exclude: ["AppCore", "Views", "Controllers", "CLIApp", "AppCore/Info.plist"],
+            sources: ["Models", "Services", "SharedUtils", "SharedCore"],
             resources: [
                 .process("Resources")
             ]

@@ -1,11 +1,11 @@
 <div align="center">
-  <img src="Sources/Resources/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" alt="ODYSSEY Logo" width="200" style="border-radius: 20px;">
+  <img src="Assets/AppIcon.iconset/icon_512x512.png" alt="ODYSSEY Logo" width="200" style="border-radius: 20px;">
   <h1>ODYSSEY</h1>
   <p><strong>Ottawa Drop-in Your Sports & Schedule Easily Yourself</strong></p>
   <p><em>macOS Menu Bar App + Command Line Interface for Sports Reservation Automation</em></p>
   <p>
-    <a href="https://github.com/Amet13/ODYSSEY/actions/workflows/pipeline.yml">
-<img src="https://github.com/Amet13/ODYSSEY/actions/workflows/pipeline.yml/badge.svg" alt="Pipeline Status">
+    <a href="https://github.com/Amet13/ODYSSEY/actions/workflows/ci-cd.yml">
+<img src="https://github.com/Amet13/ODYSSEY/actions/workflows/ci-cd.yml/badge.svg" alt="CI/CD Status">
     </a>
     <a href="https://github.com/Amet13/ODYSSEY/releases">
       <img src="https://img.shields.io/github/v/release/Amet13/ODYSSEY?label=version" alt="Latest Release">
@@ -24,29 +24,24 @@
 4. **Configure**: Click the icon, add your settings and configurations.
 5. **Automate!** Enable autorun and sit back while ODYSSEY books your sports for you or run it manually! 🎉
 
-## ✨ Features
+## ✨ Key Features
 
-| Feature                     | Description                                                      |
-| --------------------------- | ---------------------------------------------------------------- |
-| 🖥️ GUI Version              | Native macOS menu bar app with SwiftUI interface                 |
-| 💻 CLI Version              | Command-line interface for remote automation                     |
-| 🛡️ WebKit Automation        | Uses native Swift WebKit (WKWebView) for robust automation       |
-| 🎨 Modern SwiftUI Interface | Beautiful, responsive UI for easy configuration                  |
-| ⏰ Automated Scheduling     | Schedules runs based on your configured time slots               |
-| ⚙️ Multiple Configurations  | Supports different sports and facilities                         |
-| 🔒 Secure Storage           | Keychain integration for credentials                             |
-| 📧 Email Verification       | Automated IMAP/Gmail verification for reservation confirmations  |
-| 🕵️‍♂️ Anti-Detection           | Human-like automation with browser window monitoring             |
-| 🎨 Dark Mode Polish         | Fully adaptive UI for both light and dark appearances            |
-| 🔍 Conflict Detection       | Automatic detection of time slot overlaps and facility conflicts |
+- 🖥️ **GUI & CLI Versions** - Menu bar app + command-line automation
+- 🛡️ **Native WebKit Automation** - Robust, human-like browser automation
+- ⏰ **Smart Scheduling** - Automated runs based on your time slots
+- 🔒 **Secure & Private** - Local processing, Keychain storage, no external data
+- 📧 **Email Integration** - Automated verification and confirmations
+- 🎨 **Modern Interface** - Beautiful SwiftUI with dark mode support
 
 ## 📚 Documentation
 
-- **[INSTALLATION.md](Documentation/INSTALLATION.md)** - Installation guide
-- **[USER_GUIDE.md](Documentation/USER_GUIDE.md)** - Comprehensive user guide
-- **[CLI.md](Documentation/CLI.md)** - Command-line interface documentation
-- **[DEVELOPMENT.md](Documentation/DEVELOPMENT.md)** - Development workflow and guidelines
-- **[CHANGELOG.md](Documentation/CHANGELOG.md)** - Project's changelog
+**Start here** → **[USER_GUIDE.md](Documentation/USER_GUIDE.md)** - Complete GUI app setup and usage guide (includes installation)
+
+**For automation** → **[CLI.md](Documentation/CLI.md)** - Command-line interface for CI/CD and remote automation
+
+**For developers** → **[DEVELOPMENT.md](Documentation/DEVELOPMENT.md)** - Development workflow and contribution guidelines
+
+**For updates** → **[CHANGELOG.md](CHANGELOG.md)** - Release notes and version history
 
 ## 📄 License
 

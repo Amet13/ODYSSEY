@@ -21,7 +21,7 @@ settings:
     PRODUCT_NAME: ODYSSEY
     MARKETING_VERSION: ${MARKETING_VERSION}
     CURRENT_PROJECT_VERSION: 1
-    INFOPLIST_FILE: ../Sources/App/Info.plist
+    INFOPLIST_FILE: ../Sources/AppCore/Info.plist
     INFOPLIST_KEY_CFBundleDisplayName: ODYSSEY
     INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
     INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2025 Amet13. All rights reserved."
@@ -89,13 +89,13 @@ targets:
           - "**/*.md"
           - "**/*.txt"
           - "**/*.xcuserstate"
-          - "CLI/**"
+          - "CLIApp/**"
     resources:
       - path: ../Sources/Resources/AppIcon.icns
       - path: ../Sources/Resources/Assets.xcassets
 
     info:
-      path: ../Sources/App/Info.plist
+      path: ../Sources/AppCore/Info.plist
       properties:
         CFBundleName: ODYSSEY
         CFBundleIdentifier: com.odyssey.app
@@ -129,7 +129,7 @@ targets:
         PRODUCT_NAME: ODYSSEY
         MARKETING_VERSION: ${MARKETING_VERSION}
         CURRENT_PROJECT_VERSION: 11
-        INFOPLIST_FILE: ../Sources/App/Info.plist
+        INFOPLIST_FILE: ../Sources/AppCore/Info.plist
         INFOPLIST_KEY_CFBundleDisplayName: ODYSSEY
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
         INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2025 Amet13. All rights reserved."

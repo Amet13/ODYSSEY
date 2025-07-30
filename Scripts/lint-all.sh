@@ -69,7 +69,7 @@ run_swiftformat() {
 run_shellcheck() {
     print_status "step" "Running ShellCheck..."
 
-    if shellcheck Scripts/*.sh; then
+    if shellcheck --exclude=SC1091 Scripts/*.sh; then
         print_status "success" "ShellCheck passed"
     else
         print_status "warning" "ShellCheck found issues (mostly acceptable warnings)"

@@ -133,9 +133,17 @@ validate_version() {
     fi
 }
 
-# Function to get current version from project.yml
+# Function to get current version from Info.plist
 get_current_version() {
-    grep "MARKETING_VERSION:" Config/project.yml | sed 's/.*MARKETING_VERSION: "\(.*\)"/\1/'
+    # Try to get version from Info.plist first, then fallback to project.yml
+    local version
+    version=$(grep -A1 "CFBundleShortVersionString" Sources/App/Info.plist | tail -1 | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+    if [ -n "$version" ] && [ "$version" != "CFBundleShortVersionString" ]; then
+        echo "$version"
+    else
+        # Fallback to project.yml if Info.plist doesn't have a valid version
+        grep "MARKETING_VERSION:" Config/project.yml | sed 's/.*MARKETING_VERSION: "\(.*\)"/\1/' | head -1
+    fi
 }
 
 # Function to show usage

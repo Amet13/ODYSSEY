@@ -15,7 +15,7 @@ if [ ! -f "Package.swift" ] || [ ! -d "Sources" ]; then
 fi
 
 # Configuration
-VERSION=$(grep -o 'version: "[^"]*"' Config/project.yml | cut -d'"' -f2)
+VERSION=$(grep -A1 "CFBundleShortVersionString" Sources/App/Info.plist | tail -1 | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
 BUILD_NUMBER=$(date +%Y%m%d%H%M)
 RELEASE_NAME="ODYSSEY-v${VERSION}-${BUILD_NUMBER}"
 

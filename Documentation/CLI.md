@@ -2,20 +2,57 @@
 
 The ODYSSEY Command Line Interface (CLI) provides remote automation capabilities for running reservations without the GUI, perfect for CI/CD pipelines and server environments.
 
+## 📖 Table of Contents
+
+1. [Overview](#-overview)
+2. [Quick Start](#-quick-start)
+3. [Environment Variables](#-environment-variables)
+4. [Commands](#️-commands)
+5. [CLI Integration](#️-cli-integration)
+6. [Troubleshooting](#️-troubleshooting)
+7. [Security](#️-security)
+8. [Remote Server Deployment](#️-remote-server-deployment)
+
 ## 🎯 Overview
 
-ODYSSEY is a **dual-interface application**:
-
-- **🖥️ GUI Version**: Native macOS menu bar app with SwiftUI interface
-- **💻 CLI Version**: Command-line interface for remote automation
-
-Both versions use the same powerful WebKit automation engine, ensuring consistent behavior and reliability.
+The ODYSSEY CLI provides command-line automation capabilities using the same powerful WebKit automation engine as the GUI version, ensuring consistent behavior and reliability.
 
 ## 🚀 Quick Start
 
+> **Prerequisite**: You need the GUI app configured first. See [USER_GUIDE.md](USER_GUIDE.md) for initial setup.
+
 ### ⚙️ Installation
 
-See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
+#### 📦 Download CLI Binary
+
+1. **Download the CLI binary**
+
+   - Go to [GitHub Releases](https://github.com/Amet13/ODYSSEY/releases)
+   - Download `odyssey-cli` (latest version)
+
+2. **Make it executable**
+   ```bash
+   chmod +x odyssey-cli
+   ```
+
+#### 🔧 Setup Configuration
+
+1. **Export configuration from GUI**
+
+   - Open the GUI app
+   - Go to Settings → Export
+   - Copy the export token
+
+2. **Set up environment variable**
+
+   ```bash
+   export ODYSSEY_EXPORT_TOKEN="your_export_token_here"
+   ```
+
+3. **Test the CLI**
+   ```bash
+   ./odyssey-cli configs
+   ```
 
 ### 🎯 Basic Usage
 
@@ -220,6 +257,43 @@ The workflow file is already included in the repository. It will automatically:
 # Check system logs for WebKit errors
 log show --predicate 'subsystem == "com.odyssey.cli"' --last 1h
 ```
+
+#### 🔧 CLI Not Working
+
+**Symptoms**: CLI commands fail or show errors
+**Solutions**:
+
+1. **Check CLI executable**:
+
+   ```bash
+   chmod +x odyssey-cli
+   ```
+
+2. **Verify export token**:
+
+   ```bash
+   ./odyssey-cli configs
+   ```
+
+3. **Check environment variable**:
+
+   ```bash
+   echo $ODYSSEY_EXPORT_TOKEN
+   ```
+
+4. **Ensure GUI app is configured first**:
+   - Export token from GUI app
+   - Verify token contains valid configurations
+
+#### 🔑 Export Token Issues
+
+**Symptoms**: "Invalid token" or "No configurations found"
+**Solutions**:
+
+1. **Re-export from GUI**: Go to Settings → Export in the GUI app
+2. **Check token format**: Should be a long base64 string
+3. **Verify GUI configuration**: Ensure GUI app has valid configurations
+4. **Test token**: Use `./odyssey-cli configs` to verify
 
 ## 🔒 Security
 

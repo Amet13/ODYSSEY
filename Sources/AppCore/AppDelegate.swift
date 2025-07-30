@@ -380,7 +380,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
             logger
                 .info(
-                    "🔍 DEBUG: Config '\(config.name)' - Day: \(day.rawValue), targetWeekday: \(targetWeekday), currentWeekday: \(currentWeekday), daysUntilTarget: \(daysUntilTarget), reservationDay: \(reservationDay), autorunDay: \(autorunDay), today: \(today).",
+                    "🔍 DEBUG: Config '\(config.name)' - Day: \(day.rawValue), targetWeekday: \(targetWeekday), currentWeekday: \(currentWeekday)",
+                    )
+            logger
+                .info(
+                    "🔍 DEBUG: daysUntilTarget: \(daysUntilTarget), reservationDay: \(reservationDay), autorunDay: \(autorunDay), today: \(today)",
                     )
 
             if calendar.isDate(today, inSameDayAs: autorunDay) {

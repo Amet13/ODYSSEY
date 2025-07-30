@@ -3,8 +3,8 @@
 ## 📖 Table of Contents
 
 1. [Getting Started](#getting-started)
-2. [GUI Version Guide](#gui-version-guide)
-3. [CLI Version](#cli-version)
+2. [GUI App Guide](#gui-version-guide)
+3. [CLI Automation](#cli-version)
 4. [Configuration Management](#configuration-management)
 5. [Conflict Detection](#conflict-detection)
 6. [Email Setup](#email-setup)
@@ -14,11 +14,61 @@
 
 ## 🚀 Getting Started
 
-### ⚙️ Installation
+### 📦 Installation
 
-See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
+#### 🖥️ For Users
 
-## 🖥️ GUI Version Guide
+1. **Download the latest release**
+
+   - Go to [GitHub Releases](https://github.com/Amet13/ODYSSEY/releases)
+   - Download `ODYSSEY.dmg` (latest version)
+
+2. **Install the application**
+
+   - Double-click the DMG file to mount it
+   - Drag ODYSSEY to your Applications folder
+   - Eject the DMG file
+
+3. **First Launch**
+
+   - Right-click ODYSSEY in Applications and select "Open"
+   - Click "Open" in the security dialog that appears
+   - The app will appear in your menu bar (not Dock)
+
+4. **Configure your settings**
+   - Click the ODYSSEY icon in the menu bar
+   - Go to Settings and configure your email and reservation preferences
+
+#### 💻 CLI Installation
+
+For CLI installation and setup, see the complete [CLI Documentation](CLI.md#-quick-start).
+
+**Quick Start**:
+
+1. Download CLI from [GitHub Releases](https://github.com/Amet13/ODYSSEY/releases)
+2. Export configuration from GUI app
+3. Set environment variable: `export ODYSSEY_EXPORT_TOKEN="<token>"`
+4. Run: `./odyssey-cli run`
+
+#### 🔧 Development Installation
+
+For development setup and building from source, see [DEVELOPMENT.md](DEVELOPMENT.md#️-quick-start-for-developers).
+
+#### ⚠️ Installation Troubleshooting
+
+- **"App is damaged" error**: This is normal for apps not from the App Store. Right-click and select "Open" instead of double-clicking.
+
+- **"macOS version too old"**: Update to macOS 15.0 or later.
+
+- **"Cannot be opened because it is from an unidentified developer"**:
+
+  1. Right-click the app
+  2. Select "Open" from the context menu
+  3. Click "Open" in the security dialog
+
+- **CLI issues**: See [CLI Documentation](CLI.md#️-troubleshooting) for CLI-specific troubleshooting
+
+## 🖥️ GUI App Guide
 
 ### 🎯 First Time Setup
 
@@ -103,15 +153,17 @@ Common sport names include:
   <p><em>Main screen with active configurations</em></p>
 </div>
 
-## 💻 CLI Version
+## 💻 CLI Automation
 
-For detailed CLI usage, commands, and advanced features, see **[CLI.md](CLI.md)**.
+ODYSSEY also includes a command-line interface for automation and CI/CD pipelines.
 
 **Quick Start**:
 
 1. Export configuration from GUI app
 2. Set environment variable: `export ODYSSEY_EXPORT_TOKEN="<token>"`
 3. Run: `./odyssey-cli run`
+
+**For complete CLI documentation**, including all commands, GitHub Actions integration, and advanced features, see **[CLI.md](CLI.md)**.
 
 ## ⚙️ Configuration Management
 
@@ -212,7 +264,7 @@ Other email providers that support IMAP could be used too.
 
 - Check Applications folder for ODYSSEY
 - Restart the app
-- Ensure macOS 15+ is installed (see [INSTALLATION.md](INSTALLATION.md))
+- Ensure macOS 15+ is installed
 - Check System Preferences → Dock & Menu Bar
 
 #### 🔑 Keychain Errors
@@ -226,7 +278,9 @@ Other email providers that support IMAP could be used too.
 
 ### 🆘 Getting Help
 
-1. **Check Logs**: Use Console.app to view detailed logs
+1. **Check Logs**:
+   - Use Console.app to view detailed logs
+   - Or use the log monitoring script for real-time monitoring
 2. **GitHub Issues**: Report bugs on [GitHub](https://github.com/Amet13/ODYSSEY/issues)
 3. **Documentation**: See [DEVELOPMENT.md](DEVELOPMENT.md) for advanced troubleshooting
 

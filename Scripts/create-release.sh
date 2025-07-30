@@ -11,7 +11,7 @@ source "$(dirname "$0")/common.sh"
 # Configuration
 PROJECT_PATH="Config/project.yml"
 INFO_PLIST_PATH="Sources/App/Info.plist"
-CHANGELOG_PATH="Documentation/CHANGELOG.md"
+CHANGELOG_PATH="CHANGELOG.md"
 
 # Function to show usage
 show_usage() {
@@ -39,7 +39,15 @@ validate_version() {
 
 # Function to extract current version from project.yml
 get_current_version() {
-    grep "MARKETING_VERSION:" "$PROJECT_PATH" | sed 's/.*MARKETING_VERSION: "\(.*\)"/\1/'
+    # Try to get version from Info.plist first, then fallback to project.yml
+    local version
+    version=$(grep -A1 "CFBundleShortVersionString" "$INFO_PLIST_PATH" | tail -1 | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+    if [ -n "$version" ] && [ "$version" != "CFBundleShortVersionString" ]; then
+        echo "$version"
+    else
+        # Fallback to project.yml if Info.plist doesn't have a valid version
+        grep "MARKETING_VERSION:" "$PROJECT_PATH" | sed 's/.*MARKETING_VERSION: "\(.*\)"/\1/' | head -1
+    fi
 }
 
 # Function to update version in project.yml
@@ -49,9 +57,11 @@ update_project_version() {
 
     if [ "$dry_run" = "true" ]; then
         print_status "info" "Would update project.yml MARKETING_VERSION to $version"
+        print_status "info" "Would update project.yml CFBundleShortVersionString to $version"
     else
         sed -i '' "s/MARKETING_VERSION: \".*\"/MARKETING_VERSION: \"$version\"/" "$PROJECT_PATH"
-        print_status "success" "Updated project.yml MARKETING_VERSION to $version"
+        sed -i '' "s/CFBundleShortVersionString: .*/CFBundleShortVersionString: $version/" "$PROJECT_PATH"
+        print_status "success" "Updated project.yml MARKETING_VERSION and CFBundleShortVersionString to $version"
     fi
 }
 
@@ -196,9 +206,11 @@ show_release_summary() {
     print_status "info" "Mode: $([ "$dry_run" = "true" ] && echo "Dry run" || echo "Live")"
     echo ""
     print_status "info" "Files to be updated:"
-    echo "  - $PROJECT_PATH"
-    echo "  - $INFO_PLIST_PATH"
-    echo "  - $CHANGELOG_PATH"
+    echo "  - $PROJECT_PATH (MARKETING_VERSION and CFBundleShortVersionString)"
+    echo "  - $INFO_PLIST_PATH (CFBundleShortVersionString)"
+    echo "  - Sources/Utils/AppConstants.swift (appVersion)"
+    echo "  - Sources/Services/CLIExportService.swift (version)"
+    echo "  - $CHANGELOG_PATH (new version entry)"
     echo ""
 
     if [ "$dry_run" = "false" ]; then

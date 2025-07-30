@@ -2,6 +2,22 @@
 
 This document provides comprehensive development guidelines, setup instructions, and workflow information for contributing to ODYSSEY.
 
+## 📖 Table of Contents
+
+1. [Overview](#-overview)
+2. [System Requirements](#️-system-requirements)
+3. [Quick Start (For Developers)](#️-quick-start-for-developers)
+4. [Architecture Principles](#️-architecture-principles)
+5. [Code Quality & Testing](#️-code-quality--testing)
+6. [Development Workflow](#️-development-workflow)
+7. [Testing](#️-testing)
+8. [Release Process](#️-release-process)
+9. [Common Pitfalls & Tips](#️-common-pitfalls--tips)
+10. [Related Documentation](#️-related-documentation)
+11. [Security & Compliance](#️-security--compliance)
+12. [Need Help?](#️-need-help)
+13. [Security Best Practices](#️-security-best-practices)
+
 ## 🎯 Overview
 
 ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
@@ -19,6 +35,8 @@ Both versions share the same backend services and automation engine, so contribu
 - **Homebrew** (for installing development dependencies)
 
 ## 🚀 Quick Start (For Developers)
+
+> **Note**: This guide is for contributors and developers. For user setup, see [USER_GUIDE.md](USER_GUIDE.md).
 
 1. **Clone the repository**:
 
@@ -58,24 +76,24 @@ Both versions share the same backend services and automation engine, so contribu
 
 ## 🏗️ Architecture Principles
 
-### **Clean Architecture Layers**
+### **Core Design Principles**
 
-- **Presentation Layer**: SwiftUI views and controllers
-- **Application Layer**: Use cases and orchestration logic
-- **Domain Layer**: Business entities and core logic
-- **Infrastructure Layer**: WebKit automation, email services, storage
-
-### **Service-Oriented Design**
-
+- **Separation of Concerns**: Each component has a single, well-defined responsibility
 - **Protocol-Oriented Design**: Use protocols for interfaces and dependency injection
-- **Single Responsibility**: Each service has a single, well-defined responsibility
-- **Dependency Injection**: Centralized `DependencyContainer` for service management
-- **Concurrency Safety**: `@MainActor` and `Sendable` conformance throughout
-- **Error Handling**: Unified `DomainError` system with hierarchical categorization
-- **Security First**: Always use Keychain for sensitive data
+- **Dependency Injection**: Centralized service management for better testability
+- **Concurrency Safety**: Proper actor isolation and thread safety throughout
+- **Error Handling**: Comprehensive error handling with clear categorization
+- **Security First**: Always use secure storage (Keychain) for sensitive data
 - **Performance**: Optimize for memory usage and responsiveness
-- **Validation**: Centralized validation in `ValidationService`
-- **Constants**: Centralized constants in `AppConstants`
+- **Validation**: Centralized input validation and sanitization
+- **Constants Management**: Centralized constants for maintainability
+
+### **Architecture Layers**
+
+- **Presentation**: User interface and user interaction logic
+- **Application**: Business logic orchestration and use cases
+- **Domain**: Core business entities and domain logic
+- **Infrastructure**: External services, automation, and data persistence
 
 ## 🧪 Code Quality & Testing
 
@@ -107,73 +125,44 @@ The project includes comprehensive automated quality checks:
 
 ### CI/CD Pipeline Integration
 
-The unified CI/CD pipeline (`.github/workflows/pipeline.yml`) automatically runs all quality checks on every commit and pull request.
+The unified CI/CD pipeline (`.github/workflows/ci-cd.yml`) automatically runs all quality checks on every commit and pull request.
 
 ## 🏗️ Service Architecture
 
-### **Current Service Structure**
+### **Modular Design Principles**
 
-The codebase has been transformed into a modular architecture with 11 focused services:
+The codebase follows a modular service-oriented architecture with these key principles:
 
-#### **Email Services (6 services)**
+#### Service Categories
 
-- `EmailGmailSupport.swift` - Gmail-specific functionality
-- `EmailConfigurationDiagnostics.swift` - Email diagnostics
-- `EmailKeychainHelper.swift` - Secure credential management
-- `EmailIMAPStreamDelegate.swift` - IMAP connection handling
-- `EmailClient.swift` - Email server connections
-- `EmailParser.swift` - Email content parsing
+- **Email Services**: Handle email integration, authentication, and verification
+- **Reservation Services**: Manage booking logic, status tracking, and orchestration
+- **WebKit Services**: Provide browser automation and web interaction capabilities
+- **Infrastructure Services**: Handle data persistence, configuration, and utilities
 
-#### **Reservation Services (3 services)**
+### Development Guidelines
 
-- `ReservationError.swift` - Error definitions
-- `ReservationRunStatus.swift` - Status management
-- `ReservationOrchestrationMethods.swift` - Core orchestration
+#### Adding New Services
 
-#### **WebKit Services (2 services)**
+1. **Single Responsibility**: Each service should have one clear, well-defined purpose
+2. **Protocol-First Design**: Define clear interfaces before implementation
+3. **Dependency Injection**: Use centralized service management for testability
+4. **Concurrency Safety**: Ensure proper actor isolation and thread safety
+5. **Comprehensive Documentation**: Document all public APIs with clear examples
 
-- `WebKitAutofillService.swift` - Browser autofill methods
-- `WebKitReservationMethods.swift` - Reservation automation
+#### Testing Principles
 
-### **Development Guidelines**
+- **Unit Tests**: Test each service in isolation
+- **Integration Tests**: Verify service interactions
+- **Mock Dependencies**: Use protocols for testable dependencies
+- **Error Scenarios**: Test both success and failure cases
 
-#### **Adding New Services**
+#### Code Quality Standards
 
-1. **Follow Single Responsibility Principle**: Each service should have one clear purpose
-2. **Implement Protocols**: Define clear interfaces for testability
-3. **Use Dependency Injection**: Register new services in `DependencyContainer`
-4. **Add Concurrency Safety**: Use `@MainActor` and `Sendable` where appropriate
-5. **Document Public APIs**: Use JSDoc-style comments for all public methods
-
-#### **Service Testing**
-
-```swift
-// Example: Testing a new service
-class NewServiceTests: XCTestCase {
-    func testServiceFunctionality() {
-        let service = NewService()
-        let result = service.performAction()
-        XCTAssertTrue(result)
-    }
-}
-```
-
-#### **Protocol Conformance**
-
-```swift
-// Define protocol for new service
-protocol NewServiceProtocol: ServiceProtocol {
-    func performAction() -> Bool
-}
-
-// Implement service
-class NewService: NewServiceProtocol {
-    func performAction() -> Bool {
-        // Implementation
-        return true
-    }
-}
-```
+- **SwiftLint Compliance**: Follow established code style guidelines
+- **Documentation**: Use JSDoc-style comments for all public methods
+- **Error Handling**: Implement comprehensive error handling
+- **Performance**: Optimize for memory usage and responsiveness
 
 #### Unified Pipeline Structure
 
@@ -189,6 +178,7 @@ The pipeline includes:
 
 #### Automated Workflows
 
+- ✅ **Unified Script Usage**: GitHub Actions now use our existing scripts instead of duplicating commands
 - ✅ **Version consistency validation** (tag vs project.yml vs Info.plist)
 - ✅ **Changelog generation** from git commits since last tag
 - ✅ **DMG installer creation** with app icon
@@ -222,7 +212,7 @@ The pipeline includes:
 2. **Test Commands**: `./.build/arm64-apple-macosx/debug/odyssey-cli help`
 3. **Export Token**: Generate token from GUI for testing
 4. **Test Automation**: `export ODYSSEY_EXPORT_TOKEN="<exported_token>" && ./odyssey-cli run`
-5. **Test GitHub Actions**: Verify `.github/workflows/reservation-automation.yml` works correctly
+5. **Test GitHub Actions**: Verify `.github/workflows/scheduled-reservations.yml` works correctly
 
 ### Supported CLI Commands
 
@@ -239,28 +229,46 @@ The pipeline includes:
 
 ## 🚀 Release Process
 
-1. **Update version numbers** in `Info.plist`, `AppConstants.swift`, and documentation.
-2. **Update the changelog** (`CHANGELOG.md`).
-3. **Run all tests and linting** to ensure a clean build:
+The release process uses two scripts for a complete workflow:
+
+### 📋 Step 1: Prepare Release
+
+1. **Update version and prepare release**:
    ```bash
-   ./Scripts/build.sh
+   ./Scripts/create-release.sh 1.0.0
    ```
-4. **Create and push a version tag:**
+   This step:
+   - Updates all version references in code
+   - Adds changelog entry
+   - Commits and tags the release
+   - Triggers CI/CD pipeline
+
+### 🚀 Step 2: Build and Deploy
+
+1. **Build and deploy the release**:
    ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
+   ./Scripts/deploy.sh release
    ```
-5. **Automated Release Pipeline:**
-   - The CI/CD pipeline automatically detects the tag
+   This step:
    - Builds both GUI and CLI applications
    - Creates DMG installer and CLI binary
    - Code signs both applications
-   - Publishes to GitHub Releases with comprehensive release notes
-   - Calculates and displays file sizes
-   - Generates changelog from git commits
+   - Publishes to GitHub Releases
 
-### Automated Release Features
+### 🔄 Automated CI/CD Pipeline
 
+When you push a version tag, the CI/CD pipeline automatically:
+
+- Builds both GUI and CLI applications
+- Creates DMG installer and CLI binary
+- Code signs both applications
+- Publishes to GitHub Releases with comprehensive release notes
+- Calculates and displays file sizes
+- Generates changelog from git commits
+
+### Automated CI/CD Features
+
+- ✅ **Unified Script Usage**: GitHub Actions now use our existing scripts instead of duplicating commands
 - ✅ **Version Validation**: Ensures tag version matches `project.yml` and `Info.plist`
 - ✅ **Dual Build**: Creates both GUI app and CLI binary
 - ✅ **Code Signing**: Automatically signs both applications
@@ -270,6 +278,27 @@ The pipeline includes:
 - ✅ **Changelog Generation**: Creates changelog from git commits since last tag
 - ✅ **GitHub Integration**: Automatically publishes to GitHub Releases
 - ✅ **Comprehensive Linting**: Uses configuration files to ignore acceptable warnings while catching critical issues
+
+### 🤖 Scheduled Reservations Workflow
+
+The project also includes a separate workflow for automated reservation execution:
+
+- ✅ **Scheduled Execution**: Runs daily at 5:53 PM EST (21:53 UTC)
+- ✅ **Manual Triggers**: Can be triggered manually via GitHub Actions
+- ✅ **CLI Integration**: Downloads latest CLI binary and runs reservations
+- ✅ **Token Security**: Uses GitHub secrets for secure token storage
+- ✅ **Error Handling**: Comprehensive logging and error reporting
+
+## 🛠️ Development Workflow
+
+The project includes various automation scripts in the `Scripts/` directory to streamline development tasks. These scripts handle building, testing, linting, and release management.
+
+**Key Workflows:**
+
+- **Development Setup**: Use setup scripts to configure your environment
+- **Quality Assurance**: Run linting and testing scripts before committing
+- **Release Management**: Use release scripts for version updates and deployment
+- **Logging**: Monitor application logs for debugging and troubleshooting
 
 ### Manual Release (Alternative)
 
@@ -289,8 +318,10 @@ If you prefer manual releases, you can still use the scripts:
 
 ## 📦 Related Documentation
 
-- [Changelog](CHANGELOG.md) - Release notes
+- [Changelog](../CHANGELOG.md) - Release notes
 - [README.md](../README.md) - User installation and setup
+- [USER_GUIDE.md](USER_GUIDE.md) - GUI app user guide
+- [CLI.md](CLI.md) - Command-line interface documentation
 
 ## 🛡️ Security & Compliance
 
