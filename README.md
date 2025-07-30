@@ -46,6 +46,7 @@
 - **[USER_GUIDE.md](Documentation/USER_GUIDE.md)** - Comprehensive user guide
 - **[CLI.md](Documentation/CLI.md)** - Command-line interface documentation
 - **[DEVELOPMENT.md](Documentation/DEVELOPMENT.md)** - Development workflow and guidelines
+- **[CHANGELOG.md](Documentation/CHANGELOG.md)** - Project's changelog
 
 ## 📄 License
 
