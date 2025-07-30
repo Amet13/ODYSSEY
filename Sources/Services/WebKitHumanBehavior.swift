@@ -285,11 +285,12 @@ public final class WebKitHumanBehavior: ObservableObject {
         return Array(behaviorPatterns.suffix(count))
     }
 
-    /// Clears old behavior patterns
+    /// Clears behavior patterns older than 1 hour
     public func clearOldBehaviorPatterns() {
         let cutoffTime = Date().addingTimeInterval(-3_600) // 1 hour ago
         behaviorPatterns = behaviorPatterns.filter { $0.timestamp > cutoffTime }
-        logger.debug("🧹 Cleared old behavior patterns for instance: \(self.instanceId).")
+        logger
+            .debug("🧹 Cleared behavior patterns older than 1 hour for instance: \(self.instanceId, privacy: .public).")
     }
 }
 

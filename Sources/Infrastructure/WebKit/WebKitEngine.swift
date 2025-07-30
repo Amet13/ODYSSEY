@@ -39,7 +39,7 @@ class WebKitEngine: NSObject, WebKitEngineProtocol {
         webView.uiDelegate = self
 
         // Set user agent
-        webView.customUserAgent = NetworkConstants.userAgent
+        webView.customUserAgent = AppConstants.defaultUserAgent
 
         // Configure preferences
         webView.configuration.defaultWebpagePreferences.allowsContentJavaScript = true

@@ -6,8 +6,8 @@ struct ExportView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectedConfigIds: Set<String> = []
-    @State private var exportToken: String = ""
-    @State private var isExporting: Bool = false
+    @State private var exportToken = ""
+    @State private var isExporting = false
     @State private var errorMessage: String?
 
     init(configurationManager: ConfigurationManager) {

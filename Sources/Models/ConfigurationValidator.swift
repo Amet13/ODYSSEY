@@ -161,46 +161,4 @@ public final class ConfigurationValidator: ObservableObject {
         let range = NSRange(code.startIndex ..< code.endIndex, in: code)
         return regex?.firstMatch(in: code, range: range) != nil
     }
-
-    // MARK: - Legacy Static Methods (for backward compatibility)
-
-    /**
-     * Validates all fields of a reservation configuration.
-     *
-     * - Parameters:
-     *   - facilityURL: The facility reservation URL.
-     *   - name: The configuration name.
-     *   - sportName: The sport name.
-     *   - numberOfPeople: The number of people for the reservation.
-     *   - dayTimeSlots: The selected days and time slots.
-     * - Returns: An array of validation error messages. Empty if valid.
-     */
-    static func validate(
-        facilityURL: String,
-        name: String,
-        sportName: String,
-        numberOfPeople: Int,
-        dayTimeSlots: [ReservationConfig.Weekday: [Date]],
-        ) -> [String] {
-        let validator = shared
-        let tempConfig = ReservationConfig(
-            name: name,
-            facilityURL: facilityURL,
-            sportName: sportName,
-            numberOfPeople: numberOfPeople,
-            dayTimeSlots: dayTimeSlots.mapValues { $0.map { TimeSlot(time: $0) } },
-            )
-        let result = validator.validateReservationConfig(tempConfig)
-        return result.errors
-    }
-
-    /**
-     * Validates the facility reservation URL.
-     *
-     * - Parameter url: The facility URL string.
-     * - Returns: True if the URL is valid, false otherwise.
-     */
-    static func isValidFacilityURL(_ url: String) -> Bool {
-        return shared.isValidFacilityURL(url)
-    }
 }

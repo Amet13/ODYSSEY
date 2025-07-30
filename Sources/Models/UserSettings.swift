@@ -34,12 +34,12 @@ public struct UserSettings: Codable, Equatable, Sendable {
         return Locale(identifier: "en")
     }
 
-    public var preventSleepForAutorun: Bool = true // Default to true for safety
-    public var autoCloseDebugWindowOnFailure: Bool = false // Default to false
-    public var showBrowserWindow: Bool = false // Default to false (invisible automation)
+    public var preventSleepForAutorun = true // Default to true for safety
+    public var autoCloseDebugWindowOnFailure = false // Default to false
+    public var showBrowserWindow = false // Default to false (invisible automation)
 
     // Custom autorun time settings
-    public var useCustomAutorunTime: Bool = false // Default to false (use 6:00 PM)
+    public var useCustomAutorunTime = false // Default to false (use 6:00 PM)
     public var customAutorunTime: Date = {
         let calendar = Calendar.current
         let now = Date()

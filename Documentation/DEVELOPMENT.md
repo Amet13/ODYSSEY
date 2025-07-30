@@ -290,7 +290,6 @@ If you prefer manual releases, you can still use the scripts:
 ## 📦 Related Documentation
 
 - [Changelog](CHANGELOG.md) - Release notes
-- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute
 - [README.md](../README.md) - User installation and setup
 
 ## 🛡️ Security & Compliance

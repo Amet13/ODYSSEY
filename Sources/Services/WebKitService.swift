@@ -52,7 +52,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     // Published properties for UI binding and automation state
     @Published public var isConnected = false
-    @Published public var isRunning: Bool = false
+    @Published public var isRunning = false
     @Published public var currentURL: String?
     @Published public var pageTitle: String?
     /// User-facing error message to be displayed in the UI.
@@ -68,7 +68,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     private var navigationDelegate: WebKitNavigationDelegate?
     private var scriptMessageHandler: WebKitScriptMessageHandler?
     private var debugWindow: NSWindow?
-    private var instanceId: String = "default"
+    private var instanceId = "default"
 
     // Anti-detection and human behavior services
     private var antiDetectionService: WebKitAntiDetection?
@@ -89,10 +89,10 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
     }
 
-    // User agent and language for anti-detection and compatibility
+    // User agent and language for anti-detection
     var userAgent: String = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) " +
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-    private var language: String = "en-US,en"
+    private var language = "en-US,en"
 
     // Completion handlers for async navigation and script operations
     var navigationCompletions: [String: @Sendable (Bool) -> Void] = [:]
@@ -102,7 +102,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     // Track live instances for debugging and anti-detection
     @MainActor private static var liveInstanceCount = 0
     @MainActor static func printLiveInstanceCount() {
-        Logger(subsystem: "com.odyssey.app", category: "WebKitService")
+        Logger(subsystem: AppConstants.loggingSubsystem, category: "WebKitService")
             .info("📊 Live WebKitService instances: \(liveInstanceCount)")
     }
 
@@ -115,7 +115,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     ///   - debugWindow: NSWindow for debug (default: nil)
     ///   - instanceId: Unique instance identifier (default: "default")
     public init(
-        logger: Logger = Logger(subsystem: "com.odyssey.app", category: "WebKitService"),
+        logger: Logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "WebKitService"),
         webView: WKWebView? = nil,
         navigationDelegate: WebKitNavigationDelegate? = nil,
         scriptMessageHandler: WebKitScriptMessageHandler? = nil,
@@ -142,7 +142,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     // Keep the default singleton for app use
     override private init() {
-        self.logger = Logger(subsystem: "com.odyssey.app", category: "WebKitService")
+        self.logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "WebKitService")
         super.init()
         logger.info("🔧 WebKitService initialized.")
         Task { @MainActor in

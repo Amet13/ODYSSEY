@@ -5,7 +5,7 @@ import os.log
 @MainActor
 public final class ErrorHandlingService: ObservableObject {
     public static let shared = ErrorHandlingService()
-    private let logger = Logger(subsystem: "com.odyssey.app", category: "ErrorHandlingService")
+    private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "ErrorHandlingService")
 
     private init() { }
 

@@ -11,11 +11,11 @@ struct ConfigurationDetailView: View {
     @ObservedObject var configurationManager = ConfigurationManager.shared
     @ObservedObject var userSettingsManager = UserSettingsManager.shared
 
-    @State private var name: String = ""
-    @State private var facilityURL: String = ""
-    @State private var sportName: String = ""
+    @State private var name = ""
+    @State private var facilityURL = ""
+    @State private var sportName = ""
     @State private var numberOfPeople: Int = AppConstants.defaultNumberOfPeople
-    @State private var isEnabled: Bool = true
+    @State private var isEnabled = true
     @State private var dayTimeSlots: [ReservationConfig.Weekday: [Date]] = [:]
     @State private var didInitializeSlots = false
     @State private var showDayPicker = false
