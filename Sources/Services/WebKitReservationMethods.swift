@@ -21,10 +21,10 @@ public final class WebKitReservationMethods {
      * - Returns: True if successful, false otherwise.
      */
     public func fillPhoneNumber(_ phoneNumber: String) async -> Bool {
-        logger.info("📞 Filling phone number: \(phoneNumber)")
+        logger.info("📞 Filling phone number: \(phoneNumber).")
 
         guard let webView = webKitService?.webView else {
-            logger.error("❌ WebView not available")
+            logger.error("❌ WebView not available.")
             return false
         }
 
@@ -66,14 +66,14 @@ public final class WebKitReservationMethods {
         do {
             let result = try await webView.evaluateJavaScript(script)
             if let success = result as? Bool, success {
-                logger.info("✅ Phone number filled")
+                logger.info("✅ Phone number filled.")
                 return true
             } else {
-                logger.warning("⚠️ Phone number fill failed")
+                logger.warning("⚠️ Phone number fill failed.")
                 return false
             }
         } catch {
-            logger.error("❌ Error filling phone number: \(error.localizedDescription)")
+            logger.error("❌ Error filling phone number: \(error.localizedDescription).")
             return false
         }
     }
@@ -84,10 +84,10 @@ public final class WebKitReservationMethods {
      * - Returns: True if successful, false otherwise.
      */
     public func fillEmail(_ email: String) async -> Bool {
-        logger.info("📧 Filling email: \(email)")
+        logger.info("📧 Filling email: \(email).")
 
         guard let webView = webKitService?.webView else {
-            logger.error("❌ WebView not available")
+            logger.error("❌ WebView not available.")
             return false
         }
 
@@ -128,14 +128,14 @@ public final class WebKitReservationMethods {
         do {
             let result = try await webView.evaluateJavaScript(script)
             if let success = result as? Bool, success {
-                logger.info("✅ Email filled")
+                logger.info("✅ Email filled.")
                 return true
             } else {
-                logger.warning("⚠️ Email fill failed")
+                logger.warning("⚠️ Email fill failed.")
                 return false
             }
         } catch {
-            logger.error("❌ Error filling email: \(error.localizedDescription)")
+            logger.error("❌ Error filling email: \(error.localizedDescription).")
             return false
         }
     }
@@ -146,7 +146,7 @@ public final class WebKitReservationMethods {
      * - Returns: True if successful, false otherwise.
      */
     public func fillName(_ name: String) async -> Bool {
-        logger.info("👤 Filling name: \(name)")
+        logger.info("👤 Filling name: \(name).")
 
         guard let webView = webKitService?.webView else {
             logger.error("❌ WebView not available")
@@ -190,14 +190,14 @@ public final class WebKitReservationMethods {
         do {
             let result = try await webView.evaluateJavaScript(script)
             if let success = result as? Bool, success {
-                logger.info("✅ Name filled")
+                logger.info("✅ Name filled.")
                 return true
             } else {
-                logger.warning("⚠️ Name fill failed")
+                logger.warning("⚠️ Name fill failed.")
                 return false
             }
         } catch {
-            logger.error("❌ Error filling name: \(error.localizedDescription)")
+            logger.error("❌ Error filling name: \(error.localizedDescription).")
             return false
         }
     }
@@ -207,7 +207,7 @@ public final class WebKitReservationMethods {
      * - Returns: True if verification is required, false otherwise.
      */
     public func isEmailVerificationRequired() async -> Bool {
-        logger.info("🔍 Checking if email verification is required")
+        logger.info("🔍 Checking if email verification is required.")
 
         guard let webView = webKitService?.webView else {
             logger.error("❌ WebView not available")
@@ -243,14 +243,14 @@ public final class WebKitReservationMethods {
         do {
             let result = try await webView.evaluateJavaScript(script)
             if let required = result as? Bool {
-                logger.info("✅ Email verification check completed: \(required)")
+                logger.info("✅ Email verification check completed: \(required).")
                 return required
             } else {
-                logger.warning("⚠️ Email verification check failed")
+                logger.warning("⚠️ Email verification check failed.")
                 return false
             }
         } catch {
-            logger.error("❌ Error checking email verification: \(error.localizedDescription)")
+            logger.error("❌ Error checking email verification: \(error.localizedDescription).")
             return false
         }
     }
@@ -260,7 +260,7 @@ public final class WebKitReservationMethods {
      * - Returns: True if DOM is ready, false otherwise.
      */
     public func waitForDOMReady() async -> Bool {
-        logger.info("⏳ Waiting for DOM to be ready")
+        logger.info("⏳ Waiting for DOM to be ready.")
 
         guard let webView = webKitService?.webView else {
             logger.error("❌ WebView not available")
@@ -278,14 +278,14 @@ public final class WebKitReservationMethods {
         do {
             let result = try await webView.evaluateJavaScript(script)
             if let ready = result as? Bool, ready {
-                logger.info("✅ DOM is ready")
+                logger.info("✅ DOM is ready.")
                 return true
             } else {
-                logger.warning("⚠️ DOM not ready")
+                logger.warning("⚠️ DOM not ready.")
                 return false
             }
         } catch {
-            logger.error("❌ Error checking DOM readiness: \(error.localizedDescription)")
+            logger.error("❌ Error checking DOM readiness: \(error.localizedDescription).")
             return false
         }
     }

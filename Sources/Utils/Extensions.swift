@@ -112,7 +112,7 @@ extension View {
                         .background(Color.black.opacity(AppConstants.opacityLight))
                 }
             },
-        )
+            )
     }
 }
 
@@ -184,5 +184,13 @@ extension Logger {
     func errorWithContext(_ message: String, error: Error, context: String = "") {
         let contextPrefix = context.isEmpty ? "" : "[\(context)] "
         self.error("\(contextPrefix)\(message): \(error.localizedDescription)")
+    }
+}
+
+/// A standardized divider for splitting headers and footers in all views
+public struct HeaderFooterDivider: View {
+    public init() { }
+    public var body: some View {
+        Divider().padding(.horizontal, AppConstants.contentPadding)
     }
 }

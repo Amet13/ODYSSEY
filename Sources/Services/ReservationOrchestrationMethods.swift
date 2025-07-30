@@ -14,7 +14,7 @@ public final class ReservationOrchestrationMethods {
      *   - runType: The type of run (manual, automatic, godmode).
      */
     public func runReservation(for config: ReservationConfig, runType: ReservationRunType = .manual) async throws {
-        logger.info("🎯 Starting reservation for config: \(config.name)")
+        logger.info("🎯 Starting reservation for config: \(config.name).")
 
         // Validate configuration
         try validateReservationConfig(config)
@@ -28,12 +28,12 @@ public final class ReservationOrchestrationMethods {
 
             // Update status on success
             updateReservationStatus(.success, for: config.id.uuidString, runType: runType)
-            logger.info("✅ Reservation completed successfully for: \(config.name)")
+            logger.info("✅ Reservation completed successfully for: \(config.name).")
 
         } catch {
             // Update status on failure
             updateReservationStatus(.failed(error.localizedDescription), for: config.id.uuidString, runType: runType)
-            logger.error("❌ Reservation failed for \(config.name): \(error.localizedDescription)")
+            logger.error("❌ Reservation failed for \(config.name): \(error.localizedDescription).")
             throw error
         }
     }
@@ -51,7 +51,7 @@ public final class ReservationOrchestrationMethods {
      * - Parameter configs: Array of reservation configurations to run.
      */
     public func runGodModeReservations(configs: [ReservationConfig]) async {
-        logger.info("🚀 Starting God Mode with \(configs.count) configurations")
+        logger.info("🚀 Starting God Mode with \(configs.count) configurations.")
 
         // Initialize all configurations
         for config in configs {
@@ -72,7 +72,7 @@ public final class ReservationOrchestrationMethods {
             }
         }
 
-        logger.info("✅ God Mode completed")
+        logger.info("✅ God Mode completed.")
     }
 
     /**
@@ -81,7 +81,7 @@ public final class ReservationOrchestrationMethods {
      * - Throws: ValidationError if configuration is invalid.
      */
     private func validateReservationConfig(_ config: ReservationConfig) throws {
-        logger.info("🔍 Validating reservation configuration: \(config.name)")
+        logger.info("🔍 Validating reservation configuration: \(config.name).")
 
         // Check required fields
         guard !config.facilityURL.isEmpty else {
@@ -100,7 +100,7 @@ public final class ReservationOrchestrationMethods {
             throw ReservationError.automationFailed("At least one time slot must be configured")
         }
 
-        logger.info("✅ Configuration validation passed")
+        logger.info("✅ Configuration validation passed.")
     }
 
     /**
@@ -111,7 +111,7 @@ public final class ReservationOrchestrationMethods {
      * - Throws: ReservationError if automation fails.
      */
     private func performReservation(for config: ReservationConfig, runType _: ReservationRunType) async throws {
-        logger.info("🤖 Performing reservation automation for: \(config.name)")
+        logger.info("🤖 Performing reservation automation for: \(config.name).")
 
         // Get dependencies
         let webKitService = WebKitService.shared
@@ -144,7 +144,7 @@ public final class ReservationOrchestrationMethods {
         // Submit reservation
         try await submitReservation()
 
-        logger.info("✅ Reservation automation completed successfully")
+        logger.info("✅ Reservation automation completed successfully.")
     }
 
     /**
@@ -153,7 +153,7 @@ public final class ReservationOrchestrationMethods {
      * - Throws: ReservationError if selection fails.
      */
     private func selectSportAndTimeSlot(config: ReservationConfig) async throws {
-        logger.info("🏀 Selecting sport and time slot")
+        logger.info("🏀 Selecting sport and time slot.")
 
         // Select sport
         let sportClicked = await WebKitService.shared
@@ -166,7 +166,7 @@ public final class ReservationOrchestrationMethods {
         let sportTyped = await WebKitService.shared.typeText(
             config.sportName,
             into: "input[name='sport'], select[name='sport'], .sport-selector",
-        )
+            )
         guard sportTyped else {
             throw ReservationError.sportButtonNotFound
         }
@@ -186,13 +186,13 @@ public final class ReservationOrchestrationMethods {
             let timeTyped = await WebKitService.shared.typeText(
                 timeString,
                 into: "input[name='time'], select[name='time'], .time-selector",
-            )
+                )
             guard timeTyped else {
                 throw ReservationError.timeSlotSelectionFailed
             }
         }
 
-        logger.info("✅ Sport and time slot selected")
+        logger.info("✅ Sport and time slot selected.")
     }
 
     /**
@@ -201,7 +201,7 @@ public final class ReservationOrchestrationMethods {
      * - Throws: ReservationError if filling fails.
      */
     private func fillNumberOfPeople(_ count: Int) async throws {
-        logger.info("👥 Filling number of people: \(count)")
+        logger.info("👥 Filling number of people: \(count).")
 
         let peopleClicked = await WebKitService.shared
             .findAndClickElement("input[name='people'], input[name='participants'], .people-input")
@@ -212,12 +212,12 @@ public final class ReservationOrchestrationMethods {
         let peopleTyped = await WebKitService.shared.typeText(
             "\(count)",
             into: "input[name='people'], input[name='participants'], .people-input",
-        )
+            )
         guard peopleTyped else {
             throw ReservationError.numberOfPeopleFieldNotFound
         }
 
-        logger.info("✅ Number of people filled")
+        logger.info("✅ Number of people filled.")
     }
 
     /**
@@ -226,7 +226,7 @@ public final class ReservationOrchestrationMethods {
      * - Throws: ReservationError if filling fails.
      */
     private func fillContactInformation(config _: ReservationConfig) async throws {
-        logger.info("👤 Filling contact information")
+        logger.info("👤 Filling contact information.")
 
         let userSettings = UserSettingsManager.shared.userSettings
 
@@ -234,13 +234,13 @@ public final class ReservationOrchestrationMethods {
             phoneNumber: userSettings.phoneNumber,
             email: userSettings.imapEmail,
             name: userSettings.name,
-        )
+            )
 
         guard contactFilled else {
             throw ReservationError.contactInfoFieldNotFound
         }
 
-        logger.info("✅ Contact information filled")
+        logger.info("✅ Contact information filled.")
     }
 
     /**
@@ -249,7 +249,7 @@ public final class ReservationOrchestrationMethods {
      * - Throws: ReservationError if verification fails.
      */
     private func handleEmailVerification(emailService: EmailService) async throws {
-        logger.info("📧 Handling email verification")
+        logger.info("📧 Handling email verification.")
 
         // Search for verification emails
         let emails = try await emailService.searchForVerificationEmails()
@@ -274,7 +274,7 @@ public final class ReservationOrchestrationMethods {
         let codeTyped = await WebKitService.shared.typeText(
             code,
             into: "input[name='code'], input[name='verification'], .code-input",
-        )
+            )
         guard codeTyped else {
             throw ReservationError.emailVerificationFailed
         }
@@ -285,7 +285,7 @@ public final class ReservationOrchestrationMethods {
             throw ReservationError.emailVerificationFailed
         }
 
-        logger.info("✅ Email verification completed")
+        logger.info("✅ Email verification completed.")
     }
 
     /**
@@ -293,7 +293,7 @@ public final class ReservationOrchestrationMethods {
      * - Throws: ReservationError if submission fails.
      */
     private func submitReservation() async throws {
-        logger.info("📤 Submitting reservation")
+        logger.info("📤 Submitting reservation.")
 
         let submitClicked = await WebKitService.shared
             .findAndClickElement("button[type='submit'], input[type='submit'], .submit-button, .reserve-button")
@@ -304,7 +304,7 @@ public final class ReservationOrchestrationMethods {
         // Wait for submission to complete
         try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
 
-        logger.info("✅ Reservation submitted")
+        logger.info("✅ Reservation submitted.")
     }
 
     /**
@@ -328,14 +328,14 @@ public final class ReservationOrchestrationMethods {
                     in: content,
                     options: [],
                     range: NSRange(location: 0, length: content.count),
-                )
+                    )
             {
                 guard let range = Range(match.range(at: 1), in: content) else {
                     continue
                 }
 
                 let code = String(content[range])
-                logger.info("🔐 Extracted verification code: \(code)")
+                logger.info("🔐 Extracted verification code: \(code).")
                 return code
             }
         }
@@ -354,8 +354,8 @@ public final class ReservationOrchestrationMethods {
         _ status: ReservationRunStatus,
         for configId: String?,
         runType _: ReservationRunType,
-    ) {
+        ) {
         // This would typically update a status manager
-        logger.info("📊 Updated reservation status: \(status.description) for config: \(configId ?? "unknown")")
+        logger.info("📊 Updated reservation status: \(status.description) for config: \(configId ?? "unknown").")
     }
 }

@@ -13,7 +13,7 @@ struct ExportView: View {
     init(configurationManager: ConfigurationManager) {
         print(
             "DEBUG: ExportView init called with \(configurationManager.settings.configurations.count) configurations",
-        )
+            )
         self.configurationManager = configurationManager
     }
 
@@ -36,7 +36,7 @@ struct ExportView: View {
                 .padding(.horizontal, AppConstants.contentPadding)
                 .padding(.vertical, AppConstants.contentPadding)
 
-                Divider().padding(.horizontal, AppConstants.contentPadding)
+                HeaderFooterDivider()
 
                 // Configuration selection section
                 ScrollView {
@@ -85,7 +85,7 @@ struct ExportView: View {
                                                 selectedConfigIds.remove(configId)
                                             }
                                         },
-                                    )
+                                        )
                                 }
                             }
                         }
@@ -93,8 +93,9 @@ struct ExportView: View {
                     .padding(.horizontal, AppConstants.contentPadding)
                 }
 
+                HeaderFooterDivider()
+
                 // Footer section - styled like other views
-                Divider().padding(.horizontal, AppConstants.contentPadding)
                 HStack {
                     Button("Export Token") {
                         Task {

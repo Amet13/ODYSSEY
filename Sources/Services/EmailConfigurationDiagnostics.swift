@@ -13,7 +13,7 @@ public final class EmailConfigurationDiagnostics {
      * - Returns: Diagnostic results with issues and recommendations.
      */
     public func performEmailDiagnostics(settings: EmailSettings) -> EmailDiagnosticResult {
-        logger.info("🔍 Performing email configuration diagnostics")
+        logger.info("🔍 Performing email configuration diagnostics.")
 
         var issues: [String] = []
         var recommendations: [String] = []
@@ -53,14 +53,14 @@ public final class EmailConfigurationDiagnostics {
         let severity: DiagnosticSeverity = issues.isEmpty ? .success : .warning
         let isHealthy = issues.isEmpty
 
-        logger.info("✅ Email diagnostics completed - \(issues.count) issues found")
+        logger.info("✅ Email diagnostics completed - \(issues.count) issues found.")
 
         return EmailDiagnosticResult(
             isHealthy: isHealthy,
             severity: severity,
             issues: issues,
             recommendations: recommendations,
-        )
+            )
     }
 
     /**

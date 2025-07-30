@@ -21,10 +21,10 @@ public final class WebKitAutofillService {
      * - Returns: True if successful, false otherwise.
      */
     public func fillPhoneNumberWithAutofill(_ phoneNumber: String) async -> Bool {
-        logger.info("📞 Filling phone number with autofill: \(phoneNumber)")
+        logger.info("📞 Filling phone number with autofill: \(phoneNumber).")
 
         guard let webView = webKitService?.webView else {
-            logger.error("❌ WebView not available")
+            logger.error("❌ WebView not available.")
             return false
         }
 
@@ -78,19 +78,19 @@ public final class WebKitAutofillService {
                 let success = resultDict["success"] as? Bool
             {
                 if success {
-                    logger.info("✅ Phone number filled with autofill")
+                    logger.info("✅ Phone number filled with autofill.")
                     return true
                 } else {
                     let error = resultDict["error"] as? String ?? "Unknown error"
-                    logger.warning("⚠️ Phone number autofill failed: \(error)")
+                    logger.warning("⚠️ Phone number autofill failed: \(error).")
                     return false
                 }
             } else {
-                logger.warning("⚠️ Phone number autofill failed - invalid result")
+                logger.warning("⚠️ Phone number autofill failed - invalid result.")
                 return false
             }
         } catch {
-            logger.error("❌ Error filling phone number: \(error.localizedDescription)")
+            logger.error("❌ Error filling phone number: \(error.localizedDescription).")
             return false
         }
     }
@@ -107,11 +107,11 @@ public final class WebKitAutofillService {
         phoneNumber: String,
         email: String,
         name: String,
-    ) async -> Bool {
-        logger.info("👤 Filling all contact fields with autofill")
+        ) async -> Bool {
+        logger.info("👤 Filling all contact fields with autofill.")
 
         guard webKitService?.webView != nil else {
-            logger.error("❌ WebView not available")
+            logger.error("❌ WebView not available.")
             return false
         }
 
@@ -122,7 +122,7 @@ public final class WebKitAutofillService {
         }
 
         // If that fails, try filling fields individually
-        logger.info("🔄 Comprehensive fill failed, trying individual field fills")
+        logger.info("🔄 Comprehensive fill failed, trying individual field fills.")
         return await fillFieldsIndividually(phoneNumber: phoneNumber, email: email, name: name)
     }
 
@@ -133,7 +133,7 @@ public final class WebKitAutofillService {
         phoneNumber: String,
         email: String,
         name: String,
-    ) async -> Bool {
+        ) async -> Bool {
         guard let webView = webKitService?.webView else { return false }
 
         let script = """
@@ -253,19 +253,19 @@ public final class WebKitAutofillService {
                 let success = resultDict["success"] as? Bool
             {
                 if success {
-                    logger.info("✅ All contact fields filled with autofill")
+                    logger.info("✅ All contact fields filled with autofill.")
                     return true
                 } else {
                     let error = resultDict["error"] as? String ?? "Unknown error"
-                    logger.warning("⚠️ Contact fields autofill failed: \(error)")
+                    logger.warning("⚠️ Contact fields autofill failed: \(error).")
                     return false
                 }
             } else {
-                logger.warning("⚠️ Contact fields autofill failed - invalid result")
+                logger.warning("⚠️ Contact fields autofill failed - invalid result.")
                 return false
             }
         } catch {
-            logger.error("❌ Error filling contact fields: \(error.localizedDescription)")
+            logger.error("❌ Error filling contact fields: \(error.localizedDescription).")
             return false
         }
     }
@@ -277,7 +277,7 @@ public final class WebKitAutofillService {
         phoneNumber: String,
         email: String,
         name: String,
-    ) async -> Bool {
+        ) async -> Bool {
         guard let webView = webKitService?.webView else { return false }
 
         let script = """
@@ -361,23 +361,23 @@ public final class WebKitAutofillService {
                 let success = resultDict["success"] as? Bool
             {
                 if let filledCount = resultDict["filledCount"] as? Int {
-                    logger.info("📊 Individual fill completed. Filled \(filledCount) fields")
+                    logger.info("📊 Individual fill completed. Filled \(filledCount) fields.")
                 }
 
                 if success {
-                    logger.info("✅ Individual field fill successful")
+                    logger.info("✅ Individual field fill successful.")
                     return true
                 } else {
                     let error = resultDict["error"] as? String ?? "Unknown error"
-                    logger.warning("⚠️ Individual field fill failed: \(error)")
+                    logger.warning("⚠️ Individual field fill failed: \(error).")
                     return false
                 }
             } else {
-                logger.warning("⚠️ Individual field fill failed - invalid result")
+                logger.warning("⚠️ Individual field fill failed - invalid result.")
                 return false
             }
         } catch {
-            logger.error("❌ Error in individual field fill: \(error.localizedDescription)")
+            logger.error("❌ Error in individual field fill: \(error.localizedDescription).")
             return false
         }
     }

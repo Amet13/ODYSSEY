@@ -76,7 +76,7 @@ extension WebKitEngine: WKUIDelegate {
         createWebViewWith _: WKWebViewConfiguration,
         for _: WKNavigationAction,
         windowFeatures _: WKWindowFeatures,
-    ) -> WKWebView? {
+        ) -> WKWebView? {
         // Handle new window requests
         return nil
     }

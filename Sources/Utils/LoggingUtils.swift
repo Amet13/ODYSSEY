@@ -14,7 +14,7 @@ public enum LoggingUtils {
         _ logger: Logger,
         _ message: String,
         context: String? = nil,
-    ) {
+        ) {
         let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
         logger.info("✅ \(formattedMessage)")
     }
@@ -30,7 +30,7 @@ public enum LoggingUtils {
         _ message: String,
         privateData _: String,
         context: String? = nil,
-    ) {
+        ) {
         let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
         logger.info("✅ \(formattedMessage, privacy: .private)")
     }
@@ -46,7 +46,7 @@ public enum LoggingUtils {
         _ logger: Logger,
         _ message: String,
         context: String? = nil,
-    ) {
+        ) {
         let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
         logger.error("❌ \(formattedMessage)")
     }
@@ -62,7 +62,7 @@ public enum LoggingUtils {
         _ message: String,
         privateData _: String,
         context: String? = nil,
-    ) {
+        ) {
         let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
         logger.error("❌ \(formattedMessage, privacy: .private)")
     }
@@ -78,7 +78,7 @@ public enum LoggingUtils {
         _ logger: Logger,
         _ message: String,
         context: String? = nil,
-    ) {
+        ) {
         let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
         logger.warning("⚠️ \(formattedMessage)")
     }
@@ -94,7 +94,7 @@ public enum LoggingUtils {
         _ logger: Logger,
         _ message: String,
         context: String? = nil,
-    ) {
+        ) {
         let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
         logger.info("ℹ️ \(formattedMessage)")
     }
@@ -110,7 +110,7 @@ public enum LoggingUtils {
         _ message: String,
         privateData _: String,
         context: String? = nil,
-    ) {
+        ) {
         let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
         logger.info("ℹ️ \(formattedMessage, privacy: .private)")
     }
@@ -126,7 +126,7 @@ public enum LoggingUtils {
         _ logger: Logger,
         _ message: String,
         context: String? = nil,
-    ) {
+        ) {
         let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
         logger.debug("🔍 \(formattedMessage)")
     }
@@ -142,7 +142,7 @@ public enum LoggingUtils {
         _ logger: Logger,
         _ message: String,
         context: String? = nil,
-    ) {
+        ) {
         let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
         logger.info("📋 \(formattedMessage)")
     }
@@ -160,7 +160,7 @@ public enum LoggingUtils {
         service: String,
         _ message: String,
         isSuccess: Bool = true,
-    ) {
+        ) {
         let emoji = isSuccess ? "✅" : "❌"
         logger.info("\(emoji) \(service): \(message)")
     }
@@ -176,7 +176,7 @@ public enum LoggingUtils {
         _ logger: Logger,
         _ message: String,
         context: String? = nil,
-    ) {
+        ) {
         let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
         logger.info("🧹 \(formattedMessage)")
     }
@@ -192,7 +192,7 @@ public enum LoggingUtils {
         _ logger: Logger,
         _ message: String,
         isSuccess: Bool = true,
-    ) {
+        ) {
         let emoji = isSuccess ? "🔗" : "❌"
         logger.info("\(emoji) \(message)")
     }
@@ -208,7 +208,7 @@ public enum LoggingUtils {
         _ logger: Logger,
         _ message: String,
         isSuccess: Bool = true,
-    ) {
+        ) {
         let emoji = isSuccess ? "🧭" : "❌"
         logger.info("\(emoji) \(message)")
     }
@@ -224,7 +224,7 @@ public enum LoggingUtils {
         _ logger: Logger,
         _ message: String,
         isSuccess: Bool = true,
-    ) {
+        ) {
         let emoji = isSuccess ? "🤖" : "❌"
         logger.info("\(emoji) \(message)")
     }

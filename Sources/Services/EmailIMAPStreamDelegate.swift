@@ -15,19 +15,19 @@ public final class EmailIMAPStreamDelegate: NSObject {
     public func connectionStateChanged(_ state: NWConnection.State) {
         switch state {
         case .ready:
-            logger.info("✅ IMAP connection ready")
+            logger.info("✅ IMAP connection ready.")
         case let .failed(error):
-            logger.error("❌ IMAP connection failed: \(error)")
+            logger.error("❌ IMAP connection failed: \(error).")
         case .cancelled:
-            logger.info("🛑 IMAP connection cancelled")
+            logger.info("🛑 IMAP connection cancelled.")
         case let .waiting(error):
-            logger.warning("⏳ IMAP connection waiting: \(error)")
+            logger.warning("⏳ IMAP connection waiting: \(error).")
         case .preparing:
-            logger.info("🔧 IMAP connection preparing")
+            logger.info("🔧 IMAP connection preparing.")
         case .setup:
-            logger.info("🔧 IMAP connection setup")
+            logger.info("🔧 IMAP connection setup.")
         @unknown default:
-            logger.info("ℹ️ IMAP connection state: \(String(describing: state))")
+            logger.info("ℹ️ IMAP connection state: \(String(describing: state)).")
         }
     }
 
@@ -36,10 +36,10 @@ public final class EmailIMAPStreamDelegate: NSObject {
      * - Parameter data: The received data.
      */
     public func didReceiveData(_ data: Data) {
-        logger.debug("📨 Received IMAP data: \(data.count) bytes")
+        logger.debug("📨 Received IMAP data: \(data.count) bytes.")
 
         if let response = String(data: data, encoding: .utf8) {
-            logger.debug("📨 IMAP response: \(response)")
+            logger.debug("📨 IMAP response: \(response).")
         }
     }
 
@@ -48,35 +48,35 @@ public final class EmailIMAPStreamDelegate: NSObject {
      * - Parameter error: The connection error.
      */
     public func didReceiveError(_ error: Error) {
-        logger.error("❌ IMAP connection error: \(error.localizedDescription)")
+        logger.error("❌ IMAP connection error: \(error.localizedDescription).")
     }
 
     /**
      * Handles IMAP connection completion.
      */
     public func didCompleteConnection() {
-        logger.info("✅ IMAP connection completed")
+        logger.info("✅ IMAP connection completed.")
     }
 
     /**
      * Handles IMAP connection cancellation.
      */
     public func didCancelConnection() {
-        logger.info("🛑 IMAP connection cancelled")
+        logger.info("🛑 IMAP connection cancelled.")
     }
 
     /**
      * Handles IMAP connection timeout.
      */
     public func didTimeoutConnection() {
-        logger.warning("⏰ IMAP connection timed out")
+        logger.warning("⏰ IMAP connection timed out.")
     }
 
     /**
      * Handles IMAP authentication success.
      */
     public func didAuthenticateSuccessfully() {
-        logger.info("✅ IMAP authentication successful")
+        logger.info("✅ IMAP authentication successful.")
     }
 
     /**
@@ -84,7 +84,7 @@ public final class EmailIMAPStreamDelegate: NSObject {
      * - Parameter error: The authentication error.
      */
     public func didFailAuthentication(_ error: Error) {
-        logger.error("❌ IMAP authentication failed: \(error.localizedDescription)")
+        logger.error("❌ IMAP authentication failed: \(error.localizedDescription).")
     }
 
     /**
@@ -92,7 +92,7 @@ public final class EmailIMAPStreamDelegate: NSObject {
      * - Parameter command: The successful command.
      */
     public func didExecuteCommand(_ command: String) {
-        logger.debug("✅ IMAP command executed: \(command)")
+        logger.debug("✅ IMAP command executed: \(command).")
     }
 
     /**
@@ -102,6 +102,6 @@ public final class EmailIMAPStreamDelegate: NSObject {
      *   - error: The command error.
      */
     public func didFailCommand(_ command: String, error: Error) {
-        logger.error("❌ IMAP command failed: \(command) - \(error.localizedDescription)")
+        logger.error("❌ IMAP command failed: \(command) - \(error.localizedDescription).")
     }
 }

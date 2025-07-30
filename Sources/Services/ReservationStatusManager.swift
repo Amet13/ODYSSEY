@@ -27,7 +27,7 @@ public final class ReservationStatusManager: ObservableObject, @unchecked Sendab
             status: $0.status,
             date: $0.date,
             runType: $0.runType,
-        ))
+            ))
         }
         if let data = try? JSONEncoder().encode(codableDict) {
             UserDefaults.standard.set(data, forKey: lastRunInfoKey)
@@ -51,7 +51,7 @@ public final class ReservationStatusManager: ObservableObject, @unchecked Sendab
         status: ReservationRunStatus,
         date: Date?,
         runType: ReservationRunType,
-    ) {
+        ) {
         if let existing = lastRunInfo[configId] {
             // Prevent overwriting .success with .failed for the same runType and date (within 5 minutes window).
             if existing.status == .success, case .failed = status {
@@ -63,7 +63,7 @@ public final class ReservationStatusManager: ObservableObject, @unchecked Sendab
                     logger
                         .warning(
                             "⚠️ Attempted to overwrite .success with .failed for configId: \(configId). Ignoring late failure.",
-                        )
+                            )
                     return
                 }
             }

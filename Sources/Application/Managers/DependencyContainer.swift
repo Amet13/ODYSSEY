@@ -33,7 +33,7 @@ class DependencyContainer {
             imapServer: NetworkConstants.gmailImapServer,
             imapPort: Int(NetworkConstants.gmailImapPort),
             useSSL: true,
-        )
+            )
         return EmailClient(settings: settings)
     }()
 
@@ -62,7 +62,7 @@ class DependencyContainer {
             repository: reservationRepository,
             webKitService: webKitService,
             emailService: emailService,
-        )
+            )
     }()
 
     // MARK: - Application Services

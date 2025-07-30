@@ -65,7 +65,7 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
             logger: Logger(subsystem: "com.odyssey.app", category: "UserSettingsManager"),
             userDefaults: .standard,
             settingsKey: "ODYSSEY_UserSettings",
-        )
+            )
     }
 
     // MARK: - Public Methods
@@ -140,7 +140,7 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
             password: password,
             server: server,
             port: port,
-        )
+            )
         if case let .failure(error) = result {
             logger.error("❌ Keychain storage error: \(error.localizedDescription)")
         }

@@ -42,7 +42,7 @@ public protocol WebAutomationServiceProtocol: ObservableObject, Sendable {
     func selectTimeSlot(dayName: String, timeString: String) async -> Bool
     func waitForContactInfoPage() async -> Bool
     func fillAllContactFieldsWithAutofillAndHumanMovements(phoneNumber: String, email: String, name: String) async
-        -> Bool
+    -> Bool
     func addQuickPause() async
     func clickContactInfoConfirmButtonWithRetry() async -> Bool
     func detectRetryText() async -> Bool

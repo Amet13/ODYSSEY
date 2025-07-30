@@ -136,7 +136,7 @@ public final class EmailCore: ObservableObject, @unchecked Sendable, EmailServic
             }
         } catch {
             let errorMessage = error.localizedDescription
-            logger.error("❌ Email test failed: \(errorMessage)")
+            logger.error("❌ Email test failed: \(errorMessage).")
             userFacingError = errorMessage
             return .failure(errorMessage)
         }
@@ -176,7 +176,7 @@ public final class EmailCore: ObservableObject, @unchecked Sendable, EmailServic
             break
         }
 
-        logger.info("✅ Email settings validation passed")
+        logger.info("✅ Email settings validation passed.")
     }
 
     /// Get email provider for email address
@@ -205,7 +205,7 @@ public final class EmailCore: ObservableObject, @unchecked Sendable, EmailServic
                 imapServer: "imap.gmail.com",
                 imapPort: 993,
                 useSSL: true,
-            )
+                )
         case .imap:
             return EmailSettings(
                 emailAddress: "",
@@ -214,7 +214,7 @@ public final class EmailCore: ObservableObject, @unchecked Sendable, EmailServic
                 imapServer: "",
                 imapPort: 993,
                 useSSL: true,
-            )
+                )
         }
     }
 
@@ -228,24 +228,24 @@ public final class EmailCore: ObservableObject, @unchecked Sendable, EmailServic
     // MARK: - Private Methods
 
     private func testIMAPConnection(_ settings: EmailSettings) async throws -> TestResult {
-        logger.info("📧 Testing IMAP connection to \(settings.imapServer):\(settings.imapPort)")
+        logger.info("📧 Testing IMAP connection to \(settings.imapServer):\(settings.imapPort).")
 
         // This would contain the actual IMAP connection logic
         // For now, we'll simulate a successful connection
         try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
 
-        logger.info("✅ IMAP connection test successful")
+        logger.info("✅ IMAP connection test successful.")
         return .success("IMAP connection successful")
     }
 
     private func testGmailConnection(_: EmailSettings) async throws -> TestResult {
-        logger.info("📧 Testing Gmail connection")
+        logger.info("📧 Testing Gmail connection.")
 
         // This would contain the actual Gmail connection logic
         // For now, we'll simulate a successful connection
         try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
 
-        logger.info("✅ Gmail connection test successful")
+        logger.info("✅ Gmail connection test successful.")
         return .success("Gmail connection successful")
     }
 

@@ -22,7 +22,7 @@ public final class ErrorHandlingService: ObservableObject {
             // Update user-facing error state
             DispatchQueue.main.async {
                 // This could be expanded to show user notifications
-                self.logger.warning("⚠️ User-facing error: \(errorMessage)")
+                self.logger.warning("⚠️ User-facing error: \(errorMessage).")
             }
         }
     }
@@ -36,13 +36,13 @@ public final class ErrorHandlingService: ObservableObject {
         _ error: UnifiedErrorProtocol,
         context: String,
         userFacing: Bool = false,
-    ) {
+        ) {
         let errorMessage = "\(error.errorCategory.emoji) \(context): \(error.userFriendlyMessage)"
         logger.error("\(errorMessage).")
 
         if userFacing {
             DispatchQueue.main.async {
-                self.logger.warning("⚠️ User-facing unified error: \(errorMessage)")
+                self.logger.warning("⚠️ User-facing unified error: \(errorMessage).")
             }
         }
     }
@@ -54,7 +54,7 @@ public final class ErrorHandlingService: ObservableObject {
     ///   - context: The context where the error occurred
     public nonisolated func logError(_ message: String, error: Error? = nil, context: String = "General") {
         let fullMessage = error != nil ? "\(message): \(error?.localizedDescription ?? "Unknown error")" : message
-        logger.error("❌ [\(context)] \(fullMessage)")
+        logger.error("❌ [\(context)] \(fullMessage).")
     }
 
     /// Logs warnings with consistent formatting
@@ -62,7 +62,7 @@ public final class ErrorHandlingService: ObservableObject {
     ///   - message: The warning message
     ///   - context: The context where the warning occurred
     public nonisolated func logWarning(_ message: String, context: String = "General") {
-        logger.warning("⚠️ [\(context)] \(message)")
+        logger.warning("⚠️ [\(context)] \(message).")
     }
 
     /// Logs info messages with consistent formatting
@@ -70,7 +70,7 @@ public final class ErrorHandlingService: ObservableObject {
     ///   - message: The info message
     ///   - context: The context where the info occurred
     public nonisolated func logInfo(_ message: String, context: String = "General") {
-        logger.info("ℹ️ [\(context)] \(message)")
+        logger.info("ℹ️ [\(context)] \(message).")
     }
 
     /// Logs success messages with consistent formatting
@@ -78,7 +78,7 @@ public final class ErrorHandlingService: ObservableObject {
     ///   - message: The success message
     ///   - context: The context where the success occurred
     public nonisolated func logSuccess(_ message: String, context: String = "General") {
-        logger.info("✅ [\(context)] \(message)")
+        logger.info("✅ [\(context)] \(message).")
     }
 
     /// Converts any error to a user-friendly message

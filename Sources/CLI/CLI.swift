@@ -243,14 +243,14 @@ struct CLI {
             await handleConfigStatusChanges(
                 currentConfigStatuses: currentConfigStatuses,
                 configStatuses: &configStatuses,
-            )
+                )
 
             // Show logs and progress
             await showLogsAndProgress(
                 attempts: attempts,
                 lastLogCheck: &lastLogCheck,
                 lastProgressUpdate: &lastProgressUpdate,
-            )
+                )
 
             // Check if all configs are done
             if await areAllConfigsDone(configStatuses: configStatuses) {
@@ -271,7 +271,7 @@ struct CLI {
     }
 
     private static func getCurrentConfigStatuses(configStatuses: [UUID: ReservationRunStatus]) async
-        -> [UUID: ReservationRunStatus]
+    -> [UUID: ReservationRunStatus]
     {
         await MainActor.run {
             let statusManager = ReservationStatusManager.shared
@@ -287,7 +287,7 @@ struct CLI {
         status: ReservationRunStatus,
         lastStatus: inout ReservationRunStatus,
         hasStarted: inout Bool,
-    ) async {
+        ) async {
         if status != lastStatus {
             switch status {
             case .running:
@@ -318,7 +318,7 @@ struct CLI {
     private static func handleConfigStatusChanges(
         currentConfigStatuses: [UUID: ReservationRunStatus],
         configStatuses: inout [UUID: ReservationRunStatus],
-    ) async {
+        ) async {
         for (configId, configStatus) in currentConfigStatuses {
             if configStatuses[configId] != configStatus {
                 configStatuses[configId] = configStatus
@@ -348,7 +348,7 @@ struct CLI {
         attempts: Int,
         lastLogCheck: inout Int,
         lastProgressUpdate: inout Int,
-    ) async {
+        ) async {
         // Show real-time logs every 2 seconds
         if attempts % 2 == 0, attempts > lastLogCheck {
             await showRecentLogs()
@@ -411,7 +411,7 @@ struct CLI {
         configIds: [UUID],
         finalStatuses: [UUID: ReservationRunStatus],
         timedOut: Bool = false,
-    ) async {
+        ) async {
         print("\n📊 Detailed Results:")
         print("===================")
         let configs = await MainActor.run { ConfigurationManager.shared.settings.configurations }
@@ -473,7 +473,7 @@ struct CLI {
 
             print(
                 "🔍 Found \(configsToRun.count) configurations scheduled for today (\(priorDays) days before reservation)",
-            )
+                )
 
             if configsToRun.isEmpty {
                 handleEmptyConfigurations(exportConfig, priorDays: priorDays)
@@ -750,7 +750,7 @@ struct CLI {
                 print("\(bold("Phone")): ***\(String(exportConfig.userSettings.phoneNumber.suffix(3)))")
                 print(
                     "\(bold("Email")): ***@\(exportConfig.userSettings.imapEmail.components(separatedBy: "@").last ?? "unknown")",
-                )
+                    )
                 print("\(bold("IMAP Password")): ***")
             }
 

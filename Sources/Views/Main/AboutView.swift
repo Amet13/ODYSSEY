@@ -48,7 +48,7 @@ struct AboutView: View {
                         }
                     }
 
-                    Divider()
+                    HeaderFooterDivider()
 
                     VStack(alignment: .leading, spacing: AppConstants.contentSpacing) {
                         VStack(alignment: .leading, spacing: AppConstants.spacingSmall) {
@@ -57,34 +57,34 @@ struct AboutView: View {
                                 text: NSLocalizedString(
                                     "about_feature_automated_booking",
                                     comment: "Automated reservation booking",
-                                ),
-                            )
+                                    ),
+                                )
                             FeatureRow(
                                 icon: "clock",
                                 text: NSLocalizedString("about_feature_scheduling", comment: "Smart scheduling system"),
-                            )
+                                )
                             FeatureRow(
                                 icon: "shield",
                                 text: NSLocalizedString("about_feature_webkit", comment: "Native WebKit automation"),
-                            )
+                                )
                             FeatureRow(
                                 icon: "envelope",
                                 text: NSLocalizedString("about_feature_email", comment: "Email verification support"),
-                            )
+                                )
                             FeatureRow(
                                 icon: "gear",
                                 text: NSLocalizedString(
                                     "about_feature_multi_config",
                                     comment: "Multiple configuration support",
-                                ),
-                            )
+                                    ),
+                                )
                             FeatureRow(
                                 icon: "terminal",
                                 text: NSLocalizedString(
                                     "about_feature_cli",
                                     comment: "CLI for remote automation",
-                                ),
-                            )
+                                    ),
+                                )
                         }
                     }
                 }
