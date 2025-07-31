@@ -8,7 +8,6 @@ Brief description of the changes made in this pull request.
 - [ ] All existing functionality still works
 - [ ] New functionality has been tested
 - [ ] I have tested on both light and dark mode
-- [ ] I have tested with VoiceOver accessibility
 
 ## 📸 Screenshots (if applicable)
 
