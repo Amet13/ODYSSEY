@@ -1,339 +1,88 @@
-# ODYSSEY User Guide
+# 👤 **ODYSSEY user guide**
 
-## 📖 Table of Contents
+## 📦 Installation
 
-1. [Getting Started](#getting-started)
-2. [GUI App Guide](#gui-version-guide)
-3. [CLI Automation](#cli-version)
-4. [Configuration Management](#configuration-management)
-5. [Conflict Detection](#conflict-detection)
-6. [Email Setup](#email-setup)
-7. [Troubleshooting](#troubleshooting)
-8. [Advanced Features](#advanced-features)
-9. [Security & Privacy](#security--privacy)
+1. **Download** `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
+2. **Install:** Open the installer and drag `ODYSSEY.app` to **Applications**. Eject the `.dmg` archive.
+3. **Launch:** Open the installed app. It will appear in your menu bar.
 
-## 🚀 Getting Started
+For CLI installation and setup, see the complete **[CLI documentation](CLI.md)**.
 
-### 📦 Installation
+## ⚙️ Configuration
 
-#### 🖥️ For Users
+### 🎯 First-time setup
 
-1. **Download the latest release**
-
-   - Go to [GitHub Releases](https://github.com/Amet13/ODYSSEY/releases)
-   - Download `ODYSSEY.dmg` (latest version)
-
-2. **Install the application**
-
-   - Double-click the DMG file to mount it
-   - Drag ODYSSEY to your Applications folder
-   - Eject the DMG file
-
-3. **First Launch**
-
-   - Right-click ODYSSEY in Applications and select "Open"
-   - Click "Open" in the security dialog that appears
-   - The app will appear in your menu bar (not Dock)
-
-4. **Configure your settings**
-   - Click the ODYSSEY icon in the menu bar
-   - Go to Settings and configure your email and reservation preferences
-
-#### 💻 CLI Installation
-
-For CLI installation and setup, see the complete [CLI Documentation](CLI.md#-quick-start).
-
-**Quick Start**:
-
-1. Download CLI from [GitHub Releases](https://github.com/Amet13/ODYSSEY/releases)
-2. Export configuration from GUI app
-3. Set environment variable: `export ODYSSEY_EXPORT_TOKEN="<token>"`
-4. Run: `./odyssey-cli run`
-
-#### 🔧 Development Installation
-
-For development setup and building from source, see [DEVELOPMENT.md](DEVELOPMENT.md#️-quick-start-for-developers).
-
-#### ⚠️ Installation Troubleshooting
-
-- **"App is damaged" error**: This is normal for apps not from the App Store. Right-click and select "Open" instead of double-clicking.
-
-- **"macOS version too old"**: Update to macOS 15.0 or later.
-
-- **"Cannot be opened because it is from an unidentified developer"**:
-
-  1. Right-click the app
-  2. Select "Open" from the context menu
-  3. Click "Open" in the security dialog
-
-- **CLI issues**: See [CLI Documentation](CLI.md#️-troubleshooting) for CLI-specific troubleshooting
-
-## 🖥️ GUI App Guide
-
-### 🎯 First Time Setup
-
-1. **Launch ODYSSEY** - Click the menu bar icon
-2. **Add Configuration** - Click the "+" button
-3. **Configure Settings** - Set up your contact info and email
-4. **Test Email** - Verify your email connection works
-5. **Run Test** - Try a manual run to verify everything works
+1. **Launch ODYSSEY:** Click the menu bar icon.
+2. **Add configuration:** Click the "+" button.
+3. **Configure settings:** Set up your contact info and email.
+4. **Test email:** Verify your email connection works.
 
 <div align="center">
   <img src="Images/main_empty.png" width="400" alt="Main screen with no configurations">
   <p><em>Main screen when no configurations are added</em></p>
 </div>
 
-### ➕ Adding a Reservation Configuration
+### ➕ Adding a reservation configuration
 
-1. Click **Add Configuration** or the "+" button
-2. Fill in the required fields:
-   - **Name**: A descriptive name for your reservation
-   - **Facility URL**: The Ottawa recreation facility URL
-   - **Sport Name**: The sport you want to book
-   - **Number of People**: How many people in your group
-   - **Time Slots**: Select days and times for your reservations
-3. Click **Save**
+1. **Add configuration:** Click **Add configuration** or the "+" button.
+2. **Fill in the required fields:**
+   - **Facility URL:** The facility URL in format `https://reservation.frontdesksuite.ca/rcfs/[facility-name]`.
+   - **Sport name:** Select the sport.
+   - **Number of people:** How many people in your group.
+   - **Configuration name:** You can change it if you want.
+   - **Time slot:** Select day and time for your reservations.
+3. **Add:** Click **Add**.
 
 <div align="center">
   <img src="Images/add_config.png" width="400" alt="Add configuration screen">
   <p><em>Adding a new reservation configuration</em></p>
 </div>
 
-### ⚙️ Configuration Details
+### 🔧 Managing configurations
 
-#### 🌐 Facility URL Format
+#### ▶️ Run manually
 
-```
-https://reservation.frontdesksuite.ca/rcfs/[facility-name]
-```
+- **Run:** Click the play button to run a configuration immediately.
+- **Test:** Useful for testing or immediate bookings.
 
-**Example**: `https://reservation.frontdesksuite.ca/rcfs/cardelrec`
+#### ✅ Enable/disable
 
-#### 🏀 Sport Names
+- **Toggle:** Use the toggle switch to enable or disable automatic runs (2 days prior at 6 p.m.).
+- **Disabled:** Disabled configurations won't run automatically.
 
-Common sport names include:
+#### ✏️ Edit configuration
 
-- Basketball
-- Badminton
-- Tennis
-- Soccer
-- and many more...
+- **Edit:** Click the pencil icon to edit a configuration.
+- **Modify:** All fields can be modified.
+- **Save:** Changes are saved immediately.
 
-#### ⏰ Time Slots
+#### 🗑️ Delete configuration
 
-- Select the day of the week
-- Choose the time for your reservation
-- You can have multiple configurations for different times
-
-### 🔧 Managing Configurations
-
-#### ✅ Enable/Disable
-
-- Use the toggle switch to enable/disable automatic runs
-- Disabled configurations won't run automatically
-
-#### ✏️ Edit Configuration
-
-- Click the pencil icon to edit a configuration
-- All fields can be modified
-- Changes are saved immediately
-
-#### 🗑️ Delete Configuration
-
-- Click the trash icon to delete a configuration
-- This action cannot be undone
-
-#### ▶️ Run Manually
-
-- Click the play button to run a configuration immediately
-- Useful for testing or immediate bookings
+- **Delete:** Click the trash icon to delete a configuration.
+- **Confirm:** You'll be asked to confirm this action to prevent accidental deletion.
 
 <div align="center">
   <img src="Images/main_configs.png" width="400" alt="Main screen with configurations">
   <p><em>Main screen with active configurations</em></p>
 </div>
 
-## 💻 CLI Automation
+### 📧 Email setup
 
-ODYSSEY also includes a command-line interface for automation and CI/CD pipelines.
+The app can connect to your email account using IMAP and automatically parse verification codes for approving reservation.
 
-**Quick Start**:
-
-1. Export configuration from GUI app
-2. Set environment variable: `export ODYSSEY_EXPORT_TOKEN="<token>"`
-3. Run: `./odyssey-cli run`
-
-**For complete CLI documentation**, including all commands, GitHub Actions integration, and advanced features, see **[CLI.md](CLI.md)**.
-
-## ⚙️ Configuration Management
-
-### 📋 Best Practices
-
-1. **Use Descriptive Names**: Name your configurations clearly
-2. **Test First**: Always run a manual test before enabling auto-run
-3. **Monitor Logs**: Check Console.app for detailed logs
-4. **Backup Configurations**: Export your configurations regularly
-
-### ✅ Configuration Validation
-
-ODYSSEY automatically validates your configurations:
-
-- ✅ Facility URL format
-- ✅ Sport name requirements
-- ✅ Time slot validity
-- ✅ Contact information completeness
-
-## 🔍 Conflict Detection
-
-ODYSSEY automatically detects potential conflicts:
-
-### ⚠️ Conflict Types
-
-1. **Time Slot Overlaps**: When configurations have overlapping times
-
-### 🚦 Conflict Severity Levels
-
-- **🔴 Critical**: Must be resolved before saving
-- **🟡 Warning**: Should be reviewed
-- **🔵 Information**: Informational only
-
-### 🔧 Resolving Conflicts
-
-1. **Review Conflicts**: Check the conflict details
-2. **Modify Configurations**: Adjust times, facilities, or settings
-3. **Save Anyway**: If conflicts are acceptable, you can save anyway
-4. **Disable Configurations**: Turn off conflicting auto-runs
-
-## 📧 Email Setup
-
-### 📧 Gmail Setup (Recommended)
-
-1. **Enable 2-Factor Authentication** on your Google account
-2. **Generate App Password**:
-   - Go to Google Account settings
-   - Security → 2-Step Verification → App passwords
-   - Generate a password for "ODYSSEY"
-3. **Configure in ODYSSEY**:
-   - Email: your.email@gmail.com
-   - IMAP Server: gmail.com
-   - Password: Your 16-character app password
-
-Other email providers that support IMAP could be used too.
-
-### 🧪 Testing Email Connection
-
-1. Click **Settings** in ODYSSEY
-2. Fill in your email credentials
-3. Click **Test Email**
-4. Check your email for the test message
-5. If successful, your email is properly configured
+Gmail does not support using your regular password for IMAP. You need to generate an [App Password](https://support.google.com/mail/answer/185833?hl=en) and use it with ODYSSEY.
 
 <div align="center">
   <img src="Images/settings.png" width="400" alt="Settings screen">
   <p><em>Settings screen for email configuration</em></p>
 </div>
 
-## 🔧 Troubleshooting
+## 📊 Logs
 
-### ⚠️ Common Issues
-
-#### 🔄 Automation Fails
-
-**Symptoms**: Automation stops or shows errors
-**Solutions**:
-
-- Check your internet connection
-- Verify the facility URL is correct
-- Try running at a different time
-- Check Console.app for detailed logs
-
-#### 📧 Email Verification Fails
-
-**Symptoms**: No verification emails received
-**Solutions**:
-
-- Verify your email credentials
-- Check spam/junk folders
-- Ensure IMAP is enabled for your email
-- For Gmail, use App Password, not regular password
-
-#### 🖥️ App Not Appearing in Menu Bar
-
-**Symptoms**: ODYSSEY icon not visible
-**Solutions**:
-
-- Check Applications folder for ODYSSEY
-- Restart the app
-- Ensure macOS 15+ is installed
-- Check System Preferences → Dock & Menu Bar
-
-#### 🔑 Keychain Errors
-
-**Symptoms**: Credential storage errors
-**Solutions**:
-
-- Re-enter credentials in Settings
-- Grant Keychain access when prompted
-- Restart the app after updating credentials
-
-### 🆘 Getting Help
-
-1. **Check Logs**:
-   - Use Console.app to view detailed logs
-   - Or use the log monitoring script for real-time monitoring
-2. **GitHub Issues**: Report bugs on [GitHub](https://github.com/Amet13/ODYSSEY/issues)
-3. **Documentation**: See [DEVELOPMENT.md](DEVELOPMENT.md) for advanced troubleshooting
-
-## 🔒 Security & Privacy
-
-### 🛡️ Data Protection
-
-- **Local Processing**: All automation runs on your device
-- **Secure Storage**: Credentials stored in macOS Keychain
-- **No External Data**: No user data sent to external servers
-- **HTTPS Only**: All network requests use secure connections
-
-### 🔒 Privacy Features
-
-- **Masked Logs**: Sensitive data is masked in logs
-- **Private Logging**: Email addresses and credentials are private
-- **User Consent**: No data collection without explicit consent
-
-### 🔐 Security Best Practices
-
-1. **Use App Passwords**: For Gmail, use App Passwords, not regular passwords
-2. **Regular Updates**: Keep ODYSSEY updated to the latest version
-3. **Monitor Logs**: Regularly check Console.app for unusual activity
-4. **Export Backups**: Regularly export your configurations
-
-## 📊 Monitoring & Logs
-
-### 📋 Viewing Logs
-
-1. Open **Console.app** (Applications → Utilities → Console)
-2. Search for `com.odyssey.app`
-3. Look for emoji indicators:
-   - 🚀 Success messages
-   - ⚠️ Warnings
-   - ❌ Errors
-   - 🔍 Debug information
-
-### 📊 Log Levels
-
-- **Info**: General operation messages
-- **Warning**: Potential issues
-- **Error**: Failed operations
-- **Debug**: Detailed technical information
-
-### 🔍 Log Filtering
-
-```bash
-# Filter by subsystem
-log stream --predicate 'subsystem == "com.odyssey.app"'
-
-# Filter by category
-log stream --predicate 'category == "WebKitService"'
-
-# Filter by level
-log stream --predicate 'level >= 2'
-```
+1. **Open Console.app:** (Applications → Utilities → Console).
+2. **Search:** Search for `com.odyssey.app`.
+3. **Look for emoji indicators:**
+   - 🚀 _Success messages._
+   - ⚠️ _Warnings._
+   - ❌ _Errors._
+   - 🔍 _Debug information._

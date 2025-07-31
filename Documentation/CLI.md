@@ -1,47 +1,34 @@
-# ODYSSEY CLI Documentation
-
-The ODYSSEY Command Line Interface (CLI) provides remote automation capabilities for running reservations without the GUI, perfect for CI/CD pipelines and server environments.
-
-## 📖 Table of Contents
-
-1. [Overview](#-overview)
-2. [Quick Start](#-quick-start)
-3. [Environment Variables](#-environment-variables)
-4. [Commands](#️-commands)
-5. [CLI Integration](#️-cli-integration)
-6. [Troubleshooting](#️-troubleshooting)
-7. [Security](#️-security)
-8. [Remote Server Deployment](#️-remote-server-deployment)
-
-## 🎯 Overview
+# 💻 **ODYSSEY CLI guide**
 
 The ODYSSEY CLI provides command-line automation capabilities using the same powerful WebKit automation engine as the GUI version, ensuring consistent behavior and reliability.
 
-## 🚀 Quick Start
+## ⚙️ Installation
 
-> **Prerequisite**: You need the GUI app configured first. See [USER_GUIDE.md](USER_GUIDE.md) for initial setup.
+> **Prerequisite:** First, configure the GUI app. See **[USER_GUIDE.md](USER_GUIDE.md)** for setup instructions.
 
-### ⚙️ Installation
+1. **Download:** Download `odyssey-cli` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
+2. **Make executable:** Run `chmod +x odyssey-cli`.
 
-#### 📦 Download CLI Binary
+## 🔧 Export token details
 
-1. **Download the CLI binary**
+The export token is a compressed, base64-encoded configuration containing only essential data for CLI automation:
 
-   - Go to [GitHub Releases](https://github.com/Amet13/ODYSSEY/releases)
-   - Download `odyssey-cli` (latest version)
+- **User settings:** Name, phone, email credentials, IMAP server (_do not share this data, it contains sensitive information_).
+- **Selected configurations:** All reservation configurations chosen for export.
 
-2. **Make it executable**
-   ```bash
-   chmod +x odyssey-cli
-   ```
+## 🔧 Configuration
 
-#### 🔧 Setup Configuration
+1. **Export token from the app**
 
-1. **Export configuration from GUI**
+   - Open the ODYSSEY app
+   - Click **Export** button
+   - Select configurations to be exported
+   - Click **Export Token** button
+   - The export token will be copied to your clipboard automatically
 
-   - Open the GUI app
-   - Go to Settings → Export
-   - Copy the export token
+<div align="center">
+  <img src="Images/export.png" width="300">
+</div>
 
 2. **Set up environment variable**
 
@@ -52,9 +39,10 @@ The ODYSSEY CLI provides command-line automation capabilities using the same pow
 3. **Test the CLI**
    ```bash
    ./odyssey-cli configs
+   ./odyssey-cli settings
    ```
 
-### 🎯 Basic Usage
+## 🎯 Basic usage
 
 ```bash
 # Set your export token
@@ -64,20 +52,11 @@ export ODYSSEY_EXPORT_TOKEN="<exported_token>"
 ./odyssey-cli run
 ```
 
-## 📋 Environment Variables
+## 📋 Environment variables
 
 | Variable               | Required | Default | Description                                                  |
 | ---------------------- | -------- | ------- | ------------------------------------------------------------ |
 | `ODYSSEY_EXPORT_TOKEN` | ✅ Yes   | -       | Export token from GUI containing configurations and settings |
-
-### ⚙️ Example Environment Setup
-
-```bash
-# Required: Your export token from the GUI
-export ODYSSEY_EXPORT_TOKEN="<exported_token>"
-
-# CLI always runs in headless mode (no browser window)
-```
 
 ## 🛠️ Commands
 
@@ -110,6 +89,7 @@ Run real reservations for configurations scheduled N days before reservation day
 List all available configurations from the export token.
 
 ```bash
+# Print all configurations
 ./odyssey-cli configs
  Available Configurations:
 ==================================================
@@ -170,64 +150,21 @@ Show CLI version information.
 ./odyssey-cli version
 ```
 
-## 🔧 Export Token Details
-
-The export token is a compressed, base64-encoded configuration optimized for CLI automation. It contains only essential data:
-
-### ✅ Included Data:
-
-- **User Settings**: Name, phone, email credentials, IMAP server (do not share this data, it contains sensitive information)
-- **Selected Configurations**: All reservation configurations chosen for export
-
-## 🧪 Verifying Your Configuration
-
-### 📋 Step 1: Generate Export Token
-
-1. Open the ODYSSEY GUI app
-2. Click "Export" in the main view
-3. Select the configurations you want to export
-4. Click "Export Token"
-5. The token will be copied to your clipboard
-
-<div align="center">
-  <img src="Images/export.png" width="300">
-</div>
-
-### ⚙️ Step 2: Set Environment Variable
-
-```bash
-export ODYSSEY_EXPORT_TOKEN="<exported_token>"
-```
-
-### ✅ Step 3: Verify the Configuration
-
-```bash
-# List available configurations
-./odyssey-cli configs
-
-# Show user settings
-./odyssey-cli settings
-
-# Run all configurations
-./odyssey-cli run
-```
-
-## 🔄 CLI Integration
-
-### 🚀 GitHub Actions Integration
+## 🚀 GitHub Actions integration
 
 The CLI can be integrated into GitHub Actions for automated reservation booking.
+Use only macOS runners.
 
-#### 📋 Step 1: Fork the Repository
+### 📋 Step 1: Fork the Repository
 
 1. **Fork ODYSSEY**: Go to [https://github.com/Amet13/ODYSSEY](https://github.com/Amet13/ODYSSEY) and click "Fork"
 2. **Clone your fork**:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/ODYSSEY.git
+   git clone https://github.com/<YOUR_USERNAME>/ODYSSEY.git
    cd ODYSSEY
    ```
 
-#### 🔐 Step 2: Add GitHub Secret
+### 🔐 Step 2: Add GitHub Secret
 
 1. **Go to your fork**: Navigate to your forked repository on GitHub
 2. **Settings**: Click on "Settings" tab
@@ -238,62 +175,13 @@ The CLI can be integrated into GitHub Actions for automated reservation booking.
    - **Value**: Your exported token from the GUI app
 6. **Save**: Click "Add secret"
 
-#### ⚙️ Step 3: Use the Workflow
+### ⚙️ Step 3: Use the Workflow
 
 The workflow file is already included in the repository. It will automatically:
 
 - Download the latest CLI from releases
 - Run reservations using your export token
 - Upload logs for debugging
-
-## 🔍 Troubleshooting
-
-### ⚠️ Common Issues
-
-#### 🌐 WebKit Issues
-
-```bash
-# CLI always runs in headless mode
-# Check system logs for WebKit errors
-log show --predicate 'subsystem == "com.odyssey.cli"' --last 1h
-```
-
-#### 🔧 CLI Not Working
-
-**Symptoms**: CLI commands fail or show errors
-**Solutions**:
-
-1. **Check CLI executable**:
-
-   ```bash
-   chmod +x odyssey-cli
-   ```
-
-2. **Verify export token**:
-
-   ```bash
-   ./odyssey-cli configs
-   ```
-
-3. **Check environment variable**:
-
-   ```bash
-   echo $ODYSSEY_EXPORT_TOKEN
-   ```
-
-4. **Ensure GUI app is configured first**:
-   - Export token from GUI app
-   - Verify token contains valid configurations
-
-#### 🔑 Export Token Issues
-
-**Symptoms**: "Invalid token" or "No configurations found"
-**Solutions**:
-
-1. **Re-export from GUI**: Go to Settings → Export in the GUI app
-2. **Check token format**: Should be a long base64 string
-3. **Verify GUI configuration**: Ensure GUI app has valid configurations
-4. **Test token**: Use `./odyssey-cli configs` to verify
 
 ## 🔒 Security
 
@@ -302,21 +190,3 @@ log show --predicate 'subsystem == "com.odyssey.cli"' --last 1h
 - Never commit tokens to version control
 - Use environment variables for token storage
 - Tokens are base64-encoded and LZFSE-compressed for efficiency
-
-## 🖥️ Remote Server Deployment
-
-### 📋 Server Requirements
-
-The CLI uses WebKit which requires macOS and a graphical environment. For remote server deployment:
-
-#### 🖥️ macOS Servers (Recommended)
-
-```bash
-./odyssey-cli run
-```
-
-### ⚠️ Important Notes
-
-- **Linux servers are not supported** due to WebKit dependencies
-- **Only macOS servers** with GUI capabilities are supported
-- **CI/CD pipelines** should use macOS runners exclusively

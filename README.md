@@ -18,31 +18,27 @@
 
 ## 🚀 Quick Start
 
-1. **Download** the latest `.dmg` from the [Releases page](https://github.com/Amet13/ODYSSEY/releases)
-2. **Install**: Open the `.dmg`, drag ODYSSEY to `Applications`
-3. **Launch**: Find ODYSSEY in your menu bar (top right)
-4. **Configure**: Click the icon, add your settings and configurations
-5. **Automate!** Enable autorun and sit back while ODYSSEY books your sports for you or run it manually! 🎉
+1. **Download** `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
+2. **Install:** Open the installer and drag `ODYSSEY.app` to **Applications**.
+3. **Launch:** Open the app. You'll see a new Sports Court icon in your menu bar.
+4. **Configure:** Click the icon to add your settings and create your first configuration.
+5. **Automate!** Enable autorun, or run it manually, and let ODYSSEY book your sports for you! 🎉
 
 ## ✨ Key Features
 
-- 🖥️ **GUI & CLI Versions** - Menu bar app + command-line automation
-- 🛡️ **Native WebKit Automation** - Robust, human-like browser automation
-- ⏰ **Smart Scheduling** - Automated runs based on your time slots
-- 🔒 **Secure & Private** - Local processing, Keychain storage, no external data
-- 📧 **Email Integration** - Automated verification and confirmations
-- 🎨 **Modern Interface** - Beautiful SwiftUI with dark mode support
+- 🖥️ **GUI & CLI versions** – Menu bar app + command-line automation.
+- 🛡️ **Native WebKit automation** – Robust, human-like browser automation.
+- ⏰ **Smart scheduling** – Automated runs based on your time slots.
+- 🔒 **Secure & private** – Local processing, Keychain storage, no external data.
+- 📧 **Email integration** – Automated verification and confirmations.
+- 🎨 **Modern interface** – Beautiful SwiftUI with dark mode support.
 
 ## 📚 Documentation
 
-**Start here** → **[USER_GUIDE.md](Documentation/USER_GUIDE.md)** - Complete GUI app setup and usage guide (includes installation)
-
-**For automation** → **[CLI.md](Documentation/CLI.md)** - Command-line interface for CI/CD and remote automation
-
-**For developers** → **[DEVELOPMENT.md](Documentation/DEVELOPMENT.md)** - Development workflow and contribution guidelines
-
-**For updates** → **[CHANGELOG.md](CHANGELOG.md)** - Release notes and version history
+- **Start here** → **[USER_GUIDE.md](Documentation/USER_GUIDE.md)** – Complete app setup and usage guide.
+- **For automation** → **[CLI.md](Documentation/CLI.md)** – Command-line interface for CI/CD and remote automation.
+- **For developers** → **[DEVELOPMENT.md](Documentation/DEVELOPMENT.md)** – Development workflow and contribution guidelines.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

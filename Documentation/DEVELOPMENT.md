@@ -1,22 +1,4 @@
-# 🎯 ODYSSEY Development Guide
-
-This document provides comprehensive development guidelines, setup instructions, and workflow information for contributing to ODYSSEY.
-
-## 📖 Table of Contents
-
-1. [Overview](#-overview)
-2. [System Requirements](#️-system-requirements)
-3. [Quick Start (For Developers)](#️-quick-start-for-developers)
-4. [Architecture Principles](#️-architecture-principles)
-5. [Code Quality & Testing](#️-code-quality--testing)
-6. [Development Workflow](#️-development-workflow)
-7. [Testing](#️-testing)
-8. [Release Process](#️-release-process)
-9. [Common Pitfalls & Tips](#️-common-pitfalls--tips)
-10. [Related Documentation](#️-related-documentation)
-11. [Security & Compliance](#️-security--compliance)
-12. [Need Help?](#️-need-help)
-13. [Security Best Practices](#️-security-best-practices)
+# 🧑‍💻 **ODYSSEY development guide**
 
 ## 🎯 Overview
 
@@ -27,16 +9,16 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 
 Both versions share the same backend services and automation engine, so contributions can affect both interfaces.
 
-## 🖥️ System Requirements
+## 🖥️ System requirements
 
 - **macOS 15.0 or later**
 - **Xcode 16.0 or later**
 - **Swift 6.1 or later**
-- **Homebrew** (for installing development dependencies)
+- **Homebrew** (_for installing development dependencies_)
 
-## 🚀 Quick Start (For Developers)
+## 🚀 Quick start (for developers)
 
-> **Note**: This guide is for contributors and developers. For user setup, see [USER_GUIDE.md](USER_GUIDE.md).
+> **Note:** This guide is for contributors and developers. For user setup, see **[USER_GUIDE.md](USER_GUIDE.md)**.
 
 1. **Clone the repository**:
 
@@ -57,47 +39,35 @@ Both versions share the same backend services and automation engine, so contribu
    ./Scripts/build.sh
    ```
 
-4. **Open in Xcode**:
-
-   ```bash
-   open Config/ODYSSEY.xcodeproj
-   ```
-
-5. **Run the app**:
-
-   ```bash
-   ./Scripts/build.sh
-   ```
-
-6. **Monitor logs** (in another terminal):
+4. **Monitor logs** (in another terminal):
    ```bash
    ./Scripts/logs.sh
    ```
 
-## 🏗️ Architecture Principles
+## 🏗️ Architecture principles
 
-### **Core Design Principles**
+### Core design principles
 
-- **Separation of Concerns**: Each component has a single, well-defined responsibility
-- **Protocol-Oriented Design**: Use protocols for interfaces and dependency injection
-- **Dependency Injection**: Centralized service management for better testability
-- **Concurrency Safety**: Proper actor isolation and thread safety throughout
-- **Error Handling**: Comprehensive error handling with clear categorization
-- **Security First**: Always use secure storage (Keychain) for sensitive data
-- **Performance**: Optimize for memory usage and responsiveness
-- **Validation**: Centralized input validation and sanitization
-- **Constants Management**: Centralized constants for maintainability
+- **Separation of concerns:** Each component has a single, well-defined responsibility.
+- **Protocol-oriented design:** Use protocols for interfaces and dependency injection.
+- **Dependency injection:** Centralized service management for better testability.
+- **Concurrency safety:** Proper actor isolation and thread safety throughout.
+- **Error handling:** Comprehensive error handling with clear categorization.
+- **Security first:** Always use secure storage (_Keychain_) for sensitive data.
+- **Performance:** Optimize for memory usage and responsiveness.
+- **Validation:** Centralized input validation and sanitization.
+- **Constants management:** Centralized constants for maintainability.
 
-### **Architecture Layers**
+### Architecture layers
 
 - **Presentation**: User interface and user interaction logic
 - **Application**: Business logic orchestration and use cases
 - **Domain**: Core business entities and domain logic
 - **Infrastructure**: External services, automation, and data persistence
 
-## 🧪 Code Quality & Testing
+## 🧪 Code quality & testing
 
-### Automated Quality Checks
+### Automated quality checks
 
 The project includes comprehensive automated quality checks:
 
@@ -115,21 +85,15 @@ The project includes comprehensive automated quality checks:
 ```bash
 # Run all quality checks
 ./Scripts/lint-all.sh
-
-# Build and test
-./Scripts/build.sh
-
-# Monitor logs
-./Scripts/logs.sh
 ```
 
-### CI/CD Pipeline Integration
+### CI/CD pipeline integration
 
 The unified CI/CD pipeline (`.github/workflows/ci-cd.yml`) automatically runs all quality checks on every commit and pull request.
 
-## 🏗️ Service Architecture
+## 🏗️ Service architecture
 
-### **Modular Design Principles**
+### Modular design principles
 
 The codebase follows a modular service-oriented architecture with these key principles:
 
@@ -140,7 +104,7 @@ The codebase follows a modular service-oriented architecture with these key prin
 - **WebKit Services**: Provide browser automation and web interaction capabilities
 - **Infrastructure Services**: Handle data persistence, configuration, and utilities
 
-### Development Guidelines
+### Development guidelines
 
 #### Adding New Services
 
@@ -150,13 +114,6 @@ The codebase follows a modular service-oriented architecture with these key prin
 4. **Concurrency Safety**: Ensure proper actor isolation and thread safety
 5. **Comprehensive Documentation**: Document all public APIs with clear examples
 
-#### Testing Principles
-
-- **Unit Tests**: Test each service in isolation
-- **Integration Tests**: Verify service interactions
-- **Mock Dependencies**: Use protocols for testable dependencies
-- **Error Scenarios**: Test both success and failure cases
-
 #### Code Quality Standards
 
 - **SwiftLint Compliance**: Follow established code style guidelines
@@ -164,7 +121,7 @@ The codebase follows a modular service-oriented architecture with these key prin
 - **Error Handling**: Implement comprehensive error handling
 - **Performance**: Optimize for memory usage and responsiveness
 
-#### Unified Pipeline Structure
+#### Unified pipeline structure
 
 The pipeline includes:
 
@@ -176,7 +133,7 @@ The pipeline includes:
 - ✅ **Build artifact uploads** for debugging
 - ✅ **Documentation generation** and upload
 
-#### Automated Workflows
+#### Automated workflows
 
 - ✅ **Unified Script Usage**: GitHub Actions now use our existing scripts instead of duplicating commands
 - ✅ **Version consistency validation** (tag vs project.yml vs Info.plist)
@@ -188,7 +145,7 @@ The pipeline includes:
 - ✅ **File size tracking** and reporting
 - ✅ **Professional release notes** with installation instructions
 
-#### Pipeline Benefits
+#### Pipeline benefits
 
 - ✅ **Efficiency**: Single workflow eliminates duplication and maintenance overhead
 - ✅ **Consistency**: Same build environment for all releases
@@ -200,38 +157,31 @@ The pipeline includes:
 
 ## 🧪 Testing
 
-### GUI Testing
+### GUI testing
 
+- **God Mode**: Activate it by pressing `Command+G` in the app to show **GOD MODE** button and **Advanced Settings**
 - **Manual Testing**: Test all UI interactions and automation flows
 - **Log Monitoring**: Use `./Scripts/logs.sh` to monitor real-time logs
 - **Browser Window**: Optional for development and support. By default, automation runs invisibly. Enable "Show browser window" in God Mode Advanced Settings to monitor automation and diagnose issues.
 
-### CLI Testing
+### CLI testing
 
-1. **Build CLI**: `swift build --product odyssey-cli`
+1. **Build CLI**: `./Scripts/build.sh`
 2. **Test Commands**: `./.build/arm64-apple-macosx/debug/odyssey-cli help`
 3. **Export Token**: Generate token from GUI for testing
 4. **Test Automation**: `export ODYSSEY_EXPORT_TOKEN="<exported_token>" && ./odyssey-cli run`
 5. **Test GitHub Actions**: Verify `.github/workflows/scheduled-reservations.yml` works correctly
 
-### Supported CLI Commands
-
-- `run [--now] [--prior <days>]` - Run reservations (with optional immediate execution and prior days)
-- `configs` - List all configurations from export token
-- `settings [--unmask]` - Show user settings (with optional unmasking)
-- `help` - Show CLI help and usage
-- `version` - Show CLI version information
-
-### CLI Integration
+### CLI integration
 
 - **GitHub Actions**: Perfect for automated reservation scheduling
 - **CI/CD**: Integrate with existing automation pipelines
 
-## 🚀 Release Process
+## 🚀 Release process
 
 The release process uses two scripts for a complete workflow:
 
-### 📋 Step 1: Prepare Release
+### Step 1: Prepare release
 
 1. **Update version and prepare release**:
    ```bash
@@ -243,7 +193,7 @@ The release process uses two scripts for a complete workflow:
    - Commits and tags the release
    - Triggers CI/CD pipeline
 
-### 🚀 Step 2: Build and Deploy
+### Step 2: Build and deploy
 
 1. **Build and deploy the release**:
    ```bash
@@ -255,7 +205,7 @@ The release process uses two scripts for a complete workflow:
    - Code signs both applications
    - Publishes to GitHub Releases
 
-### 🔄 Automated CI/CD Pipeline
+### Automated CI/CD pipeline
 
 When you push a version tag, the CI/CD pipeline automatically:
 
@@ -266,7 +216,7 @@ When you push a version tag, the CI/CD pipeline automatically:
 - Calculates and displays file sizes
 - Generates changelog from git commits
 
-### Automated CI/CD Features
+### Automated CI/CD features
 
 - ✅ **Unified Script Usage**: GitHub Actions now use our existing scripts instead of duplicating commands
 - ✅ **Version Validation**: Ensures tag version matches `project.yml` and `Info.plist`
@@ -279,7 +229,7 @@ When you push a version tag, the CI/CD pipeline automatically:
 - ✅ **GitHub Integration**: Automatically publishes to GitHub Releases
 - ✅ **Comprehensive Linting**: Uses configuration files to ignore acceptable warnings while catching critical issues
 
-### 🤖 Scheduled Reservations Workflow
+### 🤖 Scheduled reservations workflow
 
 The project also includes a separate workflow for automated reservation execution:
 
@@ -289,7 +239,7 @@ The project also includes a separate workflow for automated reservation executio
 - ✅ **Token Security**: Uses GitHub secrets for secure token storage
 - ✅ **Error Handling**: Comprehensive logging and error reporting
 
-## 🛠️ Development Workflow
+## 🛠️ Development workflow
 
 The project includes various automation scripts in the `Scripts/` directory to streamline development tasks. These scripts handle building, testing, linting, and release management.
 
@@ -300,30 +250,14 @@ The project includes various automation scripts in the `Scripts/` directory to s
 - **Release Management**: Use release scripts for version updates and deployment
 - **Logging**: Monitor application logs for debugging and troubleshooting
 
-### Manual Release (Alternative)
+## 📦 Related documentation
 
-If you prefer manual releases, you can still use the scripts:
-
-- **Create DMG**: `./Scripts/create-release.sh`
-- **Code Sign**: `codesign --force --deep --sign - /path/to/app`
-- **Notarize**: See `Scripts/create-release.sh` for notarization steps
-
-## 💡 Common Pitfalls & Tips
-
-- ⚠️ **Xcode version mismatch:** Make sure you are using Xcode 16+ (check with `xcodebuild -version`).
-- 🛑 **Build errors after pulling changes:** Run `./Scripts/build.sh` to auto-format and lint the code.
-- 🔑 **Keychain issues:** If you see credential errors, re-enter credentials in Settings and restart the app.
-- 📝 **Documentation:** Always update docs and comments when making changes.
-- 🧹 **Clean builds:** If you encounter strange build errors, try cleaning the build folder in Xcode (`Shift+Cmd+K`).
-
-## 📦 Related Documentation
-
-- [Changelog](../CHANGELOG.md) - Release notes
+- [CHANGELOG.md](../CHANGELOG.md) - Release notes
 - [README.md](../README.md) - User installation and setup
 - [USER_GUIDE.md](USER_GUIDE.md) - GUI app user guide
 - [CLI.md](CLI.md) - Command-line interface documentation
 
-## 🛡️ Security & Compliance
+## 🛡️ Security & compliance
 
 - **Credential Storage:** All sensitive credentials (e.g., email passwords) are securely stored in the macOS Keychain using Keychain Services. No credentials are ever stored in UserDefaults or plain text files.
 - **Network Security:** All network requests use HTTPS. App Transport Security (ATS) is strictly enforced; there are no exceptions for ottawa.ca or any other domains.
@@ -333,16 +267,8 @@ If you prefer manual releases, you can still use the scripts:
 - **Data Privacy:** No user data is transmitted externally without explicit user consent. All automation runs locally on the user's machine.
 - **Periodic Audits:** It is recommended to periodically audit all dependencies and review security practices as part of ongoing maintenance.
 
-## 🙌 Need Help?
+## 🙌 Need help?
 
 - Open an issue on [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
-- See the [README](../README.md) for user-facing instructions
+- See the [README.md](../README.md) for user-facing instructions
 - For advanced troubleshooting, check the logs in Console.app and enable "Show browser window" in God Mode Advanced Settings to monitor automation
-
-## 🛡️ Security Best Practices
-
-- 🔒 **Credentials:** Always use the macOS Keychain for sensitive data.
-- 🌐 **Network:** All requests must use HTTPS. No exceptions.
-- 📝 **Code Signing:** All builds for distribution must be code signed.
-- 🚫 **Privacy:** Never transmit user data externally without explicit consent.
-- 🧪 **Audit:** Periodically review dependencies and security settings.
