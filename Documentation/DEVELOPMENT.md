@@ -1,22 +1,4 @@
-# 🎯 ODYSSEY Development Guide
-
-This document provides comprehensive development guidelines, setup instructions, and workflow information for contributing to ODYSSEY.
-
-## 📖 Table of Contents
-
-1. [Overview](#-overview)
-2. [System Requirements](#️-system-requirements)
-3. [Quick Start (For Developers)](#️-quick-start-for-developers)
-4. [Architecture Principles](#️-architecture-principles)
-5. [Code Quality & Testing](#️-code-quality--testing)
-6. [Development Workflow](#️-development-workflow)
-7. [Testing](#️-testing)
-8. [Release Process](#️-release-process)
-9. [Common Pitfalls & Tips](#️-common-pitfalls--tips)
-10. [Related Documentation](#️-related-documentation)
-11. [Security & Compliance](#️-security--compliance)
-12. [Need Help?](#️-need-help)
-13. [Security Best Practices](#️-security-best-practices)
+# 🧑‍💻 ODYSSEY Development Guide
 
 ## 🎯 Overview
 
@@ -57,19 +39,7 @@ Both versions share the same backend services and automation engine, so contribu
    ./Scripts/build.sh
    ```
 
-4. **Open in Xcode**:
-
-   ```bash
-   open Config/ODYSSEY.xcodeproj
-   ```
-
-5. **Run the app**:
-
-   ```bash
-   ./Scripts/build.sh
-   ```
-
-6. **Monitor logs** (in another terminal):
+4. **Monitor logs** (in another terminal):
    ```bash
    ./Scripts/logs.sh
    ```
@@ -115,12 +85,6 @@ The project includes comprehensive automated quality checks:
 ```bash
 # Run all quality checks
 ./Scripts/lint-all.sh
-
-# Build and test
-./Scripts/build.sh
-
-# Monitor logs
-./Scripts/logs.sh
 ```
 
 ### CI/CD Pipeline Integration
@@ -149,13 +113,6 @@ The codebase follows a modular service-oriented architecture with these key prin
 3. **Dependency Injection**: Use centralized service management for testability
 4. **Concurrency Safety**: Ensure proper actor isolation and thread safety
 5. **Comprehensive Documentation**: Document all public APIs with clear examples
-
-#### Testing Principles
-
-- **Unit Tests**: Test each service in isolation
-- **Integration Tests**: Verify service interactions
-- **Mock Dependencies**: Use protocols for testable dependencies
-- **Error Scenarios**: Test both success and failure cases
 
 #### Code Quality Standards
 
@@ -202,25 +159,18 @@ The pipeline includes:
 
 ### GUI Testing
 
+- **God Mode**: Activate it by pressing `Command+G` in the app to show **GOD MODE** button and **Advanced Settings**
 - **Manual Testing**: Test all UI interactions and automation flows
 - **Log Monitoring**: Use `./Scripts/logs.sh` to monitor real-time logs
 - **Browser Window**: Optional for development and support. By default, automation runs invisibly. Enable "Show browser window" in God Mode Advanced Settings to monitor automation and diagnose issues.
 
 ### CLI Testing
 
-1. **Build CLI**: `swift build --product odyssey-cli`
+1. **Build CLI**: `./Scripts/build.sh`
 2. **Test Commands**: `./.build/arm64-apple-macosx/debug/odyssey-cli help`
 3. **Export Token**: Generate token from GUI for testing
 4. **Test Automation**: `export ODYSSEY_EXPORT_TOKEN="<exported_token>" && ./odyssey-cli run`
 5. **Test GitHub Actions**: Verify `.github/workflows/scheduled-reservations.yml` works correctly
-
-### Supported CLI Commands
-
-- `run [--now] [--prior <days>]` - Run reservations (with optional immediate execution and prior days)
-- `configs` - List all configurations from export token
-- `settings [--unmask]` - Show user settings (with optional unmasking)
-- `help` - Show CLI help and usage
-- `version` - Show CLI version information
 
 ### CLI Integration
 
@@ -300,25 +250,9 @@ The project includes various automation scripts in the `Scripts/` directory to s
 - **Release Management**: Use release scripts for version updates and deployment
 - **Logging**: Monitor application logs for debugging and troubleshooting
 
-### Manual Release (Alternative)
-
-If you prefer manual releases, you can still use the scripts:
-
-- **Create DMG**: `./Scripts/create-release.sh`
-- **Code Sign**: `codesign --force --deep --sign - /path/to/app`
-- **Notarize**: See `Scripts/create-release.sh` for notarization steps
-
-## 💡 Common Pitfalls & Tips
-
-- ⚠️ **Xcode version mismatch:** Make sure you are using Xcode 16+ (check with `xcodebuild -version`).
-- 🛑 **Build errors after pulling changes:** Run `./Scripts/build.sh` to auto-format and lint the code.
-- 🔑 **Keychain issues:** If you see credential errors, re-enter credentials in Settings and restart the app.
-- 📝 **Documentation:** Always update docs and comments when making changes.
-- 🧹 **Clean builds:** If you encounter strange build errors, try cleaning the build folder in Xcode (`Shift+Cmd+K`).
-
 ## 📦 Related Documentation
 
-- [Changelog](../CHANGELOG.md) - Release notes
+- [CHANGELOG.md](../CHANGELOG.md) - Release notes
 - [README.md](../README.md) - User installation and setup
 - [USER_GUIDE.md](USER_GUIDE.md) - GUI app user guide
 - [CLI.md](CLI.md) - Command-line interface documentation
@@ -336,13 +270,5 @@ If you prefer manual releases, you can still use the scripts:
 ## 🙌 Need Help?
 
 - Open an issue on [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
-- See the [README](../README.md) for user-facing instructions
+- See the [README.md](../README.md) for user-facing instructions
 - For advanced troubleshooting, check the logs in Console.app and enable "Show browser window" in God Mode Advanced Settings to monitor automation
-
-## 🛡️ Security Best Practices
-
-- 🔒 **Credentials:** Always use the macOS Keychain for sensitive data.
-- 🌐 **Network:** All requests must use HTTPS. No exceptions.
-- 📝 **Code Signing:** All builds for distribution must be code signed.
-- 🚫 **Privacy:** Never transmit user data externally without explicit consent.
-- 🧪 **Audit:** Periodically review dependencies and security settings.
