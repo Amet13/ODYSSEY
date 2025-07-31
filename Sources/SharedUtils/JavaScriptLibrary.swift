@@ -198,22 +198,23 @@ public final class JavaScriptLibrary {
             }
         },
 
-        // Click confirm button
+                        // Click confirm button
         clickConfirmButton: function() {
-            let button = document.getElementById('submit-btn') ||
-                        document.querySelector('button[type="submit"]') ||
-                        Array.from(document.querySelectorAll('button, input[type="submit"]'))
-                        .find(el => el.innerText && el.innerText.toLowerCase().includes('confirm'));
+            try {
+                const button = document.querySelector('button[id="submit-btn"]') ||
+                              document.querySelector('#submit-btn') ||
+                              document.querySelector('button[type="submit"]');
 
-            if (button) {
-                button.click();
-                return 'clicked';
-            } else {
-                let btns = Array.from(document.querySelectorAll('button, input[type="submit"]'));
-                let details = btns.map(el =>
-                    `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [text='${el.innerText || el.value || ''}']`
-                );
-                return 'not found: ' + details.join(' | ');
+                if (button) {
+                    // Focus and click the button
+                    button.focus();
+                    button.click();
+                    return 'clicked';
+                } else {
+                    return 'not found';
+                }
+            } catch (error) {
+                return 'error: ' + error.message;
             }
         },
 

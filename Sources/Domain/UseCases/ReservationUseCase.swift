@@ -163,13 +163,16 @@ class ReservationUseCase: ReservationUseCaseProtocol {
             throw DomainError.automation(.pageLoadTimeout("DOM not ready"))
         }
 
-        // Select sport using available time slots
-        if let firstTimeSlot = config.dayTimeSlots.values.first?.first {
-            try await selectSportAndTimeSlot(config.sportName, timeSlot: firstTimeSlot)
-        }
+        // Select sport
+        try await selectSport(config.sportName)
 
         // Fill number of people
         try await fillNumberOfPeople(config.numberOfPeople)
+
+        // Select time slot
+        if let firstTimeSlot = config.dayTimeSlots.values.first?.first {
+            try await selectTimeSlot(firstTimeSlot)
+        }
 
         // Fill contact information if available
         try await fillContactInformation(config)
@@ -252,8 +255,8 @@ class ReservationUseCase: ReservationUseCaseProtocol {
 
     // MARK: - Helper Methods
 
-    private func selectSportAndTimeSlot(_ sportName: String, timeSlot: TimeSlot) async throws {
-        logger.info("🏀 Selecting sport: \(sportName) at \(timeSlot.time)")
+    private func selectSport(_ sportName: String) async throws {
+        logger.info("🏀 Selecting sport: \(sportName)")
 
         // Find and click sport selection
         let sportSelector = "input[name='sport'], select[name='sport'], .sport-selector"
@@ -267,6 +270,12 @@ class ReservationUseCase: ReservationUseCaseProtocol {
         guard sportTyped else {
             throw DomainError.automation(.elementNotFound("Sport input"))
         }
+
+        logger.info("✅ Sport selected")
+    }
+
+    private func selectTimeSlot(_ timeSlot: TimeSlot) async throws {
+        logger.info("⏰ Selecting time slot: \(timeSlot.time)")
 
         // Select time slot
         let timeSelector = "input[name='time'], select[name='time'], .time-selector"
@@ -285,7 +294,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
             throw DomainError.automation(.elementNotFound("Time input"))
         }
 
-        logger.info("✅ Sport and time slot selected")
+        logger.info("✅ Time slot selected")
     }
 
     private func fillNumberOfPeople(_ count: Int) async throws {

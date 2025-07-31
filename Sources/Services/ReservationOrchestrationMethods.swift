@@ -126,11 +126,14 @@ public final class ReservationOrchestrationMethods {
             throw ReservationError.pageLoadTimeout
         }
 
-        // Select sport and time slot
-        try await selectSportAndTimeSlot(config: config)
+        // Select sport only
+        try await selectSport(config: config)
 
         // Fill number of people
         try await fillNumberOfPeople(config.numberOfPeople)
+
+        // Select time slot
+        try await selectTimeSlot(config: config)
 
         // Fill contact information
         try await fillContactInformation(config: config)
@@ -148,12 +151,12 @@ public final class ReservationOrchestrationMethods {
     }
 
     /**
-     * Selects sport and time slot for the reservation.
+     * Selects sport for the reservation.
      * - Parameter config: The reservation configuration.
      * - Throws: ReservationError if selection fails.
      */
-    private func selectSportAndTimeSlot(config: ReservationConfig) async throws {
-        logger.info("🏀 Selecting sport and time slot.")
+    private func selectSport(config: ReservationConfig) async throws {
+        logger.info("🏀 Selecting sport.")
 
         // Select sport
         let sportClicked = await WebKitService.shared
@@ -170,6 +173,17 @@ public final class ReservationOrchestrationMethods {
         guard sportTyped else {
             throw ReservationError.sportButtonNotFound
         }
+
+        logger.info("✅ Sport selected.")
+    }
+
+    /**
+     * Selects time slot for the reservation.
+     * - Parameter config: The reservation configuration.
+     * - Throws: ReservationError if selection fails.
+     */
+    private func selectTimeSlot(config: ReservationConfig) async throws {
+        logger.info("⏰ Selecting time slot.")
 
         // Select first available time slot
         if let firstTimeSlot = config.dayTimeSlots.values.first?.first {
@@ -192,7 +206,7 @@ public final class ReservationOrchestrationMethods {
             }
         }
 
-        logger.info("✅ Sport and time slot selected.")
+        logger.info("✅ Time slot selected.")
     }
 
     /**

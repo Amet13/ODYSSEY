@@ -20,24 +20,30 @@ public final class JavaScriptPages {
         return verificationElements.length > 0 || hasVerificationText || hasVerificationForm;
     },
 
-    // Check if group size page is loaded
-    checkGroupSizePage: function() {
-        const pageText = document.body.textContent || document.body.innerText || '';
-        const title = document.title || '';
+            // Check if group size page is loaded
+        checkGroupSizePage: function() {
+            const hasNumberInputs = document.querySelectorAll('input[type="number"]').length > 0;
+            const hasReservationCount = document.querySelectorAll('[name*="reservation"], [name*="count"], [id*="reservation"], [id*="count"]').length > 0;
+            const hasReservationCountInput = document.getElementById('reservationCount') || document.querySelector('input[name="ReservationCount"]');
+            const hasGroupSizeText = (document.body.textContent || document.body.innerText || '').toLowerCase().includes('group size') ||
+                                    (document.body.textContent || document.body.innerText || '').toLowerCase().includes('number of people');
 
-        // Check for group size indicators
-        const hasGroupSizeElements = document.querySelectorAll('[class*="group"], [class*="size"], [id*="group"], [id*="size"]').length > 0;
-        const hasNumberInputs = document.querySelectorAll('input[type="number"]').length > 0;
-        const hasReservationCount = document.querySelectorAll('[name*="reservation"], [name*="count"], [id*="reservation"], [id*="count"]').length > 0;
+            const found = hasNumberInputs || hasReservationCount || hasReservationCountInput || hasGroupSizeText;
 
-        return {
-            hasGroupSizeElements: hasGroupSizeElements,
-            hasNumberInputs: hasNumberInputs,
-            hasReservationCount: hasReservationCount,
-            pageText: pageText.substring(0, 500),
-            title: title
-        };
-    },
+            return {
+                found: found,
+                html: document.documentElement.outerHTML.substring(0, 5000),
+                inputs: Array.from(document.querySelectorAll('input')).map(el =>
+                    `[id='${el.id}'] [name='${el.name}'] [type='${el.type}'] [class='${el.className}']`
+                ),
+                buttons: Array.from(document.querySelectorAll('button')).map(el =>
+                    `[id='${el.id}'] [text='${el.textContent || el.innerText || ''}'] [class='${el.className}']`
+                ),
+                divs: Array.from(document.querySelectorAll('div')).slice(0, 10).map(el =>
+                    `[id='${el.id}'] [class='${el.className}'] [text='${(el.textContent || el.innerText || '').substring(0, 50)}']`
+                )
+            };
+        },
 
     // Check if time selection page is loaded
     checkTimeSelectionPage: function() {

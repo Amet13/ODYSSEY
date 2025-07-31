@@ -301,25 +301,32 @@ public final class JavaScriptCore {
             return false;
         },
 
-        // Fill number of people field
+                                // Fill number of people field
         fillNumberOfPeople: function(numberOfPeople) {
-            const field = document.getElementById('reservationCount') ||
-                         document.querySelector('input[name="ReservationCount"]') ||
-                         document.querySelector('input[type="number"]');
+            try {
+                const field = document.querySelector('input[id="reservationCount"][name="ReservationCount"]') ||
+                             document.querySelector('#reservationCount') ||
+                             document.querySelector('input[name="ReservationCount"]');
 
-            if (field) {
-                field.value = '';
-                field.focus();
-                field.value = numberOfPeople.toString();
-                field.dispatchEvent(new Event('input', { bubbles: true }));
-                field.dispatchEvent(new Event('change', { bubbles: true }));
-                return 'filled';
-            } else {
-                const inputs = Array.from(document.querySelectorAll('input'));
-                const details = inputs.map(el =>
-                    `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [placeholder='${el.placeholder}'] [type='${el.type}']`
-                );
-                return 'not found: ' + details.join(' | ');
+                if (field) {
+                    // Clear and focus the field
+                    field.value = '';
+                    field.focus();
+
+                    // Set the value
+                    field.value = numberOfPeople.toString();
+
+                    // Trigger events to simulate user input
+                    field.dispatchEvent(new Event('input', { bubbles: true }));
+                    field.dispatchEvent(new Event('change', { bubbles: true }));
+                    field.dispatchEvent(new Event('blur', { bubbles: true }));
+
+                    return 'filled';
+                } else {
+                    return 'not found';
+                }
+            } catch (error) {
+                return 'error: ' + error.message;
             }
         },
 
