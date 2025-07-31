@@ -32,31 +32,15 @@ class WebKitScripting: WebKitScriptingProtocol {
     func injectScript(_ script: String) async throws {
         logger.info("💉 Injecting script...")
 
-        let wrappedScript = """
-        (function() {
-            \(script)
-        })();
-        """
-
-        _ = try await evaluateJavaScript(wrappedScript)
+        // Use the centralized library for script injection
+        _ = try await evaluateJavaScript(script)
         logger.info("✅ Script injection completed")
     }
 
     func clickElement(_ selector: String) async throws {
         logger.info("🖱️ Clicking element: \(selector)")
 
-        let script = """
-        (function() {
-            const element = document.querySelector('\(selector)');
-            if (element) {
-                element.click();
-                return true;
-            }
-            return false;
-        })();
-        """
-
-        let result = try await evaluateJavaScript(script)
+        let result = try await evaluateJavaScript("window.odyssey.clickElement('\(selector)');")
         guard let clicked = result as? Bool, clicked else {
             throw DomainError.automation(.elementNotFound(selector))
         }
@@ -67,22 +51,7 @@ class WebKitScripting: WebKitScriptingProtocol {
     func typeText(_ text: String, into selector: String) async throws {
         logger.info("⌨️ Typing text into element: \(selector)")
 
-        let script = """
-        (function() {
-            const element = document.querySelector('\(selector)');
-            if (element) {
-                element.focus();
-                element.value = '';
-                element.value = '\(text)';
-                element.dispatchEvent(new Event('input', { bubbles: true }));
-                element.dispatchEvent(new Event('change', { bubbles: true }));
-                return true;
-            }
-            return false;
-        })();
-        """
-
-        let result = try await evaluateJavaScript(script)
+        let result = try await evaluateJavaScript("window.odyssey.typeTextIntoElement('\(selector)', '\(text)');")
         guard let typed = result as? Bool, typed else {
             throw DomainError.automation(.elementNotFound(selector))
         }
@@ -93,17 +62,7 @@ class WebKitScripting: WebKitScriptingProtocol {
     func getElementText(_ selector: String) async throws -> String? {
         logger.info("📖 Getting element text: \(selector)")
 
-        let script = """
-        (function() {
-            const element = document.querySelector('\(selector)');
-            if (element) {
-                return element.textContent || element.innerText || element.value || '';
-            }
-            return null;
-        })();
-        """
-
-        let result = try await evaluateJavaScript(script)
+        let result = try await evaluateJavaScript("window.odyssey.getElementText('\(selector)');")
         let text = result as? String
         logger.info("✅ Element text retrieved: \(text ?? "null")")
         return text
@@ -114,22 +73,8 @@ class WebKitScripting: WebKitScriptingProtocol {
 
         let startTime = Date()
         while Date().timeIntervalSince(startTime) < timeout {
-            let script = """
-            (function() {
-                const element = document.querySelector('\(selector)');
-                if (element) {
-                    const rect = element.getBoundingClientRect();
-                    const isVisible = rect.width > 0 && rect.height > 0;
-                    const isEnabled = !element.disabled;
-                    const isClickable = element.offsetParent !== null;
-                    return isVisible && isEnabled && isClickable;
-                }
-                return false;
-            })();
-            """
-
             do {
-                let result = try await evaluateJavaScript(script)
+                let result = try await evaluateJavaScript("window.odyssey.isElementClickable('\(selector)');")
                 if let clickable = result as? Bool, clickable {
                     logger.info("✅ Element is clickable: \(selector)")
                     return true

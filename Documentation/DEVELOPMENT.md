@@ -93,6 +93,16 @@ The unified CI/CD pipeline (`.github/workflows/ci-cd.yml`) automatically runs al
 
 ## 🏗️ Service architecture
 
+### JavaScript Centralized Library
+
+ODYSSEY uses a **centralized JavaScript library** for all web automation functionality. This approach provides:
+
+- **Clean Separation**: JavaScript code is completely separated from Swift code
+- **Maintainability**: All JavaScript functions in one location
+- **Reusability**: Reusable functions across all services
+- **Consistency**: Standardized error handling and logging patterns
+- **Debugging**: Easier to debug JavaScript issues in one centralized location
+
 ### Modular design principles
 
 The codebase follows a modular service-oriented architecture with these key principles:

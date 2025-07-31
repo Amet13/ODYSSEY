@@ -89,15 +89,9 @@ class WebKitNavigation: WebKitNavigationProtocol {
 
         let startTime = Date()
         while Date().timeIntervalSince(startTime) < timeout {
-            let script = """
-            (function() {
-                const element = document.querySelector('\(selector)');
-                return element !== null;
-            })();
-            """
-
             do {
-                let result = try await webView.evaluateJavaScript(script)
+                let result = try await webView
+                    .evaluateJavaScript("window.odyssey.findElementBySelector('\(selector)');")
                 if let found = result as? Bool, found {
                     logger.info("✅ Element found: \(selector)")
                     return true

@@ -284,162 +284,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     }
 
     private func injectAutomationScripts() {
-        let automationScript = """
-        window.odyssey = {
-            // Find element by text content
-            findElementByText: function(text, timeout = 10000) {
-                return new Promise((resolve, reject) => {
-                    const startTime = Date.now();
-                    const checkElement = () => {
-                        const elements = document.querySelectorAll('*');
-                        for (let element of elements) {
-                            if (element.textContent && element.textContent.trim() === text) {
-                                resolve(element);
-                                return;
-                            }
-                        }
-
-                        if (Date.now() - startTime < timeout) {
-                            setTimeout(checkElement, 100);
-                        } else {
-                            reject(new Error('Element not found'));
-                        }
-                    };
-                    checkElement();
-                });
-            },
-
-            // Find element by XPath
-            findElementByXPath: function(xpath) {
-                const result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-                return result.singleNodeValue;
-            },
-
-            // Click element with human-like behavior
-            clickElement: function(element) {
-                if (!element) return false;
-
-                // Scroll into view
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                // Simulate mouse events
-                const rect = element.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-
-                // Mouse down
-                element.dispatchEvent(new MouseEvent('mousedown', {
-                    bubbles: true,
-                    cancelable: true,
-                    view: window,
-                    clientX: centerX,
-                    clientY: centerY
-                }));
-
-                // Mouse up
-                element.dispatchEvent(new MouseEvent('mouseup', {
-                    bubbles: true,
-                    cancelable: true,
-                    view: window,
-                    clientX: centerX,
-                    clientY: centerY
-                }));
-
-                // Click
-                element.click();
-
-                return true;
-            },
-
-            // Fill form field
-            fillField: function(selector, value, instant = false) {
-                const field = document.querySelector(selector);
-                if (!field) return false;
-
-                field.focus();
-                field.value = '';
-
-                if (instant) {
-                    field.value = value;
-                } else {
-                    // Simulate typing
-                    for (let char of value) {
-                        field.value += char;
-                        field.dispatchEvent(new Event('input', { bubbles: true }));
-                    }
-                }
-
-                field.dispatchEvent(new Event('change', { bubbles: true }));
-                return true;
-            },
-
-            // Fill form field with browser autofill behavior (less likely to trigger captchas)
-            fillFieldWithAutofill: function(selector, value) {
-                const field = document.querySelector(selector);
-                if (!field) return false;
-
-                // Browser autofill behavior: scroll into view
-                field.scrollIntoView({ behavior: 'auto', block: 'center' });
-
-                // Focus and clear
-                field.focus();
-                field.value = '';
-
-                // Autofill-style: set value instantly
-                field.value = value;
-
-                // Dispatch autofill events
-                field.dispatchEvent(new Event('input', { bubbles: true }));
-                field.dispatchEvent(new Event('change', { bubbles: true }));
-                field.dispatchEvent(new Event('autocomplete', { bubbles: true }));
-
-                // Blur (browser autofill behavior)
-                field.blur();
-
-                return true;
-            },
-
-            // Wait for element to appear
-            waitForElement: function(selector, timeout = 10000) {
-                return new Promise((resolve, reject) => {
-                    const startTime = Date.now();
-                    const checkElement = () => {
-                        const element = document.querySelector(selector);
-                        if (element) {
-                            resolve(element);
-                        } else if (Date.now() - startTime < timeout) {
-                            setTimeout(checkElement, 100);
-                        } else {
-                            reject(new Error('Element not found'));
-                        }
-                    };
-                    checkElement();
-                });
-            },
-
-            // Get page source
-            getPageSource: function() {
-                return document.documentElement.outerHTML;
-            },
-
-            // Execute custom script
-            executeScript: function(script) {
-                try {
-                    return eval(script);
-                } catch (error) {
-                    console.error('Script execution error:', error);
-                    return null;
-                }
-            }
-        };
-
-        // Make odyssey available globally
-        window.webkit.messageHandlers.odysseyHandler.postMessage({
-            type: 'scriptInjected',
-            data: { success: true }
-        });
-        """
-
+        let automationScript = JavaScriptLibrary.getAutomationLibrary()
         let script = WKUserScript(source: automationScript, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
         webView?.configuration.userContentController.addUserScript(script)
     }
@@ -462,23 +307,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             logger.error("❌ [ButtonScan] webView is nil.")
             return
         }
-        let script = """
-        (function() {
-            let results = [];
-            let btns = Array.from(document.querySelectorAll('button, a, div'));
-            for (let el of btns) {
-                let txt = el.innerText || el.textContent || '';
-                let tag = el.tagName;
-                let id = el.id || '';
-                let cls = el.className || '';
-                let clickable = (el.onclick || el.getAttribute('role') === 'button' || el.tabIndex >= 0);
-                results.push(`[${tag}] id='${id}' class='${cls}' clickable=${clickable} text='${txt.trim()}'`);
-            }
-            return results;
-        })();
-        """
+
         do {
-            let result = try await webView.evaluateJavaScript(script)
+            let result = try await webView.evaluateJavaScript("window.odyssey.logAllButtonsAndLinks();")
             if let arr = result as? [String] {
                 for line in arr {
                     logger.info("🔍 [ButtonScan] \(line, privacy: .public)")
@@ -721,12 +552,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
 
-        let script = """
-        const elements = document.querySelectorAll('\(selector)');
-        return Array.from(elements).map((el, index) => 'element_' + index);
-        """
-
-        let result = try await executeScriptInternal(script)?.value
+        let result = try await executeScriptInternal("window.odyssey.findAllElements('\(selector)');")?.value
         let elementIds = result as? [String] ?? []
         guard let webView else {
             throw WebDriverError.elementNotFound("WebView not initialized")
@@ -740,7 +566,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
 
-        let result = try await executeScriptInternal("return document.documentElement.outerHTML;")?.value
+        let result = try await executeScriptInternal("window.odyssey.getPageSource();")?.value
         return result as? String ?? ""
     }
 
@@ -749,9 +575,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
 
-        return await MainActor.run {
-            webView?.url?.absoluteString ?? ""
-        }
+        let result = try await executeScriptInternal("window.odyssey.getCurrentURL();")?.value
+        return result as? String ?? ""
     }
 
     public func getTitle() async throws -> String {
@@ -759,9 +584,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
 
-        return await MainActor.run {
-            webView?.title ?? ""
-        }
+        let result = try await executeScriptInternal("window.odyssey.getPageTitle();")?.value
+        return result as? String ?? ""
     }
 
     @MainActor
@@ -770,24 +594,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
 
-        let script = """
-        return new Promise((resolve, reject) => {
-            const startTime = Date.now();
-            const checkElement = () => {
-                const element = document.querySelector('\(selector)');
-                if (element) {
-                    resolve('element_found');
-                } else if (Date.now() - startTime < \(timeout * 1_000)) {
-                    setTimeout(checkElement, 100);
-                } else {
-                    reject(new Error('Element not found'));
-                }
-            };
-            checkElement();
-        });
-        """
-
-        _ = try await executeScriptInternal(script)
+        _ = try await executeScriptInternal("window.odyssey.waitForElement('\(selector)', \(timeout * 1_000));")
         return try await findElement(by: selector)
     }
 
@@ -797,24 +604,10 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             throw WebDriverError.elementNotFound("WebView not initialized")
         }
 
-        let script = """
-        return new Promise((resolve, reject) => {
-            const startTime = Date.now();
-            const checkElement = () => {
-                const element = document.querySelector('\(selector)');
-                if (!element) {
-                    resolve();
-                } else if (Date.now() - startTime < \(timeout * 1_000)) {
-                    setTimeout(checkElement, 100);
-                } else {
-                    reject(new Error('Element did not disappear'));
-                }
-            };
-            checkElement();
-        });
-        """
-
-        _ = try await executeScriptInternal(script)
+        _ =
+            try await executeScriptInternal(
+                "window.odyssey.waitForElementToDisappear('\(selector)', \(timeout * 1_000));",
+            )
     }
 
     @MainActor
@@ -913,31 +706,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
 
         do {
-            let script = """
-            (function() {
-                try {
-                    const element = document.querySelector('\(selector)');
-                    if (!element) {
-                        console.log('[ODYSSEY] Element not found for selector: \(selector)');
-                        return false;
-                    }
-
-                    element.focus();
-                    element.value = '';
-                    element.value = '\(text)';
-                    element.dispatchEvent(new Event('input', { bubbles: true }));
-                    element.dispatchEvent(new Event('change', { bubbles: true }));
-
-                    console.log('[ODYSSEY] Text typed successfully: \(text)');
-                    return true;
-                } catch (error) {
-                    console.error('[ODYSSEY] Error typing text:', error);
-                    return false;
-                }
-            })();
-            """
-
-            let result = try await webView.evaluateJavaScript(script)
+            let result = try await webView.evaluateJavaScript("window.odyssey.typeText('\(selector)', '\(text)');")
             if let found = result as? Bool, found {
                 logger.info("✅ Text typed successfully: \(text)")
                 return true
@@ -962,38 +731,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Add human-like delay before interaction
         await humanBehaviorService.addHumanDelay()
 
-        let script = """
-        (function() {
-            try {
-                const divXPath = "//div[contains(text(),'\(text)')]";
-                const result = document.evaluate(divXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-                const div = result.singleNodeValue;
-                if (div) {
-                    div.scrollIntoView({behavior: 'smooth', block: 'center'});
-                    try {
-                        div.click();
-                        return 'clicked';
-                    } catch (e) {
-                        try {
-                            let evt = document.createEvent('MouseEvents');
-                            evt.initEvent('click', true, true);
-                            div.dispatchEvent(evt);
-                            return 'dispatched';
-                        } catch (e2) {
-                            return 'error:dispatch:' + e2.toString();
-                        }
-                    }
-                } else {
-                    return 'not found';
-                }
-            } catch (err) {
-                return 'error:' + err.toString();
-            }
-        })();
-        """
-        logger.info("🔘 [ButtonClick] Executing JS: \(script, privacy: .public)")
         do {
-            let result = try await executeScriptInternal(script)?.value
+            let result = try await executeScriptInternal("window.odyssey.findAndClickElementByText('\(text)');")?.value
             logger.info("🔘 [ButtonClick] JS result: \(String(describing: result), privacy: .public)")
             if let str = result as? String {
                 if str == "clicked" || str == "dispatched" {
@@ -1028,18 +767,11 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return false
         }
         let configSport = currentConfig?.sportName ?? ""
-        let buttonCheckScript = """
-        (() => {
-            const ready = document.readyState === 'complete';
-            const button = Array.from(document.querySelectorAll('button,div,a')).find(el => el.textContent && el.textContent.includes('\(
-                configSport
-            )'));
-            return { readyState: document.readyState, buttonFound: !!button };
-        })();
-        """
+        let script = "window.odyssey.checkDOMReadyWithButton('\(configSport)');"
+
         do {
             logger.info("🔧 Executing enhanced DOM ready/button check script...")
-            let result = try await executeScriptInternal(buttonCheckScript)?.value
+            let result = try await executeScriptInternal(script)?.value
             logger.info("📊 DOM/button check result: \(String(describing: result))")
             if let dict = result as? [String: Any] {
                 let readyState = dict["readyState"] as? String ?? ""
@@ -1071,20 +803,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         let start = Date()
         let timeout: TimeInterval = AppConstants.shortTimeout
         while Date().timeIntervalSince(start) < timeout {
-            let script = """
-            (function() {
-                let btns = Array.from(document.querySelectorAll('button, a, div'));
-                for (let el of btns) {
-                    let txt = el.innerText || el.textContent || '';
-                    if (txt && txt.toLowerCase().includes('\(buttonText.lowercased())')) {
-                        return true;
-                    }
-                }
-                return false;
-            })();
-            """
             do {
-                let result = try await webView.evaluateJavaScript(script)
+                let result = try await webView.evaluateJavaScript("window.odyssey.checkButtonExists('\(buttonText)');")
                 if let found = result as? Bool, found {
                     return true
                 }
@@ -1107,30 +827,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return false
         }
 
-        let script = """
-        (function() {
-            let field = document.getElementById('reservationCount')
-                || document.querySelector('input[name=\"ReservationCount\"]')
-                || document.querySelector('input[type=\"number\"]');
-            if (field) {
-                field.value = '';
-                field.focus();
-                field.value = '\(numberOfPeople)';
-                field.dispatchEvent(new Event('input', { bubbles: true }));
-                field.dispatchEvent(new Event('change', { bubbles: true }));
-                return 'filled';
-            } else {
-                let inputs = Array.from(document.querySelectorAll('input'));
-                let details = inputs.map(el =>
-                    `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [placeholder='${el.placeholder}'] [type='${el.type}']`
-                );
-                return 'not found: ' + details.join(' | ');
-            }
-        })();
-        """
-
         do {
-            let result = try await executeScriptInternal(script)?.value
+            let result = try await executeScriptInternal("window.odyssey.fillNumberOfPeople(\(numberOfPeople));")?.value
 
             if let str = result as? String, str == "filled" {
                 return true
@@ -1150,66 +848,16 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return false
         }
 
-        let script = """
-        (function() {
-            let button = document.getElementById('submit-btn')
-                || document.querySelector('button[type="submit"]')
-                || Array.from(document.querySelectorAll('button, input[type="submit"]'))
-                    .find(el => el.innerText && el.innerText.toLowerCase().includes('confirm'));
-            if (button) {
-                // Log button state before click
-                console.log('Button before click:', {
-                    disabled: button.disabled,
-                    text: button.innerText,
-                    type: button.type,
-                    class: button.className
-                });
-
-                button.click();
-
-                // Log button state after click
-                setTimeout(() => {
-                    console.log('Button after click:', {
-                        disabled: button.disabled,
-                        text: button.innerText,
-                        type: button.type,
-                        class: button.className
-                    });
-                }, 100);
-
-                return 'clicked';
-            } else {
-                let btns = Array.from(document.querySelectorAll('button, input[type="submit"]'));
-                let details = btns.map(el =>
-                    `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [text='${el.innerText || el.value || ''}']`
-                );
-                return 'not found: ' + details.join(' | ');
-            }
-        })();
-        """
-
-        logger.info("🔘 [ConfirmClick] Executing JS: \(script, privacy: .public)")
+        logger.info("🔘 [ConfirmClick] Executing centralized confirm button click.")
         do {
-            let result = try await executeScriptInternal(script)
+            let result = try await executeScriptInternal("window.odyssey.clickConfirmButton();")
             logger.info("🔘 [ConfirmClick] JS result: \(String(describing: result), privacy: .public)")
             if let str = result?.value as? String, str == "clicked" {
                 // Wait a moment for the page to settle
                 try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
 
                 // Also check for any error messages or loading states
-                let checkScript = """
-                (function() {
-                    let errors = Array.from(document.querySelectorAll('.error, .alert, .message, [class*="error"], [class*="alert"]')).map(el => el.innerText);
-                    let loading = Array.from(document.querySelectorAll('[class*="loading"], [class*="spinner"], .disabled')).map(el => el.innerText);
-                    let buttons = Array.from(document.querySelectorAll('button')).map(el => ({
-                        text: el.innerText,
-                        disabled: el.disabled,
-                        class: el.className
-                    }));
-                    return { errors, loading, buttons };
-                })();
-                """
-                let checkResult = try await executeScriptInternal(checkScript)
+                let checkResult = try await executeScriptInternal("window.odyssey.checkPageState();")
                 logger.info("📊 [ConfirmClick] Page check: \(String(describing: checkResult), privacy: .public)")
 
                 return true
@@ -1237,25 +885,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         var pollCount = 0
         while Date().timeIntervalSince(start) < timeout {
             pollCount += 1
-            let script = """
-            (function() {
-                let html = document.documentElement.outerHTML.substring(0, 5000);
-                let inputs = Array.from(document.querySelectorAll('input')).map(el =>
-                    `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [placeholder='${el.placeholder}'] [type='${el.type}'] [value='${el.value}'] [visible='${!!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)}']`
-                );
-                let buttons = Array.from(document.querySelectorAll('button')).map(el =>
-                    `[id='${el.id}'] [name='${el.name}'] [class='${el.className}'] [text='${el.innerText || ''}'] [visible='${!!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)}']`
-                );
-                let divs = Array.from(document.querySelectorAll('div')).map(el =>
-                    `[id='${el.id}'] [class='${el.className}'] [text='${el.innerText || ''}'] [visible='${!!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)}']`
-                );
-                let found = document.getElementById('reservationCount')
-                    || document.querySelector('input[name=\"reservationCount\"]')
-                    || Array.from(document.querySelectorAll('input'))
-                        .find(el => (el.placeholder||'').toLowerCase().includes('people') || el.type === 'number');
-                return { html, inputs, buttons, divs, found: !!found };
-            })();
-            """
+            let script = "window.odyssey.checkGroupSizePage();"
             do {
                 let result = try await webView.evaluateJavaScript(script)
                 if let dict = result as? [String: Any] {
@@ -1290,36 +920,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
         logger.info("⏳ [TimeSelection] Starting time selection page detection...")
 
-        // Simple script to check page content
-        let script = """
-        (function() {
-            try {
-                const pageText = document.body.textContent || document.body.innerText || '';
-                const title = document.title || '';
-                const url = window.location.href || '';
-
-                console.log('Page content check:', {
-                    pageText: pageText.substring(0, 200),
-                    title: title,
-                    url: url,
-                    hasSelectDateText: pageText.toLowerCase().includes('select a date and time'),
-                    hasPlusSymbols: pageText.includes('⊕') || pageText.includes('+') || pageText.includes('○') || pageText.includes('●'),
-                    hasDateElements: document.querySelectorAll('[class*="date"], [class*="day"], [id*="date"], [id*="day"]').length
-                });
-
-                // Check for multiple indicators that we're on the time selection page
-                const hasSelectDateText = pageText.toLowerCase().includes('select a date and time');
-                const hasPlusSymbols = pageText.includes('⊕') || pageText.includes('+') || pageText.includes('○') || pageText.includes('●');
-                const hasDateElements = document.querySelectorAll('[class*="date"], [class*="day"], [id*="date"], [id*="day"]').length > 0;
-
-
-                return hasSelectDateText || hasPlusSymbols || hasDateElements;
-            } catch (error) {
-                console.error('Error in time selection page check:', error);
-                return false;
-            }
-        })();
-        """
+        let script = "window.odyssey.checkTimeSelectionPage();"
 
         do {
             let result = try await executeScriptInternal(script)?.value as? Bool ?? false
@@ -1346,110 +947,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
         logger.info("📅 Selecting time slot: \(dayName, privacy: .private) at \(timeString, privacy: .private)")
 
-        let script = """
-        (function() {
-            try {
-                const allElements = Array.from(document.querySelectorAll('*'));
-                const dayName = '\(dayName)'.trim().toLowerCase();
-                const dayParts = dayName.split(/\\s+/).filter(Boolean);
-                // Log all elements with click handlers
-                const clickables = allElements.filter(el => typeof el.onclick === 'function' || el.hasAttribute('onclick'));
-                console.log('[ODYSSEY] All elements with click handlers:', clickables.map(el => el.outerHTML));
-                // Log all candidate elements' text, visibility, and outerHTML
-                allElements.forEach(el => {
-                    const text = el.textContent.trim().toLowerCase();
-                    const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-                    console.log(`[ODYSSEY] Candidate: text="${text}", visible=${visible}, outerHTML=${el.outerHTML.substring(0, 200)}`);
-                });
-                // Find all elements whose text includes any part of the dayName
-                const candidates = allElements.filter(el => {
-                    const text = el.textContent.trim().toLowerCase();
-                    return dayParts.some(part => part && text.includes(part));
-                });
-                console.log('[ODYSSEY] Day section candidates:', candidates.map(el => el.outerHTML));
-                // Find all elements with class 'header-text'
-                const headerElements = Array.from(document.getElementsByClassName('header-text'));
-                headerElements.forEach((el, idx) => {
-                    const text = el.textContent.trim();
-                    const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-                    console.log(`[ODYSSEY] header-text[${idx}]: text="${text}", visible=${visible}`);
-                });
-
-                // Find and click the SPECIFIC day that matches our target day
-                let clicked = false;
-                const targetDayName = '\(dayName)'.trim().toLowerCase();
-                console.log('[ODYSSEY] Looking for day section matching:', targetDayName);
-
-                for (let i = 0; i < headerElements.length; i++) {
-                    const el = headerElements[i];
-                    const headerText = el.textContent.trim().toLowerCase();
-                    const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-
-                    console.log(`[ODYSSEY] Checking header-text[${i}]: text="${el.textContent.trim()}", matches target: ${headerText.includes(targetDayName)}`);
-
-                    // Check if this header contains our target day name
-                    if (headerText.includes(targetDayName) && visible) {
-                        el.scrollIntoView({behavior: 'smooth', block: 'center'});
-                        el.click();
-                        clicked = true;
-                        console.log(`[ODYSSEY] Clicked matching day header[${i}]: text="${el.textContent.trim()}"`);
-                        break;
-                    }
-                }
-
-
-                if (!clicked) {
-                    console.log('[ODYSSEY] No exact match found, trying partial matching...');
-                    const dayParts = targetDayName.split(/\\s+/).filter(Boolean);
-
-                    for (let i = 0; i < headerElements.length; i++) {
-                        const el = headerElements[i];
-                        const headerText = el.textContent.trim().toLowerCase();
-                        const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-
-                        // Check if any part of the target day name matches
-                        const hasMatch = dayParts.some(part => part && headerText.includes(part));
-                        console.log(`[ODYSSEY] Partial check header-text[${i}]: text="${el.textContent.trim()}", has match: ${hasMatch}`);
-
-                        if (hasMatch && visible) {
-                            el.scrollIntoView({behavior: 'smooth', block: 'center'});
-                            el.click();
-                            clicked = true;
-                            console.log(`[ODYSSEY] Clicked partial match header[${i}]: text="${el.textContent.trim()}"`);
-                            break;
-                        }
-                    }
-                }
-                // After expanding, find and click the time slot by aria-label
-                const slotTime = '\(timeString)';
-                const slotDay = '\(dayName)';
-                const timeSlotSelector = `[aria-label*='${slotTime} ${slotDay}']`;
-                console.log('[ODYSSEY] Looking for time slot with selector:', timeSlotSelector);
-                const timeSlotElements = Array.from(document.querySelectorAll(timeSlotSelector));
-                timeSlotElements.forEach((el, idx) => {
-                    const text = el.textContent.trim();
-                    const aria = el.getAttribute('aria-label');
-                    const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-                    console.log(`[ODYSSEY] time-slot[${idx}]: text="${text}", aria-label="${aria}", visible=${visible}`);
-                });
-                let timeSlotClicked = false;
-                for (let i = 0; i < timeSlotElements.length; i++) {
-                    const el = timeSlotElements[i];
-                    const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-                    if (visible) {
-                        el.scrollIntoView({behavior: 'smooth', block: 'center'});
-                        el.click();
-                        timeSlotClicked = true;
-                        console.log(`[ODYSSEY] Clicked time-slot[${i}]: aria-label="${el.getAttribute('aria-label')}"`);
-                        break;
-                    }
-                }
-                return {clicked, timeSlotClicked, headerCount: headerElements.length, timeSlotCount: timeSlotElements.length};
-            } catch (e) {
-                return {clicked: false, error: e.toString()};
-            }
-        })()
-        """
+        let script = "window.odyssey.selectTimeSlot('\(dayName)', '\(timeString)');"
         do {
             let result = try await webView?.evaluateJavaScript(script)
             logger.info("📊 [TimeSlot][DaySection] JS result: \(String(describing: result), privacy: .private)")
@@ -1543,33 +1041,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Add human-like delay before checking
         await addRandomDelay()
 
-        let script = """
-        (function() {
-            try {
-                // Simple approach: just check if there's a confirm button and click it
-                const confirmButton = document.getElementById('submit-btn');
-                if (confirmButton && confirmButton.textContent.toLowerCase().includes('confirm')) {
-                    confirmButton.click();
-                    return true;
-                }
-
-                // Fallback: look for any button with confirm text
-                const allButtons = Array.from(document.querySelectorAll('button'));
-                for (const button of allButtons) {
-                    const text = (button.textContent || '').toLowerCase();
-                    if (text.includes('confirm') && !button.disabled) {
-                        button.click();
-                        return true;
-                    }
-                }
-
-                return false;
-            } catch (error) {
-                console.error('Error in continue button check:', error);
-                return false;
-            }
-        })();
-        """
+        let script = "window.odyssey.checkAndClickContinueButton();"
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             return result
@@ -1593,122 +1065,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         await addRandomDelay()
         await moveMouseRandomly()
 
-        let script = """
-        // Log all buttons on the page for debugging
-        const allButtons = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"], a[role="button"], div[role="button"]'));
-        const buttonDetails = allButtons.map((btn, index) => ({
-            index: index,
-            tagName: btn.tagName || '',
-            type: btn.type || '',
-            className: btn.className || '',
-            id: btn.id || '',
-            textContent: (btn.textContent || '').trim(),
-            innerText: (btn.innerText || '').trim(),
-            ariaLabel: btn.getAttribute('aria-label') || '',
-            disabled: !!btn.disabled,
-            visible: !!(btn.offsetWidth || btn.offsetHeight || btn.getClientRects().length),
-            outerHTML: (btn.outerHTML || '').substring(0, 200) + '...'
-        }));
-        console.log('[ODYSSEY] All buttons found:', buttonDetails);
-
-        // Log all clickable elements with cursor style
-        const clickables = Array.from(document.querySelectorAll('*')).filter(el => {
-            const style = window.getComputedStyle(el);
-            return style.cursor === 'pointer' || el.onclick || el.hasAttribute('onclick');
-        });
-        const clickableDetails = clickables.map((el, index) => ({
-            index: index,
-            tagName: el.tagName || '',
-            className: el.className || '',
-            id: el.id || '',
-            textContent: (el.textContent || '').trim().substring(0, 50),
-            cursor: (() => {
-                try {
-                    return window.getComputedStyle(el).cursor;
-                } catch (e) {
-                    return '';
-                }
-            })(),
-            hasOnClick: !!el.onclick,
-            hasOnclickAttr: el.hasAttribute('onclick'),
-            visible: !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)
-        }));
-        console.log('[ODYSSEY] All clickable elements:', clickableDetails);
-
-        // Try to find continue button with multiple strategies
-        let continueButton = null;
-        let strategy = '';
-
-        // Strategy 1: Exact text match
-        const exactMatches = allButtons.filter(btn => {
-            const text = (btn.textContent || '').toLowerCase();
-            return text.includes('continue') || text.includes('next') || text.includes('book') || text.includes('confirm') || text.includes('proceed') || text.includes('submit');
-        });
-        if (exactMatches.length > 0) {
-            continueButton = exactMatches[0];
-            strategy = 'exact text match';
-        }
-
-        // Strategy 2: Partial text match
-        if (!continueButton) {
-            const partialMatches = allButtons.filter(btn => {
-                const text = (btn.textContent || '').toLowerCase();
-                return text.includes('cont') || text.includes('next') || text.includes('book') || text.includes('conf') || text.includes('proc') || text.includes('sub');
-            });
-            if (partialMatches.length > 0) {
-                continueButton = partialMatches[0];
-                strategy = 'partial text match';
-            }
-        }
-
-        // Strategy 3: mdc-button__ripple class (from Python/Selenium)
-        if (!continueButton) {
-            const rippleButtons = document.querySelectorAll('.mdc-button__ripple');
-            if (rippleButtons.length > 0) {
-                continueButton = rippleButtons[0];
-                strategy = 'mdc-button__ripple class';
-            }
-        }
-
-        // Strategy 4: Submit type buttons
-        if (!continueButton) {
-            const submitButtons = allButtons.filter(btn => btn.type === 'submit');
-            if (submitButtons.length > 0) {
-                continueButton = submitButtons[0];
-                strategy = 'submit type';
-            }
-        }
-
-        // Strategy 5: First visible button
-        if (!continueButton) {
-            const visibleButtons = allButtons.filter(btn => btn.visible && !btn.disabled);
-            if (visibleButtons.length > 0) {
-                continueButton = visibleButtons[0];
-                strategy = 'first visible button';
-            }
-        }
-
-        if (continueButton) {
-            console.log(`[ODYSSEY] Found continue button using strategy: ${strategy}`);
-            console.log(`[ODYSSEY] Button details:`, {
-                tagName: continueButton.tagName || '',
-                className: continueButton.className || '',
-                id: continueButton.id || '',
-                textContent: (continueButton.textContent || '').trim(),
-                visible: continueButton.visible,
-                disabled: continueButton.disabled
-            });
-
-            // Scroll to button and click
-            continueButton.scrollIntoView({behavior: 'smooth', block: 'center'});
-            continueButton.click();
-            console.log(`[ODYSSEY] Clicked continue button: ${(continueButton.textContent || '').trim()}`);
-            return {clicked: true, strategy: strategy, buttonText: (continueButton.textContent || '').trim()};
-        } else {
-            console.log('[ODYSSEY] No continue button found with any strategy');
-            return {clicked: false, strategy: 'none'};
-        }
-        """
+        let script = "window.odyssey.findAndClickContinueButton();"
 
         do {
             let result = try await webView?.evaluateJavaScript(script)
@@ -1735,53 +1092,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return false
         }
 
-        // Enhanced approach: check for multiple indicators of contact info page
-        let script = """
-        (function() {
-            try {
-                // Check for telephone field
-                const phoneField = document.getElementById('telephone');
-                const hasPhoneField = phoneField !== null;
-
-                // Check for email field
-                const emailField = document.getElementById('email');
-                const hasEmailField = emailField !== null;
-
-                // Check for name field
-                const nameField = document.getElementById('name');
-                const hasNameField = nameField !== null;
-
-                // Check for confirm button
-                const confirmButton = document.querySelector('button[type="submit"], input[type="submit"], .mdc-button');
-                const hasConfirmButton = confirmButton !== null;
-
-                // Check page title or content for contact info indicators
-                const bodyText = document.body.textContent || '';
-                const hasContactText = bodyText.toLowerCase().includes('phone') ||
-                                     bodyText.toLowerCase().includes('email');
-
-                console.log('[ODYSSEY] Contact page detection:', {
-                    hasPhoneField: hasPhoneField,
-                    hasEmailField: hasEmailField,
-                    hasNameField: hasNameField,
-                    hasConfirmButton: hasConfirmButton,
-                    hasContactText: hasContactText,
-                    phoneFieldId: phoneField ? phoneField.id : 'not found',
-                    emailFieldId: emailField ? emailField.id : 'not found',
-                    nameFieldId: nameField ? nameField.id : 'not found',
-                    confirmButtonText: confirmButton ? (confirmButton.textContent || '').trim() : 'not found'
-                });
-
-                // Return true if we have at least phone field or multiple contact indicators
-                const isContactPage = hasPhoneField || (hasEmailField && hasNameField && hasConfirmButton);
-
-                return isContactPage;
-            } catch (error) {
-                console.error('Error in contact form check:', error);
-                return false;
-            }
-        })();
-        """
+        let script = "window.odyssey.checkContactInfoPage();"
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
@@ -1814,155 +1125,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Essential human-like behavior simulation
         await addQuickPause()
 
-        let script = """
-        (function() {
-            // Try multiple selectors to find the phone field
-            let phoneField = document.getElementById('telephone') ||
-                           document.querySelector('input[type="tel"]') ||
-                           document.querySelector('input[name*="PhoneNumber"]') ||
-                           document.querySelector('input[placeholder*="Telephone"]');
-
-            console.log('[ODYSSEY] Phone field found:', phoneField ? {
-                type: phoneField.type,
-                name: phoneField.name,
-                id: phoneField.id,
-                placeholder: phoneField.placeholder,
-                className: phoneField.className,
-                value: phoneField.value,
-                parentText: phoneField.parentElement ? phoneField.parentElement.textContent.trim().substring(0, 100) : ''
-            } : 'NOT FOUND');
-
-            if (phoneField) {
-                // Scroll to field with human-like behavior
-                phoneField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                // Focus and clear
-                phoneField.focus();
-                phoneField.value = '';
-
-                // Simulate human-like typing with realistic events and delays
-                const value = '\(phoneNumber)';
-                console.log('[ODYSSEY] Typing phone:', value);
-
-                // Use a synchronous approach with setTimeout to simulate typing delays
-                const typeCharacter = (index) => {
-                    if (index >= value.length) {
-                        // Add natural delay before finishing
-                        setTimeout(() => {
-                            phoneField.dispatchEvent(new Event('change', { bubbles: true }));
-                            phoneField.blur();
-                            console.log('[ODYSSEY] Phone field filled with:', phoneField.value);
-                        }, 100 + Math.random() * 200);
-                        return;
-                    }
-
-                    // Simulate occasional typos (2% chance) - minimal for stealth
-                    let charToType = value[index];
-                    let shouldMakeTypo = Math.random() < 0.02 && index < value.length - 1;
-
-                    if (shouldMakeTypo) {
-                        // Type wrong character first
-                        phoneField.value += 'x';
-                        phoneField.dispatchEvent(new KeyboardEvent('keydown', {
-                            bubbles: true,
-                            key: 'x',
-                            code: 'KeyX',
-                            keyCode: 'x'.charCodeAt(0)
-                        }));
-                        phoneField.dispatchEvent(new Event('input', { bubbles: true }));
-                        phoneField.dispatchEvent(new KeyboardEvent('keyup', {
-                            bubbles: true,
-                            key: 'x',
-                            code: 'KeyX',
-                            keyCode: 'x'.charCodeAt(0)
-                        }));
-
-                        // Wait before correcting (shorter)
-                        setTimeout(() => {
-                            // Backspace
-                            phoneField.value = phoneField.value.slice(0, -1);
-                            phoneField.dispatchEvent(new KeyboardEvent('keydown', {
-                                bubbles: true,
-                                key: 'Backspace',
-                                code: 'Backspace',
-                                keyCode: 8
-                            }));
-                            phoneField.dispatchEvent(new Event('input', { bubbles: true }));
-                            phoneField.dispatchEvent(new KeyboardEvent('keyup', {
-                                bubbles: true,
-                                key: 'Backspace',
-                                code: 'Backspace',
-                                keyCode: 8
-                            }));
-
-                            // Type correct character after shorter pause
-                            setTimeout(() => {
-                                phoneField.value += charToType;
-                                phoneField.dispatchEvent(new KeyboardEvent('keydown', {
-                                    bubbles: true,
-                                    key: charToType,
-                                    code: 'Key' + charToType.toUpperCase(),
-                                    keyCode: charToType.charCodeAt(0)
-                                }));
-                                phoneField.dispatchEvent(new KeyboardEvent('keypress', {
-                                    bubbles: true,
-                                    key: charToType,
-                                    code: 'Key' + charToType.toUpperCase(),
-                                    keyCode: charToType.charCodeAt(0)
-                                }));
-                                phoneField.dispatchEvent(new Event('input', { bubbles: true }));
-                                phoneField.dispatchEvent(new KeyboardEvent('keyup', {
-                                    bubbles: true,
-                                    key: charToType,
-                                    code: 'Key' + charToType.toUpperCase(),
-                                    keyCode: charToType.charCodeAt(0)
-                                }));
-
-                                // Continue with next character after shorter delay
-                                setTimeout(() => typeCharacter(index + 1), 50 + Math.random() * 100);
-                            }, 150 + Math.random() * 200);
-                        }, 200 + Math.random() * 300);
-                    } else {
-                        // Normal typing with faster, more realistic delays
-                        phoneField.value += charToType;
-                        phoneField.dispatchEvent(new KeyboardEvent('keydown', {
-                            bubbles: true,
-                            key: charToType,
-                            code: 'Key' + charToType.toUpperCase(),
-                            keyCode: charToType.charCodeAt(0)
-                        }));
-                        phoneField.dispatchEvent(new KeyboardEvent('keypress', {
-                            bubbles: true,
-                            key: charToType,
-                            code: 'Key' + charToType.toUpperCase(),
-                            keyCode: charToType.charCodeAt(0)
-                        }));
-                        phoneField.dispatchEvent(new Event('input', { bubbles: true }));
-                        phoneField.dispatchEvent(new KeyboardEvent('keyup', {
-                            bubbles: true,
-                            key: charToType,
-                            code: 'Key' + charToType.toUpperCase(),
-                            keyCode: charToType.charCodeAt(0)
-                        }));
-
-                        // Optimized human-like delay to avoid reCAPTCHA (100-200ms base)
-                        const baseDelay = 100 + Math.random() * 100;
-                        const extraDelay = Math.random() < 0.10 ? 150 + Math.random() * 250 : 0; // 10% chance of longer pause
-                        const thinkingPause = Math.random() < 0.025 ? 300 + Math.random() * 400 : 0; // 2.5% chance of thinking pause
-                        setTimeout(() => typeCharacter(index + 1), baseDelay + extraDelay + thinkingPause);
-                    }
-                };
-
-                // Start typing after a shorter delay
-                setTimeout(() => typeCharacter(0), 150 + Math.random() * 300);
-
-                return true;
-            } else {
-                console.error('[ODYSSEY] Phone field not found');
-                return false;
-            }
-        })();
-        """
+        let script = "window.odyssey.fillPhoneNumberWithHumanTyping('\(phoneNumber)');"
 
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
@@ -1993,157 +1156,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Essential human-like behavior simulation
         await addQuickPause()
 
-        let script = """
-        (function() {
-            // Try multiple selectors to find the email field
-            let emailField = document.getElementById('email') ||
-                           document.querySelector('input[type="email"]') ||
-                           document.querySelector('input[name*="Email"]') ||
-                           document.querySelector('input[placeholder*="Email"]');
-
-            console.log('[ODYSSEY] Email field found:', emailField ? {
-                type: emailField.type,
-                name: emailField.name,
-                id: emailField.id,
-                placeholder: emailField.placeholder,
-                className: emailField.className,
-                value: emailField.value,
-                parentText: emailField.parentElement ? emailField.parentElement.textContent.trim().substring(0, 100) : ''
-            } : 'NOT FOUND');
-
-            if (emailField) {
-                // Scroll to field with human-like behavior
-                emailField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                // Focus and clear
-                emailField.focus();
-                emailField.value = '';
-
-                // Simulate human-like typing with realistic events and delays
-                const value = '\(email)';
-                console.log('[ODYSSEY] Typing email:', value);
-
-                // Use a synchronous approach with setTimeout to simulate typing delays
-                const typeCharacter = (index) => {
-                    if (index >= value.length) {
-                        // Add natural delay before finishing
-                        setTimeout(() => {
-                            emailField.dispatchEvent(new Event('change', { bubbles: true }));
-                            emailField.blur();
-                            console.log('[ODYSSEY] Email field filled with:', emailField.value);
-                        }, 200 + Math.random() * 300);
-                        return;
-                    }
-
-                    // Simulate occasional typos (1% chance) - minimal for stealth
-                    let charToType = value[index];
-                    let shouldMakeTypo = Math.random() < 0.01 && index < value.length - 1;
-
-                    if (shouldMakeTypo) {
-                        // Type wrong character first
-                        const wrongChars = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'];
-                        const wrongChar = wrongChars[Math.floor(Math.random() * wrongChars.length)];
-                        emailField.value += wrongChar;
-                        emailField.dispatchEvent(new KeyboardEvent('keydown', {
-                            bubbles: true,
-                            key: wrongChar,
-                            code: 'Key' + wrongChar.toUpperCase(),
-                            keyCode: wrongChar.charCodeAt(0)
-                        }));
-                        emailField.dispatchEvent(new Event('input', { bubbles: true }));
-                        emailField.dispatchEvent(new KeyboardEvent('keyup', {
-                            bubbles: true,
-                            key: wrongChar,
-                            code: 'Key' + wrongChar.toUpperCase(),
-                            keyCode: wrongChar.charCodeAt(0)
-                        }));
-
-                        // Wait before correcting
-                        setTimeout(() => {
-                            // Backspace
-                            emailField.value = emailField.value.slice(0, -1);
-                            emailField.dispatchEvent(new KeyboardEvent('keydown', {
-                                bubbles: true,
-                                key: 'Backspace',
-                                code: 'Backspace',
-                                keyCode: 8
-                            }));
-                            emailField.dispatchEvent(new Event('input', { bubbles: true }));
-                            emailField.dispatchEvent(new KeyboardEvent('keyup', {
-                                bubbles: true,
-                                key: 'Backspace',
-                                code: 'Backspace',
-                                keyCode: 8
-                            }));
-
-                            // Type correct character
-                            setTimeout(() => {
-                                emailField.value += charToType;
-                                emailField.dispatchEvent(new KeyboardEvent('keydown', {
-                                    bubbles: true,
-                                    key: charToType,
-                                    code: 'Key' + charToType.toUpperCase(),
-                                    keyCode: charToType.charCodeAt(0)
-                                }));
-                                emailField.dispatchEvent(new KeyboardEvent('keypress', {
-                                    bubbles: true,
-                                    key: charToType,
-                                    code: 'Key' + charToType.toUpperCase(),
-                                    keyCode: charToType.charCodeAt(0)
-                                }));
-                                emailField.dispatchEvent(new Event('input', { bubbles: true }));
-                                emailField.dispatchEvent(new KeyboardEvent('keyup', {
-                                    bubbles: true,
-                                    key: charToType,
-                                    code: 'Key' + charToType.toUpperCase(),
-                                    keyCode: charToType.charCodeAt(0)
-                                }));
-
-                                // Continue with next character
-                                setTimeout(() => typeCharacter(index + 1), 150 + Math.random() * 200);
-                            }, 300 + Math.random() * 400);
-                        }, 400 + Math.random() * 600);
-                    } else {
-                        // Normal typing with enhanced delays to avoid reCAPTCHA
-                        emailField.value += charToType;
-                        emailField.dispatchEvent(new KeyboardEvent('keydown', {
-                            bubbles: true,
-                            key: charToType,
-                            code: 'Key' + charToType.toUpperCase(),
-                            keyCode: charToType.charCodeAt(0)
-                        }));
-                        emailField.dispatchEvent(new KeyboardEvent('keypress', {
-                            bubbles: true,
-                            key: charToType,
-                            code: 'Key' + charToType.toUpperCase(),
-                            keyCode: charToType.charCodeAt(0)
-                        }));
-                        emailField.dispatchEvent(new Event('input', { bubbles: true }));
-                        emailField.dispatchEvent(new KeyboardEvent('keyup', {
-                            bubbles: true,
-                            key: charToType,
-                            code: 'Key' + charToType.toUpperCase(),
-                            keyCode: charToType.charCodeAt(0)
-                        }));
-
-                        // Optimized human-like delay to avoid reCAPTCHA (90-180ms base)
-                        const baseDelay = 90 + Math.random() * 90;
-                        const extraDelay = Math.random() < 0.10 ? 140 + Math.random() * 200 : 0; // 10% chance of longer pause
-                        const thinkingPause = Math.random() < 0.025 ? 250 + Math.random() * 350 : 0; // 2.5% chance of thinking pause
-                        setTimeout(() => typeCharacter(index + 1), baseDelay + extraDelay + thinkingPause);
-                    }
-                };
-
-                // Start typing after a natural delay
-                setTimeout(() => typeCharacter(0), 300 + Math.random() * 500);
-
-                return true;
-            } else {
-                console.error('[ODYSSEY] Email field not found');
-                return false;
-            }
-        })();
-        """
+        let script = "window.odyssey.fillEmailWithHumanTyping('\(email)');"
 
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
@@ -2180,160 +1193,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Essential human-like behavior simulation
         await addQuickPause()
 
-        let script = """
-        (function() {
-            try {
-                // Try multiple selectors to find the name field
-                let nameField = document.querySelector('input[id^=\"field\"]') ||
-                              document.querySelector('input[name*=\"field2021\"]');
-
-                console.log('[ODYSSEY] Name field found:', nameField ? {
-                    type: nameField.type,
-                    name: nameField.name,
-                    id: nameField.id,
-                    placeholder: nameField.placeholder,
-                    className: nameField.className,
-                    value: nameField.value,
-                    parentText: nameField.parentElement ? nameField.parentElement.textContent.trim().substring(0, 100) : ''
-                } : 'NOT FOUND');
-
-                if (nameField) {
-                    // Scroll to field with human-like behavior
-                    nameField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                    // Focus and clear
-                    nameField.focus();
-                    nameField.value = '';
-
-                    // Simulate human-like typing with realistic events and delays
-                    const value = '\(name)';
-                    console.log('[ODYSSEY] Typing name:', value);
-
-                    // Use a synchronous approach with setTimeout to simulate typing delays
-                    const typeCharacter = (index) => {
-                        if (index >= value.length) {
-                            // Add natural delay before finishing
-                            setTimeout(() => {
-                                nameField.dispatchEvent(new Event('change', { bubbles: true }));
-                                nameField.blur();
-                                console.log('[ODYSSEY] Name field filled with:', nameField.value);
-                            }, 200 + Math.random() * 300);
-                            return;
-                        }
-
-                        // Simulate occasional typos (1.5% chance) - minimal for stealth
-                        let charToType = value[index];
-                        let shouldMakeTypo = Math.random() < 0.015 && index < value.length - 1;
-
-                        if (shouldMakeTypo) {
-                            // Type wrong character first
-                            const wrongChars = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'];
-                            const wrongChar = wrongChars[Math.floor(Math.random() * wrongChars.length)];
-                            nameField.value += wrongChar;
-                            nameField.dispatchEvent(new KeyboardEvent('keydown', {
-                                bubbles: true,
-                                key: wrongChar,
-                                code: 'Key' + wrongChar.toUpperCase(),
-                                keyCode: wrongChar.charCodeAt(0)
-                            }));
-                            nameField.dispatchEvent(new Event('input', { bubbles: true }));
-                            nameField.dispatchEvent(new KeyboardEvent('keyup', {
-                                bubbles: true,
-                                key: wrongChar,
-                                code: 'Key' + wrongChar.toUpperCase(),
-                                keyCode: wrongChar.charCodeAt(0)
-                            }));
-
-                            // Wait before correcting
-                            setTimeout(() => {
-                                // Backspace
-                                nameField.value = nameField.value.slice(0, -1);
-                                nameField.dispatchEvent(new KeyboardEvent('keydown', {
-                                    bubbles: true,
-                                    key: 'Backspace',
-                                    code: 'Backspace',
-                                    keyCode: 8
-                                }));
-                                nameField.dispatchEvent(new Event('input', { bubbles: true }));
-                                nameField.dispatchEvent(new KeyboardEvent('keyup', {
-                                    bubbles: true,
-                                    key: 'Backspace',
-                                    code: 'Backspace',
-                                    keyCode: 8
-                                }));
-
-                                // Type correct character
-                                setTimeout(() => {
-                                    nameField.value += charToType;
-                                    nameField.dispatchEvent(new KeyboardEvent('keydown', {
-                                        bubbles: true,
-                                        key: charToType,
-                                        code: 'Key' + charToType.toUpperCase(),
-                                        keyCode: charToType.charCodeAt(0)
-                                    }));
-                                    nameField.dispatchEvent(new KeyboardEvent('keypress', {
-                                        bubbles: true,
-                                        key: charToType,
-                                        code: 'Key' + charToType.toUpperCase(),
-                                        keyCode: charToType.charCodeAt(0)
-                                    }));
-                                    nameField.dispatchEvent(new Event('input', { bubbles: true }));
-                                    nameField.dispatchEvent(new KeyboardEvent('keyup', {
-                                        bubbles: true,
-                                        key: charToType,
-                                        code: 'Key' + charToType.toUpperCase(),
-                                        keyCode: charToType.charCodeAt(0)
-                                    }));
-
-                                    // Continue with next character
-                                    setTimeout(() => typeCharacter(index + 1), 150 + Math.random() * 200);
-                                }, 300 + Math.random() * 400);
-                            }, 400 + Math.random() * 600);
-                        } else {
-                            // Normal typing with enhanced delays to avoid reCAPTCHA
-                            nameField.value += charToType;
-                            nameField.dispatchEvent(new KeyboardEvent('keydown', {
-                                bubbles: true,
-                                key: charToType,
-                                code: 'Key' + charToType.toUpperCase(),
-                                keyCode: charToType.charCodeAt(0)
-                            }));
-                            nameField.dispatchEvent(new KeyboardEvent('keypress', {
-                                bubbles: true,
-                                key: charToType,
-                                code: 'Key' + charToType.toUpperCase(),
-                                keyCode: charToType.charCodeAt(0)
-                            }));
-                            nameField.dispatchEvent(new Event('input', { bubbles: true }));
-                            nameField.dispatchEvent(new KeyboardEvent('keyup', {
-                                bubbles: true,
-                                key: charToType,
-                                code: 'Key' + charToType.toUpperCase(),
-                                keyCode: charToType.charCodeAt(0)
-                            }));
-
-                            // Optimized human-like delay to avoid reCAPTCHA (95-190ms base)
-                            const baseDelay = 95 + Math.random() * 95;
-                            const extraDelay = Math.random() < 0.10 ? 160 + Math.random() * 220 : 0; // 10% chance of longer pause
-                            const thinkingPause = Math.random() < 0.025 ? 280 + Math.random() * 380 : 0; // 2.5% chance of thinking pause
-                            setTimeout(() => typeCharacter(index + 1), baseDelay + extraDelay + thinkingPause);
-                        }
-                    };
-
-                    // Start typing after a natural delay
-                    setTimeout(() => typeCharacter(0), 300 + Math.random() * 500);
-
-                    return true;
-                } else {
-                    console.error('[ODYSSEY] Name field not found');
-                    return false;
-                }
-            } catch (error) {
-                console.error('[ODYSSEY] Error in fillName script:', error);
-                return false;
-            }
-        })();
-        """
+        let script = "window.odyssey.fillNameWithHumanTyping('\(name)');"
 
         do {
             // Double-check that we are still connected before executing JavaScript
@@ -2365,20 +1225,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return false
         }
 
-        let script = """
-        // Check for various reCAPTCHA indicators
-        const recaptchaElements = document.querySelectorAll('.g-recaptcha, .recaptcha, iframe[src*="recaptcha"], [class*="recaptcha"], [id*="recaptcha"]');
-        const googleRecaptcha = document.querySelectorAll('iframe[src*="google.com/recaptcha"], iframe[src*="gstatic.com/recaptcha"]');
-        const captchaText = document.querySelectorAll('*:contains("captcha"), *:contains("robot"), *:contains("verify")');
-
-        console.log('[ODYSSEY] reCAPTCHA detection:', {
-            recaptchaElements: recaptchaElements.length,
-            googleRecaptcha: googleRecaptcha.length,
-            captchaText: captchaText.length
-        });
-
-        return recaptchaElements.length > 0 || googleRecaptcha.length > 0;
-        """
+        let script = "window.odyssey.detectCaptcha();"
 
         do {
             let result = try await executeScriptInternal(script)?.value as? Bool ?? false
@@ -2426,142 +1273,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Add human-like delay before clicking (1-1.5 seconds)
         try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000 ... 1_500_000_000))
 
-        let script = """
-        (function() {
-            try {
-                // Comprehensive button detection strategy
-                let button = null;
-
-                // Strategy 1: Material Design ripple button
-                button = document.querySelector('.mdc-button__ripple');
-
-                // Strategy 2: Material Design button
-                if (!button) {
-                    button = document.querySelector('.mdc-button');
-                }
-
-                // Strategy 3: Submit button
-                if (!button) {
-                    button = document.querySelector('button[type="submit"]') || document.querySelector('input[type="submit"]');
-                }
-
-                // Strategy 4: Button with confirm text
-                if (!button) {
-                    const allButtons = Array.from(document.querySelectorAll('button'));
-                    button = allButtons.find(btn => {
-                        const text = (btn.textContent || '').toLowerCase();
-                        return text.includes('confirm') || text.includes('submit') || text.includes('verify');
-                    });
-                }
-
-                console.log('[ODYSSEY] Confirm button found:', button ? {
-                    tagName: button.tagName,
-                    className: button.className,
-                    textContent: (button.textContent || '').trim(),
-                    visible: !!(button.offsetWidth || button.offsetHeight || button.getClientRects().length)
-                } : 'NOT FOUND');
-
-                if (button) {
-                    // Scroll to button with human-like behavior
-                    button.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                    // Get button position for consistent coordinates
-                    const rect = button.getBoundingClientRect();
-                    const centerX = rect.left + rect.width / 2;
-                    const centerY = rect.top + rect.height / 2;
-
-                    // Simulate realistic mouse movement and hover
-                    button.dispatchEvent(new MouseEvent('mouseenter', {
-                        bubbles: true,
-                        clientX: centerX,
-                        clientY: centerY
-                    }));
-
-                    button.dispatchEvent(new MouseEvent('mouseover', {
-                        bubbles: true,
-                        clientX: centerX,
-                        clientY: centerY
-                    }));
-
-                    // Click with human-like behavior
-                    button.dispatchEvent(new MouseEvent('mousedown', {
-                        bubbles: true,
-                        button: 0,
-                        clientX: centerX,
-                        clientY: centerY
-                    }));
-
-                    button.dispatchEvent(new MouseEvent('mouseup', {
-                        bubbles: true,
-                        button: 0,
-                        clientX: centerX,
-                        clientY: centerY
-                    }));
-
-                    button.dispatchEvent(new MouseEvent('click', {
-                        bubbles: true,
-                        button: 0,
-                        clientX: centerX,
-                        clientY: centerY
-                    }));
-
-                    console.log('[ODYSSEY] Clicked confirm button with ultra-human-like behavior');
-                    return true;
-                }
-
-                // Fallback: Try native click method
-                if (button) {
-                    try {
-                        button.click();
-                        console.log('[ODYSSEY] Used native click method as fallback');
-                        return true;
-                    } catch (e) {
-                        console.log('[ODYSSEY] Native click failed:', e);
-                    }
-                }
-
-                // Fallback to other common submit button selectors
-                const fallbackButton = document.querySelector('button[type="submit"]') ||
-                                      document.querySelector('input[type="submit"]') ||
-                                      document.querySelector('button:contains("Confirm")');
-
-                if (fallbackButton) {
-                    console.log('[ODYSSEY] Using fallback confirm button:', fallbackButton.tagName);
-                    fallbackButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                    // Immediate click with proper event sequence
-                    fallbackButton.dispatchEvent(new MouseEvent('mousedown', {
-                        bubbles: true,
-                        button: 0,
-                        clientX: fallbackButton.getBoundingClientRect().left + 10,
-                        clientY: fallbackButton.getBoundingClientRect().top + 10
-                    }));
-
-                    fallbackButton.dispatchEvent(new MouseEvent('mouseup', {
-                        bubbles: true,
-                        button: 0,
-                        clientX: fallbackButton.getBoundingClientRect().left + 10,
-                        clientY: fallbackButton.getBoundingClientRect().top + 10
-                    }));
-
-                    fallbackButton.dispatchEvent(new MouseEvent('click', {
-                        bubbles: true,
-                        button: 0,
-                        clientX: fallbackButton.getBoundingClientRect().left + 10,
-                        clientY: fallbackButton.getBoundingClientRect().top + 10
-                    }));
-
-                    console.log('[ODYSSEY] Clicked fallback confirm button immediately');
-                    return true;
-                }
-
-                return false;
-            } catch (error) {
-                console.error('[ODYSSEY] Error in confirm button click:', error);
-                return false;
-            }
-        })();
-        """
+        let script = "window.odyssey.clickContactInfoConfirmButton();"
 
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
@@ -2587,39 +1299,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Wait a bit for the page to load after clicking confirm
         try? await Task.sleep(nanoseconds: 3_000_000_000) // Wait 3 seconds
 
-        let script = """
-        (function() {
-            // Check for verification-related elements
-            const verificationElements = document.querySelectorAll('[class*="verification"], [id*="verification"], [class*="verify"], [id*="verify"]');
-
-            // Check for verification code input fields
-            const codeInputs = document.querySelectorAll('input[type="text"], input[type="number"], input[name*="verification"], input[name*="code"]');
-
-            // Check for verification-related text in the page
-            const bodyText = document.body.textContent || '';
-            const hasVerificationText = bodyText.toLowerCase().includes('verification') ||
-                                      bodyText.toLowerCase().includes('verify') ||
-                                      bodyText.toLowerCase().includes('code') ||
-                                      bodyText.toLowerCase().includes('enter it below');
-
-            // Check for specific verification patterns
-            const hasVerificationPattern = bodyText.toLowerCase().includes('verification code') ||
-                                         bodyText.toLowerCase().includes('check your email') ||
-                                         bodyText.toLowerCase().includes('receive an email');
-
-            const result = verificationElements.length > 0 || codeInputs.length > 0 || hasVerificationText || hasVerificationPattern;
-
-            console.log('[ODYSSEY] Verification check:', {
-                verificationElements: verificationElements.length,
-                codeInputs: codeInputs.length,
-                hasVerificationText: hasVerificationText,
-                hasVerificationPattern: hasVerificationPattern,
-                result: result
-            });
-
-            return result;
-        })();
-        """
+        let script = "window.odyssey.isEmailVerificationRequired();"
 
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
@@ -2677,50 +1357,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         logger.info("Waiting for verification page to load (timeout: \(timeout)s)")
 
         while Date().timeIntervalSince(start) < timeout {
-            let script = """
-            (function() {
-                // Check for verification code input field
-                const verificationInput = document.querySelector('input[type="text"]') ||
-                                        document.querySelector('input[type="number"]') ||
-                                        document.querySelector('input[name*="verification"]') ||
-                                        document.querySelector('input[name*="code"]') ||
-                                        document.querySelector('input[placeholder*="verification"]') ||
-                                        document.querySelector('input[placeholder*="code"]') ||
-                                        document.querySelector('input[id*="verification"]') ||
-                                        document.querySelector('input[id*="code"]');
-
-                // Check for verification-related text
-                const bodyText = document.body.textContent || '';
-                const hasVerificationText = bodyText.toLowerCase().includes('verification') ||
-                                        bodyText.toLowerCase().includes('verify') ||
-                                        bodyText.toLowerCase().includes('code') ||
-                                        bodyText.toLowerCase().includes('enter it below');
-
-                // Check for specific verification patterns
-                const hasVerificationPattern = bodyText.toLowerCase().includes('verification code') ||
-                                            bodyText.toLowerCase().includes('check your email') ||
-                                            bodyText.toLowerCase().includes('receive an email');
-
-                // Check for loading states
-                const isLoading = bodyText.toLowerCase().includes('loading') ||
-                                bodyText.toLowerCase().includes('please wait') ||
-                                document.querySelector('[class*="loading"], [id*="loading"]');
-
-                const result = {
-                    hasInput: !!verificationInput,
-                    hasText: hasVerificationText,
-                    hasPattern: hasVerificationPattern,
-                    isLoading: !!isLoading,
-                    inputType: verificationInput ? verificationInput.type : null,
-                    inputName: verificationInput ? verificationInput.name : null,
-                    inputPlaceholder: verificationInput ? verificationInput.placeholder : null,
-                    bodyTextPreview: bodyText.substring(0, 200) + '...'
-                };
-
-                console.log('[ODYSSEY] Verification page check:', result);
-                return result;
-            })();
-            """
+            let script = "window.odyssey.checkVerificationPage();"
 
             do {
                 let result = try await webView.evaluateJavaScript(script)
@@ -3045,112 +1682,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return false
         }
 
-        let script = """
-        (function() {
-            try {
-                const bodyText = document.body.textContent || '';
-                const bodyTextLower = bodyText.toLowerCase();
-
-
-                console.log('[ODYSSEY] Checking verification result. Page content preview:', bodyText.substring(0, 1000));
-
-                // Check for robust confirmation page indicators
-                // 1. .confirmed-reservation class
-                if (document.querySelector('.confirmed-reservation')) {
-                  console.log('[ODYSSEY] Found .confirmed-reservation class - success!');
-                  return { success: true, reason: 'confirmed_reservation_class', pageText: bodyText.substring(0, 1000) };
-                }
-                // 2. <h1>Confirmation</h1>
-                const h1s = Array.from(document.querySelectorAll('h1'));
-                if (h1s.some(h => h.textContent.trim().toLowerCase() === 'confirmation')) {
-                  console.log('[ODYSSEY] Found <h1>Confirmation</h1> - success!');
-                  return { success: true, reason: 'h1_confirmation', pageText: bodyText.substring(0, 1000) };
-                }
-                // 3. <p> containing 'is now confirmed'
-                const ps = Array.from(document.querySelectorAll('p'));
-                if (ps.some(p => p.textContent.toLowerCase().includes('is now confirmed'))) {
-                  console.log('[ODYSSEY] Found <p> with \"is now confirmed\" - success!');
-                  return { success: true, reason: 'p_is_now_confirmed', pageText: bodyText.substring(0, 1000) };
-                }
-
-                // Check for error indicators FIRST
-                const errorIndicators = [
-                    'invalid code',
-                    'incorrect code',
-                    'verification failed',
-                    'code not found',
-                    'try again',
-                    'error',
-                    'failed',
-                    'invalid',
-                    'the confirmation code is incorrect',
-                    'incorrect confirmation code',
-                    'verification code is incorrect',
-                    'please try again',
-                    'wrong code',
-                    'code is incorrect'
-                ];
-                for (const indicator of errorIndicators) {
-                    if (bodyTextLower.includes(indicator)) {
-                        console.log('[ODYSSEY] Found error indicator:', indicator);
-                        return { success: false, reason: indicator, pageText: bodyText.substring(0, 1000) };
-                    }
-                }
-
-                // Check for success indicators
-                const successIndicators = [
-                  'confirmation',
-                  'is now confirmed',
-                  'your appointment on',
-                  'your appointment is now confirmed',
-                  'now confirmed',
-                  'reservation confirmed',
-                  'booking confirmed',
-                  'successfully booked',
-                  'thank you for your reservation',
-                  'your reservation is confirmed',
-                  'your booking is confirmed',
-                  'your spot is confirmed',
-                  'your registration is confirmed',
-                  'your registration was successful',
-                  'success!',
-                  'completed successfully',
-                  // Add more as needed based on confirmation page text
-                ];
-                for (const indicator of successIndicators) {
-                  if (bodyTextLower.includes(indicator)) {
-                    console.log('[ODYSSEY] Found success indicator:', indicator);
-                    return { success: true, reason: indicator, pageText: bodyText.substring(0, 1000) };
-                  }
-                }
-
-                // Check if we're still on the verification page (indicates failure)
-                const verificationInput = document.querySelector('input[type=\"text\"]') ||
-                                        document.querySelector('input[type=\"number\"]') ||
-                                        document.querySelector('input[name*=\"code\"]') ||
-                                        document.querySelector('input[placeholder*=\"code\"]');
-
-
-                if (verificationInput) {
-                  for (const indicator of successIndicators) {
-                    if (bodyTextLower.includes(indicator)) {
-                      console.log('[ODYSSEY] Found success indicator with input present:', indicator);
-                      return { success: true, reason: indicator + '_with_input', pageText: bodyText.substring(0, 1000) };
-                    }
-                  }
-                  console.log('[ODYSSEY] Still on verification page - likely failed');
-                  return { success: false, reason: 'still_on_verification_page', pageText: bodyText.substring(0, 1000) };
-                }
-
-
-                console.log('[ODYSSEY] No verification input found - treating as success/terminal state');
-                return { success: true, reason: 'no_verification_input', pageText: bodyText.substring(0, 1000) };
-            } catch (error) {
-                console.error('[ODYSSEY] Error checking verification success:', error);
-                return { success: false, reason: 'error_checking', pageText: '' };
-            }
-        })();
-        """
+        let script = "window.odyssey.checkVerificationSuccess();"
 
         do {
             let result = try await webView.evaluateJavaScript(script)
@@ -3194,35 +1726,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return false
         }
 
-        let script = """
-        (function() {
-            try {
-                // Check for verification code input field
-                const verificationInput = document.querySelector('input[type="text"]') ||
-                                        document.querySelector('input[type="number"]') ||
-                                        document.querySelector('input[name*="code"]') ||
-                                        document.querySelector('input[placeholder*="code"]');
-
-                // Check for verification-related text
-                const bodyText = document.body.textContent || '';
-                const hasVerificationText = bodyText.toLowerCase().includes('verification') ||
-                                        bodyText.toLowerCase().includes('verify') ||
-                                        bodyText.toLowerCase().includes('code') ||
-                                        bodyText.toLowerCase().includes('enter it below');
-
-                const result = !!verificationInput || hasVerificationText;
-                console.log('[ODYSSEY] Still on verification page check:', {
-                    hasInput: !!verificationInput,
-                    hasText: hasVerificationText,
-                    result: result
-                });
-                return result;
-            } catch (error) {
-                console.error('[ODYSSEY] Error checking if still on verification page:', error);
-                return false;
-            }
-        })();
-        """
+        let script = "window.odyssey.checkIfStillOnVerificationPage();"
 
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
@@ -3244,25 +1748,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return
         }
 
-        let script = """
-        (function() {
-            try {
-                const verificationInput = document.querySelector('input[type="text"]') ||
-                                        document.querySelector('input[type="number"]') ||
-                                        document.querySelector('input[name*="code"]') ||
-                                        document.querySelector('input[placeholder*="code"]');
-
-                if (verificationInput) {
-                    verificationInput.value = '';
-                    verificationInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    verificationInput.dispatchEvent(new Event('change', { bubbles: true }));
-                    console.log('[ODYSSEY] Cleared verification input field');
-                }
-            } catch (error) {
-                console.error('[ODYSSEY] Error clearing verification input:', error);
-            }
-        })();
-        """
+        let script = "window.odyssey.clearVerificationInput();"
 
         do {
             _ = try await webView.evaluateJavaScript(script)
@@ -3280,46 +1766,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return false
         }
 
-        let script = """
-        (function() {
-            try {
-                // Find verification code input field
-                const verificationInput = document.querySelector('input[type="text"]') ||
-                                        document.querySelector('input[type="number"]') ||
-                                        document.querySelector('input[name*="code"]') ||
-                                        document.querySelector('input[placeholder*="code"]');
-
-                if (verificationInput) {
-                    // Browser autofill behavior: scroll into view
-                    verificationInput.scrollIntoView({ behavior: 'auto', block: 'center' });
-
-                    // Focus and clear
-                    verificationInput.focus();
-                    verificationInput.value = '';
-
-                    // Autofill-style: set value instantly
-                    verificationInput.value = '\(code)';
-
-                    // Dispatch autofill events
-                    verificationInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    verificationInput.dispatchEvent(new Event('change', { bubbles: true }));
-                    verificationInput.dispatchEvent(new Event('autocomplete', { bubbles: true }));
-
-                    // Blur (browser autofill behavior)
-                    verificationInput.blur();
-
-                    console.log('[ODYSSEY] Verification code autofill completed with:', verificationInput.value);
-                    return true;
-                } else {
-                    console.log('[ODYSSEY] Verification input field not found');
-                    return false;
-                }
-            } catch (error) {
-                console.error('[ODYSSEY] Error filling verification code with autofill:', error);
-                return false;
-            }
-        })();
-        """
+        let script = "window.odyssey.fillVerificationCode('\(code)');"
 
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
@@ -3355,217 +1802,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         let maxAttempts = 10
         for attempt in 1 ... maxAttempts {
             do {
-                let script = """
-                (function() {
-                    // --- ODYSSEY PATCH: Always check for Final Confirmation button after verification submit ---
-                    var finalBtn = document.querySelector('#submit-btn');
-                    if (finalBtn && (finalBtn.innerText || '').toLowerCase().includes('final confirmation')) {
-                        try {
-                            finalBtn.click();
-                            console.log('[ODYSSEY] Clicked Final Confirmation button (id=submit-btn)');
-                            return '[ODYSSEY] Clicked Final Confirmation button (id=submit-btn)';
-                        } catch (e) {
-                            console.log('[ODYSSEY] Failed to click Final Confirmation button:', e);
-                        }
-                    }
-                    // --- END PATCH ---
-                    console.log('[ODYSSEY] Starting button detection...');
+                let script = "window.odyssey.clickVerificationSubmitButton();"
 
-                    const allButtons = document.querySelectorAll('button, input[type="submit"], a');
-                    console.log('[ODYSSEY] Found', allButtons.length, 'total buttons/inputs');
-
-                    for (let i = 0; i < allButtons.length; i++) {
-                        const btn = allButtons[i];
-                        const text = (btn.textContent || '').trim();
-                        const ariaLabel = btn.getAttribute('aria-label') || '';
-                        const title = btn.getAttribute('title') || '';
-                        const className = btn.className || '';
-                        const id = btn.id || '';
-                        const isVisible = btn.offsetParent !== null;
-                        const isEnabled = !btn.disabled;
-
-                        console.log('[ODYSSEY] Button', i, ':', {
-                            text: text,
-                            ariaLabel: ariaLabel,
-                            title: title,
-                            className: className,
-                            id: id,
-                            visible: isVisible,
-                            enabled: isEnabled,
-                            tagName: btn.tagName
-                        });
-                    }
-
-                    // Try to find the ripple element
-                    const ripple = document.querySelector('.mdc-button__ripple');
-                    if (ripple) {
-                        console.log('[ODYSSEY] Found ripple element');
-                        // Try to click the parent button
-                        let parent = ripple.closest('button');
-                        if (parent) {
-                            console.log('[ODYSSEY] Found parent button of ripple element');
-                            // Try MouseEvent first
-                            try {
-                                const rect = parent.getBoundingClientRect();
-                                const event = new MouseEvent('click', {
-                                    view: window,
-                                    bubbles: true,
-                                    cancelable: true,
-                                    clientX: rect.left + rect.width / 2,
-                                    clientY: rect.top + rect.height / 2
-                                });
-                                parent.dispatchEvent(event);
-                                console.log('[ODYSSEY] Clicked parent button via MouseEvent');
-                                return '[ODYSSEY] Clicked parent button via MouseEvent';
-                            } catch (e) {
-                                console.log('[ODYSSEY] MouseEvent failed, trying .click()');
-                                try {
-                                    parent.click();
-                                    console.log('[ODYSSEY] Clicked parent button via .click()');
-                                    return '[ODYSSEY] Clicked parent button via .click()';
-                                } catch (e2) {
-                                    console.log('[ODYSSEY] .click() also failed');
-                                }
-                            }
-                        }
-
-                        // Fallback: try clicking the ripple itself
-                        try {
-                            const rect = ripple.getBoundingClientRect();
-                            const event = new MouseEvent('click', {
-                                view: window,
-                                bubbles: true,
-                                cancelable: true,
-                                clientX: rect.left + rect.width / 2,
-                                clientY: rect.top + rect.height / 2
-                            });
-                            ripple.dispatchEvent(event);
-                            console.log('[ODYSSEY] Clicked ripple element via MouseEvent');
-                            return '[ODYSSEY] Clicked ripple element via MouseEvent';
-                        } catch (e) {
-                            console.log('[ODYSSEY] Ripple click failed');
-                        }
-                    } else {
-                        console.log('[ODYSSEY] No ripple element found');
-                    }
-
-                    // Look for Material Design buttons by class
-                    const mdcButtons = document.querySelectorAll('.mdc-button, [class*="mdc-button"]');
-                    console.log('[ODYSSEY] Found', mdcButtons.length, 'Material Design buttons');
-
-                    for (const btn of mdcButtons) {
-                        if (btn.offsetParent !== null && !btn.disabled) {
-                            const text = (btn.textContent || '').trim().toLowerCase();
-                            console.log('[ODYSSEY] Checking MDC button:', text);
-
-                            if (text.includes('confirm') || text.includes('submit') || text.includes('verify')) {
-                                console.log('[ODYSSEY] Found matching MDC button:', text);
-                                try {
-                                    const rect = btn.getBoundingClientRect();
-                                    const event = new MouseEvent('click', {
-                                        view: window,
-                                        bubbles: true,
-                                        cancelable: true,
-                                        clientX: rect.left + rect.width / 2,
-                                        clientY: rect.top + rect.height / 2
-                                    });
-                                    btn.dispatchEvent(event);
-                                    console.log('[ODYSSEY] Clicked MDC button via MouseEvent:', text);
-                                    return '[ODYSSEY] Clicked MDC button via MouseEvent: ' + text;
-                                } catch (e) {
-                                    console.log('[ODYSSEY] MouseEvent failed for MDC button:', text);
-                                    try {
-                                        btn.click();
-                                        console.log('[ODYSSEY] Clicked MDC button via .click():', text);
-                                        return '[ODYSSEY] Clicked MDC button via .click(): ' + text;
-                                    } catch (e2) {
-                                        console.log('[ODYSSEY] .click() also failed for MDC button:', text);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Fallback: find all visible buttons and look for submit/verify/confirm/continue text
-                    const submitKeywords = ['confirm'];
-
-                    for (const btn of allButtons) {
-                        if (btn.offsetParent !== null && !btn.disabled) { // visible and enabled
-                            const text = (btn.textContent || '').trim().toLowerCase();
-                            const ariaLabel = (btn.getAttribute('aria-label') || '').toLowerCase();
-                            const title = (btn.getAttribute('title') || '').toLowerCase();
-
-                            console.log('[ODYSSEY] Checking button:', text, 'aria-label:', ariaLabel, 'title:', title);
-
-                            // Check for partial matches with submit keywords in text, aria-label, or title
-                            for (const keyword of submitKeywords) {
-                                if (text.includes(keyword) || ariaLabel.includes(keyword) || title.includes(keyword)) {
-                                    console.log('[ODYSSEY] Found matching button with keyword:', keyword);
-                                    try {
-                                        const rect = btn.getBoundingClientRect();
-                                        const event = new MouseEvent('click', {
-                                            view: window,
-                                            bubbles: true,
-                                            cancelable: true,
-                                            clientX: rect.left + rect.width / 2,
-                                            clientY: rect.top + rect.height / 2
-                                        });
-                                        btn.dispatchEvent(event);
-                                        console.log('[ODYSSEY] Clicked button via MouseEvent:', text);
-                                        return '[ODYSSEY] Clicked button via MouseEvent: ' + text;
-                                    } catch (e) {
-                                        console.log('[ODYSSEY] MouseEvent failed for button:', text);
-                                        try {
-                                            btn.click();
-                                            console.log('[ODYSSEY] Clicked button via .click():', text);
-                                            return '[ODYSSEY] Clicked button via .click(): ' + text;
-                                        } catch (e2) {
-                                            console.log('[ODYSSEY] .click() also failed for button:', text);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Last resort: try clicking the last visible button (often the submit button)
-                    const visibleButtons = Array.from(allButtons).filter(btn =>
-                        btn.offsetParent !== null && !btn.disabled
-                    );
-
-                    if (visibleButtons.length > 0) {
-                        const lastButton = visibleButtons[visibleButtons.length - 1];
-                        const text = (lastButton.textContent || '').trim();
-                        console.log('[ODYSSEY] Trying last visible button:', text);
-
-                        try {
-                            const rect = lastButton.getBoundingClientRect();
-                            const event = new MouseEvent('click', {
-                                view: window,
-                                bubbles: true,
-                                cancelable: true,
-                                clientX: rect.left + rect.width / 2,
-                                clientY: rect.top + rect.height / 2
-                            });
-                            lastButton.dispatchEvent(event);
-                            console.log('[ODYSSEY] Clicked last visible button via MouseEvent:', text);
-                            return '[ODYSSEY] Clicked last visible button via MouseEvent: ' + text;
-                        } catch (e) {
-                            console.log('[ODYSSEY] MouseEvent failed for last button:', text);
-                            try {
-                                lastButton.click();
-                                console.log('[ODYSSEY] Clicked last visible button via .click():', text);
-                                return '[ODYSSEY] Clicked last visible button via .click(): ' + text;
-                            } catch (e2) {
-                                console.log('[ODYSSEY] .click() also failed for last button:', text);
-                            }
-                        }
-                    }
-
-                    console.log('[ODYSSEY] No suitable button found');
-                    return '[ODYSSEY] No suitable button found';
-                })();
-                """
                 let result = try await webView
                     .evaluateJavaScript(script) as? String ??
                     "[ODYSSEY] No result from clickVerificationSubmitButton script"
@@ -3593,28 +1831,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return false
         }
 
-        let script = """
-        (function() {
-            // Check for "Retry" text in various contexts
-            const bodyText = document.body.textContent || '';
-            const retryIndicators = [
-                'Retry',
-            ];
-
-            const hasRetryText = retryIndicators.some(indicator =>
-                bodyText.toLowerCase().includes(indicator.toLowerCase())
-            );
-
-            // Also check for specific retry buttons
-            const retryButtons = document.querySelectorAll('button, input[type="submit"], a');
-            const hasRetryButton = Array.from(retryButtons).some(btn => {
-                const text = (btn.textContent || '').toLowerCase();
-                return retryIndicators.some(indicator => text.includes(indicator.toLowerCase()));
-            });
-
-            return hasRetryText || hasRetryButton;
-        })();
-        """
+        let script = "window.odyssey.detectRetryText();"
 
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
@@ -3628,48 +1845,17 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
     }
 
-    /// Enhanced human-like behavior to avoid reCAPTCHA detection
+    /// Enhances human-like behavior to avoid reCAPTCHA detection
     public func enhanceHumanLikeBehavior() async {
         guard let webView else { return }
 
         logger.info("🛡️ Enhancing human-like behavior to avoid reCAPTCHA detection...")
 
-        // Inject simplified anti-detection scripts (less likely to cause errors)
-        let antiDetectionScript = """
-        (function() {
-            try {
-                // Simple overrides that are less likely to cause errors
-                if (navigator.webdriver !== undefined) {
-                    Object.defineProperty(navigator, 'webdriver', {
-                        get: () => undefined,
-                        configurable: true
-                    });
-                }
-
-        if (window.cdc_adoQpoasnfa76pfcZLmcfl_Array) {
-            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
-        }
-                if (window.cdc_adoQpoasnfa76pfcZLmcfl_Promise) {
-                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
-                }
-                if (window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol) {
-                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
-                }
-
-                // Add basic mouse movement tracking
-                if (!window.odysseyMouseMovements) {
-                    window.odysseyMouseMovements = [];
-                }
-
-                console.log('[ODYSSEY] Basic anti-detection measures applied');
-            } catch (error) {
-                console.error('[ODYSSEY] Error in anti-detection script:', error);
-            }
-        })();
-        """
+        // Apply basic anti-detection measures using centralized library
+        let script = "window.odyssey.applyBasicAntiDetection();"
 
         do {
-            _ = try await webView.evaluateJavaScript(antiDetectionScript)
+            _ = try await webView.evaluateJavaScript(script)
             logger.info("Basic anti-detection measures applied successfully")
         } catch {
             logger.error("❌ Failed to apply anti-detection measures: \(error.localizedDescription)")
@@ -3688,22 +1874,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Much faster mouse movements (0.1-0.3s total)
         try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 300_000_000))
 
-        let script = """
-        (function() {
-            try {
-                // Simulate a quick mouse movement
-                const event = new MouseEvent('mousemove', {
-                    bubbles: true,
-                    cancelable: true,
-                    clientX: 200 + Math.random() * 100,
-                    clientY: 150 + Math.random() * 100
-                });
-                document.dispatchEvent(event);
-            } catch (error) {
-                console.error('[ODYSSEY] Error in mouse movement:', error);
-            }
-        })();
-        """
+        let script = "window.odyssey.simulateQuickMouseMovement();"
 
         do {
             _ = try await webView.evaluateJavaScript(script)
@@ -3719,20 +1890,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Much faster scrolling (0.1-0.2s)
         try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000 ... 200_000_000))
 
-        let script = """
-        (function() {
-            try {
-                // Simulate a quick scroll
-                window.scrollBy({
-                    top: Math.random() * 50 - 25,
-                    left: 0,
-                    behavior: 'smooth'
-                });
-            } catch (error) {
-                console.error('[ODYSSEY] Error in scrolling:', error);
-            }
-        })();
-        """
+        let script = "window.odyssey.simulateQuickScrolling();"
 
         do {
             _ = try await webView.evaluateJavaScript(script)
@@ -3972,14 +2130,7 @@ class WebKitElement: @preconcurrency WebElementProtocol {
     }
 
     func click() async throws {
-        let script = """
-        const element = document.querySelector('[data-odyssey-id="\(id)"]');
-        if (element) {
-            element.click();
-            return true;
-        }
-        return false;
-        """
+        let script = "window.odyssey.clickElementById('\(id)');"
 
         let result = try await service.executeScriptInternal(script)?.value as? Bool ?? false
         if !result {
@@ -3988,16 +2139,7 @@ class WebKitElement: @preconcurrency WebElementProtocol {
     }
 
     func type(_ text: String) async throws {
-        let script = """
-        const element = document.querySelector('[data-odyssey-id="\(id)"]');
-        if (element) {
-            element.value = '\(text)';
-            element.dispatchEvent(new Event('input', { bubbles: true }));
-            element.dispatchEvent(new Event('change', { bubbles: true }));
-            return true;
-        }
-        return false;
-        """
+        let script = "window.odyssey.typeIntoElementById('\(id)', '\(text)');"
 
         let result = try await service.executeScriptInternal(script)?.value as? Bool ?? false
         if !result {
@@ -4008,16 +2150,7 @@ class WebKitElement: @preconcurrency WebElementProtocol {
     }
 
     func clear() async throws {
-        let script = """
-        const element = document.querySelector('[data-odyssey-id="\(id)"]');
-        if (element) {
-            element.value = '';
-            element.dispatchEvent(new Event('input', { bubbles: true }));
-            element.dispatchEvent(new Event('change', { bubbles: true }));
-            return true;
-        }
-        return false;
-        """
+        let script = "window.odyssey.clearElementById('\(id)');"
 
         let result = try await service.executeScriptInternal(script)?.value as? Bool ?? false
         if !result {
@@ -4028,48 +2161,33 @@ class WebKitElement: @preconcurrency WebElementProtocol {
     }
 
     func getAttribute(_ name: String) async throws -> String? {
-        let script = """
-        const element = document.querySelector('[data-odyssey-id="\(id)"]');
-        return element ? element.getAttribute('\(name)') : null;
-        """
+        let script = "window.odyssey.getElementAttributeById('\(id)', '\(name)');"
 
         return try await service.executeScriptInternal(script)?.value as? String
     }
 
     func getText() async throws -> String {
-        let script = """
-        const element = document.querySelector('[data-odyssey-id="\(id)"]');
-        return element ? element.textContent || '' : '';
-        """
+        let script = "window.odyssey.getElementTextById('\(id)');"
 
         return try await service.executeScriptInternal(script)?.value as? String ?? ""
     }
 
     func isDisplayed() async throws -> Bool {
-        let script = """
-        const element = document.querySelector('[data-odyssey-id="\(id)"]');
-        return element ? element.offsetParent !== null : false;
-        """
+        let script = "window.odyssey.isElementDisplayedById('\(id)');"
 
         let result = try await service.executeScriptInternal(script)?.value
         return result as? Bool ?? false
     }
 
     func isEnabled() async throws -> Bool {
-        let script = """
-        const element = document.querySelector('[data-odyssey-id="\(id)"]');
-        return element ? !element.disabled : false;
-        """
+        let script = "window.odyssey.isElementEnabledById('\(id)');"
 
         let result = try await service.executeScriptInternal(script)?.value
         return result as? Bool ?? false
     }
 
     func isSelected() async throws -> Bool {
-        let script = """
-        const element = document.querySelector('[data-odyssey-id="\(id)"]');
-        return element ? element.selected : false;
-        """
+        let script = "window.odyssey.isElementSelectedById('\(id)');"
 
         return try await service.executeScriptInternal(script)?.value as? Bool ?? false
     }

@@ -29,71 +29,12 @@ public final class WebKitAntiDetection: ObservableObject {
 
     // MARK: - Anti-Detection Scripts
 
-    /// Injects basic anti-detection scripts into the WebView
+    /// Injects basic anti-detection scripts into the WebView using centralized library
     /// - Parameter webView: The WebView to inject scripts into
     public func injectAntiDetectionScripts(into webView: WKWebView) async {
         logger.info("🛡️ Injecting anti-detection scripts for instance: \(self.instanceId).")
 
-        let antiDetectionScript = """
-        (function() {
-            try {
-                if (navigator.webdriver !== undefined) {
-                    Object.defineProperty(navigator, 'webdriver', {
-                        get: () => undefined,
-                        configurable: true
-                    });
-                }
-
-                if (window.cdc_adoQpoasnfa76pfcZLmcfl_Array) {
-                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
-                }
-                if (window.cdc_adoQpoasnfa76pfcZLmcfl_Promise) {
-                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
-                }
-                if (window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol) {
-                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
-                }
-
-                // Override automation detection methods
-                if (window.chrome && window.chrome.runtime) {
-                    Object.defineProperty(window.chrome, 'runtime', {
-                        get: () => undefined,
-                        configurable: true
-                    });
-                }
-
-                // Add human-like properties
-                if (!window.odysseyMouseMovements) {
-                    window.odysseyMouseMovements = [];
-                }
-
-                // Override automation detection
-                const originalQuerySelector = document.querySelector;
-                document.querySelector = function(selector) {
-                    const result = originalQuerySelector.call(this, selector);
-                    if (result && result.tagName === 'IFRAME') {
-                        // Handle iframe detection
-                        try {
-                            const iframeDoc = result.contentDocument || result.contentWindow.document;
-                            if (iframeDoc) {
-                                // Apply anti-detection to iframe
-                                if (!iframeDoc.odysseyAntiDetectionApplied) {
-                                    iframeDoc.odysseyAntiDetectionApplied = true;
-                                }
-                            }
-                        } catch (e) {
-                            // Cross-origin iframe, ignore
-                        }
-                    }
-                    return result;
-                };
-
-                console.log('[ODYSSEY] Anti-detection measures applied for instance: \(instanceId)');
-            } catch (error) {
-                console.error('[ODYSSEY] Error in anti-detection script:', error);
-            }
-        })();
-        """
+        let antiDetectionScript = JavaScriptLibrary.getAntiDetectionLibrary()
 
         do {
             _ = try await webView.evaluateJavaScript(antiDetectionScript)
@@ -103,108 +44,38 @@ public final class WebKitAntiDetection: ObservableObject {
         }
     }
 
-    /// Injects enhanced human-like behavior scripts
+    /// Injects enhanced human-like behavior scripts using centralized library
     /// - Parameter webView: The WebView to inject scripts into
-    public func injectHumanBehaviorScripts(into webView: WKWebView) async {
+    public func injectHumanBehaviorScripts(into _: WKWebView) async {
         logger.info("👤 Injecting human behavior scripts for instance: \(self.instanceId).")
 
-        let humanBehaviorScript = """
-        (function() {
-            try {
-                // Simulate human-like typing behavior
-                const originalSetValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
-                Object.defineProperty(HTMLInputElement.prototype, 'value', {
-                    set: function(value) {
-                        // Add slight delay to simulate human typing
-                        setTimeout(() => {
-                            originalSetValue.call(this, value);
-                            this.dispatchEvent(new Event('input', { bubbles: true }));
-                            this.dispatchEvent(new Event('change', { bubbles: true }));
-                        }, Math.random() * 100 + 50);
-                    },
-                    get: Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').get,
-                    configurable: true
-                });
-
-                // Add mouse movement tracking
-                if (!window.odysseyMouseMovements) {
-                    window.odysseyMouseMovements = [];
-                }
-
-                // Override click events to add human-like delays
-                const originalClick = HTMLElement.prototype.click;
-                HTMLElement.prototype.click = function() {
-                    // Add random delay before click
-                    setTimeout(() => {
-                        originalClick.call(this);
-                    }, Math.random() * 200 + 100);
-                };
-
-                console.log('[ODYSSEY] Human behavior scripts applied for instance: \(instanceId)');
-            } catch (error) {
-                console.error('[ODYSSEY] Error in human behavior script:', error);
-            }
-        })();
-        """
-
-        do {
-            _ = try await webView.evaluateJavaScript(humanBehaviorScript)
-            logger.info("✅ Human behavior scripts injected successfully.")
-        } catch {
-            logger.error("❌ Failed to inject human behavior scripts: \(error.localizedDescription).")
-        }
+        // The human behavior functionality is now included in the centralized library
+        // No additional injection needed as it's part of the main automation library
+        logger.info("✅ Human behavior scripts are part of the centralized library.")
     }
 
     // MARK: - Human-Like Behavior Simulation
 
-    /// Simulates human-like mouse movements
+    /// Simulates human-like mouse movements using centralized library
     /// - Parameter webView: The WebView to simulate movements in
     public func simulateMouseMovements(in webView: WKWebView) async {
         logger.info("🖱️ Simulating human-like mouse movements for instance: \(self.instanceId).")
 
-        let mouseMovementScript = """
-        (function() {
-            try {
-                const movements = [];
-                const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
-
-                // Generate random mouse movements
-                for (let i = 0; i < 5; i++) {
-                    const x = Math.random() * viewportWidth;
-                    const y = Math.random() * viewportHeight;
-                    movements.push({ x, y });
-                }
-
-                // Simulate mouse movements with delays
-                movements.forEach((movement, index) => {
-                    setTimeout(() => {
-                        const event = new MouseEvent('mousemove', {
-                            bubbles: true,
-                            cancelable: true,
-                            clientX: movement.x,
-                            clientY: movement.y
-                        });
-                        document.dispatchEvent(event);
-                    }, index * 100);
-                });
-
-                console.log('[ODYSSEY] Mouse movements simulated for instance: \(instanceId)');
-            } catch (error) {
-                console.error('[ODYSSEY] Error simulating mouse movements:', error);
-            }
-        })();
-        """
+        let mouseMovementScript = JavaScriptLibrary.getMouseMovementLibrary()
 
         do {
-            _ = try await webView.evaluateJavaScript(mouseMovementScript)
-            logger.info("✅ Mouse movements simulated successfully.")
+            let result = try await webView.evaluateJavaScript(mouseMovementScript) as? Bool ?? false
+            if result {
+                logger.info("✅ Mouse movements simulated successfully.")
+            } else {
+                logger.warning("⚠️ Mouse movement simulation failed.")
+            }
         } catch {
             logger.error("❌ Failed to simulate mouse movements: \(error.localizedDescription).")
         }
     }
 
-    /// Simulates human-like typing behavior
+    /// Simulates human-like typing behavior using centralized library
     /// - Parameters:
     ///   - webView: The WebView to simulate typing in
     ///   - text: The text to type
@@ -212,52 +83,15 @@ public final class WebKitAntiDetection: ObservableObject {
     public func simulateHumanTyping(in webView: WKWebView, text: String, elementSelector: String) async {
         logger.info("⌨️ Simulating human typing for instance: \(self.instanceId).")
 
-        let typingScript = """
-        (function() {
-            try {
-                const element = document.querySelector('\(elementSelector)');
-                if (!element) {
-                    console.error('[ODYSSEY] Element not found for typing: \(elementSelector)');
-                    return;
-                }
-
-                element.focus();
-                element.value = '';
-
-                const text = '\(text)';
-                let currentText = '';
-
-                // Type each character with random delays
-                for (let i = 0; i < text.length; i++) {
-                    setTimeout(() => {
-                        currentText += text[i];
-                        element.value = currentText;
-
-                        // Dispatch events
-                        element.dispatchEvent(new Event('input', { bubbles: true }));
-                        element.dispatchEvent(new Event('change', { bubbles: true }));
-
-                        // Occasionally make a typo and correct it
-                        if (Math.random() < 0.05 && i < text.length - 1) {
-                            setTimeout(() => {
-                                currentText = currentText.slice(0, -1) + text[i];
-                                element.value = currentText;
-                                element.dispatchEvent(new Event('input', { bubbles: true }));
-                            }, Math.random() * 200 + 100);
-                        }
-                    }, i * (\(typingDelay) * 1000) + Math.random() * 100);
-                }
-
-                console.log('[ODYSSEY] Human typing simulated for instance: \(instanceId)');
-            } catch (error) {
-                console.error('[ODYSSEY] Error simulating human typing:', error);
-            }
-        })();
-        """
+        let script = "window.odyssey.typeTextIntoElement('\(elementSelector)', '\(text)');"
 
         do {
-            _ = try await webView.evaluateJavaScript(typingScript)
-            logger.info("✅ Human typing simulated successfully.")
+            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
+            if result {
+                logger.info("✅ Human typing simulated successfully.")
+            } else {
+                logger.warning("⚠️ Human typing simulation failed.")
+            }
         } catch {
             logger.error("❌ Failed to simulate human typing: \(error.localizedDescription).")
         }

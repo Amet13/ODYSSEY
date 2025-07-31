@@ -54,7 +54,7 @@ public final class WebKitHumanBehavior: ObservableObject {
 
     // MARK: - Element Interaction
 
-    /// Simulates human-like element clicking
+    /// Simulates human-like clicking using centralized JavaScript library
     /// - Parameters:
     ///   - webView: The WebView to interact with
     ///   - selector: The CSS selector for the element
@@ -65,69 +65,10 @@ public final class WebKitHumanBehavior: ObservableObject {
         // Add pre-click delay
         await addHumanDelay()
 
-        let clickScript = """
-        (function() {
-            try {
-                const element = document.querySelector('\(selector)');
-                if (!element) {
-                    console.error('[ODYSSEY] Element not found for click: \(selector)');
-                    return false;
-                }
-
-                // Scroll element into view
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                // Add mouse hover before click
-                const hoverEvent = new MouseEvent('mouseenter', {
-                    bubbles: true,
-                    cancelable: true,
-                    view: window
-                });
-                element.dispatchEvent(hoverEvent);
-
-                // Simulate mouse down and up
-                const mouseDownEvent = new MouseEvent('mousedown', {
-                    bubbles: true,
-                    cancelable: true,
-                    button: 0,
-                    buttons: 1,
-                    view: window
-                });
-                element.dispatchEvent(mouseDownEvent);
-
-                // Small delay between down and up
-                setTimeout(() => {
-                    const mouseUpEvent = new MouseEvent('mouseup', {
-                        bubbles: true,
-                        cancelable: true,
-                        button: 0,
-                        buttons: 0,
-                        view: window
-                    });
-                    element.dispatchEvent(mouseUpEvent);
-
-                    // Finally trigger the click
-                    const clickEvent = new MouseEvent('click', {
-                        bubbles: true,
-                        cancelable: true,
-                        button: 0,
-                        buttons: 0,
-                        view: window
-                    });
-                    element.dispatchEvent(clickEvent);
-                }, Math.random() * 100 + 50);
-
-                console.log('[ODYSSEY] Human click simulated: \(description)');
-                return true;
-            } catch (error) {
-                console.error('[ODYSSEY] Error simulating human click:', error);
-                return false;
-            }
-        })();
-        """
+        let script = "window.odyssey.clickElement('\(selector)');"
 
         do {
-            let result = try await webView.evaluateJavaScript(clickScript) as? Bool ?? false
+            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
                 logger.info("✅ Human click simulated successfully: \(description).")
             } else {
@@ -138,7 +79,7 @@ public final class WebKitHumanBehavior: ObservableObject {
         }
     }
 
-    /// Simulates human-like text input
+    /// Simulates human-like text input using centralized JavaScript library
     /// - Parameters:
     ///   - webView: The WebView to interact with
     ///   - selector: The CSS selector for the input element
@@ -155,58 +96,10 @@ public final class WebKitHumanBehavior: ObservableObject {
         // Add pre-input delay
         await addHumanDelay()
 
-        let inputScript = """
-        (function() {
-            try {
-                const element = document.querySelector('\(selector)');
-                if (!element) {
-                    console.error('[ODYSSEY] Element not found for text input: \(selector)');
-                    return false;
-                }
-
-                // Focus the element
-                element.focus();
-
-                // Clear existing value
-                element.value = '';
-                element.dispatchEvent(new Event('input', { bubbles: true }));
-                element.dispatchEvent(new Event('change', { bubbles: true }));
-
-                const text = '\(text)';
-                let currentText = '';
-
-                // Type each character with human-like timing
-                for (let i = 0; i < text.length; i++) {
-                    setTimeout(() => {
-                        currentText += text[i];
-                        element.value = currentText;
-
-                        // Dispatch input events
-                        element.dispatchEvent(new Event('input', { bubbles: true }));
-                        element.dispatchEvent(new Event('change', { bubbles: true }));
-
-                        // Occasionally make a typo and correct it (5% chance)
-                        if (Math.random() < 0.05 && i < text.length - 1) {
-                            setTimeout(() => {
-                                currentText = currentText.slice(0, -1) + text[i];
-                                element.value = currentText;
-                                element.dispatchEvent(new Event('input', { bubbles: true }));
-                            }, Math.random() * 200 + 100);
-                        }
-                    }, i * (\(AppConstants.typingDelay) * 1000) + Math.random() * 100);
-                }
-
-                console.log('[ODYSSEY] Human text input simulated: \(description)');
-                return true;
-            } catch (error) {
-                console.error('[ODYSSEY] Error simulating human text input:', error);
-                return false;
-            }
-        })();
-        """
+        let script = "window.odyssey.typeTextIntoElement('\(selector)', '\(text)');"
 
         do {
-            let result = try await webView.evaluateJavaScript(inputScript) as? Bool ?? false
+            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
             if result {
                 logger.info("✅ Human text input simulated successfully: \(description).")
             } else {
@@ -217,7 +110,7 @@ public final class WebKitHumanBehavior: ObservableObject {
         }
     }
 
-    /// Simulates human-like scrolling
+    /// Simulates human-like scrolling using centralized JavaScript library
     /// - Parameters:
     ///   - webView: The WebView to scroll
     ///   - direction: The scroll direction
@@ -227,42 +120,15 @@ public final class WebKitHumanBehavior: ObservableObject {
 
         await addHumanDelay()
 
-        let scrollScript = """
-        (function() {
-            try {
-                const scrollDistance = \(distance);
-                const direction = '\(direction.rawValue)';
-
-                // Smooth scrolling with human-like behavior
-                const scrollStep = scrollDistance / 10;
-                let currentScroll = 0;
-
-                const scrollInterval = setInterval(() => {
-                    if (currentScroll >= scrollDistance) {
-                        clearInterval(scrollInterval);
-                        return;
-                    }
-
-                    const step = Math.min(scrollStep, scrollDistance - currentScroll);
-                    if (direction === 'down') {
-                        window.scrollBy(0, step);
-                    } else {
-                        window.scrollBy(0, -step);
-                    }
-
-                    currentScroll += step;
-                }, Math.random() * 50 + 30);
-
-                console.log('[ODYSSEY] Human scrolling simulated: \(direction.rawValue)');
-            } catch (error) {
-                console.error('[ODYSSEY] Error simulating human scrolling:', error);
-            }
-        })();
-        """
+        let script = "window.odyssey.scrollHuman('\(direction.rawValue)', \(distance));"
 
         do {
-            _ = try await webView.evaluateJavaScript(scrollScript)
-            logger.info("✅ Human scrolling simulated successfully.")
+            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
+            if result {
+                logger.info("✅ Human scrolling simulated successfully.")
+            } else {
+                logger.warning("⚠️ Human scrolling simulation failed.")
+            }
         } catch {
             logger.error("❌ Failed to simulate human scrolling: \(error.localizedDescription).")
         }

@@ -543,7 +543,13 @@ struct ConfigurationDetailView: View {
         isFetchingSports = true
         availableSports = []
 
-        FacilityService.shared.fetchAvailableSports(from: facilityURL) { sports in
+        guard let url = URL(string: facilityURL) else {
+            isFetchingSports = false
+            return
+        }
+
+        let facilityService = FacilityService()
+        facilityService.loadAvailableSports(from: url) { sports in
             DispatchQueue.main.async {
                 isFetchingSports = false
                 availableSports = sports
