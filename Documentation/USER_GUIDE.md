@@ -1,76 +1,76 @@
-# 👤 ODYSSEY User Guide
+# 👤 **ODYSSEY user guide**
 
 ## 📦 Installation
 
-1. Download `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/)
-2. Open the installer, and drag `ODYSSEY.app` to `Applications`, eject the `.dmg` archive
-3. Open the installed app, it will appear in your menu bar (tray)
+1. **Download** `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
+2. **Install:** Open the installer and drag `ODYSSEY.app` to **Applications**. Eject the `.dmg` archive.
+3. **Launch:** Open the installed app. It will appear in your menu bar.
 
-For CLI installation and setup, see the complete [CLI Documentation](CLI.md).
+For CLI installation and setup, see the complete **[CLI documentation](CLI.md)**.
 
 ## ⚙️ Configuration
 
-### 🎯 First Time Setup
+### 🎯 First-time setup
 
-1. **Launch ODYSSEY** - Click the menu bar icon
-2. **Add Configuration** - Click the "+" button
-3. **Configure Settings** - Set up your contact info and email
-4. **Test Email** - Verify your email connection works
+1. **Launch ODYSSEY:** Click the menu bar icon.
+2. **Add configuration:** Click the "+" button.
+3. **Configure settings:** Set up your contact info and email.
+4. **Test email:** Verify your email connection works.
 
 <div align="center">
   <img src="Images/main_empty.png" width="400" alt="Main screen with no configurations">
   <p><em>Main screen when no configurations are added</em></p>
 </div>
 
-### ➕ Adding a Reservation Configuration
+### ➕ Adding a reservation configuration
 
-1. Click **Add Configuration** or the "+" button
-2. Fill in the required fields:
-   - **Facility URL**: The facility URL in format `https://reservation.frontdesksuite.ca/rcfs/[facility-name]`
-   - **Sport Name**: Select the sport
-   - **Number of People**: How many people in your group
-   - **Configuration Name**: You can change it if you want
-   - **Time Slot**: Select day and time for your reservations
-3. Click **Add**
+1. **Add configuration:** Click **Add configuration** or the "+" button.
+2. **Fill in the required fields:**
+   - **Facility URL:** The facility URL in format `https://reservation.frontdesksuite.ca/rcfs/[facility-name]`.
+   - **Sport name:** Select the sport.
+   - **Number of people:** How many people in your group.
+   - **Configuration name:** You can change it if you want.
+   - **Time slot:** Select day and time for your reservations.
+3. **Add:** Click **Add**.
 
 <div align="center">
   <img src="Images/add_config.png" width="400" alt="Add configuration screen">
   <p><em>Adding a new reservation configuration</em></p>
 </div>
 
-### 🔧 Managing Configurations
+### 🔧 Managing configurations
 
-#### ▶️ Run Manually
+#### ▶️ Run manually
 
-- Click the play button to run a configuration immediately
-- Useful for testing or immediate bookings
+- **Run:** Click the play button to run a configuration immediately.
+- **Test:** Useful for testing or immediate bookings.
 
-#### ✅ Enable/Disable
+#### ✅ Enable/disable
 
-- Use the toggle switch to enable/disable automatic runs (2 days prior at 6pm)
-- Disabled configurations won't run automatically
+- **Toggle:** Use the toggle switch to enable or disable automatic runs (2 days prior at 6 p.m.).
+- **Disabled:** Disabled configurations won't run automatically.
 
-#### ✏️ Edit Configuration
+#### ✏️ Edit configuration
 
-- Click the pencil icon to edit a configuration
-- All fields can be modified
-- Changes are saved immediately
+- **Edit:** Click the pencil icon to edit a configuration.
+- **Modify:** All fields can be modified.
+- **Save:** Changes are saved immediately.
 
-#### 🗑️ Delete Configuration
+#### 🗑️ Delete configuration
 
-- Click the trash icon to delete a configuration
-- You will be asked to confirm this operation to avoid random click
+- **Delete:** Click the trash icon to delete a configuration.
+- **Confirm:** You'll be asked to confirm this action to prevent accidental deletion.
 
 <div align="center">
   <img src="Images/main_configs.png" width="400" alt="Main screen with configurations">
   <p><em>Main screen with active configurations</em></p>
 </div>
 
-### 📧 Email Setup
+### 📧 Email setup
 
 The app can connect to your email account using IMAP and automatically parse verification codes for approving reservation.
 
-Gmail does not support your password usage for IMAP, that's why you need to generate [App Password](https://support.google.com/mail/answer/185833?hl=en) for it and use for ODYSSEY.
+Gmail does not support using your regular password for IMAP. You need to generate an [App Password](https://support.google.com/mail/answer/185833?hl=en) and use it with ODYSSEY.
 
 <div align="center">
   <img src="Images/settings.png" width="400" alt="Settings screen">
@@ -79,10 +79,10 @@ Gmail does not support your password usage for IMAP, that's why you need to gene
 
 ## 📊 Logs
 
-1. Open **Console.app** (Applications → Utilities → Console)
-2. Search for `com.odyssey.app`
-3. Look for emoji indicators:
-   - 🚀 Success messages
-   - ⚠️ Warnings
-   - ❌ Errors
-   - 🔍 Debug information
+1. **Open Console.app:** (Applications → Utilities → Console).
+2. **Search:** Search for `com.odyssey.app`.
+3. **Look for emoji indicators:**
+   - 🚀 _Success messages._
+   - ⚠️ _Warnings._
+   - ❌ _Errors._
+   - 🔍 _Debug information._

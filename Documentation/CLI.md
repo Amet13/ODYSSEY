@@ -1,20 +1,20 @@
-# 💻 ODYSSEY CLI Guide
+# 💻 **ODYSSEY CLI guide**
 
 The ODYSSEY CLI provides command-line automation capabilities using the same powerful WebKit automation engine as the GUI version, ensuring consistent behavior and reliability.
 
 ## ⚙️ Installation
 
-> **Prerequisite**: You need the GUI app configured first. See [USER_GUIDE.md](USER_GUIDE.md) for initial setup.
+> **Prerequisite:** First, configure the GUI app. See **[USER_GUIDE.md](USER_GUIDE.md)** for setup instructions.
 
-1. Download `odyssey-cli` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/)
-2. Make it executable `chmod +x odyssey-cli`
+1. **Download:** Download `odyssey-cli` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
+2. **Make executable:** Run `chmod +x odyssey-cli`.
 
-## 🔧 Export Token Details
+## 🔧 Export token details
 
-The export token is a compressed, base64-encoded configuration optimized for CLI automation. It contains only essential data:
+The export token is a compressed, base64-encoded configuration containing only essential data for CLI automation:
 
-- **User Settings**: Name, phone, email credentials, IMAP server (do not share this data, it contains sensitive information)
-- **Selected Configurations**: All reservation configurations chosen for export
+- **User settings:** Name, phone, email credentials, IMAP server (_do not share this data, it contains sensitive information_).
+- **Selected configurations:** All reservation configurations chosen for export.
 
 ## 🔧 Configuration
 
@@ -42,7 +42,7 @@ The export token is a compressed, base64-encoded configuration optimized for CLI
    ./odyssey-cli settings
    ```
 
-## 🎯 Basic Usage
+## 🎯 Basic usage
 
 ```bash
 # Set your export token
@@ -52,7 +52,7 @@ export ODYSSEY_EXPORT_TOKEN="<exported_token>"
 ./odyssey-cli run
 ```
 
-## 📋 Environment Variables
+## 📋 Environment variables
 
 | Variable               | Required | Default | Description                                                  |
 | ---------------------- | -------- | ------- | ------------------------------------------------------------ |
@@ -150,10 +150,10 @@ Show CLI version information.
 ./odyssey-cli version
 ```
 
-## 🚀 GitHub Actions Integration
+## 🚀 GitHub Actions integration
 
 The CLI can be integrated into GitHub Actions for automated reservation booking.
-You should use macOS runners exclusively.
+Use only macOS runners.
 
 ### 📋 Step 1: Fork the Repository
 
