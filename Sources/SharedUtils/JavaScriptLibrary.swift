@@ -81,7 +81,7 @@ public final class JavaScriptLibrary {
         },
 
         // Simulate human typing
-        simulateTyping: function(selector, text, fastHumanLike = false, blurAfter = false) {
+        simulateTyping: async function(selector, text, fastHumanLike = false, blurAfter = false) {
             const element = document.querySelector(selector);
             if (!element) return false;
 
@@ -267,7 +267,6 @@ public final class JavaScriptLibrary {
                     for (let timeSlot of timeSlotElements) {
                         if (timeSlot.textContent && timeSlot.textContent.includes(timeString)) {
                             timeSlot.click();
-                            console.log('[ODYSSEY] Selected time slot:', timeString);
                             return true;
                         }
                     }
@@ -343,7 +342,7 @@ public final class JavaScriptLibrary {
         },
 
         // Simulate human typing
-        simulateTyping: function(selector, text, fastHumanLike = false, blurAfter = false) {
+        simulateTyping: async function(selector, text, fastHumanLike = false, blurAfter = false) {
             const element = document.querySelector(selector);
             if (!element) return false;
 
@@ -605,99 +604,36 @@ public final class JavaScriptLibrary {
         return """
         // ===== SPORTS DETECTION =====
 
-        // Look for sport buttons/links with comprehensive selectors
+        // Detect sports from button elements on the page
         detectSports: function() {
-            const allElements = Array.from(document.querySelectorAll('*'));
-            const sports = [];
+            try {
+                const sports = [];
 
-            for (let element of allElements) {
-                const text = element.textContent || element.innerText || '';
-                const className = element.className || '';
-                const id = element.id || '';
+                // Look for elements with the specific 'button no-img' class
+                const buttonNoImgElements = document.querySelectorAll('.button.no-img');
 
-                // Check for common sports keywords
-                const sportsKeywords = [
-                    'basketball', 'soccer', 'football', 'tennis', 'volleyball', 'hockey',
-                    'baseball', 'swimming', 'gym', 'fitness', 'yoga', 'pilates',
-                    'badminton', 'squash', 'racquetball', 'table tennis', 'ping pong'
-                ];
+                buttonNoImgElements.forEach((element) => {
+                    const text = element.textContent || element.innerText || '';
+                    const trimmedText = text.trim();
 
-                for (let sport of sportsKeywords) {
-                    if (text.toLowerCase().includes(sport) ||
-                        className.toLowerCase().includes(sport) ||
-                        id.toLowerCase().includes(sport)) {
+                    if (trimmedText.length > 0) {
+                        // Check for duplicates by sport name (case-insensitive)
+                        const isDuplicate = sports.some(existing =>
+                            existing.toLowerCase() === trimmedText.toLowerCase()
+                        );
 
-                        // Check if element is clickable
-                        const style = window.getComputedStyle(element);
-                        const isClickable = style.cursor === 'pointer' ||
-                                          element.tagName === 'BUTTON' ||
-                                          element.tagName === 'A' ||
-                                          element.onclick !== null;
-
-                        if (isClickable) {
-                            sports.push({
-                                sport: sport,
-                                text: text.trim(),
-                                element: element.tagName,
-                                className: className,
-                                id: id
-                            });
+                        if (!isDuplicate) {
+                            sports.push(trimmedText);
                         }
                     }
-                }
+                });
+
+                return sports;
+
+            } catch (error) {
+                console.error('[ODYSSEY] Error in detectSports:', error);
+                return [];
             }
-
-            console.log('[ODYSSEY] Sports detected:', sports);
-            return sports;
-        },
-
-        // Fallback sports detection with aggressive approach
-        detectSportsFallback: function() {
-            const sports = [];
-            const debug = [];
-
-            // Try a more aggressive approach - look for any clickable elements with text
-            const allElements = document.querySelectorAll('*');
-            debug.push(`Total elements on page: ${allElements.length}`);
-
-            allElements.forEach((element, index) => {
-                // Only check elements that are likely to be clickable
-                const isClickable = element.tagName === 'BUTTON' ||
-                                   element.tagName === 'A' ||
-                                   element.onclick ||
-                                   element.style.cursor === 'pointer' ||
-                                   element.classList.contains('btn') ||
-                                   element.classList.contains('button') ||
-                                   element.getAttribute('role') === 'button';
-
-                if (isClickable) {
-                    const text = element.textContent?.trim();
-                    if (text && text.length > 0 && text.length < 50) {
-                        const lowerText = text.toLowerCase();
-
-                        // More permissive filtering - only exclude obvious non-sports
-                        const excludedWords = [
-                            'login', 'logout', 'sign', 'register', 'account',
-                            'settings', 'profile', 'dashboard', 'admin', 'user',
-                            'help', 'contact', 'about', 'home', 'menu', 'search',
-                            'close', 'cancel', 'submit', 'next', 'previous', 'back'
-                        ];
-
-                        const shouldExclude = excludedWords.some(word => lowerText.includes(word));
-
-                        if (!shouldExclude) {
-                            sports.push(text);
-                            debug.push(`Fallback added: "${text}" (${element.tagName})`);
-                        }
-                    }
-                }
-            });
-
-            const uniqueSports = [...new Set(sports)];
-            debug.push(`Fallback unique sports: ${uniqueSports.length}`);
-
-            console.log('[ODYSSEY] Fallback sports detection debug:', debug);
-            return uniqueSports;
         }
         """
     }

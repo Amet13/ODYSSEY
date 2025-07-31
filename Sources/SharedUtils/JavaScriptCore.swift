@@ -358,7 +358,7 @@ public final class JavaScriptCore {
                     currentScroll += step;
                 }, Math.random() * 50 + 30);
 
-                console.log('[ODYSSEY] Human scrolling simulated: ' + direction);
+
                 return true;
             } catch (error) {
                 console.error('[ODYSSEY] Error simulating human scrolling:', error);

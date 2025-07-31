@@ -1,4 +1,5 @@
 import Combine
+import os // Added for debug logging
 import SwiftUI
 
 // MARK: - Main Content View
@@ -364,7 +365,9 @@ private struct HeaderView: View {
                     .help("⚡ Simulate autorun for \(formatCustomTime()) today")
                     .accessibilityLabel("Simulate GOD MODE")
                 }
-                Button(action: { showingAddConfig = true }) {
+                Button(action: {
+                    showingAddConfig = true
+                }) {
                     Image(systemName: "plus")
                         .foregroundColor(Color.odysseyCardBackground)
                 }

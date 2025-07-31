@@ -24,39 +24,37 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
 
     // MARK: - Public Methods
 
-    /// Loads available sports from a facility URL
-    /// - Parameters:
-    ///   - url: The facility URL to load
-    ///   - completion: Completion handler with array of available sports
-    public func loadAvailableSports(from url: URL, completion: @escaping ([String]) -> Void) {
+    /// Fetches available sports from the facility page
+    public func fetchSports(from url: URL, completion: @escaping ([String]) -> Void) {
+        logger.info("🏀 Starting sports fetch process...")
+
         guard let webView else {
-            logger.error("❌ WebView not initialized.")
+            logger.error("❌ WebView not initialized for sports fetch")
             completion([])
             return
         }
 
-        self.completionHandler = completion
         isLoading = true
-        availableSports = []
-        error = nil
+        completionHandler = completion
 
-        logger.info("🌐 Loading facility page: \(url.absoluteString).")
+        logger.info("🔍 Loading facility page for sports detection...")
+        logger.info("🌐 Loading URL: \(url)")
 
         let request = URLRequest(url: url)
         webView.load(request)
     }
 
-    /// Test method to debug sports detection
+    /// Fetches available sports from the default Ottawa facility page (for backward compatibility)
+    public func fetchSports(completion: @escaping ([String]) -> Void) {
+        let defaultURL = URL(string: "https://ottawa.ca/en/recreation-and-parks/recreation-programs-and-activities")!
+        fetchSports(from: defaultURL, completion: completion)
+    }
+
+    /// Test method for debugging sports detection
     public func testSportsDetection() {
         logger.info("🧪 Testing sports detection functionality...")
 
-        // Test with a simple URL
-        guard let testURL = URL(string: "https://www.google.com") else {
-            logger.error("❌ Invalid test URL.")
-            return
-        }
-
-        loadAvailableSports(from: testURL) { sports in
+        fetchSports { sports in
             self.logger.info("🧪 Test completed. Found \(sports.count) sports: \(sports).")
         }
     }
@@ -80,44 +78,55 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
     }
 
     private func executeSportsDetectionScript() {
+        logger.info("🔍 Starting sports detection script execution...")
+
+        guard let webView else {
+            logger.error("❌ WebView is nil in executeSportsDetectionScript")
+            return
+        }
+
+        logger.info("🔧 Setting up WebView with JavaScript libraries...")
+
+        let automationScript = JavaScriptLibrary.getAutomationLibrary()
+        logger.info("📜 Automation script length: \(automationScript.count) characters")
+
+        let script = WKUserScript(source: automationScript, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
+        webView.configuration.userContentController.addUserScript(script)
+
+        // Add message handler for debugging
+        webView.configuration.userContentController.add(self, name: "sportsDebug")
+
+        logger.info("🔧 WebView setup completed with centralized JavaScript library.")
+
         let sportsDetectionScript = JavaScriptLibrary.getSportsDetectionLibrary()
+        logger.info("📜 Sports detection script length: \(sportsDetectionScript.count) characters")
+
+        let script2 = WKUserScript(
+            source: sportsDetectionScript,
+            injectionTime: .atDocumentEnd,
+            forMainFrameOnly: false,
+            )
+        webView.configuration.userContentController.addUserScript(script2)
+
+        logger.info("🔧 Sports detection script injected.")
+
+        // Simple sports detection script
+        let sportsScript = "window.odyssey.detectSports();"
 
         logger.info("🔍 Executing sports detection script...")
 
-        webView?.evaluateJavaScript(sportsDetectionScript) { [weak self] result, error in
+        webView.evaluateJavaScript(sportsScript) { [weak self] result, error in
             if let error {
-                self?.logger.error("❌ Sports detection script error: \(error.localizedDescription).")
+                self?.logger.error("❌ Sports detection error: \(error.localizedDescription).")
                 self?.isLoading = false
                 self?.completionHandler?([])
             } else if let sportsArray = result as? [String] {
-                self?.logger.info("✅ Extracted \(sportsArray.count) sports from facility page: \(sportsArray).")
+                self?.logger.info("✅ Extracted \(sportsArray.count) sports: \(sportsArray).")
                 self?.availableSports = sportsArray
                 self?.isLoading = false
                 self?.completionHandler?(sportsArray)
             } else {
-                self?.logger.warning("⚠️ Invalid sports data received. Result type: \(type(of: result)).")
-                self?.logger.warning("⚠️ Result value: \(String(describing: result)).")
-                self?.isLoading = false
-                self?.completionHandler?([])
-            }
-        }
-    }
-
-    private func executeFallbackSportsDetection() {
-        let script = "window.odyssey.detectSportsFallback();"
-
-        webView?.evaluateJavaScript(script) { [weak self] result, error in
-            if let error {
-                self?.logger.error("❌ Fallback sports detection script error: \(error.localizedDescription).")
-                self?.isLoading = false
-                self?.completionHandler?([])
-            } else if let sportsArray = result as? [String] {
-                self?.logger.info("✅ Fallback extracted \(sportsArray.count) sports: \(sportsArray).")
-                self?.availableSports = sportsArray
-                self?.isLoading = false
-                self?.completionHandler?(sportsArray)
-            } else {
-                self?.logger.warning("⚠️ Fallback: Invalid sports data received.")
+                self?.logger.warning("⚠️ Invalid sports data received.")
                 self?.isLoading = false
                 self?.completionHandler?([])
             }
@@ -138,8 +147,22 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
 // MARK: - WKNavigationDelegate
 
 extension FacilityService: WKNavigationDelegate {
+    public func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation!) {
+        logger.info("🚀 WebView navigation started")
+    }
+
+    public func webView(_: WKWebView, didReceiveServerRedirectForProvisionalNavigation _: WKNavigation!) {
+        logger.info("🔄 WebView received server redirect")
+    }
+
+    public func webView(_: WKWebView, didCommit _: WKNavigation!) {
+        logger.info("📄 WebView did commit navigation")
+    }
+
     public func webView(_: WKWebView, didFinish _: WKNavigation!) {
         logger.info("✅ Facility page loaded successfully.")
+        logger.info("🌐 Current URL: \(self.webView?.url?.absoluteString ?? "unknown")")
+        logger.info("📄 Page title: \(self.webView?.title ?? "unknown")")
 
         // Wait a moment for the page to fully render
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
@@ -149,17 +172,15 @@ extension FacilityService: WKNavigationDelegate {
     }
 
     public func webView(_: WKWebView, didFail _: WKNavigation!, withError error: Error) {
-        logger.error("❌ Failed to load facility page: \(error.localizedDescription).")
-        self.error = error.localizedDescription
-        self.isLoading = false
-        self.completionHandler?([])
+        logger.error("❌ WebView navigation failed: \(error.localizedDescription)")
+        isLoading = false
+        completionHandler?([])
     }
 
     public func webView(_: WKWebView, didFailProvisionalNavigation _: WKNavigation!, withError error: Error) {
-        logger.error("❌ Failed to load facility page (provisional): \(error.localizedDescription).")
-        self.error = error.localizedDescription
-        self.isLoading = false
-        self.completionHandler?([])
+        logger.error("❌ WebView provisional navigation failed: \(error.localizedDescription)")
+        isLoading = false
+        completionHandler?([])
     }
 }
 

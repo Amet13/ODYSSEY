@@ -50,6 +50,20 @@ struct ConfigurationDetailView: View {
                 }
                 .padding(.horizontal, AppConstants.contentPadding)
                 .padding(.vertical, AppConstants.contentPadding)
+                .onAppear {
+                    os_log(
+                        "🔍 facilityURL.isEmpty: %{public}d",
+                        log: .default,
+                        type: .debug,
+                        facilityURL.isEmpty ? 1 : 0,
+                        )
+                    os_log(
+                        "🔍 isValidFacilityURL result: %{public}d",
+                        log: .default,
+                        type: .debug,
+                        isValidFacilityURL(facilityURL) ? 1 : 0,
+                        )
+                }
                 HeaderFooterDivider()
                 if !validationErrors.isEmpty {
                     HStack {
@@ -123,7 +137,13 @@ struct ConfigurationDetailView: View {
         .onChange(of: dayTimeSlots) {
             updateConflicts()
         }
-        .onChange(of: facilityURL) {
+        .onChange(of: facilityURL) { _, newValue in
+            // Automatically trim the URL if it contains Home/...
+            let trimmedURL = trimFacilityURL(newValue)
+            if trimmedURL != newValue {
+                facilityURL = trimmedURL
+            }
+            updateConfigurationName()
             updateConflicts()
         }
         .sheet(isPresented: $showDayPicker) {
@@ -140,14 +160,6 @@ struct ConfigurationDetailView: View {
                 .fontWeight(.semibold)
                 .foregroundColor(.odysseyText)
             TextField("Enter facility URL", text: $facilityURL)
-                .onChange(of: facilityURL) { _, newValue in
-                    // Automatically trim the URL if it contains Home/...
-                    let trimmedURL = trimFacilityURL(newValue)
-                    if trimmedURL != newValue {
-                        facilityURL = trimmedURL
-                    }
-                    updateConfigurationName()
-                }
             if !facilityURL.isEmpty, !isValidFacilityURL(facilityURL) {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -225,12 +237,23 @@ struct ConfigurationDetailView: View {
                 }
                 .accessibilityLabel("Select Sport")
                 .disabled(availableSports.isEmpty)
+
                 if !facilityURL.isEmpty, isValidFacilityURL(facilityURL) {
-                    Button(action: { fetchAvailableSports() }) {
+                    Button(action: {
+                        fetchAvailableSports()
+                    }) {
                         Image(systemName: isFetchingSports ? "arrow.clockwise" : "magnifyingglass")
                     }
                     .buttonStyle(.bordered)
                     .disabled(isFetchingSports)
+                    .onAppear {
+                        os_log(
+                            "🔍 isValidFacilityURL: %{public}d",
+                            log: .default,
+                            type: .debug,
+                            isValidFacilityURL(facilityURL) ? 1 : 0,
+                            )
+                    }
                 }
             }
             if isFetchingSports {
@@ -491,13 +514,22 @@ struct ConfigurationDetailView: View {
     }
 
     /**
-     Validates the facility URL.
+     Validates if a URL string is a valid facility URL.
      - Parameter url: The URL string to validate.
      - Returns: Bool indicating if the URL is valid.
      */
     private func isValidFacilityURL(_ url: String) -> Bool {
         let pattern = #"^https://reservation\.frontdesksuite\.ca/rcfs/[^/]+/?$"#
-        return url.range(of: pattern, options: .regularExpression) != nil
+        let isValid = url.range(of: pattern, options: .regularExpression) != nil
+        os_log(
+            "🔍 isValidFacilityURL check - URL: '%{public}@', Pattern: '%{public}@', Result: %{public}d",
+            log: .default,
+            type: .debug,
+            url,
+            pattern,
+            isValid ? 1 : 0,
+            )
+        return isValid
     }
 
     /**
@@ -538,19 +570,34 @@ struct ConfigurationDetailView: View {
      - Returns: Void
      */
     private func fetchAvailableSports() {
-        guard !facilityURL.isEmpty, isValidFacilityURL(facilityURL) else { return }
-
-        isFetchingSports = true
-        availableSports = []
+        guard !facilityURL.isEmpty, isValidFacilityURL(facilityURL) else {
+            return
+        }
 
         guard let url = URL(string: facilityURL) else {
             isFetchingSports = false
             return
         }
 
+        os_log(
+            "🔍 fetchAvailableSports() proceeding with URL: %{public}@",
+            log: .default,
+            type: .debug,
+            url.absoluteString,
+            )
+
+        isFetchingSports = true
+        availableSports = []
+
         let facilityService = FacilityService()
-        facilityService.loadAvailableSports(from: url) { sports in
+        facilityService.fetchSports(from: url) { sports in
             DispatchQueue.main.async {
+                os_log(
+                    "🔍 fetchAvailableSports() completed with %{public}d sports",
+                    log: .default,
+                    type: .debug,
+                    sports.count,
+                    )
                 isFetchingSports = false
                 availableSports = sports
             }

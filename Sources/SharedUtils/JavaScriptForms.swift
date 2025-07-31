@@ -34,7 +34,7 @@ public final class JavaScriptForms {
             field.dispatchEvent(new Event('change', { bubbles: true }));
             field.dispatchEvent(new Event('blur', { bubbles: true }));
 
-            console.log('[ODYSSEY] Filled field:', selector, 'with value:', value);
+
             return true;
         } catch (error) {
             console.error('[ODYSSEY] Error filling field:', error);
@@ -226,7 +226,7 @@ public final class JavaScriptForms {
     },
 
     // Simulate human-like typing with typos and corrections
-    simulateHumanTyping: function(element, text) {
+    simulateHumanTyping: async function(element, text) {
         if (!element) return false;
 
         try {
