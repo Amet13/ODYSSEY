@@ -124,7 +124,6 @@ install_dev_tools() {
         "markdownlint-cli"
         "actionlint"
         "create-dmg"
-        "jazzy"
     )
 
     for tool in "${tools[@]}"; do
