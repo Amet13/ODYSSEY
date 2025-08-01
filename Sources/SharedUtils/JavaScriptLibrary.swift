@@ -3,12 +3,11 @@ import os.log
 
 /// Centralized JavaScript library for ODYSSEY automation
 /// Consolidates all JavaScript functionality to eliminate duplication and improve maintainability
-/// Now uses modular approach with separate libraries for different concerns
 @MainActor
 public final class JavaScriptLibrary {
     private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "JavaScriptLibrary")
 
-    // MARK: - Modular Libraries
+    // MARK: - Complete Library
 
     /// Get the complete automation library with all modules
     public static func getCompleteLibrary() -> String {
@@ -30,24 +29,9 @@ public final class JavaScriptLibrary {
         \(getAdvancedAutomationLibrary())
         });
 
-        // Extend with human behavior simulation
-        Object.assign(window.odyssey, {
-        \(getHumanBehaviorLibrary())
-        });
-
-        // Extend with verification handling
-        Object.assign(window.odyssey, {
-        \(getVerificationLibrary())
-        });
-
-        // Extend with WebDriver element functions
-        Object.assign(window.odyssey, {
-        \(getWebDriverLibrary())
-        });
-
         // Extend with sports detection
         Object.assign(window.odyssey, {
-        \(getSportsDetectionLibraryContent())
+        \(getSportsDetectionLibrary())
         });
         """
     }
@@ -82,12 +66,11 @@ public final class JavaScriptLibrary {
             return true;
         },
 
-        // Apply basic anti-detection measures
+        // Apply comprehensive anti-detection measures
         applyBasicAntiDetection: function() {
             try {
                 // Enhanced session management to prevent "multiple tabs" detection
                 if (window.sessionStorage) {
-                    // Ensure we have a consistent session ID
                     if (!window.sessionStorage.getItem('odyssey_session_id')) {
                         window.sessionStorage.setItem('odyssey_session_id', Date.now().toString());
                     }
@@ -101,7 +84,7 @@ public final class JavaScriptLibrary {
                     });
                 }
 
-                // Override Chrome automation properties
+                // Remove Chrome automation flags
                 if (window.cdc_adoQpoasnfa76pfcZLmcfl_Array) {
                     delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
                 }
@@ -112,53 +95,54 @@ public final class JavaScriptLibrary {
                     delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
                 }
 
-                // Override automation detection properties
-                if (window.navigator.plugins) {
-                    Object.defineProperty(navigator, 'plugins', {
-                        get: () => [1, 2, 3, 4, 5],
+                // Override properties that might detect multiple tabs
+                if (navigator.hardwareConcurrency) {
+                    Object.defineProperty(navigator, 'hardwareConcurrency', {
+                        get: () => 8,
                         configurable: true
                     });
                 }
 
-                // Override automation detection in window object
-                if (window.chrome && window.chrome.runtime) {
-                    Object.defineProperty(window.chrome, 'runtime', {
-                        get: () => undefined,
+                // Override screen properties
+                if (screen.width) {
+                    Object.defineProperty(screen, 'width', {
+                        get: () => 1440,
+                        configurable: true
+                    });
+                }
+                if (screen.height) {
+                    Object.defineProperty(screen, 'height', {
+                        get: () => 900,
                         configurable: true
                     });
                 }
 
-                // Add realistic user agent properties
+                // Ensure consistent user agent
                 if (navigator.userAgent) {
                     Object.defineProperty(navigator, 'userAgent', {
-                        get: () => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                        get: () => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                         configurable: true
                     });
                 }
 
-                // Override automation detection in document
-                if (document.hidden !== undefined) {
-                    Object.defineProperty(document, 'hidden', {
-                        get: () => false,
+                // Override window properties that might be used for detection
+                if (window.outerWidth) {
+                    Object.defineProperty(window, 'outerWidth', {
+                        get: () => 1440,
+                        configurable: true
+                    });
+                }
+                if (window.outerHeight) {
+                    Object.defineProperty(window, 'outerHeight', {
+                        get: () => 900,
                         configurable: true
                     });
                 }
 
-                // Add basic mouse movement tracking
-                if (!window.odysseyMouseMovements) {
-                    window.odysseyMouseMovements = [];
+                // Ensure window name is consistent
+                if (window.name) {
+                    window.name = 'odyssey_main_window';
                 }
-
-                // Override any automation detection scripts
-                const originalQuerySelector = document.querySelector;
-                document.querySelector = function(selector) {
-                    const result = originalQuerySelector.call(this, selector);
-                    if (result && result.getAttribute && result.getAttribute('data-automation-detection')) {
-                        // Remove automation detection attributes
-                        result.removeAttribute('data-automation-detection');
-                    }
-                    return result;
-                };
 
                 console.log('[ODYSSEY] Enhanced anti-detection measures applied');
                 return true;
@@ -175,17 +159,20 @@ public final class JavaScriptLibrary {
                 if (window.sessionStorage) {
                     const sessionId = window.sessionStorage.getItem('odyssey_session_id');
                     if (sessionId) {
-                        // Keep the same session ID to maintain consistency
                         console.log('[ODYSSEY] Maintaining session ID:', sessionId);
+                    } else {
+                        const newSessionId = Date.now().toString();
+                        window.sessionStorage.setItem('odyssey_session_id', newSessionId);
+                        console.log('[ODYSSEY] Created new session ID:', newSessionId);
                     }
                 }
 
-                // Clear any localStorage that might cause session conflicts
+                // Clear localStorage items that might cause session conflicts
                 if (window.localStorage) {
                     const keysToRemove = [];
                     for (let i = 0; i < window.localStorage.length; i++) {
                         const key = window.localStorage.key(i);
-                        if (key && (key.includes('session') || key.includes('tab') || key.includes('browser'))) {
+                        if (key && (key.includes('session') || key.includes('tab') || key.includes('browser') || key.includes('multiple'))) {
                             keysToRemove.push(key);
                         }
                     }
@@ -201,7 +188,7 @@ public final class JavaScriptLibrary {
                     window.name = 'odyssey_main_window';
                 }
 
-                console.log('[ODYSSEY] Session cleanup completed');
+                console.log('[ODYSSEY] Enhanced session cleanup completed');
                 return true;
             } catch (error) {
                 console.error('[ODYSSEY] Error in session cleanup:', error);
@@ -209,14 +196,9 @@ public final class JavaScriptLibrary {
             }
         },
 
-
-
-
-
         // Click contact info confirm button (unified approach)
         clickContactInfoConfirmButton: function() {
             try {
-                // Try multiple selectors for the confirm button
                 const selectors = [
                     'button[id="submit-btn"]',
                     '#submit-btn',
@@ -243,23 +225,21 @@ public final class JavaScriptLibrary {
             try {
                 console.log('[ODYSSEY] Starting captcha retry with human behavior simulation...');
 
-                // Simulate human behavior before retry using existing functions
-                // 1. Random mouse movement
+                // Simulate human behavior before retry
                 this.simulateQuickMouseMovement();
                 console.log('[ODYSSEY] Mouse movement simulated');
 
-                // 2. Small scroll
                 this.simulateQuickScrolling();
                 console.log('[ODYSSEY] Scroll simulated');
 
-                // 3. Small delay (synchronous)
+                // Small delay (synchronous)
                 const start = Date.now();
                 while (Date.now() - start < 1000) {
                     // Busy wait for 1 second
                 }
                 console.log('[ODYSSEY] Delay completed');
 
-                // 4. Click the confirm button again
+                // Click the confirm button again
                 console.log('[ODYSSEY] Attempting to click confirm button...');
                 const clickResult = this.clickContactInfoConfirmButton();
                 console.log('[ODYSSEY] Click result:', clickResult);
@@ -299,7 +279,7 @@ public final class JavaScriptLibrary {
             };
         },
 
-                            // Expand day section
+        // Expand day section
         expandDaySection: function(dayName) {
             try {
                 const headerElements = Array.from(document.getElementsByClassName('header-text'));
@@ -342,7 +322,7 @@ public final class JavaScriptLibrary {
             }
         },
 
-                // Click time button
+        // Click time button
         clickTimeButton: function(timeString, dayName) {
             try {
                 const timeSlotSelector = `[aria-label*='${timeString} ${dayName}']`;
@@ -367,92 +347,10 @@ public final class JavaScriptLibrary {
         """
     }
 
-    // MARK: - Human Behavior Library
-
-    /// Human behavior simulation functions
-    private static func getHumanBehaviorLibrary() -> String {
-        return """
-        // ===== HUMAN BEHAVIOR SIMULATION =====
-
-
-        """
-    }
-
-    // MARK: - Verification Library
-
-    /// Verification handling functions
-    private static func getVerificationLibrary() -> String {
-        return """
-        // ===== VERIFICATION HANDLING =====
-
-        // Clear verification input field
-        clearVerificationInput: function() {
-            const inputs = document.querySelectorAll('input[type="text"], input[type="number"]');
-            for (let input of inputs) {
-                input.value = '';
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-            return true;
-        },
-
-        // Fill verification code with autofill behavior
-        fillVerificationCode: function(code) {
-            const inputs = document.querySelectorAll('input[type="text"], input[type="number"]');
-            for (let input of inputs) {
-                input.value = code;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-                return true;
-            }
-            return false;
-        },
-
-        // Click verification submit button with comprehensive strategy
-        clickVerificationSubmitButton: function() {
-            // Strategy 1: Look for submit buttons
-            const submitButtons = document.querySelectorAll('button[type="submit"], input[type="submit"]');
-            if (submitButtons.length > 0) {
-                submitButtons[0].click();
-                return true;
-            }
-
-            // Strategy 2: Look for buttons with submit text
-            const allButtons = Array.from(document.querySelectorAll('button, input[type="submit"], input[type="button"], a[role="button"], div[role="button"]'));
-            for (let button of allButtons) {
-                const text = button.textContent || button.innerText || '';
-                if (text.toLowerCase().includes('submit') || text.toLowerCase().includes('verify') || text.toLowerCase().includes('confirm')) {
-                    button.click();
-                    return true;
-                }
-            }
-
-            // Strategy 3: Look for any clickable button
-            const anyButtons = document.querySelectorAll('button');
-            if (anyButtons.length > 0) {
-                anyButtons[0].click();
-                return true;
-            }
-
-            return false;
-        }
-        """
-    }
-
-    // MARK: - WebDriver Library
-
-    /// WebDriver-style element functions (aliases for unified functions)
-    private static func getWebDriverLibrary() -> String {
-        return """
-        // ===== WEBDRIVER ELEMENT FUNCTIONS =====
-
-
-        """
-    }
-
     // MARK: - Sports Detection Library
 
     /// Sports detection functions
-    private static func getSportsDetectionLibraryContent() -> String {
+    private static func getSportsDetectionLibrary() -> String {
         return """
         // ===== SPORTS DETECTION =====
 
@@ -485,40 +383,29 @@ public final class JavaScriptLibrary {
         """
     }
 
-    // MARK: - Legacy Support
+    // MARK: - Public Methods
 
-    /// Get the legacy automation library (for backward compatibility)
-    public static let automationLibrary = getCompleteLibrary()
-
-    /// Get the anti-detection library (for backward compatibility)
-    public static let antiDetectionLibrary = getHumanBehaviorLibrary()
-
-    /// Get the sports detection library (for backward compatibility)
-    public static let sportsDetectionLibrary = getSportsDetectionLibraryContent()
-
-    // MARK: - Public Methods for Backward Compatibility
-
-    /// Get the automation library (for backward compatibility)
+    /// Get the automation library
     public static func getAutomationLibrary() -> String {
         return getCompleteLibrary()
     }
 
-    /// Get the anti-detection library (for backward compatibility)
+    /// Get the anti-detection library
     public static func getAntiDetectionLibrary() -> String {
-        return getHumanBehaviorLibrary()
+        return getAdvancedAutomationLibrary()
     }
 
-    /// Get the sports detection library (for backward compatibility)
-    public static func getSportsDetectionLibrary() -> String {
-        return getSportsDetectionLibraryContent()
-    }
-
-    /// Get the mouse movement library (for backward compatibility)
+    /// Get the mouse movement library
     public static func getMouseMovementLibrary() -> String {
-        return getHumanBehaviorLibrary()
+        return getAdvancedAutomationLibrary()
     }
 
-    /// Get all libraries combined (for backward compatibility)
+    /// Get the sports detection library
+    public static func getSportsDetectionLibraryContent() -> String {
+        return getSportsDetectionLibrary()
+    }
+
+    /// Get all libraries combined
     public static func getAllLibraries() -> String {
         return getCompleteLibrary()
     }

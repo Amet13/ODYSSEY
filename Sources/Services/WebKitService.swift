@@ -56,12 +56,13 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     @Published public var currentURL: String?
     @Published public var pageTitle: String?
     /// User-facing error message to be displayed in the UI.
-    @Published var userError: String?
+    @Published public var userError: String = ""
 
     // Callback for window closure (used for cleanup and UI updates)
     public var onWindowClosed: ((ReservationRunType) -> Void)?
 
-    let logger: Logger
+    // Logger instance
+    let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "WebKitService")
 
     // WebKit components for browser automation
     public var webView: WKWebView?
@@ -74,8 +75,6 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     private var antiDetectionService: WebKitAntiDetection?
     private var humanBehaviorService: WebKitHumanBehavior?
     private var debugWindowManager: WebKitDebugWindowManager?
-    public var autofillService: WebKitAutofillService?
-    public var reservationMethods: WebKitReservationMethods?
 
     // Configuration for the current automation run
     public var currentConfig: ReservationConfig? {
@@ -122,7 +121,6 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         debugWindow: NSWindow? = nil,
         instanceId: String = "default"
     ) {
-        self.logger = logger
         self.webView = webView
         self.navigationDelegate = navigationDelegate
         self.scriptMessageHandler = scriptMessageHandler
@@ -142,7 +140,6 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     // Keep the default singleton for app use
     override private init() {
-        self.logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "WebKitService")
         super.init()
         logger.info("🔧 WebKitService initialized.")
         Task { @MainActor in
@@ -187,8 +184,6 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         antiDetectionService = WebKitAntiDetection(instanceId: instanceId)
         humanBehaviorService = WebKitHumanBehavior(instanceId: instanceId)
         debugWindowManager = WebKitDebugWindowManager()
-        autofillService = WebKitAutofillService(webKitService: self)
-        reservationMethods = WebKitReservationMethods(webKitService: self)
 
         let configuration = WKWebViewConfiguration()
         configuration.userContentController = WKUserContentController()
@@ -691,11 +686,30 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         name: String,
     ) async -> Bool {
         logger.info("👤 Filling contact fields with autofill and human movements")
-        return await autofillService?.fillAllContactFieldsWithAutofillAndHumanMovements(
-            phoneNumber: phoneNumber,
-            email: email,
-            name: name,
-        ) ?? false
+
+        guard let webView else {
+            logger.error("❌ WebView not initialized")
+            return false
+        }
+
+        do {
+            let result = try await webView
+                .evaluateJavaScript("window.odyssey.fillContactFields('\(phoneNumber)', '\(email)', '\(name)');")
+            if
+                let dict = result as? [String: Any],
+                let success = dict["success"] as? Bool,
+                success
+            {
+                logger.info("✅ All contact fields filled successfully")
+                return true
+            } else {
+                logger.error("❌ Failed to fill contact fields")
+                return false
+            }
+        } catch {
+            logger.error("❌ Error filling contact fields: \(error.localizedDescription)")
+            return false
+        }
     }
 
     public func typeText(_ text: String, into selector: String) async -> Bool {
@@ -1813,14 +1827,12 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             do {
                 let script = "window.odyssey.clickVerificationSubmitButton();"
 
-                let result = try await webView
-                    .evaluateJavaScript(script) as? String ??
-                    "[ODYSSEY] No result from clickVerificationSubmitButton script"
-                if result.contains("Clicked Final Confirmation button") || result.contains("Clicked") {
-                    logger.info("✅ [ConfirmClick] Success on attempt \(attempt): \(result)")
+                let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
+                if result {
+                    logger.info("✅ [ConfirmClick] Success on attempt \(attempt): Button clicked successfully")
                     return true
                 } else {
-                    logger.info("🔄 [ConfirmClick] Attempt \(attempt) did not find/click button: \(result)")
+                    logger.info("🔄 [ConfirmClick] Attempt \(attempt) did not find/click button")
                 }
             } catch {
                 logger
@@ -2071,7 +2083,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             if let result = try await webView.evaluateJavaScript(script) as? [String: Any] {
                 let isComplete = result["isComplete"] as? Bool ?? false
 
-                if isComplete {
+                if (isComplete) {
                     logger.info("✅ Reservation completion detected!")
                     logger.info("📋 Completion details: \(result)")
                     return true
@@ -2088,6 +2100,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return false
         }
     }
+
+    /// Check if the current page shows a session error (multiple tabs error)
 }
 
 // MARK: - Navigation Delegate

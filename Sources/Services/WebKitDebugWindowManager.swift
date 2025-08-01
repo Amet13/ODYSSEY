@@ -93,7 +93,7 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
     public func updateWindowTitle(with config: ReservationConfig?) {
         guard let window = debugWindow else { return }
 
-        let baseTitle = "\(AppConstants.appName) Debug"
+        let baseTitle = "\(AppConstants.appName)"
         if let config {
             let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
             let scheduleInfo = ReservationConfig.formatScheduleInfoInline(config: config)
@@ -138,7 +138,7 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
             )
 
         // Configure window properties
-        window.title = "\(AppConstants.appName) Debug"
+        window.title = "ODYSSEY"
         window.delegate = self
         window.isReleasedWhenClosed = false
         window.level = .floating

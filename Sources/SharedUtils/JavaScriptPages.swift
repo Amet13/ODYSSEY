@@ -13,11 +13,9 @@ public final class JavaScriptPages {
 
     // Check if email verification is required
     isEmailVerificationRequired: function() {
-        const verificationElements = document.querySelectorAll('[class*="verification"], [class*="verify"], [id*="verification"], [id*="verify"], [placeholder*="verification"], [placeholder*="verify"]');
-        const hasVerificationText = document.body.textContent.toLowerCase().includes('verification') || document.body.textContent.toLowerCase().includes('verify');
-        const hasVerificationForm = document.querySelectorAll('form').length > 0 && (document.body.textContent.toLowerCase().includes('email') || document.body.textContent.toLowerCase().includes('code'));
+        const hasVerificationText = document.body.textContent.toLowerCase().includes('verification code');
 
-        return verificationElements.length > 0 || hasVerificationText || hasVerificationForm;
+        return hasVerificationText;
     },
 
     // Check verification page state
@@ -46,16 +44,16 @@ public final class JavaScriptPages {
         }
     },
 
-            // Check if group size page is loaded
-        checkGroupSizePage: function() {
-            const hasNumberInputs = document.querySelectorAll('input[type="number"]').length > 0;
-            const hasReservationCount = document.querySelectorAll('[name*="reservation"], [name*="count"], [id*="reservation"], [id*="count"]').length > 0;
-            const hasReservationCountInput = document.getElementById('reservationCount') || document.querySelector('input[name="ReservationCount"]');
-            const hasGroupSizeText = (document.body.textContent || document.body.innerText || '').toLowerCase().includes('group size') ||
-                                    (document.body.textContent || document.body.innerText || '').toLowerCase().includes('number of people');
+    // Check if group size page is loaded
+    checkGroupSizePage: function() {
+        const hasNumberInputs = document.querySelectorAll('input[type="number"]').length > 0;
+        const hasReservationCount = document.querySelectorAll('[name*="reservation"], [name*="count"], [id*="reservation"], [id*="count"]').length > 0;
+        const hasReservationCountInput = document.getElementById('reservationCount') || document.querySelector('input[name="ReservationCount"]');
+        const hasGroupSizeText = (document.body.textContent || document.body.innerText || '').toLowerCase().includes('group size') ||
+                                (document.body.textContent || document.body.innerText || '').toLowerCase().includes('number of people');
 
-            return hasNumberInputs || hasReservationCount || hasReservationCountInput || hasGroupSizeText;
-        },
+        return hasNumberInputs || hasReservationCount || hasReservationCountInput || hasGroupSizeText;
+    },
 
     // Check if time selection page is loaded
     checkTimeSelectionPage: function() {
@@ -91,13 +89,14 @@ public final class JavaScriptPages {
         const pageText = document.body.textContent || document.body.innerText || '';
 
         // Check for retry indicators - specifically look for the captcha retry message
-        const hasRetryText = pageText.toLowerCase().includes('retry') ||
-                            document.querySelector('span[data-valmsg-for="ReCaptcha"]') !== null ||
-                            document.querySelector('.text-danger.field-validation-error') !== null ||
-                            document.querySelector('span.text-danger.field-validation-error[data-valmsg-for="ReCaptcha"]') !== null;
+        const hasRetryText = pageText.toLowerCase().includes('retry');
 
         return hasRetryText;
     },
+
+
+
+
 
     // Check if reservation is complete/successful
     checkReservationComplete: function() {
@@ -156,12 +155,33 @@ public final class JavaScriptPages {
     // Click verification submit button
     clickVerificationSubmitButton: function() {
         try {
+            console.log('[ODYSSEY] Starting verification submit button search...');
+
+            // Log page context for debugging
+            const pageText = document.body.textContent || document.body.innerText || '';
+            console.log('[ODYSSEY] Page text preview:', pageText.substring(0, 300));
+            console.log('[ODYSSEY] Page title:', document.title || '');
+
             // Try multiple selectors for submit button with more comprehensive detection
             const selectors = [
                 'button[type="submit"]',
                 'input[type="submit"]',
-                'button:contains("Confirm")'
-
+                'button[type="button"]',
+                'input[type="button"]',
+                'input[value*="Confirm"]',
+                'input[value*="Submit"]',
+                'input[value*="Verify"]',
+                'input[value*="Send"]',
+                // Additional selectors for common button patterns
+                '.btn-primary',
+                '.btn-success',
+                '.btn-submit',
+                '[class*="submit"]',
+                '[class*="confirm"]',
+                '[class*="verify"]',
+                '[id*="submit"]',
+                '[id*="confirm"]',
+                '[id*="verify"]'
             ];
 
             for (let selector of selectors) {
@@ -172,6 +192,7 @@ public final class JavaScriptPages {
                     console.log('[ODYSSEY] Button type:', button.type || 'button');
                     console.log('[ODYSSEY] Button class:', button.className || '');
                     console.log('[ODYSSEY] Button id:', button.id || '');
+                    console.log('[ODYSSEY] Button value:', button.value || '');
 
                     button.focus();
                     button.click();
@@ -181,11 +202,34 @@ public final class JavaScriptPages {
             }
 
             // Fallback: try to find any clickable element that might be the submit button
-            const allButtons = document.querySelectorAll('button, input[type="submit"], input[type="button"]');
+            const allButtons = document.querySelectorAll('button, input[type="submit"], input[type="button"], input[type="image"], a[role="button"]');
+            console.log('[ODYSSEY] Found', allButtons.length, 'total buttons on page');
+
             for (let button of allButtons) {
                 const buttonText = (button.textContent || button.innerText || '').toLowerCase();
-                if (buttonText.includes('confirm')) {
-                    console.log('[ODYSSEY] Found verification submit button by text:', buttonText);
+                const buttonValue = (button.value || '').toLowerCase();
+                const buttonClass = (button.className || '').toLowerCase();
+                const buttonId = (button.id || '').toLowerCase();
+
+                console.log('[ODYSSEY] Checking button:', {
+                    text: buttonText,
+                    value: buttonValue,
+                    class: buttonClass,
+                    id: buttonId,
+                    type: button.type || 'button'
+                });
+
+                if (buttonText.includes('confirm') || buttonText.includes('submit') ||
+                    buttonText.includes('verify') || buttonText.includes('send') ||
+                    buttonText.includes('continue') || buttonText.includes('next') ||
+                    buttonValue.includes('confirm') || buttonValue.includes('submit') ||
+                    buttonValue.includes('verify') || buttonValue.includes('send') ||
+                    buttonValue.includes('continue') || buttonValue.includes('next') ||
+                    buttonClass.includes('submit') || buttonClass.includes('confirm') ||
+                    buttonClass.includes('verify') || buttonClass.includes('primary') ||
+                    buttonId.includes('submit') || buttonId.includes('confirm') ||
+                    buttonId.includes('verify')) {
+                    console.log('[ODYSSEY] Found verification submit button by text/class/id:', buttonText);
                     button.focus();
                     button.click();
                     console.log('[ODYSSEY] Verification submit button clicked (text-based)');
@@ -194,6 +238,32 @@ public final class JavaScriptPages {
             }
 
             console.error('[ODYSSEY] No verification submit button found');
+            console.log('[ODYSSEY] Available buttons on page:');
+            const allElements = document.querySelectorAll('button, input[type="submit"], input[type="button"], input[type="image"], a[role="button"]');
+            allElements.forEach((el, index) => {
+                console.log('[ODYSSEY] Button', index + 1, ':', {
+                    text: el.textContent || el.innerText || '',
+                    value: el.value || '',
+                    type: el.type || 'button',
+                    class: el.className || '',
+                    id: el.id || '',
+                    disabled: el.disabled || false,
+                    visible: el.offsetWidth > 0 && el.offsetHeight > 0
+                });
+            });
+
+            // Also log all form elements
+            const forms = document.querySelectorAll('form');
+            console.log('[ODYSSEY] Found', forms.length, 'forms on page');
+            forms.forEach((form, index) => {
+                console.log('[ODYSSEY] Form', index + 1, ':', {
+                    action: form.action || '',
+                    method: form.method || '',
+                    id: form.id || '',
+                    class: form.className || ''
+                });
+            });
+
             return false;
         } catch (error) {
             console.error('[ODYSSEY] Error clicking verification submit button:', error);

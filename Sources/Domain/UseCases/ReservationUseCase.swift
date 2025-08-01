@@ -166,9 +166,6 @@ class ReservationUseCase: ReservationUseCaseProtocol {
         // Select sport
         try await selectSport(config.sportName)
 
-        // Fill number of people
-        try await fillNumberOfPeople(config.numberOfPeople)
-
         // Select time slot
         if let firstTimeSlot = config.dayTimeSlots.values.first?.first {
             try await selectTimeSlot(firstTimeSlot)
@@ -295,23 +292,6 @@ class ReservationUseCase: ReservationUseCaseProtocol {
         }
 
         logger.info("✅ Time slot selected")
-    }
-
-    private func fillNumberOfPeople(_ count: Int) async throws {
-        logger.info("👥 Filling number of people: \(count)")
-
-        let peopleSelector = "input[name='people'], input[name='participants'], .people-input"
-        let peopleClicked = await webKitService.findAndClickElement(peopleSelector)
-        guard peopleClicked else {
-            throw DomainError.automation(.elementNotFound("People selector"))
-        }
-
-        let peopleTyped = await webKitService.typeText("\(count)", into: peopleSelector)
-        guard peopleTyped else {
-            throw DomainError.automation(.elementNotFound("People input"))
-        }
-
-        logger.info("✅ Number of people filled")
     }
 
     private func fillContactInformation(_: ReservationConfig) async throws {

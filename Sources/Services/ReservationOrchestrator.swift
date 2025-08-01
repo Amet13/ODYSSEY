@@ -789,12 +789,11 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 logger.info("📝 Filling contact information with simultaneous autofill for \(config.name).")
                 let userSettings = UserSettingsManager.shared.userSettings
                 let phoneNumber = userSettings.phoneNumber.replacingOccurrences(of: "-", with: "")
-                let allFieldsFilled = await separateWebKitService.autofillService?
-                    .fillAllContactFieldsWithAutofillAndHumanMovements(
-                        phoneNumber: phoneNumber,
-                        email: userSettings.imapEmail,
-                        name: userSettings.name,
-                    ) ?? false
+                let allFieldsFilled = await separateWebKitService.fillAllContactFieldsWithAutofillAndHumanMovements(
+                    phoneNumber: phoneNumber,
+                    email: userSettings.imapEmail,
+                    name: userSettings.name,
+                )
                 if !allFieldsFilled {
                     logger.error("❌ Failed to fill all contact fields for \(config.name).")
                     throw ReservationError.contactInfoFieldNotFound

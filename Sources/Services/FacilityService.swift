@@ -85,61 +85,12 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
             return
         }
 
-        // Simple sports detection script with error handling
-        let sportsScript = """
-        (function() {
-            try {
-                // Initialize window.odyssey if it doesn't exist
-                if (typeof window.odyssey === 'undefined') {
-                    window.odyssey = {};
-                }
+        // Use the centralized JavaScript library
+        let script = "window.odyssey.detectSports();"
 
-                // Define the detectSports function directly
-                window.odyssey.detectSports = function() {
-                    try {
-                        const sports = [];
+        logger.info("🔍 Executing sports detection using centralized library...")
 
-                        // Look for elements with the specific 'button no-img' class
-                        const buttonNoImgElements = document.querySelectorAll('.button.no-img');
-
-                        buttonNoImgElements.forEach((element) => {
-                            const text = element.textContent || element.innerText || '';
-                            const trimmedText = text.trim();
-
-                            if (trimmedText.length > 0) {
-                                // Check for duplicates by sport name (case-insensitive)
-                                const isDuplicate = sports.some(existing =>
-                                    existing.toLowerCase() === trimmedText.toLowerCase()
-                                );
-
-                                if (!isDuplicate) {
-                                    sports.push(trimmedText);
-                                }
-                            }
-                        });
-
-                        console.log('[ODYSSEY] Found sports:', sports);
-                        return sports;
-
-                    } catch (error) {
-                        console.error('[ODYSSEY] Error in detectSports:', error);
-                        return [];
-                    }
-                };
-
-                // Execute the detection
-                return window.odyssey.detectSports();
-
-            } catch (error) {
-                console.error('[ODYSSEY] Error in sports detection script:', error);
-                return [];
-            }
-        })();
-        """
-
-        logger.info("🔍 Executing sports detection script...")
-
-        webView.evaluateJavaScript(sportsScript) { [weak self] result, error in
+        webView.evaluateJavaScript(script) { [weak self] result, error in
             if let error {
                 self?.logger.error("❌ Sports detection error: \(error.localizedDescription).")
                 self?.isLoading = false

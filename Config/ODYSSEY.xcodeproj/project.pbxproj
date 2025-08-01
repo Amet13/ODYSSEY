@@ -19,12 +19,10 @@
 		2C4801D1A11D19930CFB81A5 /* WebKitNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBF2A7B1D6024B2424B9E0EF /* WebKitNavigation.swift */; };
 		3200DDF9DB68CAE5FD9A1593 /* ValidationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F58FED014BDF2E62DA6C95 /* ValidationService.swift */; };
 		38B4C58FCF95A17F7FD0F910 /* WebKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D6507655544E5D9BC6CABF /* WebKitService.swift */; };
-		3969BD47BC306AAE61E3E01D /* WebKitAutofillService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAF4AC5D3A328CBF62B59A20 /* WebKitAutofillService.swift */; };
 		4038A5FA80910EFF1E46AA10 /* EmailKeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ACFC5968B19393D62775EC3 /* EmailKeychainHelper.swift */; };
 		41CB267A86BBFDE6B8D76B14 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6D876275C546C2EDF4733D3E /* Assets.xcassets */; };
 		4DDFF166B8B2A0E21E6167D2 /* DependencyContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D4E5737D272BF2576606B6 /* DependencyContainer.swift */; };
 		55EEC831FAD5B61655D9EE17 /* JavaScriptForms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 241663D21042A5F1983CA116 /* JavaScriptForms.swift */; };
-		57D2BA23230B27433EB8CAE1 /* WebKitReservationMethods.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06DC1257F731F9AB8382655A /* WebKitReservationMethods.swift */; };
 		63884D12F4F49556D0C53BF1 /* LoggingUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9E6BB3252BDFCB53E394023 /* LoggingUtils.swift */; };
 		63F3DD9E40F3A0D96D713AB2 /* ReservationStatusManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D816DD0E16D5EE6F9F3CD84A /* ReservationStatusManager.swift */; };
 		682EF0598BC17A8022F81E5B /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504F310E3FF9BD25280A3106 /* StatusBarController.swift */; };
@@ -65,7 +63,6 @@
 		DC6BD4AFB504DDB4F2D9BD47 /* WebDriverProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */; };
 		DD43208043CCB4AFD742447C /* GodModeStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2D953F23B3F12AD69F00F1 /* GodModeStateManager.swift */; };
 		DFAC8C258D42D26AAB4E3C39 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 765EF4545604C40CC9FBC07E /* AppDelegate.swift */; };
-		DFB9F44BCAB1BFF341E6F2D4 /* ReservationOrchestrationMethods.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B84346659157970508E926 /* ReservationOrchestrationMethods.swift */; };
 		E2CDCC931C7C13AD6F4D8DD4 /* UserSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88087B5FF17E55461F2F9181 /* UserSettingsManager.swift */; };
 		E82CDED4257D57D2C7939A48 /* ReservationUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = E974434538B46023A1E9185C /* ReservationUseCase.swift */; };
 		E9E8CD958D882FF539CF03CC /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26A60E76985E33712CF6E64 /* LoadingView.swift */; };
@@ -84,7 +81,6 @@
 /* Begin PBXFileReference section */
 		00AFADAF81B54E0C50809030 /* ErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorView.swift; sourceTree = "<group>"; };
 		0438D36B89973A08A3C50051 /* ServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceProtocol.swift; sourceTree = "<group>"; };
-		06DC1257F731F9AB8382655A /* WebKitReservationMethods.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitReservationMethods.swift; sourceTree = "<group>"; };
 		0912B3878339C5694E3C0AF7 /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
 		0B7DE380B7A5E1B12B2B0B2D /* JavaScriptCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JavaScriptCore.swift; sourceTree = "<group>"; };
 		0C7C81C4DA4C0834B7AD1E2B /* ReservationRunStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationRunStatus.swift; sourceTree = "<group>"; };
@@ -141,7 +137,6 @@
 		DFB48B132242AD260155FF55 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		E01F649A84C769D3AFDC525D /* EmailConfigurationDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailConfigurationDiagnostics.swift; sourceTree = "<group>"; };
 		E34B7DED97B75C8D92AE1A31 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		E3B84346659157970508E926 /* ReservationOrchestrationMethods.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationOrchestrationMethods.swift; sourceTree = "<group>"; };
 		E4C0A077490B2B2685EBD99A /* SharedVerificationCodePool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedVerificationCodePool.swift; sourceTree = "<group>"; };
 		E8285134011E8E82AD237B58 /* ConfigurationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationService.swift; sourceTree = "<group>"; };
 		E974434538B46023A1E9185C /* ReservationUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationUseCase.swift; sourceTree = "<group>"; };
@@ -154,7 +149,6 @@
 		F23E39878914FA1362DBDFB3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		F2867DB82C075495C71B2AB0 /* EmailGmailSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailGmailSupport.swift; sourceTree = "<group>"; };
 		F6753FCAC1521C4E3F3955E3 /* ConflictDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConflictDetectionService.swift; sourceTree = "<group>"; };
-		FAF4AC5D3A328CBF62B59A20 /* WebKitAutofillService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitAutofillService.swift; sourceTree = "<group>"; };
 		FBDB0490C4EDFE8E4C23D5C0 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -236,7 +230,6 @@
 				C0C40DA95D0B392AED1463FA /* LoggingService.swift */,
 				A77B82AE735F19633841541D /* ReservationError.swift */,
 				2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */,
-				E3B84346659157970508E926 /* ReservationOrchestrationMethods.swift */,
 				6ED502E37F16EC8776288AD0 /* ReservationOrchestrator.swift */,
 				0C7C81C4DA4C0834B7AD1E2B /* ReservationRunStatus.swift */,
 				D816DD0E16D5EE6F9F3CD84A /* ReservationStatusManager.swift */,
@@ -245,10 +238,8 @@
 				9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */,
 				DBCC4A2B64370ACAF412BF87 /* WebDriverStealth.swift */,
 				B15BB9045C1DD2BAC3F1E8E6 /* WebKitAntiDetection.swift */,
-				FAF4AC5D3A328CBF62B59A20 /* WebKitAutofillService.swift */,
 				2D4A3E2796AC58ABB58A6817 /* WebKitDebugWindowManager.swift */,
 				1408CA62AA2B81C39FCA33DC /* WebKitHumanBehavior.swift */,
-				06DC1257F731F9AB8382655A /* WebKitReservationMethods.swift */,
 				92BBD57449782EDCECED3713 /* WebKitScriptManager.swift */,
 				48D6507655544E5D9BC6CABF /* WebKitService.swift */,
 			);
@@ -567,7 +558,6 @@
 				8B1ED020B66221020312C147 /* ReservationConfig.swift in Sources */,
 				F1CEB7325AA2088A085FC265 /* ReservationError.swift in Sources */,
 				A1335E6664D5449F09663909 /* ReservationErrorHandler.swift in Sources */,
-				DFB9F44BCAB1BFF341E6F2D4 /* ReservationOrchestrationMethods.swift in Sources */,
 				C20E70D3086A920222DC01C4 /* ReservationOrchestrator.swift in Sources */,
 				D1F04AB59A5E8808D0782740 /* ReservationRepository.swift in Sources */,
 				2A0E233EB2385F5C72B3DE21 /* ReservationRunStatus.swift in Sources */,
@@ -588,12 +578,10 @@
 				DC6BD4AFB504DDB4F2D9BD47 /* WebDriverProtocols.swift in Sources */,
 				82BF69EBE3B57623F100A29E /* WebDriverStealth.swift in Sources */,
 				7A893D2888B4F0510D2042A7 /* WebKitAntiDetection.swift in Sources */,
-				3969BD47BC306AAE61E3E01D /* WebKitAutofillService.swift in Sources */,
 				AA4730C31D341AD6C3669020 /* WebKitDebugWindowManager.swift in Sources */,
 				8D9E64F00375B738BD5C9DEE /* WebKitEngine.swift in Sources */,
 				930217F31DAA51EAEEFF647D /* WebKitHumanBehavior.swift in Sources */,
 				2C4801D1A11D19930CFB81A5 /* WebKitNavigation.swift in Sources */,
-				57D2BA23230B27433EB8CAE1 /* WebKitReservationMethods.swift in Sources */,
 				0E70C434A5115D2792406E89 /* WebKitScriptManager.swift in Sources */,
 				6A319DA9FA96BE296351A6C6 /* WebKitScripting.swift in Sources */,
 				38B4C58FCF95A17F7FD0F910 /* WebKitService.swift in Sources */,
