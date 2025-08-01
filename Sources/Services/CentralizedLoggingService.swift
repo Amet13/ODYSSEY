@@ -204,7 +204,7 @@ public final class CentralizedLoggingService {
     ///   - category: The log category (default: .debug)
     public func debugOnly(_ message: String, category: LogCategory = .debug) {
         #if DEBUG
-        category.logger.debug("🔍 \(message)")
+            category.logger.debug("🔍 \(message)")
         #endif
     }
 

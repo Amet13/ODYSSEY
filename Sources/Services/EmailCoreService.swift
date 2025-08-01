@@ -205,7 +205,7 @@ public final class EmailCore: ObservableObject, @unchecked Sendable, EmailServic
                 imapServer: "imap.gmail.com",
                 imapPort: 993,
                 useSSL: true,
-                )
+            )
         case .imap:
             return EmailSettings(
                 emailAddress: "",
@@ -214,7 +214,7 @@ public final class EmailCore: ObservableObject, @unchecked Sendable, EmailServic
                 imapServer: "",
                 imapPort: 993,
                 useSSL: true,
-                )
+            )
         }
     }
 

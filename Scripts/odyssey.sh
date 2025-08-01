@@ -5,8 +5,73 @@
 
 set -e
 
-# Source common functions
-source "$(dirname "$0")/common.sh"
+# =============================================================================
+# COMMON FUNCTIONS (Integrated from common.sh)
+# =============================================================================
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+NC='\033[0m' # No Color
+
+# Function to print colored output (unified logging)
+print_status() {
+    local status=$1
+    local message=$2
+    case $status in
+        "info") echo -e "${BLUE}ℹ️ $message${NC}" ;;
+        "success") echo -e "${GREEN}✅ $message${NC}" ;;
+        "warning") echo -e "${YELLOW}⚠️ $message${NC}" ;;
+        "error") echo -e "${RED}❌ $message${NC}" ;;
+        "step") echo -e "${PURPLE}🔨 $message${NC}" ;;
+    esac
+}
+
+# Alias functions for consistency (these automatically add emojis)
+log_info() { print_status "info" "$1"; }
+log_success() { print_status "success" "$1"; }
+log_warning() { print_status "warning" "$1"; }
+log_error() { print_status "error" "$1"; }
+
+# Function to check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Function to measure execution time
+measure_time() {
+    local start_time=$SECONDS
+    "$@"
+    local end_time=$SECONDS
+    local duration=$((end_time - start_time))
+    print_status "success" "Completed in ${duration}s"
+}
+
+# Function to check prerequisites
+check_prerequisites() {
+    local missing_tools=()
+
+    # Check for required tools
+    local required_tools=("xcodebuild" "xcodegen" "swift")
+    for tool in "${required_tools[@]}"; do
+        if ! command_exists "$tool"; then
+            missing_tools+=("$tool")
+        fi
+    done
+
+    if [ ${#missing_tools[@]} -ne 0 ]; then
+        print_status "error" "Missing required tools: ${missing_tools[*]}"
+        print_status "info" "Install missing tools with: brew install ${missing_tools[*]}"
+        exit 1
+    fi
+
+    print_status "success" "All prerequisites satisfied"
+}
+
+
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -155,10 +220,10 @@ echo "🔍 Running pre-commit checks..."
 
 # Run linting
 if ./Scripts/odyssey.sh lint; then
-    echo "✅ Pre-commit checks passed"
+            log_success "Pre-commit checks passed"
     exit 0
 else
-    echo "❌ Pre-commit checks failed"
+            log_error "Pre-commit checks failed"
     exit 1
 fi
 EOF
@@ -169,7 +234,7 @@ EOF
 
 # Function to run setup
 run_setup() {
-    log_info "🔧 Setting up development environment..."
+    log_info "Setting up development environment..."
     
     check_macos
     install_homebrew
@@ -177,43 +242,18 @@ run_setup() {
     install_dev_tools
     setup_git_hooks
     
-    log_success "✅ Setup completed"
+    log_success "Setup completed"
 }
 
-# Function to check prerequisites
-check_prerequisites() {
-    log_info "Checking prerequisites..."
 
-    if ! command_exists xcodegen; then
-        log_error "XcodeGen is not installed. Please run: $0 setup"
-        exit 1
-    fi
-
-    if ! command_exists xcodebuild; then
-        log_error "xcodebuild is not available. Please run: $0 setup"
-        exit 1
-    fi
-
-    if ! command_exists swiftlint; then
-        log_warning "SwiftLint not found. Installing..."
-        brew install swiftlint
-    fi
-
-    if ! command_exists swiftformat; then
-        log_warning "SwiftFormat not found. Installing..."
-        brew install swiftformat
-    fi
-
-    log_success "All prerequisites satisfied"
-}
 
 # Function to run build
 run_build() {
-    log_info "🔨 Building application..."
+    log_info "Building application..."
     
     check_prerequisites
     
-    echo -e "${CYAN}🥅 ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself (macOS Automation)${NC}"
+    log_info "ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself (macOS Automation)"
     echo -e "${CYAN}==================================================================${NC}"
     echo ""
 
@@ -345,7 +385,7 @@ run_build() {
         
         # Build summary
         echo ""
-        echo "🔨 Build Summary"
+        log_info "Build Summary"
         echo "================================"
         log_info "Project: ODYSSEY"
         log_info "Configuration: Debug"
@@ -375,9 +415,9 @@ run_build() {
 
 # Function to run linting
 run_lint() {
-    log_info "🧹 Running comprehensive linting..."
+    log_info "Running comprehensive linting..."
     
-    echo "🧹 ODYSSEY - Comprehensive Linting"
+    log_info "ODYSSEY - Comprehensive Linting"
     echo "=================================="
 
     # Check if linters are installed
@@ -458,7 +498,7 @@ run_lint() {
         log_warning "GitHub Actions Linting found issues (acceptable warnings ignored)"
     fi
 
-    log_success "✅ Linting completed"
+    log_success "Linting completed"
 }
 
 # Function to run tests
@@ -468,32 +508,34 @@ run_test() {
     run_lint
     # Run build as part of testing
     run_build
-    log_success "✅ Tests completed"
+    log_success "Tests completed"
 }
 
 # Function to clean build artifacts
 run_clean() {
-    log_info "🧹 Cleaning build artifacts..."
+    log_info "Cleaning build artifacts..."
     
     # Clean Xcode build artifacts
     if [[ -d "Config/ODYSSEY.xcodeproj" ]]; then
         rm -rf Config/ODYSSEY.xcodeproj
-        log_info "🗑️  Removed Xcode project"
+        log_info "Removed Xcode project"
     fi
     
     # Clean Swift build artifacts
     if [[ -d ".build" ]]; then
         rm -rf .build
-        log_info "🗑️  Removed Swift build artifacts"
+        log_info "Removed Swift build artifacts"
     fi
     
     # Clean derived data
-    if [[ -d "$HOME/Library/Developer/Xcode/DerivedData/ODYSSEY-"* ]]; then
-        rm -rf "$HOME/Library/Developer/Xcode/DerivedData/ODYSSEY-"*
-        log_info "🗑️  Removed derived data"
-    fi
+    for derived_data_dir in "$HOME/Library/Developer/Xcode/DerivedData/ODYSSEY-"*; do
+        if [[ -d "$derived_data_dir" ]]; then
+            rm -rf "$derived_data_dir"
+            log_info "Removed derived data"
+        fi
+    done
     
-    log_success "✅ Clean completed"
+    log_success "Clean completed"
 }
 
 # =============================================================================
@@ -506,7 +548,7 @@ run_ci() {
     run_setup
     run_lint
     run_build
-    log_success "✅ CI pipeline completed"
+    log_success "CI pipeline completed"
 }
 
 # Function to check deployment prerequisites
@@ -540,25 +582,7 @@ check_deploy_prerequisites() {
     log_success "All prerequisites satisfied"
 }
 
-# Function to clean previous builds
-clean_builds() {
-    log_info "Cleaning previous builds..."
 
-    # Clean Xcode build
-    xcodebuild clean \
-        -project Config/ODYSSEY.xcodeproj \
-        -scheme ODYSSEY \
-        -configuration Release \
-        -quiet
-
-    # Clean Swift build
-    swift package clean
-
-    # Remove previous DMG files
-    rm -f ODYSSEY-*.dmg
-
-    log_success "Build cleaned"
-}
 
 # Function to build the application for deployment
 build_application_deploy() {
@@ -628,7 +652,8 @@ create_dmg() {
     # Get version and build info
     VERSION=$(grep -A1 "CFBundleShortVersionString" Sources/App/Info.plist | tail -1 | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
     BUILD_NUMBER=$(date +%Y%m%d%H%M)
-    RELEASE_NAME="ODYSSEY-v${VERSION}-${BUILD_NUMBER}"
+    # Export for potential external use
+    export RELEASE_NAME="ODYSSEY-v${VERSION}-${BUILD_NUMBER}"
 
     # Find the built app
     APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
@@ -681,7 +706,7 @@ run_deploy() {
     build_cli_deploy
     create_dmg
     
-    log_success "✅ Deployment completed"
+    log_success "Deployment completed"
 }
 
 # Function to run code signing
@@ -714,7 +739,7 @@ run_sign() {
         log_warning "CLI not found for code signing"
     fi
     
-    log_success "✅ Code signing completed"
+    log_success "Code signing completed"
 }
 
 # Function to generate changelog
@@ -734,7 +759,8 @@ run_changelog() {
     version="${version#v}"
 
     # Get previous tag
-    local previous_tag="$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")"
+    local previous_tag
+    previous_tag="$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")"
 
     local changelog=""
     if [ -n "$previous_tag" ]; then
@@ -757,7 +783,7 @@ run_changelog() {
     # Also output to stdout for local use
     echo "$changelog"
 
-    log_success "✅ Commit-based changelog generated"
+    log_success "Commit-based changelog generated"
 }
 
 # Function to run release pipeline
@@ -769,7 +795,7 @@ run_release() {
     run_deploy
     run_sign
     run_changelog
-    log_success "✅ Release pipeline completed"
+    log_success "Release pipeline completed"
 }
 
 # =============================================================================

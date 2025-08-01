@@ -18,7 +18,7 @@ extension WebKitService {
         _ =
             try? await executeScriptInternal(
                 "window.odyssey.simulateTyping('\(selector)', '\(text)', \(fastHumanLike), \(blurAfter));",
-                )
+            )
 
         let isFastMode = UserDefaults.standard.bool(forKey: "WebKitFastMode")
         let delay: Double = fastHumanLike ? Double
@@ -35,6 +35,6 @@ extension WebKitService {
         _ =
             try? await executeScriptInternal(
                 "window.odyssey.injectAntiDetection('\(userAgentString)', '\(languageString)');",
-                )
+            )
     }
 }

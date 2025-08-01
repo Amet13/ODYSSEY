@@ -45,7 +45,7 @@ public final class ConfigurationValidator: ObservableObject {
             errors
                 .append(
                     "Number of people must be between \(AppConstants.minNumberOfPeople) and \(AppConstants.maxNumberOfPeople)",
-                    )
+                )
         }
 
         // Time slots validation

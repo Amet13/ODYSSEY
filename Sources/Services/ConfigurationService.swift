@@ -48,7 +48,7 @@ public final class ConfigurationManager: ObservableObject, @unchecked Sendable {
             logger: Logger(subsystem: AppConstants.loggingSubsystem, category: "ConfigurationManager"),
             userDefaults: .standard,
             settingsKey: "ODYSSEY_Settings",
-            )
+        )
     }
 
     // MARK: - Configuration Management

@@ -26,5 +26,5 @@ struct ErrorView: View {
     ErrorView(
         error: NSError(domain: "Test", code: 1, userInfo: [NSLocalizedDescriptionKey: "Test error"]),
         retryAction: { },
-        )
+    )
 }

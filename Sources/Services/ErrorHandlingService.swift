@@ -36,7 +36,7 @@ public final class ErrorHandlingService: ObservableObject {
         _ error: UnifiedErrorProtocol,
         context: String,
         userFacing: Bool = false,
-        ) {
+    ) {
         let errorMessage = "\(error.errorCategory.emoji) \(context): \(error.userFriendlyMessage)"
         logger.error("\(errorMessage).")
 

@@ -48,7 +48,7 @@ public final class EmailGmailSupport {
             server: "imap.gmail.com",
             port: 993,
             useSSL: true,
-            )
+        )
     }
 
     /**

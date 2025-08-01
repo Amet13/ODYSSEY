@@ -56,13 +56,13 @@ struct ConfigurationDetailView: View {
                         log: .default,
                         type: .debug,
                         facilityURL.isEmpty ? 1 : 0,
-                        )
+                    )
                     os_log(
                         "🔍 isValidFacilityURL result: %{public}d",
                         log: .default,
                         type: .debug,
                         isValidFacilityURL(facilityURL) ? 1 : 0,
-                        )
+                    )
                 }
                 HeaderFooterDivider()
                 if !validationErrors.isEmpty {
@@ -99,7 +99,7 @@ struct ConfigurationDetailView: View {
         .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
         .navigationTitle(
             config == nil ? "Add Reservation Configuration" : "Edit Reservation Configuration",
-            )
+        )
         .alert("Validation Error", isPresented: $showingValidationAlert) {
             Button("OK") { }
         } message: {
@@ -118,7 +118,7 @@ struct ConfigurationDetailView: View {
                     numberOfPeople: numberOfPeople,
                     isEnabled: isEnabled,
                     dayTimeSlots: convertedSlots,
-                    )
+                )
                 onSave(newConfig)
                 dismiss()
             }
@@ -252,7 +252,7 @@ struct ConfigurationDetailView: View {
                             log: .default,
                             type: .debug,
                             isValidFacilityURL(facilityURL) ? 1 : 0,
-                            )
+                        )
                     }
                 }
             }
@@ -299,7 +299,7 @@ struct ConfigurationDetailView: View {
                         Text("1 Person").foregroundColor(.odysseyText)
                     }
                 }.buttonStyle(.bordered)
-                .controlSize(.regular)
+                    .controlSize(.regular)
                 Button(action: {
                     numberOfPeople = 2
                     updateConfigurationName()
@@ -310,7 +310,7 @@ struct ConfigurationDetailView: View {
                         Text("2 People").foregroundColor(.odysseyText)
                     }
                 }.buttonStyle(.bordered)
-                .controlSize(.regular)
+                    .controlSize(.regular)
             }
         }
         .padding(.bottom, AppConstants.contentPadding)
@@ -380,7 +380,7 @@ struct ConfigurationDetailView: View {
                         TimeSlotPickerView(slots: Binding(
                             get: { dayTimeSlots[day] ?? [defaultTime()] },
                             set: { newValue in dayTimeSlots[day] = newValue },
-                            ))
+                        ))
                     }
                     .padding(.vertical, AppConstants.paddingTiny)
                 }
@@ -448,7 +448,7 @@ struct ConfigurationDetailView: View {
             numberOfPeople: numberOfPeople,
             isEnabled: isEnabled,
             dayTimeSlots: convertedSlots,
-            )
+        )
 
         // Validate configuration before saving
         let validationResult = configurationValidator.validateReservationConfig(newConfig)
@@ -486,7 +486,7 @@ struct ConfigurationDetailView: View {
             numberOfPeople: numberOfPeople,
             isEnabled: isEnabled,
             dayTimeSlots: dayTimeSlots.mapValues { $0.map { TimeSlot(time: $0) } },
-            )
+        )
 
         let validationResult = configurationValidator.validateReservationConfig(tempConfig)
         validationErrors = validationResult.errors
@@ -528,7 +528,7 @@ struct ConfigurationDetailView: View {
             url,
             pattern,
             isValid ? 1 : 0,
-            )
+        )
         return isValid
     }
 
@@ -584,7 +584,7 @@ struct ConfigurationDetailView: View {
             log: .default,
             type: .debug,
             url.absoluteString,
-            )
+        )
 
         isFetchingSports = true
         availableSports = []
@@ -597,7 +597,7 @@ struct ConfigurationDetailView: View {
                     log: .default,
                     type: .debug,
                     sports.count,
-                    )
+                )
                 isFetchingSports = false
                 availableSports = sports
             }
@@ -701,7 +701,7 @@ struct ConfigurationDetailView: View {
             numberOfPeople: numberOfPeople,
             isEnabled: isEnabled,
             dayTimeSlots: dayTimeSlots.mapValues { $0.map { TimeSlot(time: $0) } },
-            )
+        )
     }
 
     private var conflictDetectionSection: some View {
@@ -743,7 +743,7 @@ struct ConfigurationDetailView: View {
                 .background(
                     RoundedRectangle(cornerRadius: AppConstants.cornerRadiusSmall)
                         .fill(severityColor(for: conflict.severity).opacity(0.1)),
-                    )
+                )
             }
         }
     }
@@ -779,7 +779,7 @@ struct ConfigurationDetailView: View {
             numberOfPeople: numberOfPeople,
             isEnabled: isEnabled,
             dayTimeSlots: dayTimeSlots.mapValues { $0.map { TimeSlot(time: $0) } },
-            )
+        )
 
         let existingConfigs = configurationManager.settings.configurations.filter { $0.id != tempConfig.id }
         detectedConflicts = conflictDetectionService.validateNewConfiguration(tempConfig, against: existingConfigs)
@@ -878,9 +878,9 @@ struct TimeSlotPickerView: View {
                             set: { newValue in
                                 slots[idx] = newValue
                             },
-                            ),
+                        ),
                         displayedComponents: .hourAndMinute,
-                        )
+                    )
                     .labelsHidden()
                 }
             }

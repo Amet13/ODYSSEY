@@ -46,7 +46,14 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
 
     /// Fetches available sports from the default Ottawa facility page (for backward compatibility)
     public func fetchSports(completion: @escaping ([String]) -> Void) {
-        let defaultURL = URL(string: "https://ottawa.ca/en/recreation-and-parks/recreation-programs-and-activities")!
+        guard
+            let defaultURL =
+            URL(string: "https://ottawa.ca/en/recreation-and-parks/recreation-programs-and-activities")
+        else {
+            logger.error("❌ Invalid default URL")
+            completion([])
+            return
+        }
         fetchSports(from: defaultURL, completion: completion)
     }
 
@@ -114,7 +121,7 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
     @objc public func userContentController(
         _: WKUserContentController,
         didReceive message: WKScriptMessage,
-        ) {
+    ) {
         logger.info("📨 Received WebKit message: \(message.name).")
     }
 }
@@ -122,19 +129,19 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
 // MARK: - WKNavigationDelegate
 
 extension FacilityService: WKNavigationDelegate {
-    public func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation!) {
+    public func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation?) {
         logger.info("🚀 WebView navigation started")
     }
 
-    public func webView(_: WKWebView, didReceiveServerRedirectForProvisionalNavigation _: WKNavigation!) {
+    public func webView(_: WKWebView, didReceiveServerRedirectForProvisionalNavigation _: WKNavigation?) {
         logger.info("🔄 WebView received server redirect")
     }
 
-    public func webView(_: WKWebView, didCommit _: WKNavigation!) {
+    public func webView(_: WKWebView, didCommit _: WKNavigation?) {
         logger.info("📄 WebView did commit navigation")
     }
 
-    public func webView(_: WKWebView, didFinish _: WKNavigation!) {
+    public func webView(_: WKWebView, didFinish _: WKNavigation?) {
         logger.info("✅ Facility page loaded successfully.")
         logger.info("🌐 Current URL: \(self.webView?.url?.absoluteString ?? "unknown")")
         logger.info("📄 Page title: \(self.webView?.title ?? "unknown")")
@@ -146,13 +153,13 @@ extension FacilityService: WKNavigationDelegate {
         }
     }
 
-    public func webView(_: WKWebView, didFail _: WKNavigation!, withError error: Error) {
+    public func webView(_: WKWebView, didFail _: WKNavigation?, withError error: Error) {
         logger.error("❌ WebView navigation failed: \(error.localizedDescription)")
         isLoading = false
         completionHandler?([])
     }
 
-    public func webView(_: WKWebView, didFailProvisionalNavigation _: WKNavigation!, withError error: Error) {
+    public func webView(_: WKWebView, didFailProvisionalNavigation _: WKNavigation?, withError error: Error) {
         logger.error("❌ WebView provisional navigation failed: \(error.localizedDescription)")
         isLoading = false
         completionHandler?([])
@@ -167,7 +174,7 @@ extension FacilityService: WKUIDelegate {
         createWebViewWith _: WKWebViewConfiguration,
         for navigationAction: WKNavigationAction,
         windowFeatures _: WKWindowFeatures,
-        ) -> WKWebView? {
+    ) -> WKWebView? {
         // Handle new window requests by loading in the same WebView
         if navigationAction.targetFrame == nil {
             webView.load(navigationAction.request)

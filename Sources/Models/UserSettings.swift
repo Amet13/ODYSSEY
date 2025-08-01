@@ -40,7 +40,7 @@ public struct UserSettings: Codable, Equatable, Sendable {
             minute: AppConstants.defaultAutorunMinute,
             second: 0,
             of: now,
-            ) ?? now
+        ) ?? now
     }()
 
     // MARK: - Equatable

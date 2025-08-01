@@ -69,7 +69,7 @@ public enum ReservationRunStatus: Error, Codable, LocalizedError, Equatable {
             throw DecodingError.dataCorrupted(.init(
                 codingPath: decoder.codingPath,
                 debugDescription: "Invalid ReservationRunStatus",
-                ))
+            ))
         }
     }
 

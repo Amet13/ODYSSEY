@@ -219,6 +219,13 @@ public extension ReservationError {
         case let .slotUnavailable(message): return .slotUnavailable(message)
         case let .automationFailed(message): return .automationFailed(message)
         case let .unknown(message): return .unknown(message)
+        default: return convertReservationErrorToUnifiedError(self)
+        }
+    }
+
+    /// Helper function to convert specific ReservationError cases
+    private func convertReservationErrorToUnifiedError(_ error: ReservationError) -> UnifiedError {
+        switch error {
         case .pageLoadTimeout: return .pageLoadTimeout("Page failed to load in time")
         case .groupSizePageLoadTimeout: return .groupSizePageLoadTimeout("Group size page failed to load in time")
         case .numberOfPeopleFieldNotFound: return .numberOfPeopleFieldNotFound("Number of people field not found")
@@ -227,11 +234,12 @@ public extension ReservationError {
         case .contactInfoPageLoadTimeout: return .contactInfoPageLoadTimeout("Contact info page failed to load in time")
         case .contactInfoFieldNotFound: return .contactInfoFieldNotFound("Contact info field not found")
         case .contactInfoConfirmButtonNotFound: return .contactInfoConfirmButtonNotFound(
-            "Contact info confirm button not found",
+                "Contact info confirm button not found",
             )
         case .emailVerificationFailed: return .emailVerificationFailed("Email verification failed")
         case .sportButtonNotFound: return .sportButtonNotFound("Sport button not found")
         case .webKitTimeout: return .webKitTimeout("WebKit operation timed out")
+        default: return .unknown("Unknown ReservationError")
         }
     }
 }

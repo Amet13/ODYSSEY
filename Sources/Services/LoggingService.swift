@@ -33,14 +33,14 @@ public final class LoggingService: ObservableObject {
         level: LogLevel = .info,
         configId: UUID? = nil,
         configName: String? = nil,
-        ) {
+    ) {
         let entry = LogEntry(
             timestamp: Date(),
             message: message,
             level: level,
             configId: configId,
             configName: configName,
-            )
+        )
 
         recentLogs.append(entry)
 
@@ -145,7 +145,7 @@ extension LoggingService: LoggingServiceProtocol {
         _ error: UnifiedErrorProtocol,
         context: String,
         category _: LoggerCategory,
-        ) {
+    ) {
         Task { @MainActor in
             let contextPrefix = context.isEmpty ? "" : "[\(context)] "
             let technicalDetails = error.technicalDetails != nil ? " (\(error.technicalDetails ?? "No details"))" : ""

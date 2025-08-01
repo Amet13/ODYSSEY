@@ -40,8 +40,14 @@ public final class JavaScriptLibrary {
 
     /// Advanced automation functions for complex interactions
     private static func getAdvancedAutomationLibrary() -> String {
+        return getBasicAutomationFunctions() + getAntiDetectionFunctions() + getSessionFunctions() +
+            getInteractionFunctions()
+    }
+
+    /// Basic automation functions
+    private static func getBasicAutomationFunctions() -> String {
         return """
-        // ===== ADVANCED AUTOMATION =====
+        // ===== BASIC AUTOMATION =====
 
         // Simulate quick mouse movement
         simulateQuickMouseMovement: function() {
@@ -65,84 +71,23 @@ public final class JavaScriptLibrary {
             window.scrollBy(0, scrollAmount);
             return true;
         },
+        """
+    }
+
+    /// Anti-detection functions
+    private static func getAntiDetectionFunctions() -> String {
+        return """
+        // ===== ANTI-DETECTION =====
 
         // Apply comprehensive anti-detection measures
         applyBasicAntiDetection: function() {
             try {
-                // Enhanced session management to prevent "multiple tabs" detection
-                if (window.sessionStorage) {
-                    if (!window.sessionStorage.getItem('odyssey_session_id')) {
-                        window.sessionStorage.setItem('odyssey_session_id', Date.now().toString());
-                    }
-                }
-
-                // Override navigator properties that detect automation
-                if (navigator.webdriver !== undefined) {
-                    Object.defineProperty(navigator, 'webdriver', {
-                        get: () => undefined,
-                        configurable: true
-                    });
-                }
-
-                // Remove Chrome automation flags
-                if (window.cdc_adoQpoasnfa76pfcZLmcfl_Array) {
-                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
-                }
-                if (window.cdc_adoQpoasnfa76pfcZLmcfl_Promise) {
-                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
-                }
-                if (window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol) {
-                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
-                }
-
-                // Override properties that might detect multiple tabs
-                if (navigator.hardwareConcurrency) {
-                    Object.defineProperty(navigator, 'hardwareConcurrency', {
-                        get: () => 8,
-                        configurable: true
-                    });
-                }
-
-                // Override screen properties
-                if (screen.width) {
-                    Object.defineProperty(screen, 'width', {
-                        get: () => 1440,
-                        configurable: true
-                    });
-                }
-                if (screen.height) {
-                    Object.defineProperty(screen, 'height', {
-                        get: () => 900,
-                        configurable: true
-                    });
-                }
-
-                // Ensure consistent user agent
-                if (navigator.userAgent) {
-                    Object.defineProperty(navigator, 'userAgent', {
-                        get: () => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                        configurable: true
-                    });
-                }
-
-                // Override window properties that might be used for detection
-                if (window.outerWidth) {
-                    Object.defineProperty(window, 'outerWidth', {
-                        get: () => 1440,
-                        configurable: true
-                    });
-                }
-                if (window.outerHeight) {
-                    Object.defineProperty(window, 'outerHeight', {
-                        get: () => 900,
-                        configurable: true
-                    });
-                }
-
-                // Ensure window name is consistent
-                if (window.name) {
-                    window.name = 'odyssey_main_window';
-                }
+                this.applySessionManagement();
+                this.overrideNavigatorProperties();
+                this.removeChromeAutomationFlags();
+                this.overrideScreenProperties();
+                this.overrideWindowProperties();
+                this.setWindowName();
 
                 console.log('[ODYSSEY] Enhanced anti-detection measures applied');
                 return true;
@@ -152,41 +97,104 @@ public final class JavaScriptLibrary {
             }
         },
 
+        // Session management
+        applySessionManagement: function() {
+            if (window.sessionStorage) {
+                if (!window.sessionStorage.getItem('odyssey_session_id')) {
+                    window.sessionStorage.setItem('odyssey_session_id', Date.now().toString());
+                }
+            }
+        },
+
+        // Override navigator properties
+        overrideNavigatorProperties: function() {
+            if (navigator.webdriver !== undefined) {
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined,
+                    configurable: true
+                });
+            }
+
+            if (navigator.hardwareConcurrency) {
+                Object.defineProperty(navigator, 'hardwareConcurrency', {
+                    get: () => 8,
+                    configurable: true
+                });
+            }
+        },
+
+        // Remove Chrome automation flags
+        removeChromeAutomationFlags: function() {
+            if (window.cdc_adoQpoasnfa76pfcZLmcfl_Array) {
+                delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
+            }
+            if (window.cdc_adoQpoasnfa76pfcZLmcfl_Promise) {
+                delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
+            }
+            if (window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol) {
+                delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
+            }
+        },
+
+        // Override screen properties
+        overrideScreenProperties: function() {
+            if (screen.width) {
+                Object.defineProperty(screen, 'width', {
+                    get: () => 1440,
+                    configurable: true
+                });
+            }
+            if (screen.height) {
+                Object.defineProperty(screen, 'height', {
+                    get: () => 900,
+                    configurable: true
+                });
+            }
+
+            if (navigator.userAgent) {
+                Object.defineProperty(navigator, 'userAgent', {
+                    get: () => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    configurable: true
+                });
+            }
+        },
+
+        // Override window properties
+        overrideWindowProperties: function() {
+            if (window.outerWidth) {
+                Object.defineProperty(window, 'outerWidth', {
+                    get: () => 1440,
+                    configurable: true
+                });
+            }
+            if (window.outerHeight) {
+                Object.defineProperty(window, 'outerHeight', {
+                    get: () => 900,
+                    configurable: true
+                });
+            }
+        },
+
+        // Set window name
+        setWindowName: function() {
+            if (window.name) {
+                window.name = 'odyssey_main_window';
+            }
+        },
+        """
+    }
+
+    /// Session management functions
+    private static func getSessionFunctions() -> String {
+        return """
+        // ===== SESSION MANAGEMENT =====
+
         // Clean up session and prevent multiple tab detection
         cleanupSession: function() {
             try {
-                // Clear any existing session data that might cause conflicts
-                if (window.sessionStorage) {
-                    const sessionId = window.sessionStorage.getItem('odyssey_session_id');
-                    if (sessionId) {
-                        console.log('[ODYSSEY] Maintaining session ID:', sessionId);
-                    } else {
-                        const newSessionId = Date.now().toString();
-                        window.sessionStorage.setItem('odyssey_session_id', newSessionId);
-                        console.log('[ODYSSEY] Created new session ID:', newSessionId);
-                    }
-                }
-
-                // Clear localStorage items that might cause session conflicts
-                if (window.localStorage) {
-                    const keysToRemove = [];
-                    for (let i = 0; i < window.localStorage.length; i++) {
-                        const key = window.localStorage.key(i);
-                        if (key && (key.includes('session') || key.includes('tab') || key.includes('browser') || key.includes('multiple'))) {
-                            keysToRemove.push(key);
-                        }
-                    }
-
-                    keysToRemove.forEach(key => {
-                        window.localStorage.removeItem(key);
-                        console.log('[ODYSSEY] Removed conflicting session data:', key);
-                    });
-                }
-
-                // Ensure we're not detected as multiple tabs
-                if (window.name) {
-                    window.name = 'odyssey_main_window';
-                }
+                this.clearSessionData();
+                this.clearLocalStorageConflicts();
+                this.setWindowName();
 
                 console.log('[ODYSSEY] Enhanced session cleanup completed');
                 return true;
@@ -195,6 +203,45 @@ public final class JavaScriptLibrary {
                 return false;
             }
         },
+
+        // Clear session data
+        clearSessionData: function() {
+            if (window.sessionStorage) {
+                const sessionId = window.sessionStorage.getItem('odyssey_session_id');
+                if (sessionId) {
+                    console.log('[ODYSSEY] Maintaining session ID:', sessionId);
+                } else {
+                    const newSessionId = Date.now().toString();
+                    window.sessionStorage.setItem('odyssey_session_id', newSessionId);
+                    console.log('[ODYSSEY] Created new session ID:', newSessionId);
+                }
+            }
+        },
+
+        // Clear localStorage conflicts
+        clearLocalStorageConflicts: function() {
+            if (window.localStorage) {
+                const keysToRemove = [];
+                for (let i = 0; i < window.localStorage.length; i++) {
+                    const key = window.localStorage.key(i);
+                    if (key && (key.includes('session') || key.includes('tab') || key.includes('browser') || key.includes('multiple'))) {
+                        keysToRemove.push(key);
+                    }
+                }
+
+                keysToRemove.forEach(key => {
+                    window.localStorage.removeItem(key);
+                    console.log('[ODYSSEY] Removed conflicting session data:', key);
+                });
+            }
+        },
+        """
+    }
+
+    /// Interaction functions
+    private static func getInteractionFunctions() -> String {
+        return """
+        // ===== INTERACTION FUNCTIONS =====
 
         // Click contact info confirm button (unified approach)
         clickContactInfoConfirmButton: function() {
@@ -225,7 +272,6 @@ public final class JavaScriptLibrary {
             try {
                 console.log('[ODYSSEY] Starting captcha retry with human behavior simulation...');
 
-                // Simulate human behavior before retry
                 this.simulateQuickMouseMovement();
                 console.log('[ODYSSEY] Mouse movement simulated');
 
@@ -239,8 +285,6 @@ public final class JavaScriptLibrary {
                 }
                 console.log('[ODYSSEY] Delay completed');
 
-                // Click the confirm button again
-                console.log('[ODYSSEY] Attempting to click confirm button...');
                 const clickResult = this.clickContactInfoConfirmButton();
                 console.log('[ODYSSEY] Click result:', clickResult);
                 return clickResult;
@@ -285,13 +329,11 @@ public final class JavaScriptLibrary {
                 const headerElements = Array.from(document.getElementsByClassName('header-text'));
                 const targetDayName = dayName.trim().toLowerCase();
 
-                // Find and click the specific day that matches our target day
                 for (let i = 0; i < headerElements.length; i++) {
                     const el = headerElements[i];
                     const headerText = el.textContent.trim().toLowerCase();
                     const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
 
-                    // Check if this header contains our target day name
                     if (headerText.includes(targetDayName) && visible) {
                         el.scrollIntoView({behavior: 'smooth', block: 'center'});
                         el.click();
@@ -306,7 +348,6 @@ public final class JavaScriptLibrary {
                     const headerText = el.textContent.trim().toLowerCase();
                     const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
 
-                    // Check if any part of the target day name matches
                     const hasMatch = dayParts.some(part => part && headerText.includes(part));
                     if (hasMatch && visible) {
                         el.scrollIntoView({behavior: 'smooth', block: 'center'});

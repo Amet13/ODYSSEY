@@ -60,7 +60,7 @@ public final class EmailConfigurationDiagnostics {
             severity: severity,
             issues: issues,
             recommendations: recommendations,
-            )
+        )
     }
 
     /**
