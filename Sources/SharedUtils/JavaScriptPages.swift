@@ -54,17 +54,10 @@ public final class JavaScriptPages {
     checkContactInfoPage: function() {
         const phoneField = document.getElementById('telephone');
         const emailField = document.getElementById('email');
-        const nameField = document.getElementById('name');
+        const nameField = document.getElementById('field2021');
         const confirmButton = document.querySelector('button[type="submit"], input[type="submit"], .mdc-button');
-        const bodyText = document.body.textContent || '';
 
-        return {
-            hasPhoneField: !!phoneField,
-            hasEmailField: !!emailField,
-            hasNameField: !!nameField,
-            hasConfirmButton: !!confirmButton,
-            bodyText: bodyText.substring(0, 500)
-        };
+        return !!(phoneField || emailField || nameField || confirmButton);
     },
 
     // Check if confirmation page is loaded

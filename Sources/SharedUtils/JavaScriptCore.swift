@@ -10,6 +10,39 @@ public final class JavaScriptCore {
     /// Core automation library with essential functions
     public static let coreLibrary = """
     window.odyssey = {
+        // ===== CENTRALIZED CONSTANTS =====
+
+        // Form field selectors - centralized for easy modification
+        constants: {
+            // Phone number field selectors
+            phoneSelectors: [
+                'input[type="tel"]',
+                'input[name*="PhoneNumber"]',
+                'input[id*="telephone"]',
+            ],
+
+            // Email field selectors
+            emailSelectors: [
+                'input[type="email"]',
+                'input[name*="Email"]',
+                'input[id*="email"]'
+            ],
+
+            // Name field selectors
+            nameSelectors: [
+                'input[name*="field2021"]',
+                'input[id*="field2021"]'
+            ],
+
+            // Submit button selectors
+            submitSelectors: [
+                'button[type="submit"]',
+                'input[type="submit"]',
+                '.mdc-button',
+                'button[id="submit-btn"]',
+                'button[onclick*="submit"]'
+            ]
+        },
         // ===== ELEMENT FINDING =====
 
         // Find element by text content with timeout
@@ -50,6 +83,75 @@ public final class JavaScriptCore {
                 };
                 checkElement();
             });
+        },
+
+        // ===== UNIFIED FORM FILLING =====
+
+        // Unified form field filling with human-like typing
+        fillFormField: function(fieldType, value) {
+            const selectors = this.constants[fieldType + 'Selectors'];
+            if (!selectors) {
+                console.error('[ODYSSEY] Unknown field type:', fieldType);
+                return false;
+            }
+
+            for (let selector of selectors) {
+                const field = document.querySelector(selector);
+                if (field) {
+                    return this.simulateHumanTyping(field, value);
+                }
+            }
+            return false;
+        },
+
+        // Simulate human-like typing with typos and corrections
+        simulateHumanTyping: async function(element, text) {
+            if (!element) return false;
+
+            try {
+                // Focus element
+                element.focus();
+                element.value = '';
+
+                // Type each character with random delays
+                let currentText = '';
+                for (let i = 0; i < text.length; i++) {
+                    const char = text[i];
+                    currentText += char;
+                    element.value = currentText;
+
+                    // Trigger input event
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+
+                    // Random delay between characters (50-150ms)
+                    const delay = Math.random() * 100 + 50;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+
+                    // Occasionally make a typo and correct it (5% chance)
+                    if (Math.random() < 0.05 && i < text.length - 1) {
+                        const typoChar = String.fromCharCode(97 + Math.floor(Math.random() * 26));
+                        currentText = currentText.slice(0, -1) + typoChar + char;
+                        element.value = currentText;
+                        element.dispatchEvent(new Event('input', { bubbles: true }));
+
+                        await new Promise(resolve => setTimeout(resolve, 200));
+
+                        // Correct the typo
+                        currentText = currentText.slice(0, -2) + char;
+                        element.value = currentText;
+                        element.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                }
+
+                // Trigger final events
+                element.dispatchEvent(new Event('change', { bubbles: true }));
+                element.dispatchEvent(new Event('blur', { bubbles: true }));
+
+                return true;
+            } catch (error) {
+                console.error('[ODYSSEY] Error in human typing simulation:', error);
+                return false;
+            }
         },
 
         // ===== ELEMENT INTERACTION =====

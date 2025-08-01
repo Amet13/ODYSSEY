@@ -1136,25 +1136,32 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return false
         }
 
-        let script = "window.odyssey.checkContactInfoPage();"
-        do {
-            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
-            if result {
-                logger.info("✅ Contact info page loaded successfully")
+        let timeout: TimeInterval = AppConstants.shortTimeout
+        let pollInterval: TimeInterval = AppConstants.checkIntervalShort
+        let start = Date()
+        var pollCount = 0
 
-                // Activate enhanced antidetection measures immediately when contact page is detected
-                logger.info("🛡️ Activating enhanced antidetection measures for contact form page...")
-                await enhanceHumanLikeBehavior()
+        while Date().timeIntervalSince(start) < timeout {
+            pollCount += 1
+            let script = "window.odyssey.checkContactInfoPage();"
+            do {
+                let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
+                if result {
+                    logger.info("✅ Contact info page loaded successfully on poll #\(pollCount)")
 
-            } else {
-                logger.error("❌ Contact info page load timeout - see logs for page HTML and input fields")
+                    // Activate enhanced antidetection measures immediately when contact page is detected
+                    logger.info("🛡️ Activating enhanced antidetection measures for contact form page...")
+                    await enhanceHumanLikeBehavior()
+                    return true
+                }
+            } catch {
+                logger.error("[ContactPagePoll][poll \(pollCount)] JS error: \(error.localizedDescription)")
             }
-            return result
-        } catch {
-            logger.error("❌ Error checking contact info page: \(error.localizedDescription, privacy: .public)")
-            logger.error("❌ Contact form error details: \(error, privacy: .public)")
-            return false
+            try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
         }
+
+        logger.error("❌ Contact info page load timeout after \(Int(timeout))s and \(pollCount) polls")
+        return false
     }
 
     public func fillPhoneNumber(_ phoneNumber: String) async -> Bool {
@@ -1169,7 +1176,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Essential human-like behavior simulation
         await addQuickPause()
 
-        let script = "window.odyssey.fillPhoneNumberWithHumanTyping('\(phoneNumber)');"
+        let script = "window.odyssey.fillFormField('phone', '\(phoneNumber)');"
 
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
@@ -1200,7 +1207,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Essential human-like behavior simulation
         await addQuickPause()
 
-        let script = "window.odyssey.fillEmailWithHumanTyping('\(email)');"
+        let script = "window.odyssey.fillFormField('email', '\(email)');"
 
         do {
             let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
@@ -1237,7 +1244,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Essential human-like behavior simulation
         await addQuickPause()
 
-        let script = "window.odyssey.fillNameWithHumanTyping('\(name)');"
+        let script = "window.odyssey.fillFormField('name', '\(name)');"
 
         do {
             // Double-check that we are still connected before executing JavaScript

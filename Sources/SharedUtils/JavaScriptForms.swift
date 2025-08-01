@@ -55,12 +55,8 @@ public final class JavaScriptForms {
     fillPhoneNumber: function(phoneNumber) {
         const selectors = [
             'input[type="tel"]',
-            'input[name*="phone"]',
-            'input[name*="Phone"]',
-            'input[placeholder*="phone"]',
-            'input[placeholder*="Phone"]',
-            'input[id*="phone"]',
-            'input[id*="Phone"]'
+            'input[name*="PhoneNumber"]',
+            'input[id*="telephone"]'
         ];
 
         for (let selector of selectors) {
@@ -75,12 +71,8 @@ public final class JavaScriptForms {
     fillEmail: function(email) {
         const selectors = [
             'input[type="email"]',
-            'input[name*="email"]',
             'input[name*="Email"]',
-            'input[placeholder*="email"]',
-            'input[placeholder*="Email"]',
-            'input[id*="email"]',
-            'input[id*="Email"]'
+            'input[id*="email"]'
         ];
 
         for (let selector of selectors) {
@@ -94,12 +86,8 @@ public final class JavaScriptForms {
     // Fill name field
     fillName: function(name) {
         const selectors = [
-            'input[name*="name"]',
-            'input[name*="Name"]',
-            'input[placeholder*="name"]',
-            'input[placeholder*="Name"]',
-            'input[id*="name"]',
-            'input[id*="Name"]'
+            'input[name*="field2021"]',
+            'input[id*="field2021"]'
         ];
 
         for (let selector of selectors) {
@@ -148,131 +136,19 @@ public final class JavaScriptForms {
         const id = (input.id || '').toLowerCase();
         const type = (input.type || '').toLowerCase();
 
-        if (type === 'tel' || name.includes('phone') || placeholder.includes('phone') || id.includes('phone')) {
+        if (type === 'tel' || name.includes('PhoneNumber') || id.includes('telephone')) {
             return 'phone';
         }
 
-        if (type === 'email' || name.includes('email') || placeholder.includes('email') || id.includes('email')) {
+        if (type === 'email' || name.includes('Email') || id.includes('email')) {
             return 'email';
         }
 
-        if (name.includes('name') || placeholder.includes('name') || id.includes('name')) {
+        if (name.includes('field2021') || id.includes('field2021')) {
             return 'name';
         }
 
         return 'unknown';
     },
-
-    // Fill phone number with human-like typing simulation
-    fillPhoneNumberWithHumanTyping: function(phoneNumber) {
-        const selectors = [
-            'input[type="tel"]',
-            'input[name*="phone"]',
-            'input[name*="Phone"]',
-            'input[placeholder*="phone"]',
-            'input[placeholder*="Phone"]',
-            'input[id*="phone"]',
-            'input[id*="Phone"]'
-        ];
-
-        for (let selector of selectors) {
-            const field = document.querySelector(selector);
-            if (field) {
-                return this.simulateHumanTyping(field, phoneNumber);
-            }
-        }
-        return false;
-    },
-
-    // Fill email with human-like typing simulation
-    fillEmailWithHumanTyping: function(email) {
-        const selectors = [
-            'input[type="email"]',
-            'input[name*="email"]',
-            'input[name*="Email"]',
-            'input[placeholder*="email"]',
-            'input[placeholder*="Email"]',
-            'input[id*="email"]',
-            'input[id*="Email"]'
-        ];
-
-        for (let selector of selectors) {
-            const field = document.querySelector(selector);
-            if (field) {
-                return this.simulateHumanTyping(field, email);
-            }
-        }
-        return false;
-    },
-
-    // Fill name with human-like typing simulation
-    fillNameWithHumanTyping: function(name) {
-        const selectors = [
-            'input[name*="name"]',
-            'input[name*="Name"]',
-            'input[placeholder*="name"]',
-            'input[placeholder*="Name"]',
-            'input[id*="name"]',
-            'input[id*="Name"]'
-        ];
-
-        for (let selector of selectors) {
-            const field = document.querySelector(selector);
-            if (field) {
-                return this.simulateHumanTyping(field, name);
-            }
-        }
-        return false;
-    },
-
-    // Simulate human-like typing with typos and corrections
-    simulateHumanTyping: async function(element, text) {
-        if (!element) return false;
-
-        try {
-            // Focus element
-            element.focus();
-            element.value = '';
-
-            // Type each character with random delays
-            let currentText = '';
-            for (let i = 0; i < text.length; i++) {
-                const char = text[i];
-                currentText += char;
-                element.value = currentText;
-
-                // Trigger input event
-                element.dispatchEvent(new Event('input', { bubbles: true }));
-
-                // Random delay between characters (50-150ms)
-                const delay = Math.random() * 100 + 50;
-                await new Promise(resolve => setTimeout(resolve, delay));
-
-                // Occasionally make a typo and correct it (5% chance)
-                if (Math.random() < 0.05 && i < text.length - 1) {
-                    const typoChar = String.fromCharCode(97 + Math.floor(Math.random() * 26));
-                    currentText = currentText.slice(0, -1) + typoChar + char;
-                    element.value = currentText;
-                    element.dispatchEvent(new Event('input', { bubbles: true }));
-
-                    await new Promise(resolve => setTimeout(resolve, 200));
-
-                    // Correct the typo
-                    currentText = currentText.slice(0, -2) + char;
-                    element.value = currentText;
-                    element.dispatchEvent(new Event('input', { bubbles: true }));
-                }
-            }
-
-            // Final change event
-            element.dispatchEvent(new Event('change', { bubbles: true }));
-            element.dispatchEvent(new Event('blur', { bubbles: true }));
-
-            return true;
-        } catch (error) {
-            console.error('[ODYSSEY] Error in human typing simulation:', error);
-            return false;
-        }
-    }
     """
 }
