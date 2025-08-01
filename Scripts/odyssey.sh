@@ -371,7 +371,7 @@ run_build() {
         exit 1
     fi
     
-    log_success "✅ Build completed"
+    log_success "Build completed"
 }
 
 # Function to run linting

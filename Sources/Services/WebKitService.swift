@@ -876,8 +876,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             do {
                 let result = try await webView.evaluateJavaScript(script)
                 if let found = result as? Bool, found {
-                        logger.info("📊 Group size input found on poll #\(pollCount)")
-                        return true
+                    logger.info("📊 Group size input found on poll #\(pollCount)")
+                    return true
                 }
             } catch {
                 logger.error("[GroupSizePoll][poll \(pollCount)] JS error: \(error.localizedDescription)")
@@ -1131,19 +1131,19 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         while Date().timeIntervalSince(start) < timeout {
             pollCount += 1
             let script = "window.odyssey.checkContactInfoPage();"
-        do {
-            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
-            if result {
+            do {
+                let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
+                if result {
                     logger.info("✅ Contact info page loaded successfully on poll #\(pollCount).")
 
-                // Activate enhanced antidetection measures immediately when contact page is detected
-                logger.info("🛡️ Activating enhanced antidetection measures for contact form page...")
-                await enhanceHumanLikeBehavior()
+                    // Activate enhanced antidetection measures immediately when contact page is detected
+                    logger.info("🛡️ Activating enhanced antidetection measures for contact form page...")
+                    await enhanceHumanLikeBehavior()
                     return true
-            }
-        } catch {
+                }
+            } catch {
                 logger.error("[ContactPagePoll][poll \(pollCount)] JS error: \(error.localizedDescription)")
-        }
+            }
             try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
         }
 
@@ -1599,7 +1599,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                         "Instance \(self.instanceId): ✅ Button was clicked successfully and page moved away - considering this success!",
                     )
                 await emailService.markCodeAsConsumed(code, byInstanceId: self.instanceId)
-                    return true
+                return true
             }
         }
 
