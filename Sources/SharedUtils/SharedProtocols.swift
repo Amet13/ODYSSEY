@@ -166,6 +166,7 @@ public protocol WebKitServiceProtocol: AnyObject {
      - Returns: True if retry is needed.
      */
     func detectRetryText() async -> Bool
+    func handleCaptchaRetry() async -> Bool
     /**
      Checks if email verification is required.
      - Returns: True if verification is required.

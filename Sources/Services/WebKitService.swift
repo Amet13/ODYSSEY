@@ -1269,48 +1269,6 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
     }
 
-    /// Detects if Google reCAPTCHA is present on the page
-    public func detectCaptcha() async -> Bool {
-        guard webView != nil else {
-            logger.error("WebView not initialized")
-            return false
-        }
-
-        let script = "window.odyssey.detectCaptcha();"
-
-        do {
-            let result = try await executeScriptInternal(script)?.value as? Bool ?? false
-            if result {
-                logger.warning("⚠️ Google reCAPTCHA detected on page")
-            } else {
-                logger.info("🛡️ No reCAPTCHA detected")
-            }
-            return result
-        } catch {
-            logger.error("❌ Error detecting captcha: \(error.localizedDescription)")
-            return false
-        }
-    }
-
-    /// Handles reCAPTCHA by implementing human-like behavior and waiting
-    public func handleCaptcha() async -> Bool {
-        guard webView != nil else {
-            logger.error("WebView not initialized")
-            return false
-        }
-
-        logger.info("🛡️ Handling reCAPTCHA with human-like behavior...")
-
-        // Inject anti-detection scripts
-        await injectAntiDetectionScript()
-
-        // Simulate human-like behavior before captcha
-        await simulateScrolling()
-        await moveMouseRandomly()
-        await addRandomDelay()
-        return false
-    }
-
     public func clickContactInfoConfirmButtonWithRetry() async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")
@@ -1892,6 +1850,31 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             return result
         } catch {
             logger.error("❌ Error detecting retry text: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    /// Handle captcha retry with human behavior simulation
+    public func handleCaptchaRetry() async -> Bool {
+        guard let webView else {
+            logger.error("WebView not initialized")
+            return false
+        }
+
+        logger.info("🛡️ Handling captcha retry with human behavior simulation...")
+
+        let script = "window.odyssey.handleCaptchaRetry();"
+
+        do {
+            let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
+            if result {
+                logger.info("✅ Captcha retry initiated with human behavior")
+            } else {
+                logger.error("❌ Failed to handle captcha retry")
+            }
+            return result
+        } catch {
+            logger.error("❌ Error handling captcha retry: \(error.localizedDescription)")
             return false
         }
     }

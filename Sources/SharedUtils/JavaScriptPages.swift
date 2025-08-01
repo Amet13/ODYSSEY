@@ -60,89 +60,17 @@ public final class JavaScriptPages {
         return !!(phoneField || emailField || nameField || confirmButton);
     },
 
-
-
-    // Check if verification page is loaded
-    checkVerificationPage: function() {
-        const pageText = document.body.textContent || document.body.innerText || '';
-        const title = document.title || '';
-
-        // Check for verification indicators
-        const hasVerificationElements = document.querySelectorAll('[class*="verification"], [class*="verify"], [id*="verification"], [id*="verify"]').length > 0;
-        const hasVerificationText = pageText.toLowerCase().includes('verification') || pageText.toLowerCase().includes('verify');
-        const hasCodeInput = document.querySelectorAll('input[type="text"], input[type="number"]').length > 0;
-        const hasSubmitButton = document.querySelectorAll('button[type="submit"], input[type="submit"]').length > 0;
-
-        return {
-            hasVerificationElements: hasVerificationElements,
-            hasVerificationText: hasVerificationText,
-            hasCodeInput: hasCodeInput,
-            hasSubmitButton: hasSubmitButton,
-            pageText: pageText.substring(0, 500),
-            title: title
-        };
-    },
-
-    // Check if verification was successful
-    checkVerificationSuccess: function() {
-        const pageText = document.body.textContent || document.body.innerText || '';
-        const title = document.title || '';
-
-        // Check for success indicators
-        const hasSuccessElements = document.querySelectorAll('[class*="success"], [class*="verified"], [id*="success"], [id*="verified"]').length > 0;
-        const hasSuccessText = pageText.toLowerCase().includes('success') || pageText.toLowerCase().includes('verified') || pageText.toLowerCase().includes('confirmed');
-        const hasErrorElements = document.querySelectorAll('[class*="error"], [class*="failed"], [id*="error"], [id*="failed"]').length > 0;
-        const hasErrorText = pageText.toLowerCase().includes('error') || pageText.toLowerCase().includes('failed') || pageText.toLowerCase().includes('invalid');
-
-        return {
-            hasSuccessElements: hasSuccessElements,
-            hasSuccessText: hasSuccessText,
-            hasErrorElements: hasErrorElements,
-            hasErrorText: hasErrorText,
-            pageText: pageText.substring(0, 500),
-            title: title
-        };
-    },
-
-    // Check if still on verification page
-    checkIfStillOnVerificationPage: function() {
-        const pageText = document.body.textContent || document.body.innerText || '';
-        const title = document.title || '';
-
-        // Check if we're still on a verification page
-        const hasVerificationElements = document.querySelectorAll('[class*="verification"], [class*="verify"], [id*="verification"], [id*="verify"]').length > 0;
-        const hasVerificationText = pageText.toLowerCase().includes('verification') || pageText.toLowerCase().includes('verify');
-        const hasCodeInput = document.querySelectorAll('input[type="text"], input[type="number"]').length > 0;
-
-        return hasVerificationElements || hasVerificationText || hasCodeInput;
-    },
-
-    // Detect reCAPTCHA on the page
-    detectCaptcha: function() {
-        const pageText = document.body.textContent || document.body.innerText || '';
-
-        // Check for reCAPTCHA indicators
-        const hasRecaptchaElements = document.querySelectorAll('[class*="recaptcha"], [id*="recaptcha"], iframe[src*="recaptcha"]').length > 0;
-        const hasCaptchaText = pageText.toLowerCase().includes('captcha') || pageText.toLowerCase().includes('recaptcha');
-        const hasCheckboxElements = document.querySelectorAll('[class*="checkbox"], [class*="check"], input[type="checkbox"]').length > 0;
-
-        return {
-            hasRecaptchaElements: hasRecaptchaElements,
-            hasCaptchaText: hasCaptchaText,
-            hasCheckboxElements: hasCheckboxElements,
-            pageText: pageText.substring(0, 500)
-        };
-    },
-
     // Detect retry text on the page
     detectRetryText: function() {
         const pageText = document.body.textContent || document.body.innerText || '';
 
-        // Check for retry indicators
-        const hasRetryElements = document.querySelectorAll('[class*="retry"], [id*="retry"], button:contains("Retry")').length > 0;
-        const hasRetryText = pageText.toLowerCase().includes('retry') || pageText.toLowerCase().includes('try again');
+        // Check for retry indicators - specifically look for the captcha retry message
+        const hasRetryText = pageText.toLowerCase().includes('retry') ||
+                            document.querySelector('span[data-valmsg-for="ReCaptcha"]') !== null ||
+                            document.querySelector('.text-danger.field-validation-error') !== null ||
+                            document.querySelector('span.text-danger.field-validation-error[data-valmsg-for="ReCaptcha"]') !== null;
 
-        return hasRetryElements || hasRetryText;
+        return hasRetryText;
     }
     """
 }

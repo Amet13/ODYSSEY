@@ -205,74 +205,9 @@ public final class JavaScriptCore {
 
         // ===== UTILITY FUNCTIONS =====
 
-        // Wait for element to disappear
-        waitForElementToDisappear: function(selector, timeout = 10000) {
-            return new Promise((resolve, reject) => {
-                const startTime = Date.now();
-                const checkElement = () => {
-                    const element = document.querySelector(selector);
-                    if (!element) {
-                        resolve(true);
-                    } else if (Date.now() - startTime < timeout) {
-                        setTimeout(checkElement, 100);
-                    } else {
-                        reject(new Error('Element still present: ' + selector));
-                    }
-                };
-                checkElement();
-            });
-        },
 
-        // Wait for element with timeout
-        waitForElement: function(selector, timeout = 10000) {
-            return new Promise((resolve, reject) => {
-                const startTime = Date.now();
-                const checkElement = () => {
-                    const element = document.querySelector(selector);
-                    if (element) {
-                        resolve(element);
-                    } else if (Date.now() - startTime < timeout) {
-                        setTimeout(checkElement, 100);
-                    } else {
-                        reject(new Error('Element not found: ' + selector));
-                    }
-                };
-                checkElement();
-            });
-        },
 
-        // Get page source
-        getPageSource: function() {
-            return document.documentElement.outerHTML;
-        },
 
-        // Get current URL
-        getCurrentURL: function() {
-            return window.location.href;
-        },
-
-        // Get page title
-        getPageTitle: function() {
-            return document.title || '';
-        },
-
-        // Check if DOM is ready
-        isDOMReady: function() {
-            return document.readyState === 'complete' &&
-                   document.body !== null &&
-                   document.body.innerHTML.length > 0;
-        },
-
-        // Check if element exists
-        elementExists: function(selector) {
-            return document.querySelector(selector) !== null;
-        },
-
-        // Find all elements by selector
-        findAllElements: function(selector) {
-            const elements = document.querySelectorAll(selector);
-            return Array.from(elements).map((el, index) => 'element_' + index);
-        },
 
         // Find and click element by text
         findAndClickElementByText: function(text) {
@@ -303,37 +238,7 @@ public final class JavaScriptCore {
             }
         },
 
-        // Type text (alias for typeTextIntoElement with human typing)
-        typeText: function(selector, text) {
-            return this.typeTextIntoElement(selector, text);
-        },
 
-        // Log all buttons and links
-        logAllButtonsAndLinks: function() {
-            let results = [];
-            let btns = Array.from(document.querySelectorAll('button, a, div'));
-            for (let el of btns) {
-                let txt = el.innerText || el.textContent || '';
-                let tag = el.tagName;
-                let id = el.id || '';
-                let cls = el.className || '';
-                let clickable = (el.onclick || el.getAttribute('role') === 'button' || el.tabIndex >= 0);
-                results.push(`[${tag}] id='${id}' class='${cls}' clickable=${clickable} text='${txt.trim()}'`);
-            }
-            return results;
-        },
-
-        // Check if button exists with text
-        checkButtonExists: function(buttonText) {
-            const buttons = Array.from(document.querySelectorAll('button, a, div'));
-            for (let button of buttons) {
-                const text = button.textContent || button.innerText || '';
-                if (text.toLowerCase().includes(buttonText.toLowerCase())) {
-                    return true;
-                }
-            }
-            return false;
-        },
 
                                 // Fill number of people field
         fillNumberOfPeople: function(numberOfPeople) {
@@ -366,34 +271,7 @@ public final class JavaScriptCore {
             };
         },
 
-        // Scroll with human-like behavior
-        scrollHuman: function(direction = 'down', distance = 300) {
-            try {
-                const scrollDistance = distance;
-                const scrollStep = scrollDistance / 10;
-                let currentScroll = 0;
 
-                const scrollInterval = setInterval(() => {
-                    if (currentScroll >= scrollDistance) {
-                        clearInterval(scrollInterval);
-                        return;
-                    }
-
-                    const step = Math.min(scrollStep, scrollDistance - currentScroll);
-                    if (direction === 'down') {
-                        window.scrollBy(0, step);
-                    } else {
-                        window.scrollBy(0, -step);
-                    }
-
-                    currentScroll += step;
-                }, Math.random() * 50 + 30);
-
-                return true;
-            } catch (error) {
-                return false;
-            }
-        }
     };
     """
 }

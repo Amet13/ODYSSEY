@@ -11,116 +11,116 @@ public final class JavaScriptForms {
     public static let formsLibrary = """
     // ===== FORM FILLING =====
 
-
-
     // Fill all contact fields using browser autofill and click confirm with delay
     fillContactFields: function(phoneNumber, email, name) {
-        // Fill all fields with browser autofill simulation
-        const results = {
-            phone: this.fillFormField('phone', phoneNumber),
-            email: this.fillFormField('email', email),
-            name: this.fillFormField('name', name)
-        };
+        try {
+            // Fill all fields with browser autofill simulation
+            const phoneResult = this.fillFormField('phone', phoneNumber);
+            const emailResult = this.fillFormField('email', email);
+            const nameResult = this.fillFormField('name', name);
 
-        // Add delay before clicking confirm button (1-2 seconds)
-        const delay = Math.random() * 1000 + 1000; // 1000-2000ms
-        setTimeout(() => {
-            this.clickContactInfoConfirmButton();
-        }, delay);
+            const allFieldsFilled = phoneResult && emailResult && nameResult;
 
-        return {
-            ...results,
-            confirmClicked: true // Return true since we're scheduling the click
-        };
+            if (allFieldsFilled) {
+                // Simulate human behavior before clicking confirm button
+                // 1. Random mouse movement
+                const randomX = Math.random() * window.innerWidth;
+                const randomY = Math.random() * window.innerHeight;
+                document.dispatchEvent(new MouseEvent('mousemove', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window,
+                    clientX: randomX,
+                    clientY: randomY
+                }));
+
+                // 2. Small scroll
+                window.scrollBy(0, Math.random() * 50 - 25);
+
+                // 3. Click the confirm button (delay will be handled by Swift)
+                this.clickContactInfoConfirmButton();
+
+                return {
+                    success: true,
+                    filledCount: 3,
+                    confirmClicked: true
+                };
+            } else {
+                return {
+                    success: false,
+                    error: 'Failed to fill all fields',
+                    filledCount: [phoneResult, emailResult, nameResult].filter(Boolean).length
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message || 'Unknown error in fillContactFields'
+            };
+        }
     },
 
-    // Fill fields individually with comprehensive detection
+    // Fallback method for individual field filling
     fillFieldsIndividually: function(phoneNumber, email, name) {
-        const allInputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input:not([type])');
-        let filledCount = 0;
+        try {
+            let filledCount = 0;
+            const results = [];
 
-        for (let input of allInputs) {
-            const inputType = this.detectInputType(input);
-            let value = '';
-
-            switch (inputType) {
-                case 'phone':
-                    value = phoneNumber;
-                    break;
-                case 'email':
-                    value = email;
-                    break;
-                case 'name':
-                    value = name;
-                    break;
-                default:
-                    continue;
-            }
-
-            if (this.simulateBrowserAutofill(input, value)) {
+            // Try to fill each field individually
+            if (this.fillFormField('phone', phoneNumber)) {
                 filledCount++;
+                results.push('phone');
             }
-        }
 
-        return filledCount;
+            if (this.fillFormField('email', email)) {
+                filledCount++;
+                results.push('email');
+            }
+
+            if (this.fillFormField('name', name)) {
+                filledCount++;
+                results.push('name');
+            }
+
+            if (filledCount > 0) {
+                // Simulate human behavior before clicking confirm button
+                // 1. Random mouse movement
+                const randomX = Math.random() * window.innerWidth;
+                const randomY = Math.random() * window.innerHeight;
+                document.dispatchEvent(new MouseEvent('mousemove', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window,
+                    clientX: randomX,
+                    clientY: randomY
+                }));
+
+                // 2. Small scroll
+                window.scrollBy(0, Math.random() * 50 - 25);
+
+                // 3. Click the confirm button (delay will be handled by Swift)
+                this.clickContactInfoConfirmButton();
+
+                return {
+                    success: true,
+                    filledCount: filledCount,
+                    filledFields: results,
+                    confirmClicked: true
+                };
+            } else {
+                return {
+                    success: false,
+                    error: 'No fields could be filled',
+                    filledCount: 0
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message || 'Unknown error in fillFieldsIndividually'
+            };
+        }
     },
 
-    // Detect input field type using centralized constants
-    detectInputType: function(input) {
-        const name = (input.name || '').toLowerCase();
-        const placeholder = (input.placeholder || '').toLowerCase();
-        const id = (input.id || '').toLowerCase();
-        const type = (input.type || '').toLowerCase();
-
-        // Check against centralized phone selectors
-        for (let selector of this.constants.phoneSelectors) {
-            if (this.matchesSelector(input, selector)) {
-                return 'phone';
-            }
-        }
-
-        // Check against centralized email selectors
-        for (let selector of this.constants.emailSelectors) {
-            if (this.matchesSelector(input, selector)) {
-                return 'email';
-            }
-        }
-
-        // Check against centralized name selectors
-        for (let selector of this.constants.nameSelectors) {
-            if (this.matchesSelector(input, selector)) {
-                return 'name';
-            }
-        }
-
-        return 'unknown';
-    },
-
-    // Helper function to check if input matches a selector
-    matchesSelector: function(input, selector) {
-        // Simple selector matching logic
-        if (selector.includes('type=')) {
-            const expectedType = selector.match(/type="([^"]+)"/)?.[1];
-            if (expectedType && input.type === expectedType) {
-                return true;
-            }
-        }
-
-                if (selector.includes('name*=')) {
-            const namePattern = selector.match(/name\\*="([^"]+)"/)?.[1];
-            if (namePattern && input.name && input.name.toLowerCase().includes(namePattern.toLowerCase())) {
-                return true;
-            }
-        }
-
-        if (selector.includes('id*=')) {
-            const idPattern = selector.match(/id\\*="([^"]+)"/)?.[1];
-            if (idPattern && input.id && input.id.toLowerCase().includes(idPattern.toLowerCase())) {
-                return true;
-            }
-        }
-
-        return false;
-    },
     """
 }

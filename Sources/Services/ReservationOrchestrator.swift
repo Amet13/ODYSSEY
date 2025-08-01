@@ -462,6 +462,11 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 configName: config.name,
             )
 
+            // Add delay after form filling and before clicking confirm button (1-2 seconds)
+            let delaySeconds = Double.random(in: 1.0 ... 2.0)
+            logger.info("⏱️ Adding delay of \(String(format: "%.1f", delaySeconds)) seconds after form filling...")
+            try? await Task.sleep(nanoseconds: UInt64(delaySeconds * 1_000_000_000))
+
             await updateTask("Confirming contact information...")
             let verificationStart = Date()
             var contactConfirmClicked = false
@@ -482,27 +487,65 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     await webKitService.addQuickPause()
                     try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000 ... 1_800_000_000))
                 }
+
+                // Add delay before checking for retry text to allow form filling click to complete
+                if retryCount == 0 {
+                    try? await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second for form filling to complete
+                }
+
+                // First, check if retry text is already present (from previous attempt)
+                let retryTextDetected = await webKitService.detectRetryText()
+                if retryTextDetected {
+                    logger.warning("Retry text detected - handling captcha retry")
+                    LoggingService.shared.log(
+                        "Retry text detected - handling captcha retry",
+                        level: .warning,
+                        configId: config.id,
+                        configName: config.name,
+                    )
+
+                    // Handle captcha retry with human behavior simulation
+                    let captchaRetryHandled = await webKitService.handleCaptchaRetry()
+                    if captchaRetryHandled {
+                        logger.info("✅ Captcha retry handled with human behavior simulation")
+                        // Wait for the retry to complete
+                        try? await Task.sleep(nanoseconds: 2_000_000_000) // Wait 2 seconds
+
+                        // Check if retry text is still present after the retry
+                        let retryTextStillPresent = await webKitService.detectRetryText()
+                        if retryTextStillPresent {
+                            logger.warning("⚠️ Retry text still present after captcha retry - will try again")
+                            contactConfirmClicked = false
+                            retryCount += 1
+                            continue
+                        } else {
+                            logger.info("✅ Captcha retry successful - no retry text detected")
+                            contactConfirmClicked = true
+                            break
+                        }
+                    } else {
+                        logger.error("❌ Failed to handle captcha retry")
+                        contactConfirmClicked = false
+                        retryCount += 1
+                        continue
+                    }
+                }
+
+                // If no retry text, try normal confirm button click
                 contactConfirmClicked = await webKitService.clickContactInfoConfirmButtonWithRetry()
                 if contactConfirmClicked {
                     try? await Task.sleep(nanoseconds: 300_000_000)
-                    let retryTextDetected = await webKitService.detectRetryText()
-                    if retryTextDetected {
-                        logger
-                            .warning(
-                                "Retry text detected after confirm button click - will retry with enhanced measures",
-                            )
+                    let retryTextAfterClick = await webKitService.detectRetryText()
+                    if retryTextAfterClick {
+                        logger.warning("Retry text detected after confirm button click")
                         LoggingService.shared.log(
                             "Retry text detected after confirm button click",
                             level: .warning,
                             configId: config.id,
                             configName: config.name,
                         )
-                        contactConfirmClicked = false
+                        contactConfirmClicked = false // Will be handled in next iteration
                         retryCount += 1
-                        logger.info("🛡️ Applying additional essential measures after retry text detection.")
-                        await updateTask("Applying additional anti-detection measures...")
-                        await webKitService.addQuickPause()
-                        try? await Task.sleep(nanoseconds: UInt64.random(in: 1_500_000_000 ... 2_200_000_000))
                     } else {
                         logger.info("✅ Successfully clicked contact confirm button (no retry text detected).")
                         LoggingService.shared.log(

@@ -59,61 +59,6 @@ public final class JavaScriptLibrary {
         return """
         // ===== ADVANCED AUTOMATION =====
 
-        // Simulate mouse movement to element
-        simulateMouseMovement: function(selector) {
-            const element = document.querySelector(selector);
-            if (!element) return false;
-
-            const rect = element.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-
-            // Simulate mouse movement
-            element.dispatchEvent(new MouseEvent('mousemove', {
-                bubbles: true,
-                cancelable: true,
-                view: window,
-                clientX: centerX,
-                clientY: centerY
-            }));
-
-            return true;
-        },
-
-                // Simulate human typing (alias for unified simulateBrowserAutofill)
-        simulateTyping: async function(selector, text, fastHumanLike = false, blurAfter = false) {
-            const element = document.querySelector(selector);
-            if (!element) return false;
-
-            // Use the unified browser autofill simulation
-            return this.simulateBrowserAutofill(element, text);
-        },
-
-        // Inject anti-detection script
-        injectAntiDetection: function(userAgent, language) {
-            // Remove webdriver property
-            delete navigator.webdriver;
-
-            // Override user agent
-            Object.defineProperty(navigator, 'userAgent', {
-                get: () => userAgent || 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
-            });
-
-            // Override language
-            Object.defineProperty(navigator, 'language', {
-                get: () => language || 'en-US'
-            });
-
-            // Remove automation indicators
-            delete window.chrome;
-            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
-            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
-            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
-
-            console.log('[ODYSSEY] Anti-detection measures applied');
-            return true;
-        },
-
         // Simulate quick mouse movement
         simulateQuickMouseMovement: function() {
             const randomX = Math.random() * window.innerWidth;
@@ -171,7 +116,76 @@ public final class JavaScriptLibrary {
             }
         },
 
-                        // Click confirm button
+
+
+
+
+        // Click contact info confirm button (unified approach)
+        clickContactInfoConfirmButton: function() {
+            try {
+                // Try multiple selectors for the confirm button
+                const selectors = [
+                    'button[id="submit-btn"]',
+                    '#submit-btn',
+                    'button[type="submit"]',
+                    'input[type="submit"]'
+                ];
+
+                for (let selector of selectors) {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        element.focus();
+                        element.click();
+                        return true;
+                    }
+                }
+                return false;
+            } catch (error) {
+                return false;
+            }
+        },
+
+        // Handle captcha retry with human behavior simulation
+        handleCaptchaRetry: function() {
+            try {
+                console.log('[ODYSSEY] Starting captcha retry with human behavior simulation...');
+
+                // Simulate human behavior before retry
+                // 1. Random mouse movement
+                const randomX = Math.random() * window.innerWidth;
+                const randomY = Math.random() * window.innerHeight;
+                document.dispatchEvent(new MouseEvent('mousemove', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window,
+                    clientX: randomX,
+                    clientY: randomY
+                }));
+                console.log('[ODYSSEY] Mouse movement simulated');
+
+                // 2. Small scroll
+                window.scrollBy(0, Math.random() * 50 - 25);
+                console.log('[ODYSSEY] Scroll simulated');
+
+                // 3. Small delay (synchronous)
+                const start = Date.now();
+                while (Date.now() - start < 1000) {
+                    // Busy wait for 1 second
+                }
+                console.log('[ODYSSEY] Delay completed');
+
+                // 4. Click the confirm button again
+                console.log('[ODYSSEY] Attempting to click confirm button...');
+                const clickResult = this.clickContactInfoConfirmButton();
+                console.log('[ODYSSEY] Click result:', clickResult);
+                return clickResult;
+            } catch (error) {
+                console.error('[ODYSSEY] Error in handleCaptchaRetry:', error);
+                return false;
+            }
+        },
+
+        // Click confirm button (for group size form)
         clickConfirmButton: function() {
             try {
                 const button = document.querySelector('button[id="submit-btn"]') ||
@@ -208,45 +222,6 @@ public final class JavaScriptLibrary {
                 url: window.location.href,
                 title: document.title
             };
-        },
-
-
-
-        // Check and click continue button
-        checkAndClickContinueButton: function() {
-            const continueButtons = Array.from(document.querySelectorAll('button, a, div')).filter(el => {
-                const text = el.textContent || el.innerText || '';
-                return text.toLowerCase().includes('continue') || text.toLowerCase().includes('next');
-            });
-
-            if (continueButtons.length > 0) {
-                continueButtons[0].click();
-                return true;
-            }
-            return false;
-        },
-
-        // Find and click continue button
-        findAndClickContinueButton: function() {
-            return this.checkAndClickContinueButton();
-        },
-
-        // Click contact info confirm button (unified approach)
-        clickContactInfoConfirmButton: function() {
-            // Try multiple selectors for the confirm button
-            const selectors = [
-                'button[id="submit-btn"]',
-                '#submit-btn',
-                'button[type="submit"]',
-                'input[type="submit"]'
-            ];
-
-            for (let selector of selectors) {
-                if (this.clickElement(selector)) {
-                    return true;
-                }
-            }
-            return false;
         },
 
                             // Expand day section
@@ -395,48 +370,7 @@ public final class JavaScriptLibrary {
         return """
         // ===== WEBDRIVER ELEMENT FUNCTIONS =====
 
-        // Click element by data-odyssey-id (alias for unified clickElement)
-        clickElementById: function(id) {
-            return this.clickElement('[data-odyssey-id="' + id + '"]');
-        },
 
-        // Type into element by data-odyssey-id (alias for unified typeTextIntoElement)
-        typeIntoElementById: function(id, text) {
-            return this.typeTextIntoElement('[data-odyssey-id="' + id + '"]', text);
-        },
-
-        // Clear element by data-odyssey-id (alias for unified typeTextIntoElement)
-        clearElementById: function(id) {
-            return this.typeTextIntoElement('[data-odyssey-id="' + id + '"]', '');
-        },
-
-        // Get element attribute by data-odyssey-id
-        getElementAttributeById: function(id, name) {
-            const element = document.querySelector('[data-odyssey-id="' + id + '"]');
-            return element ? element.getAttribute(name) : null;
-        },
-
-        // Get element text by data-odyssey-id (alias for unified getElementText)
-        getElementTextById: function(id) {
-            return this.getElementText('[data-odyssey-id="' + id + '"]');
-        },
-
-        // Check if element is displayed by data-odyssey-id (alias for unified isElementClickable)
-        isElementDisplayedById: function(id) {
-            return this.isElementClickable('[data-odyssey-id="' + id + '"]');
-        },
-
-        // Check if element is enabled by data-odyssey-id
-        isElementEnabledById: function(id) {
-            const element = document.querySelector('[data-odyssey-id="' + id + '"]');
-            return element && !element.disabled;
-        },
-
-        // Check if element is selected by data-odyssey-id
-        isElementSelectedById: function(id) {
-            const element = document.querySelector('[data-odyssey-id="' + id + '"]');
-            return element && element.checked;
-        }
         """
     }
 
