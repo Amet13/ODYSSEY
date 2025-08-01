@@ -80,40 +80,13 @@ public final class JavaScriptLibrary {
             return true;
         },
 
-        // Simulate human typing
+                // Simulate human typing (alias for unified simulateBrowserAutofill)
         simulateTyping: async function(selector, text, fastHumanLike = false, blurAfter = false) {
             const element = document.querySelector(selector);
             if (!element) return false;
 
-            try {
-                element.focus();
-                element.value = '';
-
-                if (fastHumanLike) {
-                    // Fast typing with minimal delays
-                    for (let i = 0; i < text.length; i++) {
-                        element.value += text[i];
-                        element.dispatchEvent(new Event('input', { bubbles: true }));
-                        // Small random delay
-                        await new Promise(resolve => setTimeout(resolve, Math.random() * 50 + 10));
-                    }
-                } else {
-                    // Normal typing
-                    element.value = text;
-                    element.dispatchEvent(new Event('input', { bubbles: true }));
-                }
-
-                element.dispatchEvent(new Event('change', { bubbles: true }));
-
-                if (blurAfter) {
-                    element.blur();
-                }
-
-                return true;
-            } catch (error) {
-                console.error('[ODYSSEY] Error in typing simulation:', error);
-                return false;
-            }
+            // Use the unified browser autofill simulation
+            return this.simulateBrowserAutofill(element, text);
         },
 
         // Inject anti-detection script
@@ -237,51 +210,7 @@ public final class JavaScriptLibrary {
             };
         },
 
-        // Select time slot
-        selectTimeSlot: function(dayName, timeString) {
-            try {
-                // Find the day element
-                const dayElements = Array.from(document.querySelectorAll('[class*="day"], [class*="date"], [id*="day"], [id*="date"]'));
-                let targetDay = null;
 
-                for (let day of dayElements) {
-                    if (day.textContent && day.textContent.toLowerCase().includes(dayName.toLowerCase())) {
-                        targetDay = day;
-                        break;
-                    }
-                }
-
-                if (!targetDay) {
-                    console.error('[ODYSSEY] Day not found:', dayName);
-                    return false;
-                }
-
-                // Click the day
-                targetDay.click();
-
-                // Wait for time slots to load
-                setTimeout(() => {
-                    // Find time slot
-                    const timeSlotSelector = '[class*="time"], [class*="hour"], [id*="time"], [id*="hour"]';
-                    const timeSlotElements = Array.from(document.querySelectorAll(timeSlotSelector));
-
-                    for (let timeSlot of timeSlotElements) {
-                        if (timeSlot.textContent && timeSlot.textContent.includes(timeString)) {
-                            timeSlot.click();
-                            return true;
-                        }
-                    }
-
-                    console.error('[ODYSSEY] Time slot not found:', timeString);
-                    return false;
-                }, 1000);
-
-                return true;
-            } catch (error) {
-                console.error('[ODYSSEY] Error selecting time slot:', error);
-                return false;
-            }
-        },
 
         // Check and click continue button
         checkAndClickContinueButton: function() {
@@ -302,12 +231,20 @@ public final class JavaScriptLibrary {
             return this.checkAndClickContinueButton();
         },
 
-        // Click contact info confirm button
+        // Click contact info confirm button (unified approach)
         clickContactInfoConfirmButton: function() {
-            const submitButtons = document.querySelectorAll('button[type="submit"], input[type="submit"]');
-            if (submitButtons.length > 0) {
-                submitButtons[0].click();
-                return true;
+            // Try multiple selectors for the confirm button
+            const selectors = [
+                'button[id="submit-btn"]',
+                '#submit-btn',
+                'button[type="submit"]',
+                'input[type="submit"]'
+            ];
+
+            for (let selector of selectors) {
+                if (this.clickElement(selector)) {
+                    return true;
+                }
             }
             return false;
         },
@@ -387,146 +324,7 @@ public final class JavaScriptLibrary {
         return """
         // ===== HUMAN BEHAVIOR SIMULATION =====
 
-        // Simulate mouse movement to element
-        simulateMouseMovement: function(selector) {
-            const element = document.querySelector(selector);
-            if (!element) return false;
 
-            const rect = element.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-
-            // Simulate mouse movement
-            element.dispatchEvent(new MouseEvent('mousemove', {
-                bubbles: true,
-                cancelable: true,
-                view: window,
-                clientX: centerX,
-                clientY: centerY
-            }));
-
-            return true;
-        },
-
-        // Simulate human typing
-        simulateTyping: async function(selector, text, fastHumanLike = false, blurAfter = false) {
-            const element = document.querySelector(selector);
-            if (!element) return false;
-
-            try {
-                element.focus();
-                element.value = '';
-
-                if (fastHumanLike) {
-                    // Fast typing with minimal delays
-                    for (let i = 0; i < text.length; i++) {
-                        element.value += text[i];
-                        element.dispatchEvent(new Event('input', { bubbles: true }));
-                        // Small random delay
-                        await new Promise(resolve => setTimeout(resolve, Math.random() * 50 + 10));
-                    }
-                } else {
-                    // Normal typing
-                    element.value = text;
-                    element.dispatchEvent(new Event('input', { bubbles: true }));
-                }
-
-                element.dispatchEvent(new Event('change', { bubbles: true }));
-
-                if (blurAfter) {
-                    element.blur();
-                }
-
-                return true;
-            } catch (error) {
-                console.error('[ODYSSEY] Error in typing simulation:', error);
-                return false;
-            }
-        },
-
-        // Inject anti-detection script
-        injectAntiDetection: function(userAgent, language) {
-            // Remove webdriver property
-            delete navigator.webdriver;
-
-            // Override user agent
-            Object.defineProperty(navigator, 'userAgent', {
-                get: () => userAgent || 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
-            });
-
-            // Override language
-            Object.defineProperty(navigator, 'language', {
-                get: () => language || 'en-US'
-            });
-
-            // Remove automation indicators
-            delete window.chrome;
-            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
-            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
-            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
-
-            console.log('[ODYSSEY] Anti-detection measures applied');
-            return true;
-        },
-
-        // Simulate quick mouse movement
-        simulateQuickMouseMovement: function() {
-            const elements = document.querySelectorAll('button, a, div');
-            if (elements.length > 0) {
-                const randomElement = elements[Math.floor(Math.random() * elements.length)];
-                const rect = randomElement.getBoundingClientRect();
-
-                randomElement.dispatchEvent(new MouseEvent('mousemove', {
-                    bubbles: true,
-                    cancelable: true,
-                    view: window,
-                    clientX: rect.left + Math.random() * rect.width,
-                    clientY: rect.top + Math.random() * rect.height
-                }));
-            }
-            return true;
-        },
-
-        // Simulate quick scrolling
-        simulateQuickScrolling: function() {
-            const scrollAmount = Math.random() * 100 + 50;
-            window.scrollBy(0, scrollAmount);
-            return true;
-        },
-
-        // Apply basic anti-detection measures
-        applyBasicAntiDetection: function() {
-            try {
-                // Simple overrides that are less likely to cause errors
-                if (navigator.webdriver !== undefined) {
-                    Object.defineProperty(navigator, 'webdriver', {
-                        get: () => undefined,
-                        configurable: true
-                    });
-                }
-
-                if (window.cdc_adoQpoasnfa76pfcZLmcfl_Array) {
-                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
-                }
-                if (window.cdc_adoQpoasnfa76pfcZLmcfl_Promise) {
-                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
-                }
-                if (window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol) {
-                    delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
-                }
-
-                // Add basic mouse movement tracking
-                if (!window.odysseyMouseMovements) {
-                    window.odysseyMouseMovements = [];
-                }
-
-                console.log('[ODYSSEY] Basic anti-detection measures applied');
-                return true;
-            } catch (error) {
-                console.error('[ODYSSEY] Error in anti-detection script:', error);
-                return false;
-            }
-        }
         """
     }
 
@@ -592,41 +390,24 @@ public final class JavaScriptLibrary {
 
     // MARK: - WebDriver Library
 
-    /// WebDriver-style element functions
+    /// WebDriver-style element functions (aliases for unified functions)
     private static func getWebDriverLibrary() -> String {
         return """
         // ===== WEBDRIVER ELEMENT FUNCTIONS =====
 
-        // Click element by data-odyssey-id
+        // Click element by data-odyssey-id (alias for unified clickElement)
         clickElementById: function(id) {
-            const element = document.querySelector('[data-odyssey-id="' + id + '"]');
-            if (element) {
-                element.click();
-                return true;
-            }
-            return false;
+            return this.clickElement('[data-odyssey-id="' + id + '"]');
         },
 
-        // Type into element by data-odyssey-id
+        // Type into element by data-odyssey-id (alias for unified typeTextIntoElement)
         typeIntoElementById: function(id, text) {
-            const element = document.querySelector('[data-odyssey-id="' + id + '"]');
-            if (element) {
-                element.value = text;
-                element.dispatchEvent(new Event('input', { bubbles: true }));
-                return true;
-            }
-            return false;
+            return this.typeTextIntoElement('[data-odyssey-id="' + id + '"]', text);
         },
 
-        // Clear element by data-odyssey-id
+        // Clear element by data-odyssey-id (alias for unified typeTextIntoElement)
         clearElementById: function(id) {
-            const element = document.querySelector('[data-odyssey-id="' + id + '"]');
-            if (element) {
-                element.value = '';
-                element.dispatchEvent(new Event('input', { bubbles: true }));
-                return true;
-            }
-            return false;
+            return this.typeTextIntoElement('[data-odyssey-id="' + id + '"]', '');
         },
 
         // Get element attribute by data-odyssey-id
@@ -635,19 +416,14 @@ public final class JavaScriptLibrary {
             return element ? element.getAttribute(name) : null;
         },
 
-        // Get element text by data-odyssey-id
+        // Get element text by data-odyssey-id (alias for unified getElementText)
         getElementTextById: function(id) {
-            const element = document.querySelector('[data-odyssey-id="' + id + '"]');
-            return element ? element.textContent || element.innerText || '' : '';
+            return this.getElementText('[data-odyssey-id="' + id + '"]');
         },
 
-        // Check if element is displayed by data-odyssey-id
+        // Check if element is displayed by data-odyssey-id (alias for unified isElementClickable)
         isElementDisplayedById: function(id) {
-            const element = document.querySelector('[data-odyssey-id="' + id + '"]');
-            if (!element) return false;
-
-            const style = window.getComputedStyle(element);
-            return style.display !== 'none' && style.visibility !== 'hidden';
+            return this.isElementClickable('[data-odyssey-id="' + id + '"]');
         },
 
         // Check if element is enabled by data-odyssey-id

@@ -28,7 +28,7 @@ public final class WebKitReservationMethods {
             return false
         }
 
-        let script = "window.odyssey.fillPhoneNumber('\(phoneNumber)');"
+        let script = "window.odyssey.fillFormField('phone', '\(phoneNumber)');"
 
         do {
             let result = try await webView.evaluateJavaScript(script)
@@ -58,7 +58,7 @@ public final class WebKitReservationMethods {
             return false
         }
 
-        let script = "window.odyssey.fillEmail('\(email)');"
+        let script = "window.odyssey.fillFormField('email', '\(email)');"
 
         do {
             let result = try await webView.evaluateJavaScript(script)
@@ -88,7 +88,7 @@ public final class WebKitReservationMethods {
             return false
         }
 
-        let script = "window.odyssey.fillName('\(name)');"
+        let script = "window.odyssey.fillFormField('name', '\(name)');"
 
         do {
             let result = try await webView.evaluateJavaScript(script)

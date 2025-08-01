@@ -43,51 +43,11 @@ public final class JavaScriptCore {
                 'button[onclick*="submit"]'
             ]
         },
-        // ===== ELEMENT FINDING =====
 
-        // Find element by text content with timeout
-        findElementByText: function(text, timeout = 10000) {
-            return new Promise((resolve, reject) => {
-                const startTime = Date.now();
-                const checkElement = () => {
-                    const elements = document.querySelectorAll('*');
-                    for (let element of elements) {
-                        if (element.textContent && element.textContent.trim() === text) {
-                            resolve(element);
-                            return;
-                        }
-                    }
-                    if (Date.now() - startTime < timeout) {
-                        setTimeout(checkElement, 100);
-                    } else {
-                        reject(new Error('Element not found: ' + text));
-                    }
-                };
-                checkElement();
-            });
-        },
-
-        // Find element by selector with timeout
-        findElementBySelector: function(selector, timeout = 10000) {
-            return new Promise((resolve, reject) => {
-                const startTime = Date.now();
-                const checkElement = () => {
-                    const element = document.querySelector(selector);
-                    if (element) {
-                        resolve(element);
-                    } else if (Date.now() - startTime < timeout) {
-                        setTimeout(checkElement, 100);
-                    } else {
-                        reject(new Error('Element not found: ' + selector));
-                    }
-                };
-                checkElement();
-            });
-        },
 
         // ===== UNIFIED FORM FILLING =====
 
-        // Unified form field filling with human-like typing
+        // Unified form field filling with browser autofill simulation
         fillFormField: function(fieldType, value) {
             const selectors = this.constants[fieldType + 'Selectors'];
             if (!selectors) {
@@ -98,69 +58,61 @@ public final class JavaScriptCore {
             for (let selector of selectors) {
                 const field = document.querySelector(selector);
                 if (field) {
-                    return this.simulateHumanTyping(field, value);
+                    return this.simulateBrowserAutofill(field, value);
                 }
             }
             return false;
         },
 
-        // Simulate human-like typing with typos and corrections
-        simulateHumanTyping: async function(element, text) {
+        // Simulate browser autofill behavior (fast and realistic)
+        simulateBrowserAutofill: function(element, text) {
             if (!element) return false;
 
             try {
                 // Focus element
                 element.focus();
+
+                // Clear existing value
                 element.value = '';
 
-                // Type each character with random delays
-                let currentText = '';
-                for (let i = 0; i < text.length; i++) {
-                    const char = text[i];
-                    currentText += char;
-                    element.value = currentText;
+                // Set value instantly (like browser autofill)
+                element.value = text;
 
-                    // Trigger input event
-                    element.dispatchEvent(new Event('input', { bubbles: true }));
-
-                    // Random delay between characters (50-150ms)
-                    const delay = Math.random() * 100 + 50;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-
-                    // Occasionally make a typo and correct it (5% chance)
-                    if (Math.random() < 0.05 && i < text.length - 1) {
-                        const typoChar = String.fromCharCode(97 + Math.floor(Math.random() * 26));
-                        currentText = currentText.slice(0, -1) + typoChar + char;
-                        element.value = currentText;
-                        element.dispatchEvent(new Event('input', { bubbles: true }));
-
-                        await new Promise(resolve => setTimeout(resolve, 200));
-
-                        // Correct the typo
-                        currentText = currentText.slice(0, -2) + char;
-                        element.value = currentText;
-                        element.dispatchEvent(new Event('input', { bubbles: true }));
-                    }
-                }
-
-                // Trigger final events
+                // Trigger events in sequence (like browser autofill)
+                element.dispatchEvent(new Event('input', { bubbles: true }));
                 element.dispatchEvent(new Event('change', { bubbles: true }));
                 element.dispatchEvent(new Event('blur', { bubbles: true }));
 
                 return true;
             } catch (error) {
-                console.error('[ODYSSEY] Error in human typing simulation:', error);
+                console.error('[ODYSSEY] Error in browser autofill simulation:', error);
                 return false;
             }
         },
 
+
+
         // ===== ELEMENT INTERACTION =====
 
-        // Click element (unified function)
+        // Click element (unified function - handles both selectors and IDs)
         clickElement: function(selector) {
-            const element = typeof selector === 'string' ? document.querySelector(selector) : selector;
+            let element;
+
+            // Handle both selector and data-odyssey-id
+            if (selector.startsWith('#')) {
+                // Direct ID selector
+                element = document.getElementById(selector.substring(1));
+            } else if (selector.includes('[data-odyssey-id=')) {
+                // data-odyssey-id selector
+                const id = selector.match(/data-odyssey-id="([^"]+)"/)?.[1];
+                element = document.querySelector('[data-odyssey-id="' + id + '"]');
+            } else {
+                // Regular selector
+                element = typeof selector === 'string' ? document.querySelector(selector) : selector;
+            }
+
             if (!element) {
-                console.error('[ODYSSEY] Element not found for click');
+                console.error('[ODYSSEY] Element not found for click:', selector);
                 return false;
             }
 
@@ -223,53 +175,33 @@ public final class JavaScriptCore {
             }
         },
 
-        // Type text into element
+                // Type text into element (unified function - handles both selectors and IDs with browser autofill)
         typeTextIntoElement: function(selector, text) {
-            const element = typeof selector === 'string' ? document.querySelector(selector) : selector;
+            let element;
+
+            // Handle both selector and data-odyssey-id
+            if (selector.startsWith('#')) {
+                // Direct ID selector
+                element = document.getElementById(selector.substring(1));
+            } else if (selector.includes('[data-odyssey-id=')) {
+                // data-odyssey-id selector
+                const id = selector.match(/data-odyssey-id="([^"]+)"/)?.[1];
+                element = document.querySelector('[data-odyssey-id="' + id + '"]');
+            } else {
+                // Regular selector
+                element = typeof selector === 'string' ? document.querySelector(selector) : selector;
+            }
+
             if (!element) {
-                console.error('[ODYSSEY] Element not found for typing');
+                console.error('[ODYSSEY] Element not found for typing:', selector);
                 return false;
             }
 
-            try {
-                // Focus element
-                element.focus();
-
-                // Clear existing value
-                element.value = '';
-
-                // Set new value
-                element.value = text;
-
-                // Trigger input event
-                element.dispatchEvent(new Event('input', { bubbles: true }));
-                element.dispatchEvent(new Event('change', { bubbles: true }));
-
-                return true;
-            } catch (error) {
-                console.error('[ODYSSEY] Error typing into element:', error);
-                return false;
-            }
+            // Use browser autofill simulation
+            return this.simulateBrowserAutofill(element, text);
         },
 
-        // Get element text content
-        getElementText: function(selector) {
-            const element = typeof selector === 'string' ? document.querySelector(selector) : selector;
-            return element ? element.textContent || element.innerText || '' : '';
-        },
 
-        // Check if element is clickable
-        isElementClickable: function(selector) {
-            const element = typeof selector === 'string' ? document.querySelector(selector) : selector;
-            if (!element) return false;
-
-            const style = window.getComputedStyle(element);
-            return style.display !== 'none' &&
-                   style.visibility !== 'hidden' &&
-                   style.opacity !== '0' &&
-                   element.offsetWidth > 0 &&
-                   element.offsetHeight > 0;
-        },
 
         // ===== UTILITY FUNCTIONS =====
 
@@ -371,7 +303,7 @@ public final class JavaScriptCore {
             }
         },
 
-        // Type text (alias for typeTextIntoElement)
+        // Type text (alias for typeTextIntoElement with human typing)
         typeText: function(selector, text) {
             return this.typeTextIntoElement(selector, text);
         },

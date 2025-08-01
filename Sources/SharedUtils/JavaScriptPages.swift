@@ -60,43 +60,7 @@ public final class JavaScriptPages {
         return !!(phoneField || emailField || nameField || confirmButton);
     },
 
-    // Check if confirmation page is loaded
-    checkConfirmationPage: function() {
-        const pageText = document.body.textContent || document.body.innerText || '';
-        const title = document.title || '';
 
-        // Check for confirmation/success indicators
-        const hasConfirmationElements = document.querySelectorAll('[class*="confirmation"], [class*="success"], [id*="confirmation"], [id*="success"]').length > 0;
-        const hasThankYouText = pageText.toLowerCase().includes('thank you') || pageText.toLowerCase().includes('success') || pageText.toLowerCase().includes('confirmed');
-        const hasConfirmationText = pageText.toLowerCase().includes('confirmation') || pageText.toLowerCase().includes('confirmed');
-
-        return {
-            hasConfirmationElements: hasConfirmationElements,
-            hasThankYouText: hasThankYouText,
-            hasConfirmationText: hasConfirmationText,
-            pageText: pageText.substring(0, 500),
-            title: title
-        };
-    },
-
-    // Check if error page is loaded
-    checkErrorPage: function() {
-        const pageText = document.body.textContent || document.body.innerText || '';
-        const title = document.title || '';
-
-        // Check for error indicators
-        const hasErrorElements = document.querySelectorAll('[class*="error"], [class*="alert"], [id*="error"], [id*="alert"]').length > 0;
-        const hasErrorText = pageText.toLowerCase().includes('error') || pageText.toLowerCase().includes('failed') || pageText.toLowerCase().includes('unavailable');
-        const hasAlertText = pageText.toLowerCase().includes('alert') || pageText.toLowerCase().includes('warning');
-
-        return {
-            hasErrorElements: hasErrorElements,
-            hasErrorText: hasErrorText,
-            hasAlertText: hasAlertText,
-            pageText: pageText.substring(0, 500),
-            title: title
-        };
-    },
 
     // Check if verification page is loaded
     checkVerificationPage: function() {

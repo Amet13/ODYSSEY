@@ -11,91 +11,27 @@ public final class JavaScriptForms {
     public static let formsLibrary = """
     // ===== FORM FILLING =====
 
-    // Fill form field with autofill behavior (less likely to trigger captchas)
-    fillFieldWithAutofill: function(selector, value, fieldType = '') {
-        const field = document.querySelector(selector);
-        if (!field) {
-            console.error('[ODYSSEY] Field not found:', selector);
-            return false;
-        }
-
-        try {
-            // Focus the field
-            field.focus();
-
-            // Clear existing value
-            field.value = '';
-
-            // Set new value
-            field.value = value;
-
-            // Trigger events in the correct order
-            field.dispatchEvent(new Event('input', { bubbles: true }));
-            field.dispatchEvent(new Event('change', { bubbles: true }));
-            field.dispatchEvent(new Event('blur', { bubbles: true }));
 
 
-            return true;
-        } catch (error) {
-            console.error('[ODYSSEY] Error filling field:', error);
-            return false;
-        }
-    },
-
-    // Fill all contact fields
+    // Fill all contact fields using browser autofill and click confirm with delay
     fillContactFields: function(phoneNumber, email, name) {
-        return {
-            phone: this.fillPhoneNumber(phoneNumber),
-            email: this.fillEmail(email),
-            name: this.fillName(name)
+        // Fill all fields with browser autofill simulation
+        const results = {
+            phone: this.fillFormField('phone', phoneNumber),
+            email: this.fillFormField('email', email),
+            name: this.fillFormField('name', name)
         };
-    },
 
-    // Fill phone number field
-    fillPhoneNumber: function(phoneNumber) {
-        const selectors = [
-            'input[type="tel"]',
-            'input[name*="PhoneNumber"]',
-            'input[id*="telephone"]'
-        ];
+        // Add delay before clicking confirm button (1-2 seconds)
+        const delay = Math.random() * 1000 + 1000; // 1000-2000ms
+        setTimeout(() => {
+            this.clickContactInfoConfirmButton();
+        }, delay);
 
-        for (let selector of selectors) {
-            if (this.fillFieldWithAutofill(selector, phoneNumber, 'phone')) {
-                return true;
-            }
-        }
-        return false;
-    },
-
-    // Fill email field
-    fillEmail: function(email) {
-        const selectors = [
-            'input[type="email"]',
-            'input[name*="Email"]',
-            'input[id*="email"]'
-        ];
-
-        for (let selector of selectors) {
-            if (this.fillFieldWithAutofill(selector, email, 'email')) {
-                return true;
-            }
-        }
-        return false;
-    },
-
-    // Fill name field
-    fillName: function(name) {
-        const selectors = [
-            'input[name*="field2021"]',
-            'input[id*="field2021"]'
-        ];
-
-        for (let selector of selectors) {
-            if (this.fillFieldWithAutofill(selector, name, 'name')) {
-                return true;
-            }
-        }
-        return false;
+        return {
+            ...results,
+            confirmClicked: true // Return true since we're scheduling the click
+        };
     },
 
     // Fill fields individually with comprehensive detection
@@ -121,7 +57,7 @@ public final class JavaScriptForms {
                     continue;
             }
 
-            if (this.fillFieldWithAutofill(input, value, inputType)) {
+            if (this.simulateBrowserAutofill(input, value)) {
                 filledCount++;
             }
         }
@@ -129,26 +65,62 @@ public final class JavaScriptForms {
         return filledCount;
     },
 
-    // Detect input field type
+    // Detect input field type using centralized constants
     detectInputType: function(input) {
         const name = (input.name || '').toLowerCase();
         const placeholder = (input.placeholder || '').toLowerCase();
         const id = (input.id || '').toLowerCase();
         const type = (input.type || '').toLowerCase();
 
-        if (type === 'tel' || name.includes('PhoneNumber') || id.includes('telephone')) {
-            return 'phone';
+        // Check against centralized phone selectors
+        for (let selector of this.constants.phoneSelectors) {
+            if (this.matchesSelector(input, selector)) {
+                return 'phone';
+            }
         }
 
-        if (type === 'email' || name.includes('Email') || id.includes('email')) {
-            return 'email';
+        // Check against centralized email selectors
+        for (let selector of this.constants.emailSelectors) {
+            if (this.matchesSelector(input, selector)) {
+                return 'email';
+            }
         }
 
-        if (name.includes('field2021') || id.includes('field2021')) {
-            return 'name';
+        // Check against centralized name selectors
+        for (let selector of this.constants.nameSelectors) {
+            if (this.matchesSelector(input, selector)) {
+                return 'name';
+            }
         }
 
         return 'unknown';
+    },
+
+    // Helper function to check if input matches a selector
+    matchesSelector: function(input, selector) {
+        // Simple selector matching logic
+        if (selector.includes('type=')) {
+            const expectedType = selector.match(/type="([^"]+)"/)?.[1];
+            if (expectedType && input.type === expectedType) {
+                return true;
+            }
+        }
+
+                if (selector.includes('name*=')) {
+            const namePattern = selector.match(/name\\*="([^"]+)"/)?.[1];
+            if (namePattern && input.name && input.name.toLowerCase().includes(namePattern.toLowerCase())) {
+                return true;
+            }
+        }
+
+        if (selector.includes('id*=')) {
+            const idPattern = selector.match(/id\\*="([^"]+)"/)?.[1];
+            if (idPattern && input.id && input.id.toLowerCase().includes(idPattern.toLowerCase())) {
+                return true;
+            }
+        }
+
+        return false;
     },
     """
 }

@@ -28,7 +28,7 @@ public final class WebKitAutofillService {
             return false
         }
 
-        let script = "window.odyssey.fillPhoneNumber('\(phoneNumber)');"
+        let script = "window.odyssey.fillFormField('phone', '\(phoneNumber)');"
 
         do {
             let result = try await webView.evaluateJavaScript(script)
