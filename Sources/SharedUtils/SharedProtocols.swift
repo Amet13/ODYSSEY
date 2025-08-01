@@ -180,6 +180,12 @@ public protocol WebKitServiceProtocol: AnyObject {
     func handleEmailVerification(verificationStart: Date) async -> Bool
 
     /**
+     Checks if the current page indicates a successful reservation completion.
+     - Returns: True if reservation is complete.
+     */
+    func checkReservationComplete() async -> Bool
+
+    /**
      Finds and clicks an element using a CSS selector.
      - Parameter selector: The CSS selector to find the element.
      - Returns: True if the element was found and clicked.

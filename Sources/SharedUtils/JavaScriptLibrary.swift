@@ -85,7 +85,15 @@ public final class JavaScriptLibrary {
         // Apply basic anti-detection measures
         applyBasicAntiDetection: function() {
             try {
-                // Simple overrides that are less likely to cause errors
+                // Enhanced session management to prevent "multiple tabs" detection
+                if (window.sessionStorage) {
+                    // Ensure we have a consistent session ID
+                    if (!window.sessionStorage.getItem('odyssey_session_id')) {
+                        window.sessionStorage.setItem('odyssey_session_id', Date.now().toString());
+                    }
+                }
+
+                // Override navigator properties that detect automation
                 if (navigator.webdriver !== undefined) {
                     Object.defineProperty(navigator, 'webdriver', {
                         get: () => undefined,
@@ -93,6 +101,7 @@ public final class JavaScriptLibrary {
                     });
                 }
 
+                // Override Chrome automation properties
                 if (window.cdc_adoQpoasnfa76pfcZLmcfl_Array) {
                     delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
                 }
@@ -103,15 +112,99 @@ public final class JavaScriptLibrary {
                     delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
                 }
 
+                // Override automation detection properties
+                if (window.navigator.plugins) {
+                    Object.defineProperty(navigator, 'plugins', {
+                        get: () => [1, 2, 3, 4, 5],
+                        configurable: true
+                    });
+                }
+
+                // Override automation detection in window object
+                if (window.chrome && window.chrome.runtime) {
+                    Object.defineProperty(window.chrome, 'runtime', {
+                        get: () => undefined,
+                        configurable: true
+                    });
+                }
+
+                // Add realistic user agent properties
+                if (navigator.userAgent) {
+                    Object.defineProperty(navigator, 'userAgent', {
+                        get: () => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                        configurable: true
+                    });
+                }
+
+                // Override automation detection in document
+                if (document.hidden !== undefined) {
+                    Object.defineProperty(document, 'hidden', {
+                        get: () => false,
+                        configurable: true
+                    });
+                }
+
                 // Add basic mouse movement tracking
                 if (!window.odysseyMouseMovements) {
                     window.odysseyMouseMovements = [];
                 }
 
-                console.log('[ODYSSEY] Basic anti-detection measures applied');
+                // Override any automation detection scripts
+                const originalQuerySelector = document.querySelector;
+                document.querySelector = function(selector) {
+                    const result = originalQuerySelector.call(this, selector);
+                    if (result && result.getAttribute && result.getAttribute('data-automation-detection')) {
+                        // Remove automation detection attributes
+                        result.removeAttribute('data-automation-detection');
+                    }
+                    return result;
+                };
+
+                console.log('[ODYSSEY] Enhanced anti-detection measures applied');
                 return true;
             } catch (error) {
                 console.error('[ODYSSEY] Error in anti-detection script:', error);
+                return false;
+            }
+        },
+
+        // Clean up session and prevent multiple tab detection
+        cleanupSession: function() {
+            try {
+                // Clear any existing session data that might cause conflicts
+                if (window.sessionStorage) {
+                    const sessionId = window.sessionStorage.getItem('odyssey_session_id');
+                    if (sessionId) {
+                        // Keep the same session ID to maintain consistency
+                        console.log('[ODYSSEY] Maintaining session ID:', sessionId);
+                    }
+                }
+
+                // Clear any localStorage that might cause session conflicts
+                if (window.localStorage) {
+                    const keysToRemove = [];
+                    for (let i = 0; i < window.localStorage.length; i++) {
+                        const key = window.localStorage.key(i);
+                        if (key && (key.includes('session') || key.includes('tab') || key.includes('browser'))) {
+                            keysToRemove.push(key);
+                        }
+                    }
+
+                    keysToRemove.forEach(key => {
+                        window.localStorage.removeItem(key);
+                        console.log('[ODYSSEY] Removed conflicting session data:', key);
+                    });
+                }
+
+                // Ensure we're not detected as multiple tabs
+                if (window.name) {
+                    window.name = 'odyssey_main_window';
+                }
+
+                console.log('[ODYSSEY] Session cleanup completed');
+                return true;
+            } catch (error) {
+                console.error('[ODYSSEY] Error in session cleanup:', error);
                 return false;
             }
         },
@@ -150,21 +243,13 @@ public final class JavaScriptLibrary {
             try {
                 console.log('[ODYSSEY] Starting captcha retry with human behavior simulation...');
 
-                // Simulate human behavior before retry
+                // Simulate human behavior before retry using existing functions
                 // 1. Random mouse movement
-                const randomX = Math.random() * window.innerWidth;
-                const randomY = Math.random() * window.innerHeight;
-                document.dispatchEvent(new MouseEvent('mousemove', {
-                    bubbles: true,
-                    cancelable: true,
-                    view: window,
-                    clientX: randomX,
-                    clientY: randomY
-                }));
+                this.simulateQuickMouseMovement();
                 console.log('[ODYSSEY] Mouse movement simulated');
 
                 // 2. Small scroll
-                window.scrollBy(0, Math.random() * 50 - 25);
+                this.simulateQuickScrolling();
                 console.log('[ODYSSEY] Scroll simulated');
 
                 // 3. Small delay (synchronous)
@@ -185,21 +270,11 @@ public final class JavaScriptLibrary {
             }
         },
 
-        // Click confirm button (for group size form)
+        // Click confirm button (for group size form) - uses unified approach
         clickConfirmButton: function() {
             try {
-                const button = document.querySelector('button[id="submit-btn"]') ||
-                              document.querySelector('#submit-btn') ||
-                              document.querySelector('button[type="submit"]');
-
-                if (button) {
-                    // Focus and click the button
-                    button.focus();
-                    button.click();
-                    return 'clicked';
-                } else {
-                    return 'not found';
-                }
+                const result = this.clickContactInfoConfirmButton();
+                return result ? 'clicked' : 'not found';
             } catch (error) {
                 return 'error: ' + error.message;
             }

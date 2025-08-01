@@ -1885,6 +1885,15 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
         logger.info("🛡️ Enhancing human-like behavior to avoid reCAPTCHA detection...")
 
+        // First, clean up session to prevent multiple tab detection
+        let cleanupScript = "window.odyssey.cleanupSession();"
+        do {
+            _ = try await webView.evaluateJavaScript(cleanupScript)
+            logger.info("Session cleanup completed")
+        } catch {
+            logger.error("❌ Failed to cleanup session: \(error.localizedDescription)")
+        }
+
         // Apply basic anti-detection measures using centralized library
         let script = "window.odyssey.applyBasicAntiDetection();"
 
@@ -2046,6 +2055,37 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             if let onWindowClosed = self.onWindowClosed {
                 onWindowClosed(.manual)
             }
+        }
+    }
+
+    /// Check if the current page indicates a successful reservation completion
+    public func checkReservationComplete() async -> Bool {
+        guard let webView else {
+            logger.error("WebView not initialized")
+            return false
+        }
+
+        let script = "window.odyssey.checkReservationComplete();"
+
+        do {
+            if let result = try await webView.evaluateJavaScript(script) as? [String: Any] {
+                let isComplete = result["isComplete"] as? Bool ?? false
+
+                if isComplete {
+                    logger.info("✅ Reservation completion detected!")
+                    logger.info("📋 Completion details: \(result)")
+                    return true
+                } else {
+                    logger.debug("⏳ Reservation not yet complete")
+                    return false
+                }
+            } else {
+                logger.debug("⏳ Reservation completion check returned invalid result")
+                return false
+            }
+        } catch {
+            logger.error("❌ Error checking reservation completion: \(error.localizedDescription)")
+            return false
         }
     }
 }

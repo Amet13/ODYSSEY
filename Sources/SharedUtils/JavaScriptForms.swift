@@ -22,28 +22,19 @@ public final class JavaScriptForms {
             const allFieldsFilled = phoneResult && emailResult && nameResult;
 
             if (allFieldsFilled) {
-                // Simulate human behavior before clicking confirm button
+                // Simulate human behavior before clicking confirm button using existing functions
                 // 1. Random mouse movement
-                const randomX = Math.random() * window.innerWidth;
-                const randomY = Math.random() * window.innerHeight;
-                document.dispatchEvent(new MouseEvent('mousemove', {
-                    bubbles: true,
-                    cancelable: true,
-                    view: window,
-                    clientX: randomX,
-                    clientY: randomY
-                }));
+                this.simulateQuickMouseMovement();
 
                 // 2. Small scroll
-                window.scrollBy(0, Math.random() * 50 - 25);
+                this.simulateQuickScrolling();
 
-                // 3. Click the confirm button (delay will be handled by Swift)
-                this.clickContactInfoConfirmButton();
+                // Note: Confirm button click will be handled by Swift after delay
 
                 return {
                     success: true,
                     filledCount: 3,
-                    confirmClicked: true
+                    confirmClicked: false // Let Swift handle the click after delay
                 };
             } else {
                 return {
@@ -83,29 +74,20 @@ public final class JavaScriptForms {
             }
 
             if (filledCount > 0) {
-                // Simulate human behavior before clicking confirm button
+                // Simulate human behavior before clicking confirm button using existing functions
                 // 1. Random mouse movement
-                const randomX = Math.random() * window.innerWidth;
-                const randomY = Math.random() * window.innerHeight;
-                document.dispatchEvent(new MouseEvent('mousemove', {
-                    bubbles: true,
-                    cancelable: true,
-                    view: window,
-                    clientX: randomX,
-                    clientY: randomY
-                }));
+                this.simulateQuickMouseMovement();
 
                 // 2. Small scroll
-                window.scrollBy(0, Math.random() * 50 - 25);
+                this.simulateQuickScrolling();
 
-                // 3. Click the confirm button (delay will be handled by Swift)
-                this.clickContactInfoConfirmButton();
+                // Note: Confirm button click will be handled by Swift after delay
 
                 return {
                     success: true,
                     filledCount: filledCount,
                     filledFields: results,
-                    confirmClicked: true
+                    confirmClicked: false // Let Swift handle the click after delay
                 };
             } else {
                 return {

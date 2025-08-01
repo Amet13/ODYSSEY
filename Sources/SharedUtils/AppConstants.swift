@@ -22,7 +22,7 @@ public enum AppConstants {
     // Additional timeout constants (consolidated)
     public static let retryDelay: TimeInterval = 2.0
     public static let pollInterval: TimeInterval = 1.0
-    public static let initialWait: TimeInterval = 10.0
+    public static let initialWait: TimeInterval = 5.0
     public static let maxTotalWait: TimeInterval = verificationCodeTimeout
     public static let shortTimeout: TimeInterval = 10.0
     public static let mediumTimeout: TimeInterval = 60.0

@@ -48,6 +48,7 @@ public protocol WebAutomationServiceProtocol: ObservableObject, Sendable {
     func detectRetryText() async -> Bool
     func isEmailVerificationRequired() async -> Bool
     func handleEmailVerification(verificationStart: Date) async -> Bool
+    func checkReservationComplete() async -> Bool
 }
 
 // MARK: - Web Element Protocol.

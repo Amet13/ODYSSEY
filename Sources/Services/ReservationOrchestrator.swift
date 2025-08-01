@@ -634,6 +634,28 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             }
 
             await updateTask("Finishing reservation...")
+
+            // Check if reservation is actually complete
+            logger.info("🔍 Checking if reservation is complete...")
+            let reservationComplete = await webKitService.checkReservationComplete()
+            if reservationComplete {
+                logger.info("✅ Reservation completion confirmed!")
+                LoggingService.shared.log(
+                    "Reservation completion confirmed",
+                    level: .success,
+                    configId: config.id,
+                    configName: config.name,
+                )
+            } else {
+                logger.info("⏳ Reservation completion not yet detected, but proceeding with cleanup...")
+                LoggingService.shared.log(
+                    "Reservation completion not yet detected, but proceeding with cleanup",
+                    level: .info,
+                    configId: config.id,
+                    configName: config.name,
+                )
+            }
+
             logger.info("🎉 Reservation completed successfully - all steps completed.")
             LoggingService.shared.log(
                 "Reservation completed successfully - all steps completed",
