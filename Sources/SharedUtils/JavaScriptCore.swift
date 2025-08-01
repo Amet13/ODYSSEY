@@ -309,24 +309,14 @@ public final class JavaScriptCore {
                              document.querySelector('input[name="ReservationCount"]');
 
                 if (field) {
-                    // Clear and focus the field
-                    field.value = '';
-                    field.focus();
-
-                    // Set the value
                     field.value = numberOfPeople.toString();
-
-                    // Trigger events to simulate user input
                     field.dispatchEvent(new Event('input', { bubbles: true }));
                     field.dispatchEvent(new Event('change', { bubbles: true }));
-                    field.dispatchEvent(new Event('blur', { bubbles: true }));
-
-                    return 'filled';
-                } else {
-                    return 'not found';
+                    return true;
                 }
+                return false;
             } catch (error) {
-                return 'error: ' + error.message;
+                return false;
             }
         },
 
@@ -365,10 +355,8 @@ public final class JavaScriptCore {
                     currentScroll += step;
                 }, Math.random() * 50 + 30);
 
-
                 return true;
             } catch (error) {
-                console.error('[ODYSSEY] Error simulating human scrolling:', error);
                 return false;
             }
         }

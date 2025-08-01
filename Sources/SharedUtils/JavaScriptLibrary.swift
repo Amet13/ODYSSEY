@@ -315,64 +315,40 @@ public final class JavaScriptLibrary {
                             // Expand day section
         expandDaySection: function(dayName) {
             try {
-                console.log('[ODYSSEY] Starting expandDaySection function for:', dayName);
-
-                // Find all elements with class 'header-text'
                 const headerElements = Array.from(document.getElementsByClassName('header-text'));
-                console.log('[ODYSSEY] Found', headerElements.length, 'header-text elements');
-
-                headerElements.forEach((el, idx) => {
-                    const text = el.textContent.trim();
-                    const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-                    console.log(`[ODYSSEY] header-text[${idx}]: text="${text}", visible=${visible}`);
-                });
-
-                // Find and click the SPECIFIC day that matches our target day
-                let clicked = false;
                 const targetDayName = dayName.trim().toLowerCase();
-                console.log('[ODYSSEY] Looking for day section matching:', targetDayName);
 
+                // Find and click the specific day that matches our target day
                 for (let i = 0; i < headerElements.length; i++) {
                     const el = headerElements[i];
                     const headerText = el.textContent.trim().toLowerCase();
                     const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
 
-                    console.log(`[ODYSSEY] Checking header-text[${i}]: text="${el.textContent.trim()}", matches target: ${headerText.includes(targetDayName)}`);
-
                     // Check if this header contains our target day name
                     if (headerText.includes(targetDayName) && visible) {
                         el.scrollIntoView({behavior: 'smooth', block: 'center'});
                         el.click();
-                        clicked = true;
-                        console.log(`[ODYSSEY] Clicked matching day header[${i}]: text="${el.textContent.trim()}"`);
-                        break;
+                        return true;
                     }
                 }
 
-                if (!clicked) {
-                    console.log('[ODYSSEY] No exact match found, trying partial matching...');
-                    const dayParts = targetDayName.split(/\\s+/).filter(Boolean);
+                // Fallback: try partial matching
+                const dayParts = targetDayName.split(/\\s+/).filter(Boolean);
+                for (let i = 0; i < headerElements.length; i++) {
+                    const el = headerElements[i];
+                    const headerText = el.textContent.trim().toLowerCase();
+                    const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
 
-                    for (let i = 0; i < headerElements.length; i++) {
-                        const el = headerElements[i];
-                        const headerText = el.textContent.trim().toLowerCase();
-                        const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-
-                        // Check if any part of the target day name matches
-                        const hasMatch = dayParts.some(part => part && headerText.includes(part));
-                        console.log(`[ODYSSEY] Partial check header-text[${i}]: text="${el.textContent.trim()}", has match: ${hasMatch}`);
-
-                        if (hasMatch && visible) {
-                            el.scrollIntoView({behavior: 'smooth', block: 'center'});
-                            el.click();
-                            clicked = true;
-                            console.log(`[ODYSSEY] Clicked partial match header[${i}]: text="${el.textContent.trim()}"`);
-                            break;
-                        }
+                    // Check if any part of the target day name matches
+                    const hasMatch = dayParts.some(part => part && headerText.includes(part));
+                    if (hasMatch && visible) {
+                        el.scrollIntoView({behavior: 'smooth', block: 'center'});
+                        el.click();
+                        return true;
                     }
                 }
 
-                return clicked;
+                return false;
             } catch (error) {
                 console.error('[ODYSSEY] Error expanding day section:', error);
                 return false;
@@ -382,36 +358,20 @@ public final class JavaScriptLibrary {
                 // Click time button
         clickTimeButton: function(timeString, dayName) {
             try {
-                console.log('[ODYSSEY] Starting clickTimeButton function for:', timeString, 'day:', dayName);
-
-                // After expanding, find and click the time slot by aria-label
-                const slotTime = timeString;
-                const slotDay = dayName;
-                const timeSlotSelector = `[aria-label*='${slotTime} ${slotDay}']`;
-                console.log('[ODYSSEY] Looking for time slot with selector:', timeSlotSelector);
+                const timeSlotSelector = `[aria-label*='${timeString} ${dayName}']`;
                 const timeSlotElements = Array.from(document.querySelectorAll(timeSlotSelector));
 
-                timeSlotElements.forEach((el, idx) => {
-                    const text = el.textContent.trim();
-                    const aria = el.getAttribute('aria-label');
-                    const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-                    console.log(`[ODYSSEY] time-slot[${idx}]: text="${text}", aria-label="${aria}", visible=${visible}`);
-                });
-
-                let timeSlotClicked = false;
                 for (let i = 0; i < timeSlotElements.length; i++) {
                     const el = timeSlotElements[i];
                     const visible = !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
                     if (visible) {
                         el.scrollIntoView({behavior: 'smooth', block: 'center'});
                         el.click();
-                        timeSlotClicked = true;
-                        console.log(`[ODYSSEY] Clicked time-slot[${i}]: aria-label="${el.getAttribute('aria-label')}"`);
-                        break;
+                        return true;
                     }
                 }
 
-                return timeSlotClicked;
+                return false;
             } catch (error) {
                 console.error('[ODYSSEY] Error clicking time button:', error);
                 return false;
@@ -715,8 +675,6 @@ public final class JavaScriptLibrary {
         detectSports: function() {
             try {
                 const sports = [];
-
-                // Look for elements with the specific 'button no-img' class
                 const buttonNoImgElements = document.querySelectorAll('.button.no-img');
 
                 buttonNoImgElements.forEach((element) => {
@@ -724,7 +682,6 @@ public final class JavaScriptLibrary {
                     const trimmedText = text.trim();
 
                     if (trimmedText.length > 0) {
-                        // Check for duplicates by sport name (case-insensitive)
                         const isDuplicate = sports.some(existing =>
                             existing.toLowerCase() === trimmedText.toLowerCase()
                         );
@@ -736,9 +693,7 @@ public final class JavaScriptLibrary {
                 });
 
                 return sports;
-
             } catch (error) {
-                console.error('[ODYSSEY] Error in detectSports:', error);
                 return [];
             }
         }

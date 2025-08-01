@@ -28,21 +28,7 @@ public final class JavaScriptPages {
             const hasGroupSizeText = (document.body.textContent || document.body.innerText || '').toLowerCase().includes('group size') ||
                                     (document.body.textContent || document.body.innerText || '').toLowerCase().includes('number of people');
 
-            const found = hasNumberInputs || hasReservationCount || hasReservationCountInput || hasGroupSizeText;
-
-            return {
-                found: found,
-                html: document.documentElement.outerHTML.substring(0, 5000),
-                inputs: Array.from(document.querySelectorAll('input')).map(el =>
-                    `[id='${el.id}'] [name='${el.name}'] [type='${el.type}'] [class='${el.className}']`
-                ),
-                buttons: Array.from(document.querySelectorAll('button')).map(el =>
-                    `[id='${el.id}'] [text='${el.textContent || el.innerText || ''}'] [class='${el.className}']`
-                ),
-                divs: Array.from(document.querySelectorAll('div')).slice(0, 10).map(el =>
-                    `[id='${el.id}'] [class='${el.className}'] [text='${(el.textContent || el.innerText || '').substring(0, 50)}']`
-                )
-            };
+            return hasNumberInputs || hasReservationCount || hasReservationCountInput || hasGroupSizeText;
         },
 
     // Check if time selection page is loaded

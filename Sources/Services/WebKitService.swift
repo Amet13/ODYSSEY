@@ -830,7 +830,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         do {
             let result = try await executeScriptInternal("window.odyssey.fillNumberOfPeople(\(numberOfPeople));")?.value
 
-            if let str = result as? String, str == "filled" {
+            if let success = result as? Bool, success {
                 return true
             } else {
                 logger.error("❌ Field not found or not filled: \(String(describing: result))")
@@ -888,20 +888,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             let script = "window.odyssey.checkGroupSizePage();"
             do {
                 let result = try await webView.evaluateJavaScript(script)
-                if let dict = result as? [String: Any] {
-                    let found = dict["found"] as? Bool ?? false
-                    let html = dict["html"] as? String ?? ""
-                    let inputs = dict["inputs"] as? [String] ?? []
-                    let buttons = dict["buttons"] as? [String] ?? []
-                    let divs = dict["divs"] as? [String] ?? []
-                    logger
-                        .info(
-                            "[GroupSizePoll][poll \(pollCount)] found=\(found)\nINPUTS: \(inputs.joined(separator: ", "))\nBUTTONS: \(buttons.joined(separator: ", "))\nDIVS: \(divs.prefix(5).joined(separator: ", "))\nHTML: \(html.prefix(5_000))",
-                        )
-                    if found {
-                        logger.info("📊 Group size input found on poll #\(pollCount)")
-                        return true
-                    }
+                if let found = result as? Bool, found {
+                    logger.info("📊 Group size input found on poll #\(pollCount)")
+                    return true
                 }
             } catch {
                 logger.error("[GroupSizePoll][poll \(pollCount)] JS error: \(error.localizedDescription)")
