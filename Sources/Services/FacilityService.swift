@@ -85,33 +85,57 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
             return
         }
 
-        logger.info("🔧 Setting up WebView with JavaScript libraries...")
+        // Simple sports detection script with error handling
+        let sportsScript = """
+        (function() {
+            try {
+                // Initialize window.odyssey if it doesn't exist
+                if (typeof window.odyssey === 'undefined') {
+                    window.odyssey = {};
+                }
 
-        let automationScript = JavaScriptLibrary.getAutomationLibrary()
-        logger.info("📜 Automation script length: \(automationScript.count) characters")
+                // Define the detectSports function directly
+                window.odyssey.detectSports = function() {
+                    try {
+                        const sports = [];
 
-        let script = WKUserScript(source: automationScript, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
-        webView.configuration.userContentController.addUserScript(script)
+                        // Look for elements with the specific 'button no-img' class
+                        const buttonNoImgElements = document.querySelectorAll('.button.no-img');
 
-        // Add message handler for debugging
-        webView.configuration.userContentController.add(self, name: "sportsDebug")
+                        buttonNoImgElements.forEach((element) => {
+                            const text = element.textContent || element.innerText || '';
+                            const trimmedText = text.trim();
 
-        logger.info("🔧 WebView setup completed with centralized JavaScript library.")
+                            if (trimmedText.length > 0) {
+                                // Check for duplicates by sport name (case-insensitive)
+                                const isDuplicate = sports.some(existing =>
+                                    existing.toLowerCase() === trimmedText.toLowerCase()
+                                );
 
-        let sportsDetectionScript = JavaScriptLibrary.getSportsDetectionLibrary()
-        logger.info("📜 Sports detection script length: \(sportsDetectionScript.count) characters")
+                                if (!isDuplicate) {
+                                    sports.push(trimmedText);
+                                }
+                            }
+                        });
 
-        let script2 = WKUserScript(
-            source: sportsDetectionScript,
-            injectionTime: .atDocumentEnd,
-            forMainFrameOnly: false,
-            )
-        webView.configuration.userContentController.addUserScript(script2)
+                        console.log('[ODYSSEY] Found sports:', sports);
+                        return sports;
 
-        logger.info("🔧 Sports detection script injected.")
+                    } catch (error) {
+                        console.error('[ODYSSEY] Error in detectSports:', error);
+                        return [];
+                    }
+                };
 
-        // Simple sports detection script
-        let sportsScript = "window.odyssey.detectSports();"
+                // Execute the detection
+                return window.odyssey.detectSports();
+
+            } catch (error) {
+                console.error('[ODYSSEY] Error in sports detection script:', error);
+                return [];
+            }
+        })();
+        """
 
         logger.info("🔍 Executing sports detection script...")
 

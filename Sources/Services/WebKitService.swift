@@ -1032,6 +1032,61 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
     }
 
+    public func expandDaySection(dayName: String) async -> Bool {
+        guard let webView else {
+            logger.error("❌ [DaySection] WebView not initialized")
+            return false
+        }
+
+        logger.info("📅 [DaySection] Expanding day section for: \(dayName, privacy: .private)")
+
+        let script = "window.odyssey.expandDaySection('\(dayName)');"
+
+        do {
+            logger.info("📅 [DaySection] Executing JavaScript script...")
+            let result = try await webView.evaluateJavaScript(script)
+            logger.info("📊 [DaySection] JS result: \(String(describing: result), privacy: .private)")
+
+            if let success = result as? Bool, success {
+                logger.info("✅ [DaySection] Day section expanded successfully")
+                return true
+            } else {
+                logger.error("❌ [DaySection] Failed to expand day section")
+                return false
+            }
+        } catch {
+            logger.error("❌ [DaySection] JS error: \(error.localizedDescription, privacy: .private)")
+            return false
+        }
+    }
+
+    public func clickTimeButton(timeString: String, dayName: String) async -> Bool {
+        guard let webView else {
+            logger.error("WebView not initialized")
+            return false
+        }
+
+        logger.info("⏰ Clicking time button: \(timeString, privacy: .private) for day: \(dayName, privacy: .private)")
+
+        let script = "window.odyssey.clickTimeButton('\(timeString)', '\(dayName)');"
+
+        do {
+            let result = try await webView.evaluateJavaScript(script)
+            logger.info("📊 [TimeButton] JS result: \(String(describing: result), privacy: .private)")
+
+            if let success = result as? Bool, success {
+                logger.info("✅ [TimeButton] Time button clicked successfully")
+                return true
+            } else {
+                logger.error("❌ [TimeButton] Failed to click time button")
+                return false
+            }
+        } catch {
+            logger.error("[TimeButton] JS error: \(error.localizedDescription, privacy: .private)")
+            return false
+        }
+    }
+
     public func checkAndClickContinueButton() async -> Bool {
         guard let webView else {
             logger.error("WebView not initialized")

@@ -359,17 +359,35 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     configId: config.id,
                     configName: config.name,
                 )
-                let timeSlotSelected = await webKitService.selectTimeSlot(dayName: dayName, timeString: timeString)
-                if !timeSlotSelected {
-                    logger.error("❌ Failed to select time slot: \(dayName) at \(timeString, privacy: .private).")
+
+                // Use our new functions: expand day section first, then click time button
+                let dayExpanded = await webKitService.expandDaySection(dayName: dayName)
+                if !dayExpanded {
+                    logger.error("❌ Failed to expand day section: \(dayName, privacy: .private).")
                     LoggingService.shared.log(
-                        "Failed to select time slot: \(dayName) at \(timeString)",
+                        "Failed to expand day section: \(dayName)",
                         level: .error,
                         configId: config.id,
                         configName: config.name,
                     )
                     throw ReservationError.timeSlotSelectionFailed
                 }
+
+                // Wait for time buttons to load
+                try await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second
+
+                let timeSlotClicked = await webKitService.clickTimeButton(timeString: timeString, dayName: dayName)
+                if !timeSlotClicked {
+                    logger.error("❌ Failed to click time button: \(timeString, privacy: .private).")
+                    LoggingService.shared.log(
+                        "Failed to click time button: \(timeString)",
+                        level: .error,
+                        configId: config.id,
+                        configName: config.name,
+                    )
+                    throw ReservationError.timeSlotSelectionFailed
+                }
+
                 logger.info("✅ Successfully selected time slot: \(dayName) at \(timeString, privacy: .private).")
                 LoggingService.shared.log(
                     "Successfully selected time slot: \(dayName) at \(timeString)",

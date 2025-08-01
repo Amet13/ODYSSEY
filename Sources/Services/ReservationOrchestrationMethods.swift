@@ -188,20 +188,36 @@ public final class ReservationOrchestrationMethods {
         // Select first available time slot
         if let firstTimeSlot = config.dayTimeSlots.values.first?.first {
             let timeFormatter = DateFormatter()
-            timeFormatter.timeStyle = .short
+            timeFormatter.dateFormat = "h:mm a" // Format like "8:15 AM"
             let timeString = timeFormatter.string(from: firstTimeSlot.time)
 
-            let timeClicked = await WebKitService.shared
-                .findAndClickElement("input[name='time'], select[name='time'], .time-selector")
+            // Get the day name from the first time slot
+            let dayFormatter = DateFormatter()
+            dayFormatter.dateFormat = "EEEE" // Full day name like "Saturday"
+            let dayName = dayFormatter.string(from: firstTimeSlot.time)
+            logger.info("📅 [TimeSlot] Day name extracted: \(dayName, privacy: .private)")
+
+            // Expand the day section first
+            logger.info("📅 [TimeSlot] Starting day section expansion...")
+            let dayExpanded = await WebKitService.shared.expandDaySection(dayName: dayName)
+            logger.info("📅 [TimeSlot] Day expansion result: \(dayExpanded)")
+            guard dayExpanded else {
+                logger.error("❌ [TimeSlot] Day section expansion failed")
+                throw ReservationError.timeSlotSelectionFailed
+            }
+
+            // Wait a moment for the section to expand and time buttons to load
+            try await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second
+
+            // Click the specific time button
+            let timeClicked = await WebKitService.shared.clickTimeButton(timeString: timeString, dayName: dayName)
             guard timeClicked else {
                 throw ReservationError.timeSlotSelectionFailed
             }
 
-            let timeTyped = await WebKitService.shared.typeText(
-                timeString,
-                into: "input[name='time'], select[name='time'], .time-selector",
-                )
-            guard timeTyped else {
+            // Wait for the contact info page to load
+            let contactPageLoaded = await WebKitService.shared.waitForContactInfoPage()
+            guard contactPageLoaded else {
                 throw ReservationError.timeSlotSelectionFailed
             }
         }

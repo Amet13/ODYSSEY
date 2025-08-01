@@ -193,6 +193,22 @@ public protocol WebKitServiceProtocol: AnyObject {
      - Returns: True if successful.
      */
     func typeText(_ text: String, into selector: String) async -> Bool
+
+    /**
+     Expands a day section for the given day name.
+     - Parameter dayName: The day name to expand (e.g., "Saturday").
+     - Returns: True if successful.
+     */
+    func expandDaySection(dayName: String) async -> Bool
+
+    /**
+     Clicks a time button for the given time string and day name.
+     - Parameters:
+     - timeString: The time string to click (e.g., "8:15 AM").
+     - dayName: The day name for context.
+     - Returns: True if successful.
+     */
+    func clickTimeButton(timeString: String, dayName: String) async -> Bool
 }
 
 // MARK: - EmailService Protocol
