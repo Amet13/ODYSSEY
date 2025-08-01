@@ -6,9 +6,9 @@ import SwiftUI
 
 struct ContentView: View {
     // Service singletons for automation, email, and secure storage
-    private let webKitService: WebKitServiceProtocol = ServiceRegistry.shared.resolve(WebKitServiceProtocol.self)
-    private let emailService: EmailServiceProtocol = ServiceRegistry.shared.resolve(EmailServiceProtocol.self)
-    private let keychainService: KeychainServiceProtocol = ServiceRegistry.shared.resolve(KeychainServiceProtocol.self)
+    private let webKitService: WebKitServiceProtocol = WebKitService.shared
+    private let emailService: EmailServiceProtocol = EmailService.shared
+    private let keychainService: KeychainServiceProtocol = KeychainService.shared
     // State objects for app-wide managers (configuration, orchestration, status, user settings)
     @StateObject private var configManager = ConfigurationManager.shared
     @StateObject private var orchestrator = ReservationOrchestrator.shared

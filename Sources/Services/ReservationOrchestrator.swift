@@ -13,9 +13,7 @@ public struct ReservationRunStatusCodable: Codable, Equatable {
 }
 
 @MainActor
-public final class ReservationOrchestrator: ObservableObject, @unchecked Sendable,
-    @preconcurrency ReservationOrchestratorProtocol
-{
+public final class ReservationOrchestrator: ObservableObject, @unchecked Sendable {
     public static let shared = ReservationOrchestrator()
     public var lastRunStatus: ReservationRunStatus { statusManager.lastRunStatus }
 
@@ -44,7 +42,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             subsystem: "com.odyssey.app",
             category: LoggerCategory.reservationOrchestrator.categoryName,
         ),
-        webKitService: WebKitServiceProtocol = ServiceRegistry.shared.resolve(WebKitServiceProtocol.self),
+        webKitService: WebKitServiceProtocol = WebKitService.shared,
         configurationManager: ConfigurationManager = ConfigurationManager.shared
     ) {
         self.statusManager = statusManager
@@ -59,8 +57,11 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         self.init(
             statusManager: ReservationStatusManager.shared,
             errorHandler: ReservationErrorHandler.shared,
-            logger: Logger(subsystem: "com.odyssey.app", category: LoggerCategory.reservationOrchestrator.categoryName),
-            webKitService: ServiceRegistry.shared.resolve(WebKitServiceProtocol.self),
+            logger: Logger(
+                subsystem: "com.odyssey.app",
+                category: LoggerCategory.reservationOrchestrator.categoryName,
+            ),
+            webKitService: WebKitService.shared,
             configurationManager: ConfigurationManager.shared,
         )
     }
@@ -146,7 +147,8 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
     public func stopAllReservations() async {
         if statusManager.isRunning, let config = currentConfig {
             logger.warning("🚨 Emergency cleanup triggered - capturing screenshot and sending notification.")
-            logger.error("🚨 Emergency cleanup triggered for \(config.name): automation was interrupted unexpectedly.")
+            logger
+                .error("🚨 Emergency cleanup triggered for \(config.name): automation was interrupted unexpectedly.")
             await MainActor.run {
                 // Always set isRunning = false for emergency cleanup
                 statusManager.isRunning = false
@@ -167,7 +169,8 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
     public func emergencyCleanup(runType _: ReservationRunType) async {
         if statusManager.isRunning, let config = currentConfig {
             logger.warning("🚨 Emergency cleanup triggered - capturing screenshot and sending notification.")
-            logger.error("🚨 Emergency cleanup triggered for \(config.name): automation was interrupted unexpectedly.")
+            logger
+                .error("🚨 Emergency cleanup triggered for \(config.name): automation was interrupted unexpectedly.")
             await MainActor.run {
                 // Always set isRunning = false for emergency cleanup
                 statusManager.isRunning = false
@@ -222,7 +225,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
 
         // Log to direct logging service for CLI access
         LoggingService.shared.log(
-            "Starting reservation for \(config.name)",
+            "Starting reservation for \(config.name).",
             level: .info,
             configId: config.id,
             configName: config.name,
@@ -232,7 +235,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         if !webKitService.isServiceValid() {
             logger.info("🔄 WebKit service not in valid state, resetting.")
             LoggingService.shared.log(
-                "WebKit service not in valid state, resetting",
+                "WebKit service not in valid state, resetting.",
                 level: .warning,
                 configId: config.id,
                 configName: config.name,
@@ -243,11 +246,21 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             Task { await self?.handleManualWindowClosure(runType: runType) }
         }
         await updateTask("Starting WebKit session")
-        LoggingService.shared.log("Starting WebKit session", level: .info, configId: config.id, configName: config.name)
+        LoggingService.shared.log(
+            "Starting WebKit session.",
+            level: .info,
+            configId: config.id,
+            configName: config.name,
+        )
         try await webKitService.connect()
         webKitService.currentConfig = config
         await updateTask("Navigating to facility")
-        LoggingService.shared.log("Navigating to facility", level: .info, configId: config.id, configName: config.name)
+        LoggingService.shared.log(
+            "Navigating to facility.",
+            level: .info,
+            configId: config.id,
+            configName: config.name,
+        )
         try await webKitService.navigateToURL(config.facilityURL)
         await updateTask("Checking for cookie consent...")
         await updateTask("Waiting for page to load")
@@ -265,7 +278,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         }
         logger.info("✅ Page loaded successfully.")
         LoggingService.shared.log(
-            "Page loaded successfully",
+            "Page loaded successfully.",
             level: .success,
             configId: config.id,
             configName: config.name,
@@ -273,7 +286,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         await updateTask("Looking for sport: \(config.sportName)")
         logger.info("🔍 Searching for sport button with text: '\(config.sportName, privacy: .private)'.")
         LoggingService.shared.log(
-            "Searching for sport button: \(config.sportName)",
+            "Searching for sport button: \(config.sportName).",
             level: .info,
             configId: config.id,
             configName: config.name,
@@ -282,7 +295,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         if buttonClicked {
             logger.info("✅ Successfully clicked sport button: \(config.sportName, privacy: .private).")
             LoggingService.shared.log(
-                "Successfully clicked sport button",
+                "Successfully clicked sport button.",
                 level: .success,
                 configId: config.id,
                 configName: config.name,
@@ -302,7 +315,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             }
             logger.info("✅ Group size page loaded successfully.")
             LoggingService.shared.log(
-                "Group size page loaded successfully",
+                "Group size page loaded successfully.",
                 level: .success,
                 configId: config.id,
                 configName: config.name,
@@ -322,7 +335,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             }
             logger.info("✅ Successfully filled number of people: \(config.numberOfPeople).")
             LoggingService.shared.log(
-                "Successfully filled number of people: \(config.numberOfPeople)",
+                "Successfully filled number of people: \(config.numberOfPeople).",
                 level: .success,
                 configId: config.id,
                 configName: config.name,
@@ -342,7 +355,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             }
             logger.info("✅ Successfully clicked confirm button.")
             LoggingService.shared.log(
-                "Successfully clicked confirm button",
+                "Successfully clicked confirm button.",
                 level: .success,
                 configId: config.id,
                 configName: config.name,
@@ -393,7 +406,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
 
                 logger.info("✅ Successfully selected time slot: \(dayName) at \(timeString, privacy: .private).")
                 LoggingService.shared.log(
-                    "Successfully selected time slot: \(dayName) at \(timeString)",
+                    "Successfully selected time slot: \(dayName) at \(timeString).",
                     level: .success,
                     configId: config.id,
                     configName: config.name,
@@ -401,7 +414,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             } else {
                 logger.warning("⚠️ No time slots configured, skipping time selection.")
                 LoggingService.shared.log(
-                    "No time slots configured, skipping time selection",
+                    "No time slots configured, skipping time selection.",
                     level: .warning,
                     configId: config.id,
                     configName: config.name,
@@ -414,7 +427,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             if !contactInfoPageReady {
                 logger.error("⏰ Contact information page failed to load within timeout.")
                 LoggingService.shared.log(
-                    "Contact information page failed to load within timeout",
+                    "Contact information page failed to load within timeout.",
                     level: .error,
                     configId: config.id,
                     configName: config.name,
@@ -424,14 +437,14 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             }
             logger.info("✅ Contact information page loaded successfully.")
             LoggingService.shared.log(
-                "Contact information page loaded successfully",
+                "Contact information page loaded successfully.",
                 level: .success,
                 configId: config.id,
                 configName: config.name,
             )
             await updateTask("Filling contact information...")
             LoggingService.shared.log(
-                "Filling contact information",
+                "Filling contact information.",
                 level: .info,
                 configId: config.id,
                 configName: config.name,
@@ -449,7 +462,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             if !allFieldsFilled {
                 logger.error("❌ Failed to fill all contact fields simultaneously.")
                 LoggingService.shared.log(
-                    "Failed to fill all contact fields simultaneously",
+                    "Failed to fill all contact fields simultaneously.",
                     level: .error,
                     configId: config.id,
                     configName: config.name,
@@ -457,9 +470,10 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 self.userError = ReservationError.contactInfoFieldNotFound.errorDescription
                 throw ReservationError.contactInfoFieldNotFound
             }
-            logger.info("✅ Successfully filled all contact fields simultaneously with autofill and human movements.")
+            logger
+                .info("✅ Successfully filled all contact fields simultaneously with autofill and human movements.")
             LoggingService.shared.log(
-                "Successfully filled all contact fields simultaneously",
+                "Successfully filled all contact fields simultaneously.",
                 level: .success,
                 configId: config.id,
                 configName: config.name,
@@ -501,7 +515,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 if retryTextDetected {
                     logger.warning("Retry text detected - handling captcha retry")
                     LoggingService.shared.log(
-                        "Retry text detected - handling captcha retry",
+                        "Retry text detected - handling captcha retry.",
                         level: .warning,
                         configId: config.id,
                         configName: config.name,
@@ -510,7 +524,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     // Handle captcha retry with human behavior simulation
                     let captchaRetryHandled = await webKitService.handleCaptchaRetry()
                     if captchaRetryHandled {
-                        logger.info("✅ Captcha retry handled with human behavior simulation")
+                        logger.info("✅ Captcha retry handled with human behavior simulation.")
                         // Wait for the retry to complete
                         try? await Task.sleep(nanoseconds: 2_000_000_000) // Wait 2 seconds
 
@@ -522,7 +536,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                             retryCount += 1
                             continue
                         } else {
-                            logger.info("✅ Captcha retry successful - no retry text detected")
+                            logger.info("✅ Captcha retry successful - no retry text detected.")
                             contactConfirmClicked = true
                             break
                         }
@@ -542,7 +556,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     if retryTextAfterClick {
                         logger.warning("Retry text detected after confirm button click")
                         LoggingService.shared.log(
-                            "Retry text detected after confirm button click",
+                            "Retry text detected after confirm button click.",
                             level: .warning,
                             configId: config.id,
                             configName: config.name,
@@ -552,7 +566,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     } else {
                         logger.info("✅ Successfully clicked contact confirm button (no retry text detected).")
                         LoggingService.shared.log(
-                            "Successfully clicked contact confirm button",
+                            "Successfully clicked contact confirm button.",
                             level: .success,
                             configId: config.id,
                             configName: config.name,
@@ -566,7 +580,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             if !contactConfirmClicked {
                 logger.error("❌ Failed to click contact confirm button after \(maxRetries) attempts.")
                 LoggingService.shared.log(
-                    "Failed to click contact confirm button after \(maxRetries) attempts",
+                    "Failed to click contact confirm button after \(maxRetries) attempts.",
                     level: .error,
                     configId: config.id,
                     configName: config.name,
@@ -588,7 +602,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             if verificationRequired {
                 logger.info("📧 Email verification required, starting verification process.")
                 LoggingService.shared.log(
-                    "Email verification required, starting verification process",
+                    "Email verification required, starting verification process.",
                     level: .info,
                     configId: config.id,
                     configName: config.name,
@@ -598,7 +612,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 if !verificationSuccess {
                     logger.error("❌ Email verification failed.")
                     LoggingService.shared.log(
-                        "Email verification failed",
+                        "Email verification failed.",
                         level: .error,
                         configId: config.id,
                         configName: config.name,
@@ -608,7 +622,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 }
                 logger.info("✅ Email verification completed successfully.")
                 LoggingService.shared.log(
-                    "Email verification completed successfully",
+                    "Email verification completed successfully.",
                     level: .success,
                     configId: config.id,
                     configName: config.name,
@@ -620,15 +634,16 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 if domReady {
                     logger.info("✅ Confirmation page loaded successfully.")
                     LoggingService.shared.log(
-                        "Confirmation page loaded successfully",
+                        "Confirmation page loaded successfully.",
                         level: .success,
                         configId: config.id,
                         configName: config.name,
                     )
                 } else {
-                    logger.warning("⚠️ DOM ready check failed, but continuing with click result as success indicator.")
+                    logger
+                        .warning("⚠️ DOM ready check failed, but continuing with click result as success indicator.")
                     LoggingService.shared.log(
-                        "DOM ready check failed, but continuing",
+                        "DOM ready check failed, but continuing.",
                         level: .warning,
                         configId: config.id,
                         configName: config.name,
@@ -644,7 +659,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             if reservationComplete {
                 logger.info("✅ Reservation completion confirmed!")
                 LoggingService.shared.log(
-                    "Reservation completion confirmed",
+                    "Reservation completion confirmed.",
                     level: .success,
                     configId: config.id,
                     configName: config.name,
@@ -652,7 +667,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             } else {
                 logger.info("⏳ Reservation completion not yet detected, but proceeding with cleanup...")
                 LoggingService.shared.log(
-                    "Reservation completion not yet detected, but proceeding with cleanup",
+                    "Reservation completion not yet detected, but proceeding with cleanup.",
                     level: .info,
                     configId: config.id,
                     configName: config.name,
@@ -661,7 +676,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
 
             logger.info("🎉 Reservation completed successfully - all steps completed.")
             LoggingService.shared.log(
-                "Reservation completed successfully - all steps completed",
+                "Reservation completed successfully - all steps completed.",
                 level: .success,
                 configId: config.id,
                 configName: config.name,
@@ -710,7 +725,10 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
      - config: The reservation configuration to run.
      - runType: The type of run.
      */
-    private func runReservationWithSeparateWebKit(for config: ReservationConfig, runType: ReservationRunType) async {
+    private func runReservationWithSeparateWebKit(
+        for config: ReservationConfig,
+        runType: ReservationRunType,
+    ) async {
         logger.info("🚀 Starting separate WebKit instance for \(config.name).")
         let instanceId = "godmode_\(config.id.uuidString.prefix(8))_\(Date().timeIntervalSince1970)"
         let separateWebKitService = WebKitService(forParallelOperation: true, instanceId: instanceId)
@@ -762,7 +780,9 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     let dayName = day.shortName
                     let timeString = timeSlot.formattedTime()
                     logger
-                        .info("Attempting to select for \(config.name): \(dayName) at \(timeString, privacy: .private)")
+                        .info(
+                            "Attempting to select for \(config.name): \(dayName) at \(timeString, privacy: .private)",
+                        )
                     let timeSlotSelected = await separateWebKitService.selectTimeSlot(
                         dayName: dayName,
                         timeString: timeString,
@@ -849,7 +869,9 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 }
                 if !contactConfirmClicked {
                     logger
-                        .error("Failed to click contact confirm button after \(maxRetries) attempts for \(config.name)")
+                        .error(
+                            "Failed to click contact confirm button after \(maxRetries) attempts for \(config.name)",
+                        )
                     throw ReservationError.contactInfoConfirmButtonNotFound
                 }
                 logger.info("✅ Successfully clicked contact confirm button for \(config.name).")
@@ -878,10 +900,10 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                         // Intelligent window closing: only close if autoCloseDebugWindowOnFailure is enabled
                         let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
                         if shouldClose {
-                            logger.info("🪟 Auto-close on failure enabled - closing window")
+                            logger.info("🪟 Auto-close on failure enabled - closing window.")
                             await separateWebKitService.disconnect(closeWindow: true)
                         } else {
-                            logger.info("🪟 Auto-close on failure disabled - keeping window open to show error")
+                            logger.info("🪟 Auto-close on failure disabled - keeping window open to show error.")
                             await separateWebKitService.disconnect(closeWindow: false)
                         }
                         return
@@ -933,16 +955,16 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             // Intelligent window closing: only close if autoCloseDebugWindowOnFailure is enabled
             let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
             if shouldClose {
-                logger.info("🪟 Auto-close on failure enabled - closing window")
+                logger.info("🪟 Auto-close on failure enabled - closing window.")
                 await separateWebKitService.disconnect(closeWindow: true)
             } else {
-                logger.info("🪟 Auto-close on failure disabled - keeping window open to show error")
+                logger.info("🪟 Auto-close on failure disabled - keeping window open to show error.")
                 await separateWebKitService.disconnect(closeWindow: false)
             }
             return
         }
         // Always close window on successful reservation (regardless of settings)
-        logger.info("🎉 Reservation completed successfully - closing window")
+        logger.info("🎉 Reservation completed successfully - closing window.")
         await separateWebKitService.disconnect(closeWindow: true)
     }
 
@@ -1094,7 +1116,9 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     }
                 }
                 logger
-                    .info("📊 God Mode completed: \(successfulConfigs.count) successful, \(failedConfigs.count) failed.")
+                    .info(
+                        "📊 God Mode completed: \(successfulConfigs.count) successful, \(failedConfigs.count) failed.",
+                    )
                 WebKitService.printLiveInstanceCount()
                 return
             }

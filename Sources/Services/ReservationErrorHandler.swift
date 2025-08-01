@@ -56,10 +56,10 @@ public final class ReservationErrorHandler: @unchecked Sendable {
         // Intelligent window closing: only close if autoCloseDebugWindowOnFailure is enabled
         let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
         if shouldClose {
-            logger.info("🪟 Auto-close on failure enabled - closing window")
+            logger.info("🪟 Auto-close on failure enabled - closing window.")
             await webKitService.disconnect(closeWindow: true)
         } else {
-            logger.info("🪟 Auto-close on failure disabled - keeping window open to show error")
+            logger.info("🪟 Auto-close on failure disabled - keeping window open to show error.")
             await webKitService.disconnect(closeWindow: false)
         }
     }

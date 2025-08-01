@@ -65,13 +65,14 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 #### Shared Core Components
 
 6. **ConfigurationManager** - Settings and data persistence (singleton)
-7. **ReservationManager** - Web automation orchestration
+7. **ReservationOrchestrator** - Web automation orchestration
 8. **WebKitService** - Native web automation engine (singleton)
 9. **FacilityService** - Web scraping and facility data management
 10. **EmailService** - IMAP integration and email testing
 11. **UserSettingsManager** - User configuration and settings management
 12. **ValidationService** - Centralized validation logic (singleton)
-13. **AppConstants** - Centralized application constants
+13. **CentralizedLoggingService** - Unified logging service (singleton)
+14. **AppConstants** - Centralized application constants
 
 ## 🎯 Development Guidelines
 
@@ -79,15 +80,17 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 
 - **Swift Style**: Follow official Swift style guide and SwiftLint rules
 - **Documentation**: Use JSDoc-style comments for all public methods and classes
-- **Error Handling**: Use structured logging with `os.log` and proper error propagation
+- **Error Handling**: Use unified error handling with `UnifiedError` and proper error propagation
 - **Memory Management**: Use `[weak self]` capture lists and proper cleanup
 - **Naming**: Use clear, descriptive names following Swift conventions
+- **Logging**: Use centralized logging with consistent emojis and punctuation
 
 ### Architecture Principles
 
-- **Protocol-Oriented Design**: Clear interfaces defined in `Sources/Utils/Protocols.swift`
+- **Simplified Architecture**: Direct singleton access for shared services (no complex dependency injection)
 - **Separation of Concerns**: Each service has a single responsibility
-- **Dependency Injection**: Use singletons for shared services
+- **Unified Error Handling**: Single `UnifiedError` enum for all error types
+- **Centralized Logging**: `CentralizedLoggingService` for consistent logging across all components
 - **Reactive Programming**: Use Combine for state management and async operations
 - **Error Recovery**: Implement graceful error handling throughout
 - **Performance**: Optimize for memory usage and responsiveness

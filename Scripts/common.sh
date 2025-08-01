@@ -70,7 +70,7 @@ check_prerequisites() {
 
 # Function to check optional tools
 check_optional_tools() {
-    local optional_tools=("swiftlint" "swiftformat" "shellcheck" "yamllint" "markdownlint" "actionlint" "create-dmg")
+    local optional_tools=("swiftlint" "swiftformat" "shellcheck" "yamllint" "markdownlint-cli" "actionlint" "create-dmg")
     local missing_tools=()
 
     for tool in "${optional_tools[@]}"; do

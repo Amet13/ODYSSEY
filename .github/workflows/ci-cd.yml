@@ -26,26 +26,11 @@ jobs:
         with:
           xcode-version: "16.4"
 
-      - name: Install dependencies
+      - name: Run CI pipeline
         run: |
-          brew install xcodegen swiftlint swiftformat shellcheck yamllint markdownlint actionlint
+          ./Scripts/odyssey.sh ci
 
-      - name: Setup development environment
-        run: |
-          chmod +x Scripts/setup-dev.sh
-          ./Scripts/setup-dev.sh setup
-
-      - name: Run comprehensive linting
-        run: |
-          chmod +x Scripts/lint-all.sh
-          ./Scripts/lint-all.sh
-
-      - name: Build and test
-        run: |
-          chmod +x Scripts/build.sh
-          ./Scripts/build.sh
-
-  # For releases - use our deploy script
+  # For releases - use our deploy script with additional steps
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: macos-15
@@ -60,40 +45,14 @@ jobs:
         with:
           xcode-version: "16.4"
 
-      - name: Install dependencies
+      - name: Run release pipeline
         run: |
-          brew install xcodegen swiftlint swiftformat shellcheck yamllint markdownlint actionlint create-dmg
-
-      - name: Setup development environment
-        run: |
-          chmod +x Scripts/setup-dev.sh
-          ./Scripts/setup-dev.sh setup
-
-      - name: Run comprehensive linting
-        run: |
-          chmod +x Scripts/lint-all.sh
-          ./Scripts/lint-all.sh
-
-      - name: Build and prepare release
-        run: |
-          chmod +x Scripts/deploy.sh
-          ./Scripts/deploy.sh build
-
-      - name: Create DMG installer
-        run: |
-          chmod +x Scripts/deploy.sh
-          ./Scripts/deploy.sh dmg
-
-      - name: Code sign applications
-        run: |
-          chmod +x Scripts/deploy.sh
-          ./Scripts/deploy.sh sign
+          ./Scripts/odyssey.sh release
 
       - name: Generate commit-based changelog
         id: changelog
         run: |
-          chmod +x Scripts/generate-changelog.sh
-          ./Scripts/generate-changelog.sh
+          ./Scripts/odyssey.sh changelog
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -118,9 +77,8 @@ jobs:
 
             ### 💻 CLI Tool
             1. Download `odyssey-cli` above
-            2. Make executable: `chmod +x odyssey-cli`
-            3. Export token from GUI: `export ODYSSEY_EXPORT_TOKEN="<token>"`
-            4. Run: `./odyssey-cli run`
+            2. Export token from GUI: `export ODYSSEY_EXPORT_TOKEN="<token>"`
+            3. Run: `./odyssey-cli run`
 
             ## ⚙️ Requirements
             - macOS 15 or later
@@ -143,9 +101,6 @@ jobs:
 
             ## 🐛 Support
             - [Report Issues](https://github.com/Amet13/ODYSSEY/issues)
-
-            ---
-            **Made with ❤️ for the Ottawa sports community**
           draft: false
           prerelease: false
         env:

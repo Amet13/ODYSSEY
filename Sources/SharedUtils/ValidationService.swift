@@ -259,6 +259,146 @@ final class ValidationService {
 
         return ValidationResult(isValid: errors.isEmpty, errors: errors)
     }
+
+    // MARK: - WebKit Validation
+
+    /// Validates WebKit configuration
+    /// - Parameter config: WebKit configuration to validate
+    /// - Returns: Validation result with errors
+    func validateWebKitConfig(_ config: ReservationConfig) -> ValidationResult {
+        var errors: [String] = []
+
+        // Validate facility URL
+        if !validateFacilityURL(config.facilityURL) {
+            errors.append("Invalid facility URL for WebKit automation")
+        }
+
+        // Validate sport name
+        if config.sportName.isEmpty {
+            errors.append("Sport name is required for WebKit automation")
+        }
+
+        // Validate time slots
+        if config.dayTimeSlots.isEmpty {
+            errors.append("At least one time slot is required for WebKit automation")
+        }
+
+        return ValidationResult(isValid: errors.isEmpty, errors: errors)
+    }
+
+    // MARK: - Email Configuration Validation
+
+    /// Validates email configuration for automation
+    /// - Parameter settings: Email settings to validate
+    /// - Returns: Validation result with errors
+    func validateEmailConfig(_ settings: UserSettings) -> ValidationResult {
+        var errors: [String] = []
+
+        // Validate email is provided
+        if settings.imapEmail.isEmpty {
+            errors.append("Email address is required for verification")
+        } else if !validateEmail(settings.imapEmail) {
+            errors.append("Invalid email format")
+        }
+
+        // Validate server if provided
+        if !settings.imapServer.isEmpty, !validateServer(settings.imapServer) {
+            errors.append("Invalid IMAP server address")
+        }
+
+        // Validate password if provided
+        if settings.imapPassword.isEmpty {
+            errors.append("Email password is required for verification")
+        }
+
+        // Validate Gmail App Password for Gmail accounts
+        if isGmailAccount(settings.imapEmail), !settings.imapPassword.isEmpty {
+            if !validateGmailAppPassword(settings.imapPassword) {
+                errors.append("Invalid Gmail App Password format")
+            }
+        }
+
+        return ValidationResult(isValid: errors.isEmpty, errors: errors)
+    }
+
+    // MARK: - Automation Validation
+
+    /// Validates automation configuration
+    /// - Parameter config: Configuration to validate
+    /// - Returns: Validation result with errors
+    func validateAutomationConfig(_ config: ReservationConfig) -> ValidationResult {
+        var errors: [String] = []
+
+        // Validate basic config
+        let basicValidation = validateReservationConfig(config)
+        if !basicValidation.isEmpty {
+            errors.append(contentsOf: basicValidation)
+        }
+
+        // Validate WebKit specific requirements
+        let webKitValidation = validateWebKitConfig(config)
+        if !webKitValidation.isValid {
+            errors.append(contentsOf: webKitValidation.errors)
+        }
+
+        return ValidationResult(isValid: errors.isEmpty, errors: errors)
+    }
+
+    // MARK: - Network Validation
+
+    /// Validates network connectivity requirements
+    /// - Returns: Validation result with errors
+    func validateNetworkRequirements() -> ValidationResult {
+        var errors: [String] = []
+
+        // Check if we can reach the internet (basic check)
+        guard URL(string: "https://www.apple.com") != nil else {
+            errors.append("Invalid test URL")
+            return ValidationResult(isValid: false, errors: errors)
+        }
+
+        // Note: In a real implementation, you might want to actually test connectivity
+        // For now, we'll assume network is available if we can create the URL
+
+        return ValidationResult(isValid: errors.isEmpty, errors: errors)
+    }
+
+    // MARK: - Comprehensive Validation
+
+    /// Performs comprehensive validation of all components
+    /// - Parameters:
+    ///   - config: Reservation configuration
+    ///   - settings: User settings
+    /// - Returns: Comprehensive validation result
+    func validateAll(_ config: ReservationConfig, settings: UserSettings) -> ValidationResult {
+        var allErrors: [String] = []
+
+        // Validate reservation config
+        let configValidation = validateReservationConfig(config)
+        if !configValidation.isEmpty {
+            allErrors.append(contentsOf: configValidation)
+        }
+
+        // Validate user settings
+        let settingsValidation = validateUserSettings(settings)
+        if !settingsValidation.isValid {
+            allErrors.append(contentsOf: settingsValidation.errors)
+        }
+
+        // Validate email configuration
+        let emailValidation = validateEmailConfig(settings)
+        if !emailValidation.isValid {
+            allErrors.append(contentsOf: emailValidation.errors)
+        }
+
+        // Validate automation configuration
+        let automationValidation = validateAutomationConfig(config)
+        if !automationValidation.isValid {
+            allErrors.append(contentsOf: automationValidation.errors)
+        }
+
+        return ValidationResult(isValid: allErrors.isEmpty, errors: allErrors)
+    }
 }
 
 // MARK: - Validation Result

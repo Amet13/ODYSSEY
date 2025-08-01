@@ -38,9 +38,9 @@ private func initializeServices() {
     KeychainService.registerForDI()
 
     // Verify services are registered by resolving them
-    _ = ServiceRegistry.shared.resolve(WebKitServiceProtocol.self)
-    _ = ServiceRegistry.shared.resolve(KeychainServiceProtocol.self)
-    _ = ServiceRegistry.shared.resolve(EmailServiceProtocol.self)
+    _ = WebKitService.shared
+    _ = KeychainService.shared
+    _ = EmailService.shared
 }
 
 /// CLI for ODYSSEY that provides remote automation capabilities

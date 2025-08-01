@@ -124,7 +124,6 @@ public final class CLIExportService: ObservableObject {
                 run: |
                   # Download latest CLI from releases
                   curl -L -o odyssey-cli "https://github.com/Amet13/ODYSSEY/releases/latest/download/odyssey-cli-$(curl -s https://api.github.com/repos/Amet13/ODYSSEY/releases/latest | grep -o '"tag_name": "v[^"]*"' | cut -d'"' -f4)"
-                  chmod +x odyssey-cli
 
               - name: Run Reservations
                 run: ./odyssey-cli run

@@ -104,35 +104,12 @@ public final class JavaScriptPages {
             const pageText = document.body.textContent || document.body.innerText || '';
             const title = document.title || '';
 
-            console.log('[ODYSSEY] Checking reservation completion...');
-            console.log('[ODYSSEY] Page title:', title);
-            console.log('[ODYSSEY] Page text preview:', pageText.substring(0, 500));
-            console.log('[ODYSSEY] Full page text length:', pageText.length);
-
             // Check for multiple success indicators
             const lowerText = pageText.toLowerCase();
             const hasConfirmedText = lowerText.includes('confirmation');
             const hasSuccessText = lowerText.includes('is now confirmed');
 
             const isComplete = hasConfirmedText || hasSuccessText;
-
-            console.log('[ODYSSEY] Reservation completion check results:', {
-                hasConfirmedText,
-                hasSuccessText,
-                isComplete
-            });
-
-            // Log all elements with confirmation-related classes or IDs
-            const confirmationElements = document.querySelectorAll('[class*="confirmation"], [id*="confirmation"]');
-            console.log('[ODYSSEY] Found', confirmationElements.length, 'confirmation-related elements:');
-            confirmationElements.forEach((el, index) => {
-                console.log('[ODYSSEY] Element', index + 1, ':', {
-                    tagName: el.tagName,
-                    className: el.className,
-                    id: el.id,
-                    text: (el.textContent || el.innerText || '').substring(0, 100)
-                });
-            });
 
             return {
                 isComplete: isComplete,
@@ -165,7 +142,7 @@ public final class JavaScriptPages {
                     // Use the centralized browser autofill simulation
                     const result = this.simulateBrowserAutofill(input, code);
                     if (result) {
-                        console.log('[ODYSSEY] Verification code filled successfully with selector:', selector);
+
                         return true;
                     }
                 }
@@ -186,8 +163,6 @@ public final class JavaScriptPages {
 
             // Log page context for debugging
             const pageText = document.body.textContent || document.body.innerText || '';
-            console.log('[ODYSSEY] Page text preview:', pageText.substring(0, 300));
-            console.log('[ODYSSEY] Page title:', document.title || '');
 
             // Try multiple selectors for submit button with more comprehensive detection
             const selectors = [
@@ -196,41 +171,19 @@ public final class JavaScriptPages {
                 'button[type="button"]',
                 'input[type="button"]',
                 'input[value*="Confirm"]',
-                'input[value*="Submit"]',
-                'input[value*="Verify"]',
-                'input[value*="Send"]',
-                // Additional selectors for common button patterns
-                '.btn-primary',
-                '.btn-success',
-                '.btn-submit',
-                '[class*="submit"]',
-                '[class*="confirm"]',
-                '[class*="verify"]',
-                '[id*="submit"]',
-                '[id*="confirm"]',
-                '[id*="verify"]'
             ];
 
             for (let selector of selectors) {
                 const button = document.querySelector(selector);
                 if (button) {
-                    console.log('[ODYSSEY] Found verification submit button with selector:', selector);
-                    console.log('[ODYSSEY] Button text:', button.textContent || button.innerText || '');
-                    console.log('[ODYSSEY] Button type:', button.type || 'button');
-                    console.log('[ODYSSEY] Button class:', button.className || '');
-                    console.log('[ODYSSEY] Button id:', button.id || '');
-                    console.log('[ODYSSEY] Button value:', button.value || '');
-
                     button.focus();
                     button.click();
-                    console.log('[ODYSSEY] Verification submit button clicked');
                     return true;
                 }
             }
 
             // Fallback: try to find any clickable element that might be the submit button
             const allButtons = document.querySelectorAll('button, input[type="submit"], input[type="button"], input[type="image"], a[role="button"]');
-            console.log('[ODYSSEY] Found', allButtons.length, 'total buttons on page');
 
             for (let button of allButtons) {
                 const buttonText = (button.textContent || button.innerText || '').toLowerCase();
@@ -238,58 +191,12 @@ public final class JavaScriptPages {
                 const buttonClass = (button.className || '').toLowerCase();
                 const buttonId = (button.id || '').toLowerCase();
 
-                console.log('[ODYSSEY] Checking button:', {
-                    text: buttonText,
-                    value: buttonValue,
-                    class: buttonClass,
-                    id: buttonId,
-                    type: button.type || 'button'
-                });
-
-                if (buttonText.includes('confirm') || buttonText.includes('submit') ||
-                    buttonText.includes('verify') || buttonText.includes('send') ||
-                    buttonText.includes('continue') || buttonText.includes('next') ||
-                    buttonValue.includes('confirm') || buttonValue.includes('submit') ||
-                    buttonValue.includes('verify') || buttonValue.includes('send') ||
-                    buttonValue.includes('continue') || buttonValue.includes('next') ||
-                    buttonClass.includes('submit') || buttonClass.includes('confirm') ||
-                    buttonClass.includes('verify') || buttonClass.includes('primary') ||
-                    buttonId.includes('submit') || buttonId.includes('confirm') ||
-                    buttonId.includes('verify')) {
-                    console.log('[ODYSSEY] Found verification submit button by text/class/id:', buttonText);
+                if (buttonText.includes('Confirm') || buttonId.includes('confirm') {
                     button.focus();
                     button.click();
-                    console.log('[ODYSSEY] Verification submit button clicked (text-based)');
                     return true;
                 }
             }
-
-            console.error('[ODYSSEY] No verification submit button found');
-            console.log('[ODYSSEY] Available buttons on page:');
-            const allElements = document.querySelectorAll('button, input[type="submit"], input[type="button"], input[type="image"], a[role="button"]');
-            allElements.forEach((el, index) => {
-                console.log('[ODYSSEY] Button', index + 1, ':', {
-                    text: el.textContent || el.innerText || '',
-                    value: el.value || '',
-                    type: el.type || 'button',
-                    class: el.className || '',
-                    id: el.id || '',
-                    disabled: el.disabled || false,
-                    visible: el.offsetWidth > 0 && el.offsetHeight > 0
-                });
-            });
-
-            // Also log all form elements
-            const forms = document.querySelectorAll('form');
-            console.log('[ODYSSEY] Found', forms.length, 'forms on page');
-            forms.forEach((form, index) => {
-                console.log('[ODYSSEY] Form', index + 1, ':', {
-                    action: form.action || '',
-                    method: form.method || '',
-                    id: form.id || '',
-                    class: form.className || ''
-                });
-            });
 
             return false;
         } catch (error) {

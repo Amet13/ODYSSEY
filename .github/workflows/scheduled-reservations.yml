@@ -7,6 +7,7 @@ on:
   workflow_dispatch: # Allow manual runs
 
 jobs:
+  # Setup and run reservations
   run-reservations:
     runs-on: macos-15
     name: Execute Scheduled Reservations
@@ -15,10 +16,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "16.4"
+
       - name: Download ODYSSEY CLI
         run: |
           curl -L -o odyssey-cli https://github.com/Amet13/ODYSSEY/releases/latest/download/odyssey-cli
-          chmod +x odyssey-cli
 
       - name: Run Reservations
         run: |

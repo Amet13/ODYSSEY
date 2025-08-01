@@ -273,23 +273,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        let configurations = configManager.settings.configurations
-
-        logger.info("🔍 DEBUG: Found \(configurations.count) total configurations")
-        for config in configurations {
-            logger.info("🔍 DEBUG: Config '\(config.name)' - enabled days: \(config.dayTimeSlots.keys.map(\.rawValue))")
-        }
+        _ = configManager.settings.configurations
 
         // Collect all configurations that should run at the custom autorun time today
         var configsToRun: [ReservationConfig] = []
 
         for config in configManager.settings.configurations where shouldRunReservation(config: config, at: Date()) {
             configsToRun.append(config)
-        }
-
-        logger.info("🔍 DEBUG: Selected \(configsToRun.count) configurations for autorun")
-        for config in configsToRun {
-            logger.info("🔍 DEBUG: Will run config '\(config.name)'")
         }
 
         // Run all eligible configurations simultaneously (like God Mode)
@@ -317,7 +307,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func shouldRunReservation(config: ReservationConfig, at date: Date) -> Bool {
-        logger.info("🔍 DEBUG: shouldRunReservation called for config '\(config.name)' at \(date)")
         let calendar = Calendar.current
         let currentTime = calendar.dateComponents([.hour, .minute, .second], from: date)
 
@@ -351,18 +340,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let autorunTimeInSeconds = autorunHour * 3_600 + autorunMinute * 60 + autorunSecond
         let timeDifference = abs(currentTimeInSeconds - autorunTimeInSeconds)
 
-        let currentTimeStr = "\(currentHour):\(currentMinute):\(currentSecond)"
-        let autorunTimeStr = "\(autorunHour):\(autorunMinute):\(autorunSecond)"
+        _ = "\(currentHour):\(currentMinute):\(currentSecond)"
+        _ = "\(autorunHour):\(autorunMinute):\(autorunSecond)"
 
         if timeDifference > 2 {
-            logger.info(
-                "🔍 DEBUG: Time mismatch - current: \(currentTimeStr), autorun: \(autorunTimeStr), difference: \(timeDifference)s",
-                )
             return false
-        } else {
-            logger.info(
-                "✅ DEBUG: Time match found - current: \(currentTimeStr), autorun: \(autorunTimeStr), difference: \(timeDifference)s",
-                )
         }
 
         // For each enabled day, check if today is 2 days before that day
@@ -378,17 +360,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Autorun should be 2 days before reservation day
             let autorunDay = calendar.date(byAdding: .day, value: -2, to: reservationDay) ?? reservationDay
 
-            logger
-                .info(
-                    "🔍 DEBUG: Config '\(config.name)' - Day: \(day.rawValue), targetWeekday: \(targetWeekday), currentWeekday: \(currentWeekday)",
-                    )
-            logger
-                .info(
-                    "🔍 DEBUG: daysUntilTarget: \(daysUntilTarget), reservationDay: \(reservationDay), autorunDay: \(autorunDay), today: \(today)",
-                    )
-
             if calendar.isDate(today, inSameDayAs: autorunDay) {
-                logger.info("🔍 DEBUG: Config '\(config.name)' - MATCH FOUND!")
                 return true
             }
         }

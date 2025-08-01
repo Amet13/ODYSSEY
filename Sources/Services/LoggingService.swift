@@ -49,16 +49,17 @@ public final class LoggingService: ObservableObject {
             recentLogs.removeFirst(recentLogs.count - maxLogEntries)
         }
 
-        // Also log to system logger for debugging
+        // Also log to system logger for debugging with emojis and proper punctuation
+        let formattedMessage = formatMessage(message, level: level)
         switch level {
         case .info:
-            logger.info("\(message)")
+            logger.info("\(formattedMessage)")
         case .warning:
-            logger.warning("\(message)")
+            logger.warning("\(formattedMessage)")
         case .error:
-            logger.error("\(message)")
+            logger.error("\(formattedMessage)")
         case .success:
-            logger.info("✅ \(message)")
+            logger.info("\(formattedMessage)")
         }
     }
 
@@ -69,6 +70,30 @@ public final class LoggingService: ObservableObject {
 
     public func clearLogs() {
         recentLogs.removeAll()
+    }
+
+    // MARK: - Message Formatting
+
+    /// Format message with appropriate emoji and punctuation based on log level
+    private func formatMessage(_ message: String, level: LogLevel) -> String {
+        let emoji = switch level {
+        case .info:
+            "ℹ️"
+        case .warning:
+            "⚠️"
+        case .error:
+            "❌"
+        case .success:
+            "✅"
+        }
+
+        // Ensure message ends with proper punctuation
+        let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        let hasPunctuation = trimmedMessage.hasSuffix(".") || trimmedMessage.hasSuffix("!") || trimmedMessage
+            .hasSuffix("?")
+        let formattedMessage = hasPunctuation ? trimmedMessage : "\(trimmedMessage)."
+
+        return "\(emoji) \(formattedMessage)"
     }
 }
 

@@ -22,14 +22,6 @@ public struct UserSettings: Codable, Equatable, Sendable {
     public var imapPassword: String = ""
     public var imapServer: String = ""
 
-    // Language - English only
-    public enum Language: String, CaseIterable, Identifiable, Codable, Sendable {
-        case english = "English"
-        public var id: String { rawValue }
-    }
-
-    public var language: Language = .english
-
     public var locale: Locale {
         return Locale(identifier: "en")
     }
@@ -60,7 +52,7 @@ public struct UserSettings: Codable, Equatable, Sendable {
             lhs.imapEmail == rhs.imapEmail &&
             lhs.imapPassword == rhs.imapPassword &&
             lhs.imapServer == rhs.imapServer &&
-            lhs.language == rhs.language &&
+
             lhs.preventSleepForAutorun == rhs.preventSleepForAutorun &&
             lhs.autoCloseDebugWindowOnFailure == rhs.autoCloseDebugWindowOnFailure &&
             lhs.showBrowserWindow == rhs.showBrowserWindow &&

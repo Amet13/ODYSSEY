@@ -311,7 +311,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             return []
         }
 
-        logger.info("✅ EmailService: Email settings are configured")
+        logger.info("✅ EmailService: Email settings are configured.")
 
         // Use the same NWConnection-based implementation that works for the test
         // ---
@@ -1249,7 +1249,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                 completion(.failure(.commandFailed("Send failed: \(error.localizedDescription)")))
                 return
             }
-            logger.info("✅ IMAP command sent successfully")
+            logger.info("✅ IMAP command sent successfully.")
             Task { await self.receiveIMAPResponse(connection: connection, completion: completion) }
         })
     }
@@ -1941,7 +1941,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             )
         }
 
-        logger.info("✅ Found \(emails.count) verification emails")
+        logger.info("✅ Found \(emails.count) verification emails.")
         return emails
     }
 }
@@ -1984,7 +1984,5 @@ class IMAPStreamDelegate: NSObject, StreamDelegate {
 
 // Register the singleton for DI
 public extension EmailService {
-    static func registerForDI() {
-        ServiceRegistry.shared.register(EmailService.shared, for: EmailServiceProtocol.self)
-    }
+    static func registerForDI() { }
 }

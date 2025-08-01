@@ -285,7 +285,5 @@ public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol
 
 // Register the singleton for DI
 public extension KeychainService {
-    static func registerForDI() {
-        ServiceRegistry.shared.register(KeychainService.shared, for: KeychainServiceProtocol.self)
-    }
+    static func registerForDI() { }
 }
