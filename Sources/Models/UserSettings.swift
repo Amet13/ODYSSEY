@@ -35,7 +35,7 @@ public struct UserSettings: Codable, Equatable, Sendable {
     }
 
     public var preventSleepForAutorun = true // Default to true for safety
-    public var autoCloseDebugWindowOnFailure = false // Default to false
+    public var autoCloseDebugWindowOnFailure = false // Default to false to show errors by default
     public var showBrowserWindow = false // Default to false (invisible automation)
 
     // Custom autorun time settings

@@ -1613,23 +1613,20 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             if stillOnVerificationPage {
                 logger.info("Instance \(self.instanceId): Still on verification page - continuing to next code...")
                 await clearVerificationInput()
-
                 continue
             } else {
                 logger
                     .info(
                         "Instance \(self.instanceId): Moved away from verification page - likely success or different error",
                     )
-                let finalCheck = await checkVerificationSuccess()
-                if finalCheck {
-                    logger.info("Instance \(self.instanceId): ✅ Final check confirms verification success!")
-                    await emailService.markCodeAsConsumed(code, byInstanceId: self.instanceId)
-
-                    return true
-                }
-                logger.warning("Instance \(self.instanceId): Final check failed, continuing to next code...")
-
-                continue
+                // If we moved away from verification page after clicking the button, consider this success
+                // Don't try to check verification success on the new page (it will cause JS errors)
+                logger
+                    .info(
+                        "Instance \(self.instanceId): ✅ Button was clicked successfully and page moved away - considering this success!",
+                    )
+                await emailService.markCodeAsConsumed(code, byInstanceId: self.instanceId)
+                return true
             }
         }
 
@@ -1671,6 +1668,14 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 return true
             } else {
                 logger.warning("Instance \(self.instanceId): ❌ Verification failed on attempt \(retryCount + 1)")
+                let stillOnVerificationPage = await checkIfStillOnVerificationPage()
+                if !stillOnVerificationPage {
+                    logger
+                        .warning(
+                            "Instance \(self.instanceId): No longer on verification page after failed attempt, aborting all further retries.",
+                        )
+                    return false
+                }
                 retryCount += 1
                 if retryCount < maxRetryAttempts {
                     logger.info("Instance \(self.instanceId): Waiting 3 seconds before next retry...")
@@ -1689,6 +1694,15 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             if verificationSuccess {
                 logger.info("Instance \(self.instanceId): ✅ Verification successful on final direct fetch.")
                 return true
+            }
+            // After final direct fetch, check if still on verification page
+            let stillOnVerificationPage = await checkIfStillOnVerificationPage()
+            if !stillOnVerificationPage {
+                logger
+                    .warning(
+                        "Instance \(self.instanceId): No longer on verification page after final direct fetch, aborting all further retries.",
+                    )
+                return false
             }
         }
         logger
@@ -2082,17 +2096,25 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         do {
             if let result = try await webView.evaluateJavaScript(script) as? [String: Any] {
                 let isComplete = result["isComplete"] as? Bool ?? false
+                let pageText = result["pageText"] as? String ?? "No page text"
+                let title = result["title"] as? String ?? "No title"
+
+                logger.info("🔍 Reservation completion check results:")
+                logger.info("📄 Page title: \(title)")
+                logger.info("📝 Page text preview: \(pageText)")
+                logger.info("✅ Is complete: \(isComplete)")
 
                 if (isComplete) {
                     logger.info("✅ Reservation completion detected!")
                     logger.info("📋 Completion details: \(result)")
                     return true
                 } else {
-                    logger.debug("⏳ Reservation not yet complete")
+                    logger.warning("⚠️ Reservation completion not detected")
+                    logger.info("📋 Incomplete details: \(result)")
                     return false
                 }
             } else {
-                logger.debug("⏳ Reservation completion check returned invalid result")
+                logger.error("❌ Reservation completion check returned invalid result")
                 return false
             }
         } catch {

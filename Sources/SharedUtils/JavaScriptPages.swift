@@ -104,11 +104,38 @@ public final class JavaScriptPages {
             const pageText = document.body.textContent || document.body.innerText || '';
             const title = document.title || '';
 
-            // Check for success indicators
-            const hasSuccessText =  pageText.toLowerCase().includes('confirmed');
+            console.log('[ODYSSEY] Checking reservation completion...');
+            console.log('[ODYSSEY] Page title:', title);
+            console.log('[ODYSSEY] Page text preview:', pageText.substring(0, 500));
+            console.log('[ODYSSEY] Full page text length:', pageText.length);
+
+            // Check for multiple success indicators
+            const lowerText = pageText.toLowerCase();
+            const hasConfirmedText = lowerText.includes('confirmation');
+            const hasSuccessText = lowerText.includes('is now confirmed');
+
+            const isComplete = hasConfirmedText || hasSuccessText;
+
+            console.log('[ODYSSEY] Reservation completion check results:', {
+                hasConfirmedText,
+                hasSuccessText,
+                isComplete
+            });
+
+            // Log all elements with confirmation-related classes or IDs
+            const confirmationElements = document.querySelectorAll('[class*="confirmation"], [id*="confirmation"]');
+            console.log('[ODYSSEY] Found', confirmationElements.length, 'confirmation-related elements:');
+            confirmationElements.forEach((el, index) => {
+                console.log('[ODYSSEY] Element', index + 1, ':', {
+                    tagName: el.tagName,
+                    className: el.className,
+                    id: el.id,
+                    text: (el.textContent || el.innerText || '').substring(0, 100)
+                });
+            });
 
             return {
-                isComplete: hasSuccessText,
+                isComplete: isComplete,
                 pageText: pageText.substring(0, 200),
                 title: title
             };

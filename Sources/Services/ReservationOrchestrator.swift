@@ -1,3 +1,4 @@
+import AppKit
 import Combine
 import Foundation
 import os.log
@@ -92,7 +93,9 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             } catch {
                 // Set user-facing error
                 await MainActor.run { self.userError = error.localizedDescription }
-                logger.error("⏰ Reservation timeout reached (5 minutes).")
+                logger.error("❌ Reservation failed with error: \(error.localizedDescription)")
+                logger.error("🔍 Error type: \(type(of: error))")
+                logger.error("📋 Error details: \(error)")
                 await errorHandler.handleReservationError(error, config: config, runType: runType)
             }
         }
@@ -678,6 +681,8 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             logger.info("🎉 Reservation completed successfully for \(config.name).")
             logger.info("🧹 Cleaning up WebKit session after successful reservation.")
             webKitService.onWindowClosed = nil
+
+            // Always close windows on successful reservation (regardless of settings)
             await webKitService.disconnect(closeWindow: true)
             return
         } else {
@@ -870,8 +875,15 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                                 statusManager.isRunning = false
                             }
                         }
+                        // Intelligent window closing: only close if autoCloseDebugWindowOnFailure is enabled
                         let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
-                        await separateWebKitService.disconnect(closeWindow: shouldClose)
+                        if shouldClose {
+                            logger.info("🪟 Auto-close on failure enabled - closing window")
+                            await separateWebKitService.disconnect(closeWindow: true)
+                        } else {
+                            logger.info("🪟 Auto-close on failure disabled - keeping window open to show error")
+                            await separateWebKitService.disconnect(closeWindow: false)
+                        }
                         return
                     }
                     logger.info("✅ Email verification completed successfully for \(config.name).")
@@ -918,13 +930,20 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     statusManager.isRunning = false
                 }
             }
+            // Intelligent window closing: only close if autoCloseDebugWindowOnFailure is enabled
             let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
-            await separateWebKitService.disconnect(closeWindow: shouldClose)
+            if shouldClose {
+                logger.info("🪟 Auto-close on failure enabled - closing window")
+                await separateWebKitService.disconnect(closeWindow: true)
+            } else {
+                logger.info("🪟 Auto-close on failure disabled - keeping window open to show error")
+                await separateWebKitService.disconnect(closeWindow: false)
+            }
             return
         }
-        // Close window on success if showBrowserWindow is enabled
-        let shouldCloseOnSuccess = UserSettingsManager.shared.userSettings.showBrowserWindow
-        await separateWebKitService.disconnect(closeWindow: shouldCloseOnSuccess)
+        // Always close window on successful reservation (regardless of settings)
+        logger.info("🎉 Reservation completed successfully - closing window")
+        await separateWebKitService.disconnect(closeWindow: true)
     }
 
     private func withTimeout<T: Sendable>(

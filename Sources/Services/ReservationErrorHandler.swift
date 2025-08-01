@@ -52,8 +52,16 @@ public final class ReservationErrorHandler: @unchecked Sendable {
 
         logger.error("❌ Reservation failed for \(config.name): \(error.localizedDescription).")
         logger.info("🧹 Cleaning up WebKit session after error.")
+
+        // Intelligent window closing: only close if autoCloseDebugWindowOnFailure is enabled
         let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
-        await webKitService.disconnect(closeWindow: shouldClose)
+        if shouldClose {
+            logger.info("🪟 Auto-close on failure enabled - closing window")
+            await webKitService.disconnect(closeWindow: true)
+        } else {
+            logger.info("🪟 Auto-close on failure disabled - keeping window open to show error")
+            await webKitService.disconnect(closeWindow: false)
+        }
     }
 
     public func handleError(_ error: String, configId: UUID?, runType: ReservationRunType = .manual) async {
