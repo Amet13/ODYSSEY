@@ -20,7 +20,6 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Global variables
-DRY_RUN=false
 PROJECT_NAME="ODYSSEY"
 PROJECT_PATH="Config/project.yml"
 XCODEPROJ_PATH="Config/ODYSSEY.xcodeproj"
@@ -61,7 +60,7 @@ measure_time() {
     "$@"
     local end_time=$SECONDS
     local duration=$((end_time - start_time))
-    print_status "success" "Completed in ${duration}s"
+    print_status "success" "Completed in ${duration}s."
 }
 
 # Function to check prerequisites
@@ -85,24 +84,7 @@ check_prerequisites() {
     print_status "success" "All prerequisites satisfied"
 }
 
-# Function to check optional tools
-check_optional_tools() {
-    local optional_tools=("swiftlint" "swiftformat" "shellcheck" "yamllint" "markdownlint" "actionlint" "create-dmg")
-    local missing_tools=()
 
-    for tool in "${optional_tools[@]}"; do
-        if ! command_exists "$tool"; then
-            missing_tools+=("$tool")
-        fi
-    done
-
-    if [ ${#missing_tools[@]} -ne 0 ]; then
-        print_status "warning" "Optional tools missing: ${missing_tools[*]}"
-        print_status "info" "Install with: brew install ${missing_tools[*]}"
-    else
-        print_status "success" "All optional tools available"
-    fi
-}
 
 # Function to validate we're in the ODYSSEY directory
 validate_project_root() {
@@ -188,8 +170,6 @@ show_usage() {
     echo "  help        Show this help message"
     echo ""
     echo "Options:"
-    echo "  --dry-run   Show what would be executed without running"
-    echo "  --verbose   Enable verbose output"
     echo "  --help      Show this help message"
     echo ""
     echo "Examples:"
@@ -197,7 +177,6 @@ show_usage() {
     echo "  $script_name build"
     echo "  $script_name ci"
     echo "  $script_name release 3.2.0"
-    echo "  $script_name --dry-run release 3.2.0"
 }
 
 # Function to setup development environment
@@ -588,13 +567,9 @@ run_tests() {
 
     # Test build
     print_status "info" "Testing build..."
-    if [ "$DRY_RUN" = "true" ]; then
-        print_status "info" "Would test build (dry run mode)"
-    else
-        # Quick build test
-        swift build --product odyssey-cli --configuration debug
-        print_status "success" "Build test passed"
-    fi
+    # Quick build test
+    swift build --product odyssey-cli --configuration debug
+    print_status "success" "Build test passed"
 
     # Run linting as part of tests
     run_linting
@@ -606,13 +581,7 @@ run_tests() {
 run_ci() {
     print_status "step" "Running CI pipeline..."
 
-    if [ "$DRY_RUN" = "true" ]; then
-        print_status "info" "Would run CI pipeline (dry run mode):"
-        echo "  - Setup development environment"
-        echo "  - Run comprehensive linting"
-        echo "  - Build application and CLI"
-        return
-    fi
+
 
     # Setup development environment
     setup_dev_environment
@@ -640,10 +609,7 @@ create_release() {
     
     print_status "step" "Creating release v$version..."
 
-    if [ "$DRY_RUN" = "true" ]; then
-        print_status "info" "Would create release v$version (dry run mode)"
-        return
-    fi
+
 
     # Get current version
     local current_version
@@ -741,10 +707,7 @@ EOF
 deploy_release() {
     print_status "step" "Deploying release artifacts..."
 
-    if [ "$DRY_RUN" = "true" ]; then
-        print_status "info" "Would deploy release artifacts (dry run mode)"
-        return
-    fi
+
 
     # Build application in release mode
     print_status "step" "Building application in release mode..."
@@ -833,10 +796,7 @@ deploy_release() {
 code_sign() {
     print_status "step" "Code signing applications..."
 
-    if [ "$DRY_RUN" = "true" ]; then
-        print_status "info" "Would code sign applications (dry run mode)"
-        return
-    fi
+
 
     # Find the built app
     APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
@@ -875,10 +835,7 @@ code_sign() {
 generate_changelog() {
     print_status "step" "Generating changelog..."
 
-    if [ "$DRY_RUN" = "true" ]; then
-        print_status "info" "Would generate changelog (dry run mode)"
-        return
-    fi
+
 
     # Extract version from tag or use current tag
     local version="${GITHUB_REF#refs/tags/}"
@@ -930,13 +887,6 @@ main() {
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --dry-run)
-                DRY_RUN=true
-                shift
-                ;;
-            --verbose)
-                shift
-                ;;
             --help)
                 show_usage
                 exit 0

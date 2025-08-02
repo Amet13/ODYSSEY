@@ -144,7 +144,7 @@ public final class JavaScriptLibrary {
                     window.name = 'odyssey_main_window';
                 }
 
-                console.log('[ODYSSEY] Enhanced anti-detection measures applied');
+
                 return true;
             } catch (error) {
                 console.error('[ODYSSEY] Error in anti-detection script:', error);
@@ -159,11 +159,10 @@ public final class JavaScriptLibrary {
                 if (window.sessionStorage) {
                     const sessionId = window.sessionStorage.getItem('odyssey_session_id');
                     if (sessionId) {
-                        console.log('[ODYSSEY] Maintaining session ID:', sessionId);
+                        // Session ID already exists
                     } else {
                         const newSessionId = Date.now().toString();
                         window.sessionStorage.setItem('odyssey_session_id', newSessionId);
-                        console.log('[ODYSSEY] Created new session ID:', newSessionId);
                     }
                 }
 
@@ -179,7 +178,6 @@ public final class JavaScriptLibrary {
 
                     keysToRemove.forEach(key => {
                         window.localStorage.removeItem(key);
-                        console.log('[ODYSSEY] Removed conflicting session data:', key);
                     });
                 }
 
@@ -188,7 +186,7 @@ public final class JavaScriptLibrary {
                     window.name = 'odyssey_main_window';
                 }
 
-                console.log('[ODYSSEY] Enhanced session cleanup completed');
+
                 return true;
             } catch (error) {
                 console.error('[ODYSSEY] Error in session cleanup:', error);
@@ -223,14 +221,9 @@ public final class JavaScriptLibrary {
         // Handle captcha retry with human behavior simulation
         handleCaptchaRetry: function() {
             try {
-                console.log('[ODYSSEY] Starting captcha retry with human behavior simulation...');
-
                 // Simulate human behavior before retry
                 this.simulateQuickMouseMovement();
-                console.log('[ODYSSEY] Mouse movement simulated');
-
                 this.simulateQuickScrolling();
-                console.log('[ODYSSEY] Scroll simulated');
 
                 // Small delay (synchronous)
                 const start = Date.now();
@@ -240,9 +233,7 @@ public final class JavaScriptLibrary {
                 console.log('[ODYSSEY] Delay completed');
 
                 // Click the confirm button again
-                console.log('[ODYSSEY] Attempting to click confirm button...');
                 const clickResult = this.clickContactInfoConfirmButton();
-                console.log('[ODYSSEY] Click result:', clickResult);
                 return clickResult;
             } catch (error) {
                 console.error('[ODYSSEY] Error in handleCaptchaRetry:', error);
@@ -279,11 +270,35 @@ public final class JavaScriptLibrary {
             };
         },
 
-        // Expand day section
+                // Expand day section
         expandDaySection: function(dayName) {
             try {
-                const headerElements = Array.from(document.getElementsByClassName('header-text'));
+                // Try multiple selectors for day headers
+                const selectors = [
+                    '.header-text',
+                    '[class*="header"]',
+                    '[class*="day"]',
+                    'button[class*="day"]',
+                    'div[class*="day"]',
+                    '[aria-label*="day"]',
+                    '[title*="day"]'
+                ];
+
+                let headerElements = [];
+                for (let selector of selectors) {
+                    const elements = Array.from(document.querySelectorAll(selector));
+                    if (elements.length > 0) {
+                        headerElements = elements;
+                        console.log('[ODYSSEY] Found day headers with selector:', selector, 'count:', elements.length);
+                        break;
+                    }
+                }
+
                 const targetDayName = dayName.trim().toLowerCase();
+
+                // Debug: Log the search parameters
+                console.log('[ODYSSEY] Searching for day:', targetDayName);
+                console.log('[ODYSSEY] Found header elements:', headerElements.length);
 
                 // Find and click the specific day that matches our target day
                 for (let i = 0; i < headerElements.length; i++) {
@@ -322,11 +337,34 @@ public final class JavaScriptLibrary {
             }
         },
 
-        // Click time button
+                // Click time button
         clickTimeButton: function(timeString, dayName) {
             try {
-                const timeSlotSelector = `[aria-label*='${timeString} ${dayName}']`;
-                const timeSlotElements = Array.from(document.querySelectorAll(timeSlotSelector));
+                // Try multiple selectors for better compatibility
+                const selectors = [
+                    `[aria-label*='${timeString} ${dayName}']`,
+                    `[aria-label*='${timeString}']`,
+                    `[title*='${timeString} ${dayName}']`,
+                    `[title*='${timeString}']`,
+                    `button[aria-label*='${timeString}']`,
+                    `div[aria-label*='${timeString}']`,
+                    `[data-time='${timeString}']`,
+                    `[data-slot='${timeString}']`
+                ];
+
+                // Debug: Log the search parameters
+                console.log('[ODYSSEY] Searching for time slot:', timeString, 'on day:', dayName);
+                console.log('[ODYSSEY] Using selectors:', selectors);
+
+                let timeSlotElements = [];
+                for (let selector of selectors) {
+                    const elements = Array.from(document.querySelectorAll(selector));
+                    if (elements.length > 0) {
+                        timeSlotElements = elements;
+                        console.log('[ODYSSEY] Found elements with selector:', selector, 'count:', elements.length);
+                        break;
+                    }
+                }
 
                 for (let i = 0; i < timeSlotElements.length; i++) {
                     const el = timeSlotElements[i];
@@ -343,7 +381,7 @@ public final class JavaScriptLibrary {
                 console.error('[ODYSSEY] Error clicking time button:', error);
                 return false;
             }
-        }
+        },
         """
     }
 

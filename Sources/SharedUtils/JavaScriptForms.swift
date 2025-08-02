@@ -48,57 +48,5 @@ public final class JavaScriptForms {
             };
         }
     },
-
-    // Fallback method for individual field filling
-    fillFieldsIndividually: function(phoneNumber, email, name) {
-        try {
-            let filledCount = 0;
-            const results = [];
-
-            // Try to fill each field individually
-            if (this.fillFormField('phone', phoneNumber)) {
-                filledCount++;
-                results.push('phone');
-            }
-
-            if (this.fillFormField('email', email)) {
-                filledCount++;
-                results.push('email');
-            }
-
-            if (this.fillFormField('name', name)) {
-                filledCount++;
-                results.push('name');
-            }
-
-            if (filledCount > 0) {
-                // Simulate human behavior before clicking confirm button using existing functions
-                // 1. Random mouse movement
-                this.simulateQuickMouseMovement();
-
-                // 2. Small scroll
-                this.simulateQuickScrolling();
-
-                return {
-                    success: true,
-                    filledCount: filledCount,
-                    filledFields: results,
-                    confirmClicked: false
-                };
-            } else {
-                return {
-                    success: false,
-                    error: 'No fields could be filled',
-                    filledCount: 0
-                };
-            }
-        } catch (error) {
-            return {
-                success: false,
-                error: error.message || 'Unknown error in fillFieldsIndividually'
-            };
-        }
-    },
-
     """
 }

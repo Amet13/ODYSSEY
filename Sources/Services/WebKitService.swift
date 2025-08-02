@@ -280,6 +280,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         let automationScript = JavaScriptLibrary.getAutomationLibrary()
         let script = WKUserScript(source: automationScript, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
         webView?.configuration.userContentController.addUserScript(script)
+        logger.info("✅ Automation scripts injected for instance: \(self.instanceId)")
     }
 
     private func injectAntiDetectionScripts() {
@@ -854,7 +855,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     public func clickConfirmButton() async -> Bool {
         guard webView != nil else {
-            logger.error("WebView not initialized")
+            logger.error("❌ WebView not initialized.")
             return false
         }
 
@@ -885,7 +886,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     public func waitForGroupSizePage() async -> Bool {
         guard let webView else {
-            logger.error("WebView not initialized")
+            logger.error("❌ WebView not initialized.")
             return false
         }
 
@@ -913,7 +914,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     public func waitForTimeSelectionPage() async -> Bool {
         guard webView != nil else {
-            logger.error("WebView not initialized")
+            logger.error("❌ WebView not initialized.")
             return false
         }
 
@@ -940,7 +941,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     public func selectTimeSlot(dayName: String, timeString: String) async -> Bool {
         guard webView != nil else {
-            logger.error("WebView not initialized")
+            logger.error("❌ WebView not initialized.")
             return false
         }
 
@@ -1039,6 +1040,23 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
         logger.info("📅 [DaySection] Expanding day section for: \(dayName, privacy: .private)")
 
+        // First check if the JavaScript library is available
+        let checkScript =
+            "typeof window.odyssey !== 'undefined' && typeof window.odyssey.expandDaySection === 'function'"
+        do {
+            let isAvailable = try await webView.evaluateJavaScript(checkScript) as? Bool ?? false
+            if !isAvailable {
+                logger.error("❌ [DaySection] JavaScript library not available, injecting scripts...")
+                // Re-inject scripts if not available
+                injectAutomationScripts()
+                injectAntiDetectionScripts()
+                // Wait a moment for scripts to load
+                try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+            }
+        } catch {
+            logger.error("❌ [DaySection] Error checking JavaScript availability: \(error.localizedDescription)")
+        }
+
         let script = "window.odyssey.expandDaySection('\(dayName)');"
 
         do {
@@ -1061,11 +1079,28 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     public func clickTimeButton(timeString: String, dayName: String) async -> Bool {
         guard let webView else {
-            logger.error("WebView not initialized")
+            logger.error("❌ WebView not initialized.")
             return false
         }
 
         logger.info("⏰ Clicking time button: \(timeString, privacy: .private) for day: \(dayName, privacy: .private)")
+
+        // First check if the JavaScript library is available
+        let checkScript =
+            "typeof window.odyssey !== 'undefined' && typeof window.odyssey.clickTimeButton === 'function'"
+        do {
+            let isAvailable = try await webView.evaluateJavaScript(checkScript) as? Bool ?? false
+            if !isAvailable {
+                logger.error("❌ [TimeButton] JavaScript library not available, injecting scripts...")
+                // Re-inject scripts if not available
+                injectAutomationScripts()
+                injectAntiDetectionScripts()
+                // Wait a moment for scripts to load
+                try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+            }
+        } catch {
+            logger.error("❌ [TimeButton] Error checking JavaScript availability: \(error.localizedDescription)")
+        }
 
         let script = "window.odyssey.clickTimeButton('\(timeString)', '\(dayName)');"
 
@@ -1086,9 +1121,33 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
     }
 
+    public func verifyJavaScriptLibrary() async -> Bool {
+        guard let webView else {
+            logger.error("❌ WebView not initialized for JavaScript verification")
+            return false
+        }
+
+        let checkScript =
+            "typeof window.odyssey !== 'undefined' && typeof window.odyssey.expandDaySection === 'function' && typeof window.odyssey.clickTimeButton === 'function'"
+        do {
+            let isAvailable = try await webView.evaluateJavaScript(checkScript) as? Bool ?? false
+            logger.info("🔧 JavaScript library verification: \(isAvailable ? "✅ Available" : "❌ Not available")")
+            return isAvailable
+        } catch {
+            logger.error("❌ Error verifying JavaScript library: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    public func reinjectScripts() {
+        logger.info("🔄 Re-injecting scripts for instance: \(self.instanceId)")
+        injectAutomationScripts()
+        injectAntiDetectionScripts()
+    }
+
     public func checkAndClickContinueButton() async -> Bool {
         guard let webView else {
-            logger.error("WebView not initialized")
+            logger.error("❌ WebView not initialized.")
             return false
         }
 
@@ -1111,7 +1170,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     public func clickContinueAfterTimeSlot() async -> Bool {
         guard webView != nil else {
-            logger.error("WebView not initialized")
+            logger.error("❌ WebView not initialized.")
             return false
         }
 
@@ -1142,7 +1201,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     public func waitForContactInfoPage() async -> Bool {
         guard let webView else {
-            logger.error("WebView not initialized")
+            logger.error("❌ WebView not initialized.")
             return false
         }
 
@@ -1911,7 +1970,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         let cleanupScript = "window.odyssey.cleanupSession();"
         do {
             _ = try await webView.evaluateJavaScript(cleanupScript)
-            logger.info("Session cleanup completed")
+            logger.info("🧹 Session cleanup completed.")
         } catch {
             logger.error("❌ Failed to cleanup session: \(error.localizedDescription)")
         }
@@ -1921,7 +1980,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
         do {
             _ = try await webView.evaluateJavaScript(script)
-            logger.info("Basic anti-detection measures applied successfully")
+            logger.info("🛡️ Basic anti-detection measures applied successfully.")
         } catch {
             logger.error("❌ Failed to apply anti-detection measures: \(error.localizedDescription)")
         }
@@ -2022,25 +2081,25 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     }
 
     private func cleanupWebView() async {
-        logger.info("Starting WebView cleanup...")
+        logger.info("🧹 Starting WebView cleanup...")
         scriptCompletions.removeAll()
         elementCompletions.removeAll()
         // Safely cleanup WebView if it exists
         if let webView {
-            logger.info("Cleaning up existing WebView...")
+            logger.info("🧹 Cleaning up existing WebView...")
             await MainActor.run {
                 webView.configuration.userContentController.removeScriptMessageHandler(forName: "odysseyHandler")
                 webView.navigationDelegate = nil
                 webView.stopLoading()
             }
         } else {
-            logger.info("No WebView to cleanup")
+            logger.info("ℹ️ No WebView to cleanup.")
         }
         // Clear webView reference
         await MainActor.run {
             self.webView = nil
         }
-        logger.info("WebKitService cleanup completed")
+        logger.info("✅ WebKitService cleanup completed.")
     }
 
     // MARK: - NSWindowDelegate
@@ -2083,7 +2142,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     /// Check if the current page indicates a successful reservation completion
     public func checkReservationComplete() async -> Bool {
         guard let webView else {
-            logger.error("WebView not initialized")
+            logger.error("❌ WebView not initialized.")
             return false
         }
 

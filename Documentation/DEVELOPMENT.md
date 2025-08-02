@@ -40,8 +40,14 @@ Both versions share the same backend services and automation engine, so contribu
    ```
 
 4. **Monitor logs** (in another terminal):
+
    ```bash
    ./Scripts/odyssey.sh logs
+   ```
+
+5. **Run quality checks**:
+   ```bash
+   ./Scripts/odyssey.sh lint
    ```
 
 ## 🏗️ Architecture principles
@@ -77,7 +83,7 @@ The project includes comprehensive automated quality checks:
 - ✅ YAML and Markdown linting
 - ✅ GitHub Actions workflow validation
 - ✅ Project structure validation
-- ✅ Comprehensive linting with `lint-all.sh`
+- ✅ Comprehensive linting with `./Scripts/odyssey.sh lint`
 - ✅ CLI build and testing
 
 ### Example: Running All Checks
@@ -85,11 +91,28 @@ The project includes comprehensive automated quality checks:
 ```bash
 # Run all quality checks
 ./Scripts/odyssey.sh lint
+
+# Build the application
+./Scripts/odyssey.sh build
+
+# Clean build artifacts
+./Scripts/odyssey.sh clean
 ```
 
 ### CI/CD pipeline integration
 
 The unified CI/CD pipeline (`.github/workflows/ci-cd.yml`) automatically runs all quality checks on every commit and pull request.
+
+### 🧹 Code Quality Standards
+
+The project maintains high code quality standards with:
+
+- **📝 Consistent Logging**: All log messages use emojis and proper punctuation
+- **🎯 DRY Principle**: No code duplication, centralized validation and utilities
+- **🔧 Clean Architecture**: Modular services with clear separation of concerns
+- **📚 Comprehensive Documentation**: Up-to-date guides and examples
+- **⚡ Performance**: Optimized for speed and memory efficiency
+- **🛡️ Security**: Secure credential storage and input validation
 
 ## 🏗️ Service architecture
 

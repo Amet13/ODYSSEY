@@ -90,8 +90,6 @@ public final class JavaScriptCore {
             }
         },
 
-
-
         // ===== ELEMENT INTERACTION =====
 
         // Click element (unified function - handles both selectors and IDs)
@@ -175,7 +173,7 @@ public final class JavaScriptCore {
             }
         },
 
-                // Type text into element (unified function - handles both selectors and IDs with browser autofill)
+        // Type text into element (unified function - handles both selectors and IDs with browser autofill)
         typeTextIntoElement: function(selector, text) {
             let element;
 
@@ -201,13 +199,7 @@ public final class JavaScriptCore {
             return this.simulateBrowserAutofill(element, text);
         },
 
-
-
         // ===== UTILITY FUNCTIONS =====
-
-
-
-
 
         // Find and click element by text
         findAndClickElementByText: function(text) {
@@ -240,7 +232,7 @@ public final class JavaScriptCore {
 
 
 
-                                // Fill number of people field
+        // Fill number of people field
         fillNumberOfPeople: function(numberOfPeople) {
             try {
                 const field = document.querySelector('input[id="reservationCount"][name="ReservationCount"]') ||

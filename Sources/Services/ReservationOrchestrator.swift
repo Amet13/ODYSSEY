@@ -263,7 +263,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             self.userError = ReservationError.pageLoadTimeout.errorDescription
             throw ReservationError.pageLoadTimeout
         }
-        logger.info("✅ Page loaded successfully.")
+
         LoggingService.shared.log(
             "Page loaded successfully",
             level: .success,
@@ -300,7 +300,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 self.userError = ReservationError.groupSizePageLoadTimeout.errorDescription
                 throw ReservationError.groupSizePageLoadTimeout
             }
-            logger.info("✅ Group size page loaded successfully.")
+
             LoggingService.shared.log(
                 "Group size page loaded successfully",
                 level: .success,
@@ -422,7 +422,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 self.userError = ReservationError.contactInfoPageLoadTimeout.errorDescription
                 throw ReservationError.contactInfoPageLoadTimeout
             }
-            logger.info("✅ Contact information page loaded successfully.")
+
             LoggingService.shared.log(
                 "Contact information page loaded successfully",
                 level: .success,
@@ -617,7 +617,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
                 let domReady = await webKitService.waitForDOMReady()
                 if domReady {
-                    logger.info("✅ Confirmation page loaded successfully.")
                     LoggingService.shared.log(
                         "Confirmation page loaded successfully",
                         level: .success,
@@ -641,7 +640,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             logger.info("🔍 Checking if reservation is complete...")
             let reservationComplete = await webKitService.checkReservationComplete()
             if reservationComplete {
-                logger.info("✅ Reservation completion confirmed!")
                 LoggingService.shared.log(
                     "Reservation completion confirmed",
                     level: .success,
@@ -728,16 +726,24 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 logger.error("❌ DOM failed to load properly for \(config.name).")
                 throw ReservationError.pageLoadTimeout
             }
+
+            // Ensure JavaScript library is available after navigation
+            logger.info("🔧 Verifying JavaScript library availability for \(config.name)...")
+            let jsAvailable = await separateWebKitService.verifyJavaScriptLibrary()
+            if !jsAvailable {
+                logger.warning("⚠️ JavaScript library not available for \(config.name), re-injecting...")
+                separateWebKitService.reinjectScripts()
+                try await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second for scripts to load
+            }
             let buttonClicked = await separateWebKitService.findAndClickElement(withText: config.sportName)
             if buttonClicked {
-                logger.info("✅ Successfully clicked sport button for \(config.name).")
                 logger.info("⏳ Waiting for group size page for \(config.name).")
                 let groupSizePageReady = await separateWebKitService.waitForGroupSizePage()
                 if !groupSizePageReady {
                     logger.error("⏰ Group size page failed to load for \(config.name).")
                     throw ReservationError.groupSizePageLoadTimeout
                 }
-                logger.info("✅ Group size page loaded successfully for \(config.name).")
+
                 logger.info("👥 Setting number of people for \(config.name): \(config.numberOfPeople).")
                 let peopleFilled = await separateWebKitService.fillNumberOfPeople(config.numberOfPeople)
                 if !peopleFilled {
@@ -788,7 +794,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     logger.error("⏰ Contact information page failed to load for \(config.name).")
                     throw ReservationError.contactInfoPageLoadTimeout
                 }
-                logger.info("✅ Contact information page loaded successfully for \(config.name).")
+
                 logger.info("📝 Proceeding with browser autofill-style form filling for \(config.name).")
                 logger.info("📝 Filling contact information with simultaneous autofill for \(config.name).")
                 let userSettings = UserSettingsManager.shared.userSettings
@@ -889,7 +895,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     try? await Task.sleep(nanoseconds: 1_000_000_000)
                     let domReady = await separateWebKitService.waitForDOMReady()
                     if domReady {
-                        logger.info("✅ Confirmation page loaded successfully for \(config.name).")
                     } else {
                         logger
                             .warning(

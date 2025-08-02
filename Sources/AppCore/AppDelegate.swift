@@ -273,23 +273,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        let configurations = configManager.settings.configurations
-
-        logger.info("🔍 DEBUG: Found \(configurations.count) total configurations")
-        for config in configurations {
-            logger.info("🔍 DEBUG: Config '\(config.name)' - enabled days: \(config.dayTimeSlots.keys.map(\.rawValue))")
-        }
-
         // Collect all configurations that should run at the custom autorun time today
         var configsToRun: [ReservationConfig] = []
 
         for config in configManager.settings.configurations where shouldRunReservation(config: config, at: Date()) {
             configsToRun.append(config)
-        }
-
-        logger.info("🔍 DEBUG: Selected \(configsToRun.count) configurations for autorun")
-        for config in configsToRun {
-            logger.info("🔍 DEBUG: Will run config '\(config.name)'")
         }
 
         // Run all eligible configurations simultaneously (like God Mode)
@@ -317,7 +305,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func shouldRunReservation(config: ReservationConfig, at date: Date) -> Bool {
-        logger.info("🔍 DEBUG: shouldRunReservation called for config '\(config.name)' at \(date)")
         let calendar = Calendar.current
         let currentTime = calendar.dateComponents([.hour, .minute, .second], from: date)
 
@@ -388,7 +375,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     )
 
             if calendar.isDate(today, inSameDayAs: autorunDay) {
-                logger.info("🔍 DEBUG: Config '\(config.name)' - MATCH FOUND!")
                 return true
             }
         }
