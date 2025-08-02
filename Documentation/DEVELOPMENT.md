@@ -170,7 +170,7 @@ The pipeline includes:
 
 - ✅ **Unified Script Usage**: GitHub Actions now use our existing scripts instead of duplicating commands
 - ✅ **Version consistency validation** (tag vs project.yml vs Info.plist)
-- ✅ **Changelog generation** from git commits since last tag
+
 - ✅ **DMG installer creation** with app icon
 - ✅ **CLI binary packaging** with version naming
 - ✅ **Code signing** for both applications
@@ -223,8 +223,9 @@ The release process uses two scripts for a complete workflow:
    ```
 
    This step:
+
    - Updates all version references in code
-   - Adds changelog entry
+
    - Commits and tags the release
    - Triggers CI/CD pipeline
 
@@ -237,6 +238,7 @@ The release process uses two scripts for a complete workflow:
    ```
 
    This step:
+
    - Builds both GUI and CLI applications
    - Creates DMG installer and CLI binary
    - Code signs both applications
@@ -289,7 +291,6 @@ The project includes various automation scripts in the `Scripts/` directory to s
 
 ## 📦 Related documentation
 
-- [CHANGELOG.md](../CHANGELOG.md) - Release notes
 - [README.md](../README.md) - User installation and setup
 - [USER_GUIDE.md](USER_GUIDE.md) - GUI app user guide
 - [CLI.md](CLI.md) - Command-line interface documentation
