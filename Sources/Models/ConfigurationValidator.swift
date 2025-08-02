@@ -143,13 +143,6 @@ public final class ConfigurationValidator: ObservableObject {
 
     // MARK: - Gmail App Password Validation
 
-    /// Validates Gmail App Password format using centralized validation
-    /// - Parameter password: The password to validate
-    /// - Returns: True if valid Gmail App Password format
-    public func isValidGmailAppPassword(_ password: String) -> Bool {
-        return ValidationService.shared.validateGmailAppPassword(password)
-    }
-
     // MARK: - Verification Code Validation
 
     /// Validates verification code format

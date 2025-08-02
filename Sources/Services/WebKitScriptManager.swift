@@ -12,14 +12,14 @@ class WebKitScriptManager {
         let automationScript = JavaScriptLibrary.getAutomationLibrary()
         let script = WKUserScript(source: automationScript, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
         webView.configuration.userContentController.addUserScript(script)
-        logger.info("✅ Automation scripts injected into WKWebView.")
+        LoggingUtils.logSuccess(logger, "Automation scripts injected into WKWebView")
     }
 
     func injectAntiDetectionScripts(into webView: WKWebView, instanceId: String) {
         let antiDetectionScript = JavaScriptLibrary.getAntiDetectionLibrary()
         let script = WKUserScript(source: antiDetectionScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
         webView.configuration.userContentController.addUserScript(script)
-        logger.info("✅ Anti-detection scripts injected into WKWebView for instance: \(instanceId).")
+        LoggingUtils.logSuccess(logger, "Anti-detection scripts injected into WKWebView for instance: \(instanceId)")
     }
 
     func injectAllScripts(into webView: WKWebView, instanceId: String) {
@@ -29,6 +29,6 @@ class WebKitScriptManager {
         // Inject anti-detection scripts
         injectAntiDetectionScripts(into: webView, instanceId: instanceId)
 
-        logger.info("✅ All JavaScript libraries injected for instance: \(instanceId).")
+        LoggingUtils.logSuccess(logger, "All JavaScript libraries injected for instance: \(instanceId)")
     }
 }

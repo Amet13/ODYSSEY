@@ -212,4 +212,46 @@ public enum LoggingUtils {
         let emoji = isSuccess ? "🤖" : "❌"
         logger.info("\(emoji) \(message)")
     }
+
+    // MARK: - Common Logging Patterns
+
+    /// Log a success message with standard format
+    /// - Parameters:
+    ///   - logger: The logger instance
+    ///   - message: The success message
+    public static func logSuccess(_ logger: Logger, _ message: String) {
+        logger.info("✅ \(message)")
+    }
+
+    /// Log an error message with standard format
+    /// - Parameters:
+    ///   - logger: The logger instance
+    ///   - message: The error message
+    public static func logError(_ logger: Logger, _ message: String) {
+        logger.error("❌ \(message)")
+    }
+
+    /// Log a warning message with standard format
+    /// - Parameters:
+    ///   - logger: The logger instance
+    ///   - message: The warning message
+    public static func logWarning(_ logger: Logger, _ message: String) {
+        logger.warning("⚠️ \(message)")
+    }
+
+    /// Log an initialization message with standard format
+    /// - Parameters:
+    ///   - logger: The logger instance
+    ///   - serviceName: The name of the service being initialized
+    public static func logInitialization(_ logger: Logger, _ serviceName: String) {
+        logger.info("🔧 \(serviceName) initialized.")
+    }
+
+    /// Log a deinitialization message with standard format
+    /// - Parameters:
+    ///   - logger: The logger instance
+    ///   - serviceName: The name of the service being deinitialized
+    public static func logDeinitialization(_ logger: Logger, _ serviceName: String) {
+        logger.info("🧹 \(serviceName) deinitialized.")
+    }
 }

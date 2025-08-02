@@ -13,19 +13,7 @@ public final class EmailGmailSupport {
      * - Returns: True if valid, false otherwise.
      */
     public func validateGmailAppPassword(_ appPassword: String) -> Bool {
-        logger.info("🔐 Validating Gmail App Password format.")
-
-        // Gmail App Password must be 16 characters and contain only letters and numbers
-        let appPasswordRegex = "^[A-Za-z0-9]{16}$"
-        let isValid = appPassword.range(of: appPasswordRegex, options: .regularExpression) != nil
-
-        if isValid {
-            logger.info("✅ Gmail App Password format is valid.")
-        } else {
-            logger.warning("⚠️ Gmail App Password format is invalid.")
-        }
-
-        return isValid
+        return ValidationService.shared.validateGmailAppPassword(appPassword)
     }
 
     /**

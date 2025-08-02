@@ -1477,7 +1477,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             }
 
             // Set up stream delegates for better error handling
-            let streamDelegate = IMAPStreamDelegate()
+            let streamDelegate = EmailIMAPStreamDelegate()
             inputStream.delegate = streamDelegate
             outputStream.delegate = streamDelegate
 
@@ -1834,13 +1834,9 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
     // MARK: - Notification Methods
 
-    /// Validates Gmail App Password format
-    /// Gmail App Password must be 16 characters in format "xxxx xxxx xxxx xxxx"
+    /// Validates Gmail App Password format using centralized validation
     static func validateGmailAppPassword(_ password: String) -> Bool {
-        let pattern = #"^[a-z]{4}\s[a-z]{4}\s[a-z]{4}\s[a-z]{4}$"#
-        let regex = try? NSRegularExpression(pattern: pattern)
-        let range = NSRange(location: 0, length: password.utf16.count)
-        return regex?.firstMatch(in: password, range: range) != nil
+        return ValidationService.shared.validateGmailAppPassword(password)
     }
 
     /// Validates Gmail App Password format with detailed error message
@@ -1968,14 +1964,6 @@ func withTimeout<T: Sendable>(seconds: TimeInterval, operation: @escaping @Senda
         }
 
         return nil
-    }
-}
-
-// MARK: - IMAPStreamDelegate
-
-class IMAPStreamDelegate: NSObject, StreamDelegate {
-    func stream(_: Stream, handle _: Stream.Event) {
-        // No-op for now; can be expanded for error handling or logging
     }
 }
 

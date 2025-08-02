@@ -17,14 +17,6 @@ extension String {
         return "\(prefix)***\(suffix)"
     }
 
-    /// Validates if the string matches a Gmail App Password format
-    var isValidGmailAppPassword: Bool {
-        let pattern = "^[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}\\s[a-z]{4}$"
-        let regex = try? NSRegularExpression(pattern: pattern)
-        let range = NSRange(startIndex..., in: self)
-        return regex?.firstMatch(in: self, range: range) != nil
-    }
-
     /// Extracts a 4-digit verification code from text
     var extractVerificationCode: String? {
         let pattern = "\\b\\d{4}\\b"

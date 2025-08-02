@@ -3,7 +3,7 @@ import Network
 import os.log
 
 @MainActor
-public final class EmailIMAPStreamDelegate: NSObject {
+public final class EmailIMAPStreamDelegate: NSObject, StreamDelegate {
     private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "EmailIMAPStream")
 
     // MARK: - IMAPStreamDelegate
@@ -30,12 +30,6 @@ public final class EmailIMAPStreamDelegate: NSObject {
             logger.info("ℹ️ IMAP connection state: \(String(describing: state)).")
         }
     }
-
-    /**
-     * Handles IMAP data reception.
-     * - Parameter data: The received data.
-     */
-    public func didReceiveData(_: Data) { }
 
     /**
      * Handles IMAP connection errors.
@@ -80,12 +74,6 @@ public final class EmailIMAPStreamDelegate: NSObject {
     public func didFailAuthentication(_ error: Error) {
         logger.error("❌ IMAP authentication failed: \(error.localizedDescription).")
     }
-
-    /**
-     * Handles IMAP command success.
-     * - Parameter command: The successful command.
-     */
-    public func didExecuteCommand(_: String) { }
 
     /**
      * Handles IMAP command failure.

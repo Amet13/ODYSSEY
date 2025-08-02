@@ -11,16 +11,16 @@ public final class GodModeStateManager: ObservableObject, @unchecked Sendable {
     private let logger = Logger(subsystem: "com.odyssey.app", category: "GodModeStateManager")
 
     private init() {
-        logger.info("🔧 GodModeStateManager initialized.")
+        LoggingUtils.logInitialization(logger, "GodModeStateManager")
     }
 
     public func toggleGodModeUI() {
         isGodModeUIEnabled.toggle()
-        logger.info("⌨️ God Mode UI toggled to: \(self.isGodModeUIEnabled).")
+        LoggingUtils.logSuccess(logger, "God Mode UI toggled to: \(self.isGodModeUIEnabled)")
     }
 
     public func setGodModeUI(_ enabled: Bool) {
         isGodModeUIEnabled = enabled
-        logger.info("⌨️ God Mode UI set to: \(self.isGodModeUIEnabled).")
+        LoggingUtils.logSuccess(logger, "God Mode UI set to: \(self.isGodModeUIEnabled)")
     }
 }
