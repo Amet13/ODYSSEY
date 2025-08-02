@@ -267,10 +267,10 @@ struct JavaScriptValidationResult {
 @objc class JSConsole: NSObject {
   @objc func log(_ message: String) {
     // This will be called from JavaScript console.log()
-    print("[JS] \(message)")
+    // JavaScript execution log removed for production
   }
 
   @objc func error(_ message: String) {
-    print("[JS ERROR] \(message)")
+    // JavaScript error log removed for production
   }
 }

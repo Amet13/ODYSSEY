@@ -132,7 +132,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
   // Keep the default singleton for app use
   convenience init() {
     self.init(
-      logger: Logger(subsystem: "com.odyssey.app", category: "EmailService"),
+      logger: Logger(subsystem: AppConstants.loggingSubsystem, category: "EmailService"),
       userSettingsManager: UserSettingsManager.shared,
     )
   }
@@ -847,7 +847,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     state: NWConnection.State,
     config: IMAPStateConfig,
   ) {
-    let staticLogger = Logger(subsystem: "ODYSSEY", category: "IMAP")
+    let staticLogger = Logger(subsystem: AppConstants.loggingSubsystem, category: "IMAP")
     config.stateObj.connectionState = "\(state)"
     let stateMsg =
       "[IMAP][\(config.connectionID)] Connection state for \(config.server):\(config.port) is \(state) (TLS=\(config.useTLS))"
@@ -1007,7 +1007,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         if error.localizedDescription.contains("timeout") {
           completion(
             .failure(
-              "Server did not respond with IMAP greeting. Check if IMAP is enabled on port \(useTLS ? "993" : "143")",
+              "Server did not respond with IMAP greeting. Check if IMAP is enabled on port \(useTLS ? String(AppConstants.defaultGmailPort) : String(AppConstants.defaultImapPort))",
               provider: provider,
             ))
         } else {
@@ -1440,7 +1440,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     if !foundCodes.isEmpty {
       // Filter out suspicious codes
       let filtered = foundCodes.filter { code in
-        code != "0000" && code != "0004" && code != "1234" && code != "1111"
+        !AppConstants.suspiciousVerificationCodes.contains(code)
       }
       if !filtered.isEmpty {
         logger.info(
@@ -1463,7 +1463,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
       }
       // Filter out suspicious codes
       let filtered = codes.filter { code in
-        code != "0000" && code != "0004" && code != "1234" && code != "1111"
+        !AppConstants.suspiciousVerificationCodes.contains(code)
       }
 
       if !filtered.isEmpty {

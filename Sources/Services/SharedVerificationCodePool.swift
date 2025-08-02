@@ -6,7 +6,7 @@ import os.log
 public final class SharedVerificationCodePool: ObservableObject, @unchecked Sendable {
   public static let shared = SharedVerificationCodePool()
 
-  private let logger = Logger(subsystem: "com.odyssey.app", category: "SharedCodePool")
+  private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "SharedCodePool")
   private let emailService = EmailService.shared
 
   // Shared pool of available codes per instance.

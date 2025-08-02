@@ -19,7 +19,7 @@ let package = Package(
             name: "ODYSSEY",
             dependencies: ["ODYSSEYBackend"],
             path: "Sources",
-            exclude: ["AppCore/Info.plist", "CLIApp"],
+            exclude: ["CLIApp", "AppCore/Info.plist"],
             sources: ["AppCore", "Views", "Controllers"],
             resources: [
                 .process("Resources")
@@ -35,7 +35,7 @@ let package = Package(
             name: "ODYSSEYBackend",
             path: "Sources",
             exclude: ["AppCore", "Views", "Controllers", "CLIApp", "AppCore/Info.plist"],
-            sources: ["Models", "Services", "SharedUtils", "SharedCore"],
+            sources: ["Models", "Services", "SharedUtils", "SharedCore", "Infrastructure", "Domain", "Application", "Presentation"],
             resources: [
                 .process("Resources")
             ]

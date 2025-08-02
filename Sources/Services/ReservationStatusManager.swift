@@ -16,7 +16,8 @@ public final class ReservationStatusManager: ObservableObject, @unchecked Sendab
   }
 
   private let lastRunInfoKey = "ReservationManager.lastRunInfo"
-  private let logger = Logger(subsystem: "com.odyssey.app", category: "ReservationStatusManager")
+  private let logger = Logger(
+    subsystem: AppConstants.loggingSubsystem, category: "ReservationStatusManager")
 
   private init() {
     loadLastRunInfo()

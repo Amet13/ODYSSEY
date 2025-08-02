@@ -8,7 +8,8 @@ public final class GodModeStateManager: ObservableObject, @unchecked Sendable {
 
   @Published public var isGodModeUIEnabled = false
 
-  private let logger = Logger(subsystem: "com.odyssey.app", category: "GodModeStateManager")
+  private let logger = Logger(
+    subsystem: AppConstants.loggingSubsystem, category: "GodModeStateManager")
 
   private init() {
     LoggingUtils.logInitialization(logger, "GodModeStateManager")

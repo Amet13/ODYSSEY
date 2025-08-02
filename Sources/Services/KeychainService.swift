@@ -77,7 +77,7 @@ public enum KeychainError: Error, LocalizedError, UnifiedErrorProtocol {
 public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol {
   public static let shared = KeychainService()
 
-  private let logger = Logger(subsystem: "com.odyssey.app", category: "KeychainService")
+  private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "KeychainService")
   @Published public var lastError: KeychainError?
   public var onError: ((KeychainError) -> Void)?
 

@@ -5,7 +5,6 @@ import Foundation
 public struct ReservationConfig: Identifiable, Equatable, Codable, Sendable {
   public var id: UUID
 
-  // Basic settings
   public var name: String
   public var facilityURL: String
   public var sportName: String

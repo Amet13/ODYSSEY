@@ -121,7 +121,7 @@ class EmailParser: EmailParserProtocol {
   }
 
   private func removeHTMLTags(from text: String) -> String {
-    // Simple HTML tag removal
+
     let pattern = "<[^>]+>"
     return text.replacingOccurrences(of: pattern, with: "", options: .regularExpression)
       .trimmingCharacters(in: .whitespacesAndNewlines)

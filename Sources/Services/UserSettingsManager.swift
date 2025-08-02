@@ -40,7 +40,8 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
   ///   - userDefaults: UserDefaults instance (default: .standard)
   ///   - settingsKey: Key for storing user settings (default: "ODYSSEY_UserSettings")
   public init(
-    logger: Logger = Logger(subsystem: "com.odyssey.app", category: "UserSettingsManager"),
+    logger: Logger = Logger(
+      subsystem: AppConstants.loggingSubsystem, category: "UserSettingsManager"),
     userDefaults: UserDefaults = .standard,
     settingsKey: String = "ODYSSEY_UserSettings"
   ) {
@@ -62,7 +63,7 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
   // Keep the default singleton for app use
   private convenience init() {
     self.init(
-      logger: Logger(subsystem: "com.odyssey.app", category: "UserSettingsManager"),
+      logger: Logger(subsystem: AppConstants.loggingSubsystem, category: "UserSettingsManager"),
       userDefaults: .standard,
       settingsKey: "ODYSSEY_UserSettings",
     )

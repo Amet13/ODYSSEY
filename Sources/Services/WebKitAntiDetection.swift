@@ -6,7 +6,8 @@ import os.log
 /// Implements advanced techniques to avoid detection by websites
 @MainActor
 public final class WebKitAntiDetection: ObservableObject {
-  private let logger = Logger(subsystem: "com.odyssey.app", category: "WebKitAntiDetection")
+  private let logger = Logger(
+    subsystem: AppConstants.loggingSubsystem, category: "WebKitAntiDetection")
 
   // Anti-detection configuration
   private let instanceId: String

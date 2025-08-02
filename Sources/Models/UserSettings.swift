@@ -147,7 +147,7 @@ public struct UserSettings: Codable, Equatable, Sendable {
 
   // Helper methods
   public func getFormattedPhoneNumber() -> String {
-    // Basic phone number formatting
+
     let cleaned = phoneNumber.replacingOccurrences(
       of: "[^0-9]", with: "", options: .regularExpression)
     if cleaned.count == 10 {

@@ -4,7 +4,8 @@ import os.log
 @MainActor
 public final class ReservationErrorHandler: @unchecked Sendable {
   public static let shared = ReservationErrorHandler()
-  private let logger = Logger(subsystem: "com.odyssey.app", category: "ReservationErrorHandler")
+  private let logger = Logger(
+    subsystem: AppConstants.loggingSubsystem, category: "ReservationErrorHandler")
   private let statusManager = ReservationStatusManager.shared
   private let webKitService = WebKitService.shared
 
@@ -32,8 +33,6 @@ public final class ReservationErrorHandler: @unchecked Sendable {
     let userFriendlyMessage = getUserFriendlyErrorMessage(error)
 
     await MainActor.run {
-      // Only set isRunning = false for single reservations (manual runs)
-      // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
       if runType == .manual { statusManager.isRunning = false }
       statusManager.lastRunStatus = ReservationRunStatus.failed(userFriendlyMessage)
       statusManager.setLastRunInfo(
@@ -66,8 +65,6 @@ public final class ReservationErrorHandler: @unchecked Sendable {
     async
   {
     await MainActor.run {
-      // Only set isRunning = false for single reservations (manual runs)
-      // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
       if runType == .manual { statusManager.isRunning = false }
       statusManager.lastRunStatus = ReservationRunStatus.failed(error)
       statusManager.currentTask = "Error: \(error)"

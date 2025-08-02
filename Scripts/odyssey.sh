@@ -279,9 +279,7 @@ show_usage() {
     echo ""
     echo "CI/CD Commands:"
     echo "  ci          Run CI pipeline (setup, lint, build)"
-    echo "  release     Run full release pipeline"
     echo "  deploy      Deploy and create release artifacts"
-    echo "  sign        Code sign applications"
     echo "  changelog   Generate commit-based changelog"
 
     echo ""
@@ -289,14 +287,11 @@ show_usage() {
     echo "  logs        Show application logs"
     echo "  help        Show this help message"
     echo ""
-    echo "Options:"
-    echo "  --help      Show this help message"
-    echo ""
     echo "Examples:"
     echo "  $script_name setup"
     echo "  $script_name build"
     echo "  $script_name ci"
-    echo "  $script_name release 3.2.0"
+    echo "  $script_name deploy"
 }
 
 # Function to check macOS requirements
@@ -637,7 +632,7 @@ run_linting() {
 
     # Run GitHub Actions Linting
     print_status "step" "Running GitHub Actions Linting..."
-    if actionlint -shellcheck="" .github/workflows/*.yml; then
+    if actionlint .github/workflows/*.yml; then
         print_status "success" "GitHub Actions Linting passed"
     else
         print_status "warning" "GitHub Actions Linting found issues (acceptable warnings ignored)"
@@ -702,45 +697,7 @@ update_version_files() {
 
 }
 
-# Function to create release
-create_release() {
-    local version=$1
 
-    if [ -z "$version" ]; then
-        print_status "error" "Version is required for release command"
-        show_usage
-        exit 1
-    fi
-
-    validate_version "$version"
-
-    print_status "step" "Creating release v$version..."
-
-    # Get current version
-    local current_version
-    current_version=$(get_current_version)
-    print_status "info" "Current version: $current_version"
-
-    # Check if version is different
-    if [ "$version" = "$current_version" ]; then
-        print_status "warning" "Version $version is already the current version"
-        read -p "Continue anyway? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            exit 1
-        fi
-    fi
-
-    # Update version files
-    update_version_files "$version"
-
-    # Build CLI release version
-    print_status "step" "Building CLI release version..."
-    generate_xcode_project
-    build_cli release
-
-    print_status "success" "Release v$version prepared successfully!"
-}
 
 # Function to deploy and create release artifacts
 deploy_release() {
@@ -817,19 +774,7 @@ deploy_release() {
     print_status "success" "Deployment completed successfully!"
 }
 
-# Function to code sign applications
-code_sign() {
-    print_status "step" "Code signing applications..."
 
-    # Find the built app
-    APP_PATH=$(find_built_app)
-
-    # Find the CLI
-    CLI_PATH=$(find_cli_path release)
-
-    # Perform code signing
-    perform_code_signing "$APP_PATH" "$CLI_PATH"
-}
 
 
 
@@ -909,10 +854,6 @@ main() {
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --help)
-                show_usage
-                exit 0
-                ;;
             -*)
                 print_status "error" "Unknown option: $1"
                 show_usage
@@ -926,43 +867,44 @@ main() {
 
     # Get command
     local command="${1:-}"
-    shift
-
-    # Validate project root
-    validate_project_root
+    if [ $# -gt 0 ]; then
+        shift
+    fi
 
     # Execute command
     case "$command" in
         "setup")
+            validate_project_root
             setup_dev_environment
             ;;
         "build")
+            validate_project_root
             build_application
             ;;
         "lint")
+            validate_project_root
             run_linting
             ;;
 
         "clean")
+            validate_project_root
             clean_builds
             ;;
         "ci")
+            validate_project_root
             run_ci
             ;;
-        "release")
-            create_release "$1"
-            ;;
         "deploy")
+            validate_project_root
             deploy_release
-            ;;
-        "sign")
-            code_sign
             ;;
 
         "changelog")
+            validate_project_root
             generate_changelog
             ;;
         "logs")
+            validate_project_root
             show_logs
             ;;
         "help")
@@ -970,7 +912,6 @@ main() {
             ;;
         "")
             show_usage
-            exit 1
             ;;
         *)
             print_status "error" "Unknown command: $command"
@@ -979,7 +920,9 @@ main() {
             ;;
     esac
 
-    print_status "success" "Command '$command' completed successfully!"
+    if [ -n "$command" ]; then
+        print_status "success" "Command '$command' completed successfully!"
+    fi
 }
 
 # Run main function with all arguments

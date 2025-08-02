@@ -41,7 +41,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
     statusManager: ReservationStatusManager = ReservationStatusManager.shared,
     errorHandler: ReservationErrorHandler = ReservationErrorHandler.shared,
     logger: Logger = Logger(
-      subsystem: "com.odyssey.app",
+      subsystem: AppConstants.loggingSubsystem,
       category: LoggerCategory.reservationOrchestrator.categoryName,
     ),
     webKitService: WebKitServiceProtocol = ServiceRegistry.shared.resolve(
@@ -61,7 +61,8 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       statusManager: ReservationStatusManager.shared,
       errorHandler: ReservationErrorHandler.shared,
       logger: Logger(
-        subsystem: "com.odyssey.app", category: LoggerCategory.reservationOrchestrator.categoryName),
+        subsystem: AppConstants.loggingSubsystem,
+        category: LoggerCategory.reservationOrchestrator.categoryName),
       webKitService: ServiceRegistry.shared.resolve(WebKitServiceProtocol.self),
       configurationManager: ConfigurationManager.shared,
     )
@@ -95,9 +96,9 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       } catch {
         // Set user-facing error
         await MainActor.run { self.userError = error.localizedDescription }
-        logger.error("❌ Reservation failed with error: \(error.localizedDescription)")
-        logger.error("🔍 Error type: \(type(of: error))")
-        logger.error("📋 Error details: \(error)")
+        logger.error("❌ Reservation failed with error: \(error.localizedDescription).")
+        logger.error("🔍 Error type: \(type(of: error)).")
+        logger.error("📋 Error details: \(error).")
         await errorHandler.handleReservationError(error, config: config, runType: runType)
       }
     }
@@ -200,8 +201,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
   public func handleManualWindowClosure(runType: ReservationRunType) async {
     logger.info("👤 Manual window closure detected - resetting reservation state.")
     await MainActor.run {
-      // Only set isRunning = false for single reservations (manual runs)
-      // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
       if runType == .manual {
         statusManager.isRunning = false
       }
@@ -221,6 +220,11 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
   }
 
   // MARK: - Private Methods
+
+  /// Formats phone number by removing dashes
+  private func formatPhoneNumber(_ phoneNumber: String) -> String {
+    return phoneNumber.replacingOccurrences(of: "-", with: "")
+  }
 
   /**
    Performs the reservation logic for a given configuration and run type.
@@ -462,7 +466,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         "📝 Proceeding with browser autofill-style form filling to avoid triggering captchas.")
       await updateTask("Filling contact information with simultaneous autofill...")
       let userSettings = UserSettingsManager.shared.userSettings
-      let phoneNumber = userSettings.phoneNumber.replacingOccurrences(of: "-", with: "")
+      let phoneNumber = formatPhoneNumber(userSettings.phoneNumber)
       let allFieldsFilled = await webKitService.fillAllContactFieldsWithAutofillAndHumanMovements(
         phoneNumber: phoneNumber,
         email: userSettings.imapEmail,
@@ -523,7 +527,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
 
         let retryTextDetected = await webKitService.detectRetryText()
         if retryTextDetected {
-          logger.warning("⚠️ Retry text detected - handling captcha retry")
+          logger.warning("⚠️ Retry text detected - handling captcha retry.")
           LoggingService.shared.log(
             "Retry text detected - handling captcha retry",
             level: .warning,
@@ -534,24 +538,24 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
           // Handle captcha retry with human behavior simulation
           let captchaRetryHandled = await webKitService.handleCaptchaRetry()
           if captchaRetryHandled {
-            logger.info("✅ Captcha retry handled with human behavior simulation")
+            logger.info("✅ Captcha retry handled with human behavior simulation.")
             // Wait for the retry to complete
             try? await Task.sleep(nanoseconds: 2_000_000_000)  // Wait 2 seconds
 
             // Check if retry text is still present after the retry
             let retryTextStillPresent = await webKitService.detectRetryText()
             if retryTextStillPresent {
-              logger.warning("⚠️ Retry text still present after captcha retry - will try again")
+              logger.warning("⚠️ Retry text still present after captcha retry - will try again.")
               contactConfirmClicked = false
               retryCount += 1
               continue
             } else {
-              logger.info("✅ Captcha retry successful - no retry text detected")
+              logger.info("✅ Captcha retry successful - no retry text detected.")
               contactConfirmClicked = true
               break
             }
           } else {
-            logger.error("❌ Failed to handle captcha retry")
+            logger.error("❌ Failed to handle captcha retry.")
             contactConfirmClicked = false
             retryCount += 1
             continue
@@ -564,7 +568,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
           try? await Task.sleep(nanoseconds: 300_000_000)
           let retryTextAfterClick = await webKitService.detectRetryText()
           if retryTextAfterClick {
-            logger.warning("⚠️ Retry text detected after confirm button click")
+            logger.warning("⚠️ Retry text detected after confirm button click.")
             LoggingService.shared.log(
               "Retry text detected after confirm button click",
               level: .warning,
@@ -692,8 +696,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       )
 
       await MainActor.run {
-        // Only set isRunning = false for single reservations (manual runs)
-        // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
         if runType == .manual {
           statusManager.isRunning = false
         }
@@ -851,7 +853,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         logger.info("📝 Proceeding with browser autofill-style form filling for \(config.name).")
         logger.info("📝 Filling contact information with simultaneous autofill for \(config.name).")
         let userSettings = UserSettingsManager.shared.userSettings
-        let phoneNumber = userSettings.phoneNumber.replacingOccurrences(of: "-", with: "")
+        let phoneNumber = formatPhoneNumber(userSettings.phoneNumber)
         let allFieldsFilled =
           await separateWebKitService.fillAllContactFieldsWithAutofillAndHumanMovements(
             phoneNumber: phoneNumber,
@@ -935,8 +937,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 date: Date(),
                 runType: runType,
               )
-              // Only set isRunning = false for single reservations (manual runs)
-              // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
               if runType == .manual {
                 statusManager.isRunning = false
               }
@@ -969,8 +969,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         await MainActor.run {
           statusManager.setLastRunInfo(
             for: config.id, status: .success, date: Date(), runType: runType)
-          // Only set isRunning = false for single reservations (manual runs)
-          // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
           if runType == .manual {
             statusManager.isRunning = false
           }
@@ -990,8 +988,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
           date: Date(),
           runType: runType,
         )
-        // Only set isRunning = false for single reservations (manual runs)
-        // For multiple reservations (godmode/automatic), let trackGodModeCompletion handle it
         if runType == .manual {
           statusManager.isRunning = false
         }

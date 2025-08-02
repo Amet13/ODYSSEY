@@ -9,7 +9,8 @@ import os.log
 @MainActor
 public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
   private var debugWindow: NSWindow?
-  private let logger = Logger(subsystem: "com.odyssey.app", category: "WebKitDebugWindowManager")
+  private let logger = Logger(
+    subsystem: AppConstants.loggingSubsystem, category: "WebKitDebugWindowManager")
 
   // Window configuration
   private let windowWidth: CGFloat = .init(AppConstants.webKitWindowWidth)

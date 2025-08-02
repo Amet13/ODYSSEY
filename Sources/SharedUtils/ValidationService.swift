@@ -163,7 +163,7 @@ final class ValidationService {
    */
   func validateServer(_ server: String) -> Bool {
     guard !server.isEmpty else { return false }
-    // Basic server validation - should contain a domain and optional port
+
     let serverRegex = "^[a-zA-Z0-9.-]+(\\.[a-zA-Z0-9.-]+)*(?::[0-9]+)?$"
     let predicate = NSPredicate(format: "SELF MATCHES %@", serverRegex)
     return predicate.evaluate(with: server)

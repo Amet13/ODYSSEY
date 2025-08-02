@@ -108,6 +108,11 @@ public enum AppConstants {
   public static let maxWaitTimeForGodModeSeconds: TimeInterval = verificationCodeTimeout
   public static let additionalWaitTimeForUIUpdatesSeconds: TimeInterval = 2.0
 
+  // MARK: - Verification Code Filtering
+
+  // Suspicious verification codes that should be filtered out
+  public static let suspiciousVerificationCodes = ["0000", "0004", "1234", "1111"]
+
   // Validation limits
   public static let maxNumberOfPeople: Int = 2
   public static let minNumberOfPeople: Int = 1

@@ -1,4 +1,4 @@
-# 💻 **ODYSSEY CLI Guide**
+# 💻 ODYSSEY CLI Guide
 
 The ODYSSEY CLI provides command-line automation capabilities using the same powerful WebKit automation engine as the GUI version, ensuring consistent behavior and reliability.
 
@@ -10,7 +10,7 @@ The ODYSSEY CLI provides command-line automation capabilities using the same pow
 2. **Make executable:** Run `chmod +x odyssey-cli`.
 3. **Add ODYSSEY to the trust list:** Run `sudo xattr -rd com.apple.quarantine ./odyssey-cli`.
 
-## 🔧 Export token details
+## 🔧 Export Token Details
 
 The export token is a compressed, base64-encoded configuration containing only essential data for CLI automation:
 
@@ -152,15 +152,15 @@ Show CLI version information.
 ./odyssey-cli version
 ```
 
-## 🚀 GitHub Actions integration
+## 🚀 GitHub Actions Integration
 
 The CLI can be integrated into GitHub Actions for automated reservation booking.
 Use only macOS runners.
 
 ### 📋 Step 1: Fork the Repository
 
-1. **Fork ODYSSEY**: Go to [https://github.com/Amet13/ODYSSEY](https://github.com/Amet13/ODYSSEY) and click "Fork".
-2. **Clone your fork**:
+1. **Fork ODYSSEY:** Go to [https://github.com/Amet13/ODYSSEY](https://github.com/Amet13/ODYSSEY) and click "Fork".
+2. **Clone your fork:**
 
    ```bash
    git clone https://github.com/<YOUR_USERNAME>/ODYSSEY.git
@@ -169,14 +169,14 @@ Use only macOS runners.
 
 ### 🔐 Step 2: Add GitHub Secret
 
-1. **Go to your fork**: Navigate to your forked repository on GitHub.
-2. **Settings**: Click on the "Settings" tab.
-3. **Secrets**: Click on "Secrets and variables" → "Actions".
-4. **New repository secret**: Click "New repository secret".
-5. **Add secret**:
-   - **Name**: `ODYSSEY_EXPORT_TOKEN`
-   - **Value**: Your exported token from the GUI app.
-6. **Save**: Click "Add secret".
+1. **Go to your fork:** Navigate to your forked repository on GitHub.
+2. **Settings:** Click on the "Settings" tab.
+3. **Secrets:** Click on "Secrets and variables" → "Actions".
+4. **New repository secret:** Click "New repository secret".
+5. **Add secret:**
+   - **Name:** `ODYSSEY_EXPORT_TOKEN`
+   - **Value:** Your exported token from the GUI app.
+6. **Save:** Click "Add secret".
 
 ### ⚙️ Step 3: Use the Workflow
 
@@ -185,6 +185,8 @@ The workflow file is already included in the repository. It will automatically:
 - Download the latest CLI from releases.
 - Run reservations using your export token.
 - Upload logs for debugging.
+
+**Refer to `.github/workflows/scheduled-reservations.yml` pipeline** for the complete automation setup.
 
 ## 🔒 Security
 

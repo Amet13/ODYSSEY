@@ -34,7 +34,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   private var statusBarController: StatusBarController?
   private var timer: Timer?
   private var globalKeyMonitor: Any?
-  private let logger = Logger(subsystem: "com.odyssey.app", category: "AppDelegate")
+  private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "AppDelegate")
   private let orchestrator = ReservationOrchestrator.shared
 
   override init() {
@@ -328,7 +328,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       return false
     }
 
-    // Only trigger at exactly the autorun time (including seconds)
     let userSettingsManager = UserSettingsManager.shared
     let useCustomTime = userSettingsManager.userSettings.useCustomAutorunTime
     let autorunTime: Date =
