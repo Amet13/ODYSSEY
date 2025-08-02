@@ -89,10 +89,19 @@ targets:
           - "**/*.md"
           - "**/*.txt"
           - "**/*.xcuserstate"
+          - "**/*.xcuserdata"
+          - "**/*.xcworkspace"
+          - "**/*.xcodeproj"
           - "CLIApp/**"
+          - "Application/**"
+          - "Domain/**"
+          - "Infrastructure/**"
+          - "Presentation/**"
+          - "SharedCore/**"
     resources:
       - path: ../Sources/Resources/AppIcon.icns
       - path: ../Sources/Resources/Assets.xcassets
+      - path: ../Sources/Resources/Localizable.strings
 
     info:
       path: ../Sources/AppCore/Info.plist
