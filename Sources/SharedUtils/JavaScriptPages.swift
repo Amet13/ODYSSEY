@@ -201,11 +201,11 @@ public final class JavaScriptPages {
 
             // Check for success indicators
             const lowerText = pageText.toLowerCase();
-            const hasSuccessText = lowerText.includes('confirmation') || 
+            const hasSuccessText = lowerText.includes('confirmation') ||
                                  lowerText.includes('is now confirmed');
-            
+
             // Check if we're still on verification page
-            const stillOnVerificationPage = lowerText.includes('enter it below') || 
+            const stillOnVerificationPage = lowerText.includes('enter it below') ||
                                           document.querySelectorAll('input[type="number"], input[id*="code"]').length > 0;
 
             let success = false;

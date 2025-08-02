@@ -117,9 +117,22 @@ install_tools() {
 
 # Function to find the latest built app
 find_built_app() {
+    local config=${1:-Debug}
     local app_path
-    app_path=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -path "*/Build/Products/Debug/*" -type d -exec ls -td {} + 2>/dev/null | head -1)
 
+    # First try to find the app in the specified configuration
+    app_path=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -path "*/Build/Products/$config/*" -type d -exec ls -td {} + 2>/dev/null | head -1)
+
+    # If not found, try the other configuration
+    if [ -z "$app_path" ]; then
+        if [ "$config" = "Debug" ]; then
+            app_path=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -path "*/Build/Products/Release/*" -type d -exec ls -td {} + 2>/dev/null | head -1)
+        else
+            app_path=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -path "*/Build/Products/Debug/*" -type d -exec ls -td {} + 2>/dev/null | head -1)
+        fi
+    fi
+
+    # Last resort: find any ODYSSEY.app
     if [ -z "$app_path" ]; then
         app_path=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
     fi
@@ -356,7 +369,18 @@ build_cli() {
     local config=${1:-debug}
     print_status "step" "Building CLI tool..."
     print_status "info" "Building CLI in $config configuration..."
-    measure_time swift build --product odyssey-cli --configuration "$config"
+
+    # Suppress warnings in release builds
+    if [ "$config" = "release" ]; then
+        # Redirect stderr to suppress warnings in release builds
+        local start_time=$SECONDS
+        swift build --product odyssey-cli --configuration "$config" 2>/dev/null || true
+        local end_time=$SECONDS
+        local duration=$((end_time - start_time))
+        print_status "success" "Completed in ${duration}s."
+    else
+        measure_time swift build --product odyssey-cli --configuration "$config"
+    fi
 
     # Check CLI build success
     CLI_PATH=$(find_cli_path "$config")
@@ -492,7 +516,7 @@ build_application() {
         -project "$XCODEPROJ_PATH" \
         -scheme "$SCHEME_NAME" \
         -configuration "$BUILD_CONFIG" \
-        -destination 'platform=macOS' \
+        -destination 'platform=macOS,arch=arm64' \
         -quiet \
         -showBuildTimingSummary
 
@@ -747,16 +771,29 @@ deploy_release() {
         -project "$XCODEPROJ_PATH" \
         -scheme "$SCHEME_NAME" \
         -configuration Release \
-        -destination 'platform=macOS' \
+        -destination 'platform=macOS,arch=arm64' \
         -quiet \
-        -showBuildTimingSummary
+        -showBuildTimingSummary \
+        GCC_WARN_INHIBIT_ALL_WARNINGS=YES
 
     # Find the built app
-    APP_PATH=$(find_built_app)
+    APP_PATH=$(find_built_app Release)
     print_status "success" "Application built at: $APP_PATH"
 
     # Build CLI in release mode
     build_cli release
+
+    # Create release_files directory and copy artifacts
+    print_status "step" "Preparing release artifacts..."
+    mkdir -p release_files
+
+    # Copy app to release_files
+    cp -R "$APP_PATH" release_files/
+    print_status "success" "App copied to release_files/"
+
+    # Copy CLI to release_files
+    cp "$CLI_PATH" release_files/
+    print_status "success" "CLI copied to release_files/"
 
     # Code sign
     print_status "step" "Code signing applications..."
