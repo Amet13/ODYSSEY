@@ -23,10 +23,6 @@ Add screenshots or GIFs to show the changes visually.
 - [ ] My changes follow the project's coding standards
 - [ ] I have tested the CLI version if applicable
 
-## 🔗 Related Issues
-
-Closes #[issue_number]
-
 ## 📝 Additional Notes
 
 Any additional information that reviewers should know about this pull request.

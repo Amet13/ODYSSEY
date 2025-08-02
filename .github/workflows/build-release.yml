@@ -117,9 +117,6 @@ jobs:
             - This app is code signed but **not notarized by Apple**
             - All automation runs locally on your machine
             - No user data transmitted without consent
-
-            ## 🐛 Support
-            - [Report Issues](https://github.com/Amet13/ODYSSEY/issues)
           draft: false
           prerelease: false
         env:

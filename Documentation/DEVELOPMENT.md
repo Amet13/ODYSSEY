@@ -303,8 +303,3 @@ The project includes various automation scripts in the `Scripts/` directory to s
 - **Input Validation:** All user input is validated and sanitized through the centralized `ValidationService`.
 - **Data Privacy:** No user data is transmitted externally without explicit user consent. All automation runs locally on the user's machine.
 - **Periodic Audits:** It is recommended to periodically audit all dependencies and review security practices as part of ongoing maintenance.
-
-## 🙌 Need help?
-
-- Open an issue on [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues).
-- For advanced troubleshooting, check the logs in Console.app and enable "Show browser window" in God Mode Advanced Settings to monitor automation.
