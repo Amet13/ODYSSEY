@@ -16,8 +16,8 @@ Add screenshots or GIFs to show the changes visually.
 ## 📋 Checklist
 
 - [ ] My code follows the project's style guidelines
-- [ ] I have run `./Scripts/lint-all.sh` and all checks pass
-- [ ] I have run `./Scripts/build.sh` and the build succeeds
+- [ ] I have run `./Scripts/odyssey.sh lint` and all checks pass
+- [ ] I have run `./Scripts/odyssey.sh build` and the build succeeds
 - [ ] I have updated relevant documentation
 - [ ] I have added appropriate logging with emoji indicators
 - [ ] My changes follow the project's coding standards

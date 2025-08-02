@@ -101,7 +101,7 @@ The project includes comprehensive automated quality checks:
 
 ### CI/CD pipeline integration
 
-The unified CI/CD pipeline (`.github/workflows/ci-cd.yml`) automatically runs all quality checks on every commit and pull request.
+The unified CI/CD pipeline (`.github/workflows/build-release.yml`) automatically runs all quality checks on every commit and pull request.
 
 ### 🧹 Code Quality Standards
 
@@ -201,7 +201,7 @@ The pipeline includes:
 1. **Build CLI**: `./Scripts/odyssey.sh build`
 2. **Test Commands**: `swift run --package-path . odyssey-cli help`
 3. **Export Token**: Generate token from GUI for testing
-4. **Test GitHub Actions**: Verify `.github/workflows/ci-cd.yml` works correctly
+4. **Test GitHub Actions**: Verify `.github/workflows/build-release.yml` works correctly
 
 ### CLI integration
 

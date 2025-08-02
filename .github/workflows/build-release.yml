@@ -1,5 +1,5 @@
 ---
-name: CI/CD Pipeline - Build & Release
+name: Build & Release
 
 on:
   push:
@@ -88,7 +88,7 @@ jobs:
 
             ### 🖥️ GUI Application
             1. Download `ODYSSEY.dmg` above
-            2. Open the DMG file and drag ODYSSEY.app to your Applications folder
+            2. Open the DMG file and drag `ODYSSEY.app` to your Applications folder
             3. Right-click and select "Open" on first launch
 
             ### 💻 CLI Tool
@@ -118,9 +118,6 @@ jobs:
 
             ## 🐛 Support
             - [Report Issues](https://github.com/Amet13/ODYSSEY/issues)
-
-            ---
-            **Made with ❤️ for the Ottawa sports community**
           draft: false
           prerelease: false
         env:

@@ -763,9 +763,7 @@ deploy_release() {
     APP_PATH=$(find_built_app Release)
     print_status "success" "Application built at: $APP_PATH"
 
-    # Debug: List contents of release_files directory
-    print_status "info" "Contents of release_files directory:"
-    ls -la release_files/ 2>/dev/null || print_status "warning" "release_files directory not found"
+
 
     # Build CLI in release mode
     build_cli release
@@ -778,17 +776,7 @@ deploy_release() {
     cp -R "$APP_PATH" release_files/
     print_status "success" "App copied to release_files/"
 
-    # Debug: Verify the copy worked
-    if [ -d "release_files/ODYSSEY.app" ]; then
-        print_status "success" "App successfully copied to release_files/ODYSSEY.app"
-    else
-        print_status "error" "Failed to copy app to release_files/ODYSSEY.app"
-        print_status "info" "APP_PATH was: $APP_PATH"
-        print_status "info" "Current directory contents:"
-        ls -la
-        print_status "info" "release_files contents:"
-        ls -la release_files/ 2>/dev/null || print_status "warning" "release_files directory not found"
-    fi
+
 
     # Copy CLI to release_files
     cp "$CLI_PATH" release_files/

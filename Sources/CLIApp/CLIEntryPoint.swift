@@ -77,10 +77,10 @@ struct CLI {
       await showUserSettings(unmask: remainingArgs.contains("--unmask"))
     case "validate-javascript":
       await validateJavaScript()
-    case "help", "--help", "-h", "-help":
+    case "help":
       printUsage()
       exit(0)
-    case "version", "--version", "-v":
+    case "version":
       printVersion()
       exit(0)
     default:
@@ -104,8 +104,8 @@ struct CLI {
         configs               List all available configurations
         validate-javascript   Validate JavaScript code in the project
         settings              Show user settings from export token
-        help, --help, -h      Show this help message
-        version, --version    Show version information
+        help                  Show this help message
+        version               Show version information
 
       Examples:
         odyssey-cli run                    # Run configurations scheduled for today

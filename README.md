@@ -4,8 +4,8 @@
   <p><strong>Ottawa Drop-in Your Sports & Schedule Easily Yourself</strong></p>
   <p><em>macOS Menu Bar App + Command Line Interface for Sports Reservation Automation</em></p>
   <p>
-    <a href="https://github.com/Amet13/ODYSSEY/actions/workflows/ci-cd.yml">
-<img src="https://github.com/Amet13/ODYSSEY/actions/workflows/ci-cd.yml/badge.svg" alt="CI/CD Status">
+    <a href="https://github.com/Amet13/ODYSSEY/actions/workflows/build-release.yml">
+<img src="https://github.com/Amet13/ODYSSEY/actions/workflows/build-release.yml/badge.svg" alt="CI/CD Status">
     </a>
     <a href="https://github.com/Amet13/ODYSSEY/releases">
       <img src="https://img.shields.io/github/v/release/Amet13/ODYSSEY?label=version" alt="Latest Release">
@@ -20,7 +20,7 @@
 
 1. **Download** `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
 2. **Install:** Open the installer and drag `ODYSSEY.app` to **Applications**.
-3. **Launch:** Open the app. You'll see a new Sports Court icon in your menu bar.
+3. **Launch:** Open the app. You'll see a new "Sports Court" icon in your menu bar.
 4. **Configure:** Click the icon to add your settings and create your first configuration.
 5. **Automate!** Enable autorun, or run it manually, and let ODYSSEY book your sports for you! 🎉
 

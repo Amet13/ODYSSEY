@@ -810,7 +810,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
               "Attempting to select for \(config.name): \(dayName) at \(timeString, privacy: .private)"
             )
 
-          // Add debugging for time slot selection
           logger.info("🔍 [\(config.name)] Starting time slot selection process...")
           logger.info("🔍 [\(config.name)] Day: \(dayName), Time: \(timeString)")
 
