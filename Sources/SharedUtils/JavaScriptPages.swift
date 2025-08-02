@@ -199,14 +199,24 @@ public final class JavaScriptPages {
             const title = document.title || '';
             const url = window.location.href;
 
-            // Check for success indicators
+            // Check for success indicators - be VERY conservative
             const lowerText = pageText.toLowerCase();
-            const hasSuccessText = lowerText.includes('confirmation') || 
-                                 lowerText.includes('is now confirmed');
-            
+            const hasSuccessText = (lowerText.includes('confirmation') && lowerText.includes('is now confirmed')) ||
+                                 (lowerText.includes('present upon arrival') && lowerText.includes('please bring')) ||
+                                 (lowerText.includes('printed copy') && lowerText.includes('thank you')) ||
+                                 (lowerText.includes('successfully confirmed') && lowerText.includes('thank you'));
+
             // Check if we're still on verification page
-            const stillOnVerificationPage = lowerText.includes('enter it below') || 
-                                          document.querySelectorAll('input[type="number"], input[id*="code"]').length > 0;
+            const stillOnVerificationPage = lowerText.includes('enter it below') ||
+                                          lowerText.includes('verification code') ||
+                                          lowerText.includes('check your email') ||
+                                          lowerText.includes('junk or spam') ||
+                                          document.querySelectorAll('input[type="number"], input[id*="code"], input[name*="code"]').length > 0;
+
+            // Check for error indicators
+            const hasErrorText = lowerText.includes('please enter a valid number') ||
+                               lowerText.includes('confirmation code is incorrect') ||
+                               lowerText.includes('please enter no more than 4 characters');
 
             let success = false;
             let reason = 'unknown';
@@ -214,15 +224,30 @@ public final class JavaScriptPages {
             if (hasSuccessText) {
                 success = true;
                 reason = 'success_text_found';
-            } else if (!stillOnVerificationPage) {
-                // If we moved away from verification page, it might be success
-                // But we need to be more careful about this
+            } else if (hasErrorText) {
                 success = false;
-                reason = 'moved_away_from_verification_page';
+                reason = 'error_text_found';
+            } else if (!stillOnVerificationPage) {
+                // If we moved away from verification page, be VERY conservative about success
+                // Only report success if we have very specific, unambiguous success indicators
+                const hasSpecificSuccess = lowerText.includes('please bring') ||
+                                        lowerText.includes('unable to attend') ||
+                                        (title.toLowerCase().includes('confirmation') &&
+                                         (lowerText.includes('thank you') || lowerText.includes('confirmed')));
+
+                if (hasSpecificSuccess) {
+                    success = true;
+                    reason = 'specific_success_indicators_found';
+                } else {
+                    success = false;
+                    reason = 'moved_away_from_verification_page_no_success_indicators';
+                }
             } else {
                 success = false;
                 reason = 'still_on_verification_page';
             }
+
+            // Verification check completed
 
             return {
                 success: success,
@@ -240,6 +265,74 @@ public final class JavaScriptPages {
                 title: '',
                 url: ''
             };
+        }
+    },
+
+    // Check if we're still on the verification page
+    checkIfStillOnVerificationPage: function() {
+        try {
+            const pageText = document.body.textContent || document.body.innerText || '';
+            const lowerText = pageText.toLowerCase();
+
+            // Check for verification page indicators
+            const hasVerificationText = lowerText.includes('enter it below') ||
+                                      lowerText.includes('check your email') ||
+                                      lowerText.includes('junk or spam') ||
+                                      lowerText.includes('verification code') ||
+                                      lowerText.includes('enter the code');
+
+            // Check for verification input fields
+            const hasVerificationInput = document.querySelectorAll('input[type="number"], input[id*="code"], input[name*="code"]').length > 0;
+
+            // Check for verification form or submit button
+            const hasVerificationForm = document.querySelectorAll('form').length > 0;
+            const hasSubmitButton = document.querySelectorAll('button[type="submit"], input[type="submit"]').length > 0;
+
+            // Check for error messages that indicate we're still on verification page
+            const hasErrorOnVerificationPage = lowerText.includes('invalid') ||
+                                            lowerText.includes('incorrect') ||
+                                            lowerText.includes('wrong') ||
+                                            lowerText.includes('please enter a valid number') ||
+                                            lowerText.includes('valid number') ||
+                                            (lowerText.includes('error') && hasVerificationInput);
+
+            return hasVerificationText || hasVerificationInput || hasVerificationForm || hasSubmitButton || hasErrorOnVerificationPage;
+        } catch (error) {
+            console.error('[ODYSSEY] Error in checkIfStillOnVerificationPage:', error);
+            return false;
+        }
+    },
+
+    // Clear the verification input field for the next attempt
+    clearVerificationInput: function() {
+        try {
+            // Try multiple selectors for verification code input
+            const selectors = [
+                'input[type="number"]',
+                'input[type="text"]',
+                'input[name*="code"]',
+                'input[id*="code"]',
+                'input[placeholder*="code"]',
+                'input[placeholder*="verification"]'
+            ];
+
+            for (let selector of selectors) {
+                const input = document.querySelector(selector);
+                if (input) {
+                    // Clear the input field
+                    input.value = '';
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                    // Verification input field cleared
+                    return true;
+                }
+            }
+
+            console.error('[ODYSSEY] No verification input field found to clear');
+            return false;
+        } catch (error) {
+            console.error('[ODYSSEY] Error clearing verification input:', error);
+            return false;
         }
     }
     """

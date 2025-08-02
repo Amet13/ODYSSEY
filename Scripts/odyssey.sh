@@ -117,9 +117,22 @@ install_tools() {
 
 # Function to find the latest built app
 find_built_app() {
+    local config=${1:-Debug}
     local app_path
-    app_path=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -path "*/Build/Products/Debug/*" -type d -exec ls -td {} + 2>/dev/null | head -1)
 
+    # First try to find the app in the specified configuration
+    app_path=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -path "*/Build/Products/$config/*" -type d -exec ls -td {} + 2>/dev/null | head -1)
+
+    # If not found, try the other configuration
+    if [ -z "$app_path" ]; then
+        if [ "$config" = "Debug" ]; then
+            app_path=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -path "*/Build/Products/Release/*" -type d -exec ls -td {} + 2>/dev/null | head -1)
+        else
+            app_path=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -path "*/Build/Products/Debug/*" -type d -exec ls -td {} + 2>/dev/null | head -1)
+        fi
+    fi
+
+    # Last resort: find any ODYSSEY.app
     if [ -z "$app_path" ]; then
         app_path=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
     fi
@@ -177,15 +190,15 @@ perform_code_signing() {
     if security find-identity -v -p codesigning | grep -q "Developer ID Application"; then
         local identity
         identity=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | cut -d'"' -f2)
- 
+
         # Sign the app
         codesign --force --verify --verbose --sign "$identity" "$app_path"
         print_status "success" "App code signed"
- 
+
         # Sign the CLI
         codesign --force --verify --verbose --sign "$identity" "$cli_path"
         print_status "success" "CLI code signed"
- 
+
         print_status "success" "Code signing completed"
     else
         print_status "warning" "No Developer ID identity found, skipping code signing"
@@ -269,7 +282,8 @@ show_usage() {
     echo "  release     Run full release pipeline"
     echo "  deploy      Deploy and create release artifacts"
     echo "  sign        Code sign applications"
-    echo "  changelog   Generate changelog"
+    echo "  changelog   Generate commit-based changelog"
+
     echo ""
     echo "Utility Commands:"
     echo "  logs        Show application logs"
@@ -356,7 +370,18 @@ build_cli() {
     local config=${1:-debug}
     print_status "step" "Building CLI tool..."
     print_status "info" "Building CLI in $config configuration..."
-    measure_time swift build --product odyssey-cli --configuration "$config"
+
+    # Suppress warnings in release builds
+    if [ "$config" = "release" ]; then
+        # Redirect stderr to suppress warnings in release builds
+        local start_time=$SECONDS
+        swift build --product odyssey-cli --configuration "$config" 2>/dev/null || true
+        local end_time=$SECONDS
+        local duration=$((end_time - start_time))
+        print_status "success" "Completed in ${duration}s."
+    else
+        measure_time swift build --product odyssey-cli --configuration "$config"
+    fi
 
     # Check CLI build success
     CLI_PATH=$(find_cli_path "$config")
@@ -492,7 +517,7 @@ build_application() {
         -project "$XCODEPROJ_PATH" \
         -scheme "$SCHEME_NAME" \
         -configuration "$BUILD_CONFIG" \
-        -destination 'platform=macOS' \
+        -destination 'platform=macOS,arch=arm64' \
         -quiet \
         -showBuildTimingSummary
 
@@ -601,6 +626,15 @@ run_linting() {
         failed_linters+=("Markdown Linting")
     fi
 
+    # Run JavaScript Linting
+    print_status "step" "Running JavaScript Linting..."
+    if swift run --package-path . odyssey-cli validate-javascript 2>/dev/null; then
+        print_status "success" "JavaScript Linting passed"
+    else
+        print_status "warning" "JavaScript Linting found issues"
+        failed_linters+=("JavaScript Linting")
+    fi
+
     # Run GitHub Actions Linting
     print_status "step" "Running GitHub Actions Linting..."
     if actionlint -shellcheck="" .github/workflows/*.yml; then
@@ -665,34 +699,7 @@ update_version_files() {
     sed -i '' "s/version: String = \".*\"/version: String = \"$version\"/" "Sources/Services/CLIExportService.swift"
     print_status "success" "Updated CLIExportService.swift"
 
-    # Update changelog
-    local date
-    date=$(date +%Y-%m-%d)
-    cat > /tmp/changelog_entry.md << EOF
-## [$version] - $date
 
-### Added
-- New features and improvements
-
-### Changed
-- Updates and modifications
-
-### Fixed
-- Bug fixes and improvements
-
-### Technical
-- Build system improvements
-- Code quality enhancements
-- Performance optimizations
-
----
-
-EOF
-
-    # Insert at the top of changelog (after the header)
-    sed -i '' "3r /tmp/changelog_entry.md" "CHANGELOG.md"
-    rm /tmp/changelog_entry.md
-    print_status "success" "Updated changelog"
 }
 
 # Function to create release
@@ -747,16 +754,29 @@ deploy_release() {
         -project "$XCODEPROJ_PATH" \
         -scheme "$SCHEME_NAME" \
         -configuration Release \
-        -destination 'platform=macOS' \
+        -destination 'platform=macOS,arch=arm64' \
         -quiet \
-        -showBuildTimingSummary
+        -showBuildTimingSummary \
+        GCC_WARN_INHIBIT_ALL_WARNINGS=YES
 
     # Find the built app
-    APP_PATH=$(find_built_app)
+    APP_PATH=$(find_built_app Release)
     print_status "success" "Application built at: $APP_PATH"
 
     # Build CLI in release mode
     build_cli release
+
+    # Create release_files directory and copy artifacts
+    print_status "step" "Preparing release artifacts..."
+    mkdir -p release_files
+
+    # Copy app to release_files
+    cp -R "$APP_PATH" release_files/
+    print_status "success" "App copied to release_files/"
+
+    # Copy CLI to release_files
+    cp "$CLI_PATH" release_files/
+    print_status "success" "CLI copied to release_files/"
 
     # Code sign
     print_status "step" "Code signing applications..."
@@ -810,40 +830,64 @@ code_sign() {
     perform_code_signing "$APP_PATH" "$CLI_PATH"
 }
 
-# Function to generate changelog
+
+
+# Function to generate commit-based changelog
 generate_changelog() {
-    print_status "step" "Generating changelog..."
+    print_status "step" "Generating commit-based changelog..."
 
-    # Extract version from tag or use current tag
-    local version="${GITHUB_REF#refs/tags/}"
-    version="${version#v}"
+    # Get the current tag (version)
+    local current_tag
+    current_tag="${GITHUB_REF#refs/tags/}"
+    current_tag="${current_tag#v}"
 
-    # Get previous tag
+    # Get the previous tag
     local previous_tag
     previous_tag="$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")"
 
     local changelog=""
     if [ -n "$previous_tag" ]; then
-        # Get commits between previous tag and current tag
-        changelog="$(git log --pretty=format:"- %s" "${previous_tag}"..HEAD)"
+        # Get commits between previous tag and current tag with better formatting
+        changelog="$(git log --pretty=format:"- %s (%h)" --no-merges "${previous_tag}"..HEAD | grep -v "Merge pull request" | grep -v "Merge branch")"
+        print_status "info" "Generating changelog from ${previous_tag} to ${current_tag}"
     else
         # If no previous tag, get all commits
-        changelog="$(git log --pretty=format:"- %s" HEAD)"
+        changelog="$(git log --pretty=format:"- %s (%h)" --no-merges HEAD | grep -v "Merge pull request" | grep -v "Merge branch")"
+        print_status "info" "Generating changelog for all commits (no previous tag found)"
+    fi
+
+    # Categorize commits for better organization
+    local categorized_changelog=""
+    if [ -n "$changelog" ]; then
+        categorized_changelog="## 🚀 New Features"$'\n'
+        categorized_changelog+="$(echo "$changelog" | grep -i "add\|new\|feature" || echo "- No new features")"$'\n\n'
+
+        categorized_changelog+="## 🐛 Bug Fixes"$'\n'
+        categorized_changelog+="$(echo "$changelog" | grep -i "fix\|bug\|issue" || echo "- No bug fixes")"$'\n\n'
+
+        categorized_changelog+="## 🔧 Improvements"$'\n'
+        categorized_changelog+="$(echo "$changelog" | grep -i "improve\|enhance\|update\|refactor" || echo "- No improvements")"$'\n\n'
+
+        categorized_changelog+="## 📚 Documentation"$'\n'
+        categorized_changelog+="$(echo "$changelog" | grep -i "doc\|readme\|comment" || echo "- No documentation changes")"$'\n\n'
+
+        categorized_changelog+="## 🔄 Other Changes"$'\n'
+        categorized_changelog+="$(echo "$changelog" | grep -v -i "add\|new\|feature\|fix\|bug\|issue\|improve\|enhance\|update\|refactor\|doc\|readme\|comment" || echo "- No other changes")"$'\n'
     fi
 
     # Output for GitHub Actions
     if [ -n "$GITHUB_OUTPUT" ]; then
         {
             echo "CHANGELOG<<EOF"
-            echo "$changelog"
+            echo "$categorized_changelog"
             echo "EOF"
         } >> "$GITHUB_OUTPUT"
+        print_status "success" "Categorized changelog generated and sent to GitHub Actions"
     fi
 
     # Also output to stdout for local use
-    echo "$changelog"
-
-    print_status "success" "Changelog generated"
+    echo "$categorized_changelog"
+    print_status "success" "Categorized commit-based changelog generated"
 }
 
 # Function to show application logs
@@ -913,6 +957,7 @@ main() {
         "sign")
             code_sign
             ;;
+
         "changelog")
             generate_changelog
             ;;

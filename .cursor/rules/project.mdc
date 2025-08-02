@@ -211,7 +211,7 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 
 - **Code Comments:** Use JSDoc-style comments for all public APIs
 - **README Files:** Maintain comprehensive documentation in each directory
-- **Changelog:** Document all changes in `CHANGELOG.md`
+- **Changelog:** Document all changes in commit-based changelog generation
 - **User Guides:** Provide clear installation and usage instructions
 - **API Documentation:** Document all public interfaces and methods
 
@@ -220,7 +220,7 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 ### Version Management
 
 - **Semantic Versioning:** Follow MAJOR.MINOR.PATCH format
-- **Changelog:** Update `CHANGELOG.md` with all changes
+- **Changelog:** Update commit-based changelog generation with all changes
 - **Version Numbers:** Update all version references consistently
 - **Build Numbers:** Increment build number for each release
 

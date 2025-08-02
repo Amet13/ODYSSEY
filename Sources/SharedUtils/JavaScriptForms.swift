@@ -42,6 +42,7 @@ public final class JavaScriptForms {
                 };
             }
         } catch (error) {
+            console.error('[ODYSSEY] Error in fillContactFields:', error);
             return {
                 success: false,
                 error: error.message || 'Unknown error in fillContactFields'

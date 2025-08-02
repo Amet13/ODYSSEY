@@ -76,11 +76,11 @@ jobs:
           files: |
             release_files/ODYSSEY.app
             release_files/odyssey-cli
-          name: ODYSSEY ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
           body: |
             # 🚀 ODYSSEY ${{ github.ref_name }} Release
 
-            ## 📋 Changes
+            ## 📋 What's Changed
 
             ${{ steps.changelog.outputs.CHANGELOG }}
 

@@ -133,6 +133,7 @@ temp/
 *.pkg
 dist/
 build/
+release_files/
 
 # IDE
 .vscode/
