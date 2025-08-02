@@ -231,7 +231,7 @@ public final class JavaScriptLibrary {
               while (Date.now() - start < 1000) {
                   // Busy wait for 1 second
               }
-              console.log('[ODYSSEY] Delay completed');
+              // Delay completed
 
               // Click the confirm button again
               const clickResult = this.clickContactInfoConfirmButton();
@@ -290,7 +290,7 @@ public final class JavaScriptLibrary {
                   const elements = Array.from(document.querySelectorAll(selector));
                   if (elements.length > 0) {
                       headerElements = elements;
-                      console.log('[ODYSSEY] Found day headers with selector:', selector, 'count:', elements.length);
+                      // Found day headers
                       break;
                   }
               }
@@ -354,7 +354,7 @@ public final class JavaScriptLibrary {
                   const elements = Array.from(document.querySelectorAll(selector));
                   if (elements.length > 0) {
                       timeSlotElements = elements;
-                      console.log('[ODYSSEY] Found elements with selector:', selector, 'count:', elements.length);
+                      // Found elements
                       break;
                   }
               }

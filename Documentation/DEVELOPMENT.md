@@ -199,11 +199,11 @@ The pipeline includes:
 
 ### CLI testing
 
-1. **Build CLI**: `./Scripts/build.sh`
-2. **Test Commands**: `./.build/arm64-apple-macosx/debug/odyssey-cli help`
+1. **Build CLI**: `./Scripts/odyssey.sh build`
+2. **Test Commands**: `swift run --package-path . odyssey-cli help`
 3. **Export Token**: Generate token from GUI for testing
-4. **Test Automation**: `export ODYSSEY_EXPORT_TOKEN="<exported_token>" && ./odyssey-cli run`
-5. **Test GitHub Actions**: Verify `.github/workflows/scheduled-reservations.yml` works correctly
+4. **Test Automation**: `export ODYSSEY_EXPORT_TOKEN="<exported_token>" && swift run --package-path . odyssey-cli run`
+5. **Test GitHub Actions**: Verify `.github/workflows/ci-cd.yml` works correctly
 
 ### CLI integration
 
@@ -219,30 +219,29 @@ The release process uses two scripts for a complete workflow:
 1. **Update version and prepare release**:
 
    ```bash
-   ./Scripts/create-release.sh 1.0.0
+   ./Scripts/odyssey.sh release 1.0.0
    ```
 
    This step:
 
    - Updates all version references in code
-
-   - Commits and tags the release
-   - Triggers CI/CD pipeline
+   - Builds CLI release version
+   - Prepares for deployment
 
 ### Step 2: Build and deploy
 
 1. **Build and deploy the release**:
 
    ```bash
-   ./Scripts/deploy.sh release
+   ./Scripts/odyssey.sh deploy
    ```
 
    This step:
 
-   - Builds both GUI and CLI applications
+   - Builds both GUI and CLI applications in release mode
    - Creates DMG installer and CLI binary
    - Code signs both applications
-   - Publishes to GitHub Releases
+   - Prepares release artifacts for GitHub Actions
 
 ### Automated CI/CD pipeline
 
@@ -268,15 +267,17 @@ When you push a version tag, the CI/CD pipeline automatically:
 - ✅ **GitHub Integration**: Automatically publishes to GitHub Releases
 - ✅ **Comprehensive Linting**: Uses configuration files to ignore acceptable warnings while catching critical issues
 
-### 🤖 Scheduled reservations workflow
+### 🤖 Automated CI/CD workflow
 
-The project also includes a separate workflow for automated reservation execution:
+The project includes a comprehensive CI/CD workflow:
 
-- ✅ **Scheduled Execution**: Runs daily at 5:53 PM EST (21:53 UTC)
-- ✅ **Manual Triggers**: Can be triggered manually via GitHub Actions
-- ✅ **CLI Integration**: Downloads latest CLI binary and runs reservations
-- ✅ **Token Security**: Uses GitHub secrets for secure token storage
-- ✅ **Error Handling**: Comprehensive logging and error reporting
+- ✅ **Automated Builds**: Triggers on version tags
+- ✅ **Dual Artifacts**: Creates both GUI app and CLI binary
+- ✅ **Code Signing**: Automatically signs applications
+- ✅ **DMG Creation**: Creates professional installer
+- ✅ **Release Notes**: Auto-generates changelog from commits
+- ✅ **GitHub Integration**: Publishes to GitHub Releases
+- ✅ **Comprehensive Linting**: Runs all quality checks
 
 ## 🛠️ Development workflow
 

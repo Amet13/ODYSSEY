@@ -247,16 +247,7 @@ public final class JavaScriptPages {
                 reason = 'still_on_verification_page';
             }
 
-            console.log('[ODYSSEY] Verification check result:', {
-                success,
-                reason,
-                hasSuccessText,
-                hasErrorText,
-                stillOnVerificationPage,
-                pageText: pageText.substring(0, 200),
-                title: title,
-                url: url
-            });
+            // Verification check completed
 
             return {
                 success: success,
@@ -332,7 +323,7 @@ public final class JavaScriptPages {
                     input.value = '';
                     input.dispatchEvent(new Event('input', { bubbles: true }));
                     input.dispatchEvent(new Event('change', { bubbles: true }));
-                    console.log('[ODYSSEY] Cleared verification input field');
+                    // Verification input field cleared
                     return true;
                 }
             }
