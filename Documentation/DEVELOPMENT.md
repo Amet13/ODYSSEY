@@ -170,7 +170,6 @@ The pipeline includes:
 
 - ✅ **Unified Script Usage**: GitHub Actions now use our existing scripts instead of duplicating commands
 - ✅ **Version consistency validation** (tag vs project.yml vs Info.plist)
-
 - ✅ **DMG installer creation** with app icon
 - ✅ **CLI binary packaging** with version naming
 - ✅ **Code signing** for both applications
@@ -202,8 +201,7 @@ The pipeline includes:
 1. **Build CLI**: `./Scripts/odyssey.sh build`
 2. **Test Commands**: `swift run --package-path . odyssey-cli help`
 3. **Export Token**: Generate token from GUI for testing
-4. **Test Automation**: `export ODYSSEY_EXPORT_TOKEN="<exported_token>" && swift run --package-path . odyssey-cli run`
-5. **Test GitHub Actions**: Verify `.github/workflows/ci-cd.yml` works correctly
+4. **Test GitHub Actions**: Verify `.github/workflows/ci-cd.yml` works correctly
 
 ### CLI integration
 
@@ -309,5 +307,4 @@ The project includes various automation scripts in the `Scripts/` directory to s
 ## 🙌 Need help?
 
 - Open an issue on [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
-- See the [README.md](../README.md) for user-facing instructions
 - For advanced troubleshooting, check the logs in Console.app and enable "Show browser window" in God Mode Advanced Settings to monitor automation

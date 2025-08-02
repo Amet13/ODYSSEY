@@ -13,7 +13,7 @@ For CLI installation and setup, see the complete **[CLI documentation](CLI.md)**
 ### 🎯 First-time setup
 
 1. **Launch ODYSSEY:** Click the menu bar icon.
-2. **Add configuration:** Click the "+" button.
+2. **Add configuration:** Click the **+** or **Add Configuration** button.
 3. **Configure settings:** Set up your contact info and email.
 4. **Test email:** Verify your email connection works.
 
@@ -24,7 +24,7 @@ For CLI installation and setup, see the complete **[CLI documentation](CLI.md)**
 
 ### ➕ Adding a reservation configuration
 
-1. **Add configuration:** Click **Add configuration** or the "+" button.
+1. **Add configuration:** Click the or the **+** or **Add configuration** button.
 2. **Fill in the required fields:**
    - **Facility URL:** The facility URL in format `https://reservation.frontdesksuite.ca/rcfs/[facility-name]`.
    - **Sport name:** Select the sport.
