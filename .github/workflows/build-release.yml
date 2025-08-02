@@ -89,7 +89,8 @@ jobs:
             ### 🖥️ GUI Application
             1. Download `ODYSSEY.dmg` above
             2. Open the DMG file and drag `ODYSSEY.app` to your Applications folder
-            3. Right-click and select "Open" on first launch
+            3. Add ODYSSEY to the trust list: `sudo xattr -rd com.apple.quarantine /Applications/ODYSSEY.app`
+            4. Right-click and select "Open" on first launch
 
             ### 💻 CLI Tool
             1. Download `odyssey-cli` above
