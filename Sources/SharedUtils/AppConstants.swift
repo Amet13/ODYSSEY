@@ -111,7 +111,7 @@ public enum AppConstants {
   // MARK: - Verification Code Filtering
 
   // Suspicious verification codes that should be filtered out
-  public static let suspiciousVerificationCodes = ["0000", "0004", "1234", "1111"]
+  public static let suspiciousVerificationCodes = ["0000", "1234", "1111"]
 
   // Validation limits
   public static let maxNumberOfPeople: Int = 2
