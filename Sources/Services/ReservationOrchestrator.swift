@@ -496,7 +496,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     try? await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second for form filling to complete
                 }
 
-                // First, check if retry text is already present (from previous attempt)
                 let retryTextDetected = await webKitService.detectRetryText()
                 if retryTextDetected {
                     logger.warning("Retry text detected - handling captcha retry")
@@ -875,7 +874,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                                 statusManager.isRunning = false
                             }
                         }
-                        // Intelligent window closing: only close if autoCloseDebugWindowOnFailure is enabled
                         let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
                         if shouldClose {
                             logger.info("🪟 Auto-close on failure enabled - closing window")
@@ -930,7 +928,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     statusManager.isRunning = false
                 }
             }
-            // Intelligent window closing: only close if autoCloseDebugWindowOnFailure is enabled
             let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
             if shouldClose {
                 logger.info("🪟 Auto-close on failure enabled - closing window")

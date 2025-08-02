@@ -115,22 +115,6 @@ public enum LoggingUtils {
         logger.info("ℹ️ \(formattedMessage, privacy: .private)")
     }
 
-    // MARK: - Debug Messages
-
-    /// Log a debug message with standard format
-    /// - Parameters:
-    ///   - logger: The logger instance
-    ///   - message: The debug message
-    ///   - context: Optional context for the message
-    public static func logDebug(
-        _ logger: Logger,
-        _ message: String,
-        context: String? = nil,
-        ) {
-        let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
-        logger.debug("🔍 \(formattedMessage)")
-    }
-
     // MARK: - Step Messages
 
     /// Log a step message (for progress tracking)

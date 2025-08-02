@@ -49,7 +49,6 @@ public final class LoggingService: ObservableObject {
             recentLogs.removeFirst(recentLogs.count - maxLogEntries)
         }
 
-        // Also log to system logger for debugging
         switch level {
         case .info:
             logger.info("\(message)")
@@ -112,7 +111,7 @@ extension LoggingService: LoggingServiceProtocol {
 
     public nonisolated func debug(_ message: String, category _: LoggerCategory) {
         Task { @MainActor in
-            log(message, level: .info) // Map debug to info for CLI display
+            log(message, level: .info)
         }
     }
 

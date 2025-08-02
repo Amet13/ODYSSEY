@@ -35,13 +35,7 @@ public final class EmailIMAPStreamDelegate: NSObject {
      * Handles IMAP data reception.
      * - Parameter data: The received data.
      */
-    public func didReceiveData(_ data: Data) {
-        logger.debug("📨 Received IMAP data: \(data.count) bytes.")
-
-        if let response = String(data: data, encoding: .utf8) {
-            logger.debug("📨 IMAP response: \(response).")
-        }
-    }
+    public func didReceiveData(_: Data) { }
 
     /**
      * Handles IMAP connection errors.
@@ -91,9 +85,7 @@ public final class EmailIMAPStreamDelegate: NSObject {
      * Handles IMAP command success.
      * - Parameter command: The successful command.
      */
-    public func didExecuteCommand(_ command: String) {
-        logger.debug("✅ IMAP command executed: \(command).")
-    }
+    public func didExecuteCommand(_: String) { }
 
     /**
      * Handles IMAP command failure.

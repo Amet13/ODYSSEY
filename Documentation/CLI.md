@@ -18,29 +18,29 @@ The export token is a compressed, base64-encoded configuration containing only e
 
 ## 🔧 Configuration
 
-1. **Export token from the app**
+- **Export token from the app**
 
-   - Open the ODYSSEY app
-   - Click **Export** button
-   - Select configurations to be exported
-   - Click **Export Token** button
-   - The export token will be copied to your clipboard automatically
+  - Open the ODYSSEY app
+  - Click **Export** button
+  - Select configurations to be exported
+  - Click **Export Token** button
+  - The export token will be copied to your clipboard automatically
 
 <div align="center">
   <img src="Images/export.png" width="300">
 </div>
 
-2. **Set up environment variable**
+- **Set up environment variable**
 
-   ```bash
-   export ODYSSEY_EXPORT_TOKEN="your_export_token_here"
-   ```
+  ```bash
+  export ODYSSEY_EXPORT_TOKEN="your_export_token_here"
+  ```
 
-3. **Test the CLI**
-   ```bash
-   ./odyssey-cli configs
-   ./odyssey-cli settings
-   ```
+- **Test the CLI**
+  ```bash
+  ./odyssey-cli configs
+  ./odyssey-cli settings
+  ```
 
 ## 🎯 Basic usage
 

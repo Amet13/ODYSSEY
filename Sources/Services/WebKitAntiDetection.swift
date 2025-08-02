@@ -102,7 +102,6 @@ public final class WebKitAntiDetection: ObservableObject {
     /// Records user activity for anti-detection
     public func recordActivity() {
         lastActivityTime = Date()
-        logger.debug("📊 Activity recorded for instance: \(self.instanceId).")
     }
 
     /// Gets the time since last activity

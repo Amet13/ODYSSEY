@@ -47,7 +47,6 @@ struct SettingsFormView: View {
         self.userSettingsManager = userSettingsManager
         self.emailService = emailService
         self.godModeEnabled = godModeEnabled
-        // Initialize temp settings with current values
         self._tempSettings = State(initialValue: userSettingsManager.userSettings)
     }
 
@@ -110,7 +109,6 @@ struct SettingsFormView: View {
             return
         }
 
-        // Update the actual settings with temp values
         userSettingsManager.userSettings = tempSettings
 
         // Save settings to UserDefaults and Keychain
@@ -129,7 +127,6 @@ struct SettingsFormView: View {
     }
 
     private func cancelSettings() {
-        // Revert temp settings to original values
         tempSettings = userSettingsManager.userSettings
         dismiss()
     }

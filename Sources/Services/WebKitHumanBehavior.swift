@@ -32,7 +32,7 @@ public final class WebKitHumanBehavior: ObservableObject {
     /// Adds a random human-like delay
     public func addHumanDelay() async {
         let delay = Double.random(in: minDelay ... maxDelay)
-        logger.debug("⏱️ Adding human delay: \(String(format: "%.2f", delay))s for instance: \(self.instanceId).")
+
         try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
     }
 
@@ -48,7 +48,7 @@ public final class WebKitHumanBehavior: ObservableObject {
     /// Adds a typing delay
     public func addTypingDelay() async {
         let delay = AppConstants.typingDelay
-        logger.debug("⏱️ Adding typing delay: \(String(format: "%.2f", delay))s for instance: \(self.instanceId).")
+
         try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
     }
 
@@ -141,7 +141,6 @@ public final class WebKitHumanBehavior: ObservableObject {
     public func recordBehaviorPattern(_ pattern: BehaviorPattern) {
         behaviorPatterns.append(pattern)
         lastInteractionTime = Date()
-        logger.debug("📊 Behavior pattern recorded: \(pattern.description) for instance: \(self.instanceId).")
     }
 
     /// Gets recent behavior patterns
@@ -155,8 +154,7 @@ public final class WebKitHumanBehavior: ObservableObject {
     public func clearOldBehaviorPatterns() {
         let cutoffTime = Date().addingTimeInterval(-3_600) // 1 hour ago
         behaviorPatterns = behaviorPatterns.filter { $0.timestamp > cutoffTime }
-        logger
-            .debug("🧹 Cleared behavior patterns older than 1 hour for instance: \(self.instanceId, privacy: .public).")
+        logger.info("🧹 Cleared behavior patterns older than 1 hour for instance: \(self.instanceId).")
     }
 }
 

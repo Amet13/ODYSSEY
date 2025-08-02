@@ -29,12 +29,10 @@ public final class JavaScriptForms {
                 // 2. Small scroll
                 this.simulateQuickScrolling();
 
-                // Note: Confirm button click will be handled by Swift after delay
-
                 return {
                     success: true,
                     filledCount: 3,
-                    confirmClicked: false // Let Swift handle the click after delay
+                    confirmClicked: false
                 };
             } else {
                 return {
@@ -81,13 +79,11 @@ public final class JavaScriptForms {
                 // 2. Small scroll
                 this.simulateQuickScrolling();
 
-                // Note: Confirm button click will be handled by Swift after delay
-
                 return {
                     success: true,
                     filledCount: filledCount,
                     filledFields: results,
-                    confirmClicked: false // Let Swift handle the click after delay
+                    confirmClicked: false
                 };
             } else {
                 return {

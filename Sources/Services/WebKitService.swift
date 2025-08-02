@@ -79,7 +79,6 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     // Configuration for the current automation run
     public var currentConfig: ReservationConfig? {
         didSet {
-            // Update window title when config changes (for debug window)
             if let config = currentConfig {
                 Task { @MainActor in
                     updateWindowTitle(with: config)
@@ -98,7 +97,6 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     private var scriptCompletions: [String: @Sendable (Any?) -> Void] = [:]
     private var elementCompletions: [String: @Sendable (String?) -> Void] = [:]
 
-    // Track live instances for debugging and anti-detection
     @MainActor private static var liveInstanceCount = 0
     @MainActor static func printLiveInstanceCount() {
         Logger(subsystem: AppConstants.loggingSubsystem, category: "WebKitService")
@@ -111,7 +109,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     ///   - webView: WKWebView instance (default: nil, will be set up internally)
     ///   - navigationDelegate: WebKitNavigationDelegate (default: nil, will be set up internally)
     ///   - scriptMessageHandler: WebKitScriptMessageHandler (default: nil, will be set up internally)
-    ///   - debugWindow: NSWindow for debug (default: nil)
+    ///   - debugWindow: NSWindow for debugging (default: nil)
     ///   - instanceId: Unique instance identifier (default: "default")
     public init(
         logger: Logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "WebKitService"),
@@ -317,8 +315,6 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
     }
 
-    // Helper to log page state for debugging
-
     // MARK: - WebDriverServiceProtocol Implementation
 
     public func connect() async throws {
@@ -445,7 +441,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         return isConnected && webView != nil && debugWindow != nil
     }
 
-    /// Get current service state for debugging
+    /// Get current service state
     public func getServiceState() -> String {
         return """
         Service State:
@@ -1852,7 +1848,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 logger
                     .error("Error in clickVerificationSubmitButton (attempt \(attempt)): \(error.localizedDescription)")
             }
-            // Wait 0.5s before next attempt
+
             try? await Task.sleep(nanoseconds: 500_000_000)
         }
         logger.error("❌ [ConfirmClick] Failed to click Final Confirmation button after \(maxAttempts) attempts")

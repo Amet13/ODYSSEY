@@ -64,7 +64,7 @@ class WebKitScripting: WebKitScriptingProtocol {
 
         let result = try await evaluateJavaScript("window.odyssey.getElementText('\(selector)');")
         let text = result as? String
-        logger.info("✅ Element text retrieved: \(text ?? "null")")
+        logger.info("✅ Element text retrieved: \(text ?? "null").")
         return text
     }
 

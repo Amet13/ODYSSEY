@@ -30,18 +30,18 @@ Both versions share the same backend services and automation engine, so contribu
 2. **Setup development environment**:
 
    ```bash
-   ./Scripts/setup-dev.sh setup
+   ./Scripts/odyssey.sh setup
    ```
 
 3. **Build the project**:
 
    ```bash
-   ./Scripts/build.sh
+   ./Scripts/odyssey.sh build
    ```
 
 4. **Monitor logs** (in another terminal):
    ```bash
-   ./Scripts/logs.sh
+   ./Scripts/odyssey.sh logs
    ```
 
 ## 🏗️ Architecture principles
@@ -84,7 +84,7 @@ The project includes comprehensive automated quality checks:
 
 ```bash
 # Run all quality checks
-./Scripts/lint-all.sh
+./Scripts/odyssey.sh lint
 ```
 
 ### CI/CD pipeline integration

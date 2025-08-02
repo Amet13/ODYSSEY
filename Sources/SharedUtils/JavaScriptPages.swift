@@ -184,7 +184,6 @@ public final class JavaScriptPages {
         try {
             console.log('[ODYSSEY] Starting verification submit button search...');
 
-            // Log page context for debugging
             const pageText = document.body.textContent || document.body.innerText || '';
             console.log('[ODYSSEY] Page text preview:', pageText.substring(0, 300));
             console.log('[ODYSSEY] Page title:', document.title || '');

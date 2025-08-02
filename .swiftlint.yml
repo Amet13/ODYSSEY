@@ -123,3 +123,4 @@ excluded:
   - Sources/Services/EmailService.swift # Complex email logic, acceptable
   - Sources/Services/ReservationOrchestrator.swift # Complex orchestration logic
   - Sources/Services/ReservationErrorHandler.swift # Complex error handling logic
+  - Sources/SharedUtils/JavaScriptLibrary.swift # Large JavaScript library, acceptable

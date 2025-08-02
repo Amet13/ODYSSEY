@@ -15,7 +15,6 @@ public final class ReservationErrorHandler: @unchecked Sendable {
     ) async {
         logger.error("❌ Reservation error: \(error.localizedDescription).")
 
-        // Capture additional context for debugging
         if let webKitService = try? await getWebKitServiceIfAvailable() {
             if let pageSource = try? await webKitService.getPageSource() {
                 logger.error("📄 DOM Snapshot (first 1000 chars): \(pageSource.prefix(1_000))")
@@ -53,7 +52,6 @@ public final class ReservationErrorHandler: @unchecked Sendable {
         logger.error("❌ Reservation failed for \(config.name): \(error.localizedDescription).")
         logger.info("🧹 Cleaning up WebKit session after error.")
 
-        // Intelligent window closing: only close if autoCloseDebugWindowOnFailure is enabled
         let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
         if shouldClose {
             logger.info("🪟 Auto-close on failure enabled - closing window")

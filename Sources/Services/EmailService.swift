@@ -139,7 +139,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         logger.info("🧹 EmailService deinitialized.")
     }
 
-    // Add a static variable to track last connection attempt time
     private static var lastIMAPConnectionTimestamp: Date?
 
     // MARK: - Gmail Support
@@ -1717,7 +1716,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                     continue
                 }
 
-                // Skip emails older than the provided timestamp.
                 if emailDate < since {
                     logger
                         .info(
@@ -1839,7 +1837,6 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     /// Validates Gmail App Password format
     /// Gmail App Password must be 16 characters in format "xxxx xxxx xxxx xxxx"
     static func validateGmailAppPassword(_ password: String) -> Bool {
-        // Validate Gmail app password format: 16 characters in format "xxxx xxxx xxxx xxxx"
         let pattern = #"^[a-z]{4}\s[a-z]{4}\s[a-z]{4}\s[a-z]{4}$"#
         let regex = try? NSRegularExpression(pattern: pattern)
         let range = NSRange(location: 0, length: password.utf16.count)

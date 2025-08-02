@@ -187,10 +187,6 @@ public final class WebKitDebugWindowManager: NSObject, NSWindowDelegate {
 
     public func windowDidMove(_ notification: Notification) {
         guard let window = notification.object as? NSWindow, window == debugWindow else { return }
-
-        // Log window position for debugging
-        let frame = window.frame
-        logger.info("🪟 Debug window moved to: (\(frame.origin.x), \(frame.origin.y)).")
     }
 }
 
