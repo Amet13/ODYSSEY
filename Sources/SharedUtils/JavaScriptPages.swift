@@ -190,6 +190,57 @@ public final class JavaScriptPages {
             console.error('[ODYSSEY] Error clicking verification submit button:', error);
             return false;
         }
+    },
+
+    // Check if verification was successful
+    checkVerificationSuccess: function() {
+        try {
+            const pageText = document.body.textContent || document.body.innerText || '';
+            const title = document.title || '';
+            const url = window.location.href;
+
+            // Check for success indicators
+            const lowerText = pageText.toLowerCase();
+            const hasSuccessText = lowerText.includes('confirmation') || 
+                                 lowerText.includes('is now confirmed');
+            
+            // Check if we're still on verification page
+            const stillOnVerificationPage = lowerText.includes('enter it below') || 
+                                          document.querySelectorAll('input[type="number"], input[id*="code"]').length > 0;
+
+            let success = false;
+            let reason = 'unknown';
+
+            if (hasSuccessText) {
+                success = true;
+                reason = 'success_text_found';
+            } else if (!stillOnVerificationPage) {
+                // If we moved away from verification page, it might be success
+                // But we need to be more careful about this
+                success = false;
+                reason = 'moved_away_from_verification_page';
+            } else {
+                success = false;
+                reason = 'still_on_verification_page';
+            }
+
+            return {
+                success: success,
+                reason: reason,
+                pageText: pageText.substring(0, 200),
+                title: title,
+                url: url
+            };
+        } catch (error) {
+            console.error('[ODYSSEY] Error in checkVerificationSuccess:', error);
+            return {
+                success: false,
+                reason: 'error_occurred',
+                pageText: 'Error occurred',
+                title: '',
+                url: ''
+            };
+        }
     }
     """
 }

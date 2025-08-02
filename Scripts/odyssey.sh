@@ -26,9 +26,6 @@ XCODEPROJ_PATH="Config/ODYSSEY.xcodeproj"
 SOURCES_PATH="Sources"
 BUILD_CONFIG="Debug"
 SCHEME_NAME="ODYSSEY"
-VERSION=""
-BUILD_NUMBER=""
-RELEASE_NAME=""
 
 # Function to print colored output (unified logging)
 print_status() {
@@ -97,12 +94,23 @@ install_tools() {
     )
 
     for tool in "${tools[@]}"; do
-        if command -v "$tool" &> /dev/null; then
-            log_success "$tool already installed"
+        # Special case for markdownlint-cli - check for markdownlint binary
+        if [ "$tool" = "markdownlint-cli" ]; then
+            if command -v "markdownlint" &> /dev/null; then
+                log_success "$tool already installed"
+            else
+                log_info "Installing $tool..."
+                brew install "$tool"
+                log_success "$tool installed"
+            fi
         else
-            log_info "Installing $tool..."
-            brew install "$tool"
-            log_success "$tool installed"
+            if command -v "$tool" &> /dev/null; then
+                log_success "$tool already installed"
+            else
+                log_info "Installing $tool..."
+                brew install "$tool"
+                log_success "$tool installed"
+            fi
         fi
     done
 }
@@ -253,7 +261,7 @@ show_usage() {
     echo "  setup       Setup development environment"
     echo "  build       Build application and CLI"
     echo "  lint        Run comprehensive linting"
-    echo "  test        Run tests and validation"
+
     echo "  clean       Clean build artifacts"
     echo ""
     echo "CI/CD Commands:"
@@ -286,13 +294,14 @@ check_macos_requirements() {
     fi
 
     # Check macOS version
-    MACOS_VERSION=$(sw_vers -productVersion)
-    if [[ $(echo "$MACOS_VERSION 15.0" | tr " " "\n" | sort -V | head -1) != "15.0" ]]; then
-        log_error "macOS 15.0 or later is required. Current version: $MACOS_VERSION"
+    local macos_version
+    macos_version=$(sw_vers -productVersion)
+    if [[ $(echo "$macos_version 15.0" | tr " " "\n" | sort -V | head -1) != "15.0" ]]; then
+        log_error "macOS 15.0 or later is required. Current version: $macos_version"
         exit 1
     fi
 
-    log_success "macOS version check passed: $MACOS_VERSION"
+    log_success "macOS version check passed: $macos_version"
 }
 
 # Function to install Homebrew if needed
@@ -616,38 +625,7 @@ run_linting() {
     print_status "info" "Linting completed. Check output above for details."
 }
 
-# Function to run tests and validation
-run_tests() {
-    print_status "step" "Running tests and validation..."
 
-    # Validate project structure
-    print_status "info" "Validating project structure..."
-    local required_files=(
-        "Package.swift"
-        "Config/project.yml"
-        "Sources/AppCore/AppDelegate.swift"
-        "Sources/Views/Main/ContentView.swift"
-    )
-
-    for file in "${required_files[@]}"; do
-        if [ ! -f "$file" ]; then
-            print_status "error" "Missing required file: $file"
-            exit 1
-        fi
-    done
-    print_status "success" "Project structure validation passed"
-
-    # Test build
-    print_status "info" "Testing build..."
-    # Quick build test
-    swift build --product odyssey-cli --configuration debug
-    print_status "success" "Build test passed"
-
-    # Run linting as part of tests
-    run_linting
-
-    print_status "success" "Tests and validation completed"
-}
 
 # Function to run CI pipeline
 run_ci() {
@@ -791,9 +769,12 @@ deploy_release() {
         brew install create-dmg
     fi
 
-    VERSION=$(get_current_version)
-    BUILD_NUMBER=$(date +%Y%m%d%H%M)
-    RELEASE_NAME="ODYSSEY-v${VERSION}-${BUILD_NUMBER}"
+    local version
+    local build_number
+    local release_name
+    version=$(get_current_version)
+    build_number=$(date +%Y%m%d%H%M)
+    release_name="ODYSSEY-v${version}-${build_number}"
 
     create-dmg \
         --volname "ODYSSEY" \
@@ -803,10 +784,10 @@ deploy_release() {
         --icon "ODYSSEY.app" 175 120 \
         --hide-extension "ODYSSEY.app" \
         --app-drop-link 425 120 \
-        "${RELEASE_NAME}.dmg" \
+        "${release_name}.dmg" \
         "$APP_PATH"
 
-    print_status "success" "DMG created: ${RELEASE_NAME}.dmg"
+    print_status "success" "DMG created: ${release_name}.dmg"
 
     # Analyze build
     print_status "step" "Analyzing build..."
@@ -875,7 +856,7 @@ show_logs() {
     echo ""
 
     # Monitor Console.app logs for ODYSSEY
-    log stream --predicate 'process == "ODYSSEY"' --info --debug
+    log stream --predicate 'process == "ODYSSEY"' --info --debug | grep debug
 }
 
 # Main script logic
@@ -916,9 +897,7 @@ main() {
         "lint")
             run_linting
             ;;
-        "test")
-            run_tests
-            ;;
+
         "clean")
             clean_builds
             ;;

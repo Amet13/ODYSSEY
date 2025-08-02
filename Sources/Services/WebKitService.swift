@@ -1597,16 +1597,25 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       } else {
         logger
           .info(
-            "Instance \(self.instanceId): Moved away from verification page - likely success or different error",
+            "Instance \(self.instanceId): Moved away from verification page - checking if it's success or error...",
           )
-        // If we moved away from verification page after clicking the button, consider this success
-        // Don't try to check verification success on the new page (it will cause JS errors)
-        logger
-          .info(
-            "Instance \(self.instanceId): ✅ Button was clicked successfully and page moved away - considering this success!",
-          )
-        await emailService.markCodeAsConsumed(code, byInstanceId: self.instanceId)
-        return true
+        // If we moved away from verification page, check if it's actually success
+        // Don't assume it's success just because the page moved
+        let verificationSuccess = await checkVerificationSuccess()
+        if verificationSuccess {
+          logger
+            .info(
+              "Instance \(self.instanceId): ✅ Verification successful after page redirect!",
+            )
+          await emailService.markCodeAsConsumed(code, byInstanceId: self.instanceId)
+          return true
+        } else {
+          logger
+            .info(
+              "Instance \(self.instanceId): ❌ Verification failed after page redirect - continuing to next code...",
+            )
+          continue
+        }
       }
     }
 
@@ -2131,8 +2140,6 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 public class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
   weak var delegate: WebKitService?
 
-  public func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation?) {}
-
   public func webView(_ webView: WKWebView, didFinish _: WKNavigation?) {
     delegate?.currentURL = webView.url?.absoluteString
     delegate?.pageTitle = webView.title
@@ -2155,10 +2162,6 @@ public class WebKitNavigationDelegate: NSObject, WKNavigationDelegate {
       delegate.navigationCompletions.removeAll()
     }
   }
-
-  public func webView(
-    _: WKWebView, didFailProvisionalNavigation _: WKNavigation?, withError _: Error
-  ) {}
 
   public func webView(
     _: WKWebView,

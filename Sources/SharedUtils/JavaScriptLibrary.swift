@@ -297,10 +297,6 @@ public final class JavaScriptLibrary {
 
               const targetDayName = dayName.trim().toLowerCase();
 
-              // Debug: Log the search parameters
-              console.log('[ODYSSEY] Searching for day:', targetDayName);
-              console.log('[ODYSSEY] Found header elements:', headerElements.length);
-
               // Find and click the specific day that matches our target day
               for (let i = 0; i < headerElements.length; i++) {
                   const el = headerElements[i];
@@ -352,10 +348,6 @@ public final class JavaScriptLibrary {
                   `[data-time='${timeString}']`,
                   `[data-slot='${timeString}']`
               ];
-
-              // Debug: Log the search parameters
-              console.log('[ODYSSEY] Searching for time slot:', timeString, 'on day:', dayName);
-              console.log('[ODYSSEY] Using selectors:', selectors);
 
               let timeSlotElements = [];
               for (let selector of selectors) {

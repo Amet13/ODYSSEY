@@ -2,21 +2,19 @@ import Foundation
 import WebKit
 import os.log
 
-/// WebKit anti-detection service for human-like automation
-/// Handles all anti-detection measures and human-like behavior simulation
+/// WebKit anti-detection service
+/// Implements advanced techniques to avoid detection by websites
 @MainActor
 public final class WebKitAntiDetection: ObservableObject {
   private let logger = Logger(subsystem: "com.odyssey.app", category: "WebKitAntiDetection")
 
   // Anti-detection configuration
   private let instanceId: String
-  private var mouseMovements: [MouseMovement] = []
-  private var lastActivityTime: Date = .init()
+  private var lastInteractionTime: Date = .init()
 
-  // Human-like behavior settings
-  private let minHumanDelay: TimeInterval = AppConstants.minHumanDelay
-  private let maxHumanDelay: TimeInterval = AppConstants.maxHumanDelay
-  private let typingDelay: TimeInterval = AppConstants.typingDelay
+  // Timing configuration
+  private let minDelay: TimeInterval = AppConstants.minHumanDelay
+  private let maxDelay: TimeInterval = AppConstants.maxHumanDelay
 
   public init(instanceId: String = "default") {
     self.instanceId = instanceId
@@ -27,39 +25,36 @@ public final class WebKitAntiDetection: ObservableObject {
     logger.info("🧹 WebKitAntiDetection deinitialized for instance: \(self.instanceId).")
   }
 
-  // MARK: - Anti-Detection Scripts
+  // MARK: - Anti-Detection Methods
 
-  /// Injects basic anti-detection scripts into the WebView using centralized library
-  /// - Parameter webView: The WebView to inject scripts into
+  /// Injects anti-detection scripts into the WebView
   public func injectAntiDetectionScripts(into webView: WKWebView) async {
-    logger.info("🛡️ Injecting anti-detection scripts for instance: \(self.instanceId).")
+    logger.info("🛡️ Injecting anti-detection scripts...")
 
     let antiDetectionScript = JavaScriptLibrary.getAntiDetectionLibrary()
+    let script = WKUserScript(
+      source: antiDetectionScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+    webView.configuration.userContentController.addUserScript(script)
 
-    do {
-      _ = try await webView.evaluateJavaScript(antiDetectionScript)
-      logger.info("✅ Anti-detection scripts injected successfully.")
-    } catch {
-      logger.error("❌ Failed to inject anti-detection scripts: \(error.localizedDescription).")
-    }
+    logger.info("✅ Anti-detection scripts injected successfully.")
   }
 
-  /// Injects enhanced human-like behavior scripts using centralized library
-  /// - Parameter webView: The WebView to inject scripts into
-  public func injectHumanBehaviorScripts(into _: WKWebView) async {
-    logger.info("👤 Injecting human behavior scripts for instance: \(self.instanceId).")
+  /// Injects human behavior scripts into the WebView
+  public func injectHumanBehaviorScripts(into webView: WKWebView) async {
+    logger.info("🤖 Injecting human behavior scripts...")
 
-    // The human behavior functionality is now included in the centralized library
-    // No additional injection needed as it's part of the main automation library
-    logger.info("✅ Human behavior scripts are part of the centralized library.")
+    // Use the mouse movement library as the human behavior script
+    let humanBehaviorScript = JavaScriptLibrary.getMouseMovementLibrary()
+    let script = WKUserScript(
+      source: humanBehaviorScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+    webView.configuration.userContentController.addUserScript(script)
+
+    logger.info("✅ Human behavior scripts injected successfully.")
   }
 
-  // MARK: - Human-Like Behavior Simulation
-
-  /// Simulates human-like mouse movements using centralized library
-  /// - Parameter webView: The WebView to simulate movements in
+  /// Simulates realistic mouse movements to avoid detection
   public func simulateMouseMovements(in webView: WKWebView) async {
-    logger.info("🖱️ Simulating human-like mouse movements for instance: \(self.instanceId).")
+    logger.info("🖱️ Simulating realistic mouse movements...")
 
     let mouseMovementScript = JavaScriptLibrary.getMouseMovementLibrary()
 
@@ -71,63 +66,31 @@ public final class WebKitAntiDetection: ObservableObject {
         logger.warning("⚠️ Mouse movement simulation failed.")
       }
     } catch {
-      logger.error("❌ Failed to simulate mouse movements: \(error.localizedDescription).")
+      logger.error("❌ Mouse movement simulation error: \(error.localizedDescription).")
     }
   }
 
-  /// Simulates human-like typing behavior using centralized library
-  /// - Parameters:
-  ///   - webView: The WebView to simulate typing in
-  ///   - text: The text to type
-  ///   - elementSelector: The selector for the input element
-  public func simulateHumanTyping(in webView: WKWebView, text: String, elementSelector: String)
-    async
-  {
-    logger.info("⌨️ Simulating human typing for instance: \(self.instanceId).")
+  /// Adds a random human-like delay
+  public func addHumanDelay() async {
+    let delay = Double.random(in: minDelay...maxDelay)
 
-    let script = "window.odyssey.typeTextIntoElement('\(elementSelector)', '\(text)');"
-
-    do {
-      let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
-      if result {
-        logger.info("✅ Human typing simulated successfully.")
-      } else {
-        logger.warning("⚠️ Human typing simulation failed.")
-      }
-    } catch {
-      logger.error("❌ Failed to simulate human typing: \(error.localizedDescription).")
-    }
-  }
-
-  // MARK: - Activity Tracking
-
-  /// Records user activity for anti-detection
-  public func recordActivity() {
-    lastActivityTime = Date()
-  }
-
-  /// Gets the time since last activity
-  public var timeSinceLastActivity: TimeInterval {
-    return Date().timeIntervalSince(lastActivityTime)
-  }
-
-  /// Checks if the instance has been inactive for too long
-  public var isInactive: Bool {
-    return timeSinceLastActivity > 300  // 5 minutes
+    try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
   }
 }
 
 // MARK: - Supporting Types
 
-/// Represents a mouse movement for anti-detection
+/// Represents a mouse movement pattern
 public struct MouseMovement {
-  public let x: CGFloat
-  public let y: CGFloat
+  public let x: Double
+  public let y: Double
   public let timestamp: Date
+  public let duration: TimeInterval
 
-  public init(x: CGFloat, y: CGFloat, timestamp: Date = Date()) {
+  public init(x: Double, y: Double, timestamp: Date = Date(), duration: TimeInterval = 0.1) {
     self.x = x
     self.y = y
     self.timestamp = timestamp
+    self.duration = duration
   }
 }

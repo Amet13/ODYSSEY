@@ -314,32 +314,17 @@ private struct MainBody: View {
     }
   }
 
-  // Simulate autorun for all enabled configs for today (god mode)
+  // Simulate autorun for all enabled configs (god mode)
   func simulateAutorunForToday() {
-    let calendar = Calendar.current
-    let now = Date()
-    let currentWeekday = calendar.component(.weekday, from: now)
-    // Convert Calendar weekday to our Weekday enum
-    let weekday: ReservationConfig.Weekday
-    switch currentWeekday {
-    case 1: weekday = .sunday
-    case 2: weekday = .monday
-    case 3: weekday = .tuesday
-    case 4: weekday = .wednesday
-    case 5: weekday = .thursday
-    case 6: weekday = .friday
-    case 7: weekday = .saturday
-    default:
-      return
-    }
-    // Get all enabled configs for today
-    let configsForToday = configManager.getConfigurationsForDay(weekday)
-    let enabledConfigs = configsForToday.filter(\.isEnabled)
+    // Get all enabled configurations regardless of day
+    let enabledConfigs = configManager.getEnabledConfigurations()
+
     if enabledConfigs.isEmpty {
-      let allEnabledConfigs = configManager.settings.configurations.filter(\.isEnabled)
-      orchestrator.runMultipleReservations(for: allEnabledConfigs, runType: .godmode)
+      print("ℹ️ No enabled configurations found")
+      return
     } else {
-      // Run only the configs scheduled for today
+      // Run all enabled configurations immediately
+      print("⚡ God Mode: Running \(enabledConfigs.count) enabled configurations")
       orchestrator.runMultipleReservations(for: enabledConfigs, runType: .godmode)
     }
   }

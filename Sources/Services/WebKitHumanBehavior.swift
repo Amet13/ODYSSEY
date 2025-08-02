@@ -10,7 +10,6 @@ public final class WebKitHumanBehavior: ObservableObject {
 
   // Behavior configuration
   private let instanceId: String
-  private var behaviorPatterns: [BehaviorPattern] = []
   private var lastInteractionTime: Date = .init()
 
   // Timing configuration
