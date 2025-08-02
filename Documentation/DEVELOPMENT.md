@@ -1,11 +1,11 @@
-# 🧑‍💻 **ODYSSEY development guide**
+# 🧑‍💻 **ODYSSEY Development Guide**
 
 ## 🎯 Overview
 
 ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 
-- **🖥️ GUI Version**: Native macOS menu bar app with SwiftUI interface
-- **💻 CLI Version**: Command-line interface for remote automation
+- **🖥️ GUI Version**: Native macOS menu bar app with SwiftUI interface.
+- **💻 CLI Version**: Command-line interface for remote automation.
 
 Both versions share the same backend services and automation engine, so contributions can affect both interfaces.
 
@@ -67,10 +67,10 @@ Both versions share the same backend services and automation engine, so contribu
 
 ### Architecture layers
 
-- **Presentation**: User interface and user interaction logic
-- **Application**: Business logic orchestration and use cases
-- **Domain**: Core business entities and domain logic
-- **Infrastructure**: External services, automation, and data persistence
+- **Presentation**: User interface and user interaction logic.
+- **Application**: Business logic orchestration and use cases.
+- **Domain**: Core business entities and domain logic.
+- **Infrastructure**: External services, automation, and data persistence.
 
 ## 🧪 Code quality & testing
 
@@ -78,13 +78,13 @@ Both versions share the same backend services and automation engine, so contribu
 
 The project includes comprehensive automated quality checks:
 
-- ✅ swift-format code quality checks
-- ✅ ShellCheck bash script linting
-- ✅ YAML and Markdown linting
-- ✅ GitHub Actions workflow validation
-- ✅ Project structure validation
-- ✅ Comprehensive linting with `./Scripts/odyssey.sh lint`
-- ✅ CLI build and testing
+- ✅ swift-format code quality checks.
+- ✅ ShellCheck bash script linting.
+- ✅ YAML and Markdown linting.
+- ✅ GitHub Actions workflow validation.
+- ✅ Project structure validation.
+- ✅ Comprehensive linting with `./Scripts/odyssey.sh lint`.
+- ✅ CLI build and testing.
 
 ### Example: Running All Checks
 
@@ -107,12 +107,12 @@ The unified CI/CD pipeline (`.github/workflows/build-release.yml`) automatically
 
 The project maintains high code quality standards with:
 
-- **📝 Consistent Logging**: All log messages use emojis and proper punctuation
-- **🎯 DRY Principle**: No code duplication, centralized validation and utilities
-- **🔧 Clean Architecture**: Modular services with clear separation of concerns
-- **📚 Comprehensive Documentation**: Up-to-date guides and examples
-- **⚡ Performance**: Optimized for speed and memory efficiency
-- **🛡️ Security**: Secure credential storage and input validation
+- **📝 Consistent Logging**: All log messages use emojis and proper punctuation.
+- **🎯 DRY Principle**: No code duplication, centralized validation and utilities.
+- **🔧 Clean Architecture**: Modular services with clear separation of concerns.
+- **📚 Comprehensive Documentation**: Up-to-date guides and examples.
+- **⚡ Performance**: Optimized for speed and memory efficiency.
+- **🛡️ Security**: Secure credential storage and input validation.
 
 ## 🏗️ Service architecture
 
@@ -120,11 +120,11 @@ The project maintains high code quality standards with:
 
 ODYSSEY uses a **centralized JavaScript library** for all web automation functionality. This approach provides:
 
-- **Clean Separation**: JavaScript code is completely separated from Swift code
-- **Maintainability**: All JavaScript functions in one location
-- **Reusability**: Reusable functions across all services
-- **Consistency**: Standardized error handling and logging patterns
-- **Debugging**: Easier to debug JavaScript issues in one centralized location
+- **Clean Separation**: JavaScript code is completely separated from Swift code.
+- **Maintainability**: All JavaScript functions in one location.
+- **Reusability**: Reusable functions across all services.
+- **Consistency**: Standardized error handling and logging patterns.
+- **Debugging**: Easier to debug JavaScript issues in one centralized location.
 
 ### Modular design principles
 
@@ -132,81 +132,81 @@ The codebase follows a modular service-oriented architecture with these key prin
 
 #### Service Categories
 
-- **Email Services**: Handle email integration, authentication, and verification
-- **Reservation Services**: Manage booking logic, status tracking, and orchestration
-- **WebKit Services**: Provide browser automation and web interaction capabilities
-- **Infrastructure Services**: Handle data persistence, configuration, and utilities
+- **Email Services**: Handle email integration, authentication, and verification.
+- **Reservation Services**: Manage booking logic, status tracking, and orchestration.
+- **WebKit Services**: Provide browser automation and web interaction capabilities.
+- **Infrastructure Services**: Handle data persistence, configuration, and utilities.
 
 ### Development guidelines
 
 #### Adding New Services
 
-1. **Single Responsibility**: Each service should have one clear, well-defined purpose
-2. **Protocol-First Design**: Define clear interfaces before implementation
-3. **Dependency Injection**: Use centralized service management for testability
-4. **Concurrency Safety**: Ensure proper actor isolation and thread safety
-5. **Comprehensive Documentation**: Document all public APIs with clear examples
+1. **Single Responsibility**: Each service should have one clear, well-defined purpose.
+2. **Protocol-First Design**: Define clear interfaces before implementation.
+3. **Dependency Injection**: Use centralized service management for testability.
+4. **Concurrency Safety**: Ensure proper actor isolation and thread safety.
+5. **Comprehensive Documentation**: Document all public APIs with clear examples.
 
 #### Code Quality Standards
 
-- **swift-format Compliance**: Follow established code style guidelines
-- **Documentation**: Use JSDoc-style comments for all public methods
-- **Error Handling**: Implement comprehensive error handling
-- **Performance**: Optimize for memory usage and responsiveness
+- **swift-format Compliance**: Follow established code style guidelines.
+- **Documentation**: Use JSDoc-style comments for all public methods.
+- **Error Handling**: Implement comprehensive error handling.
+- **Performance**: Optimize for memory usage and responsiveness.
 
 #### Unified pipeline structure
 
 The pipeline includes:
 
-- ✅ **Quality Checks**: swift-format, ShellCheck, YAML/Markdown linting
-- ✅ **Build Validation**: Xcode project generation with XcodeGen
-- ✅ **Debug and Release builds** for GUI app
-- ✅ **CLI binary compilation** and testing
-- ✅ **App structure analysis** and size validation
-- ✅ **Build artifact uploads** for debugging
-- ✅ **Documentation generation** and upload
+- ✅ **Quality Checks**: swift-format, ShellCheck, YAML/Markdown linting.
+- ✅ **Build Validation**: Xcode project generation with XcodeGen.
+- ✅ **Debug and Release builds** for GUI app.
+- ✅ **CLI binary compilation** and testing.
+- ✅ **App structure analysis** and size validation.
+- ✅ **Build artifact uploads** for debugging.
+- ✅ **Documentation generation** and upload.
 
 #### Automated workflows
 
-- ✅ **Unified Script Usage**: GitHub Actions now use our existing scripts instead of duplicating commands
-- ✅ **Version consistency validation** (tag vs project.yml vs Info.plist)
-- ✅ **DMG installer creation** with app icon
-- ✅ **CLI binary packaging** with version naming
-- ✅ **Code signing** for both applications
-- ✅ **GitHub Releases publication** with comprehensive notes
-- ✅ **File size tracking** and reporting
-- ✅ **Professional release notes** with installation instructions
+- ✅ **Unified Script Usage**: GitHub Actions now use our existing scripts instead of duplicating commands.
+- ✅ **Version consistency validation** (tag vs project.yml vs Info.plist).
+- ✅ **DMG installer creation** with app icon.
+- ✅ **CLI binary packaging** with version naming.
+- ✅ **Code signing** for both applications.
+- ✅ **GitHub Releases publication** with comprehensive notes.
+- ✅ **File size tracking** and reporting.
+- ✅ **Professional release notes** with installation instructions.
 
 #### Pipeline benefits
 
-- ✅ **Efficiency**: Single workflow eliminates duplication and maintenance overhead
-- ✅ **Consistency**: Same build environment for all releases
-- ✅ **Quality**: Automated quality checks prevent regressions
-- ✅ **Automation**: No manual release steps required
-- ✅ **Transparency**: All build artifacts and logs are preserved
-- ✅ **Reliability**: Comprehensive validation ensures release quality
-- ✅ **Resource Optimization**: Eliminates redundant builds and setup steps
+- ✅ **Efficiency**: Single workflow eliminates duplication and maintenance overhead.
+- ✅ **Consistency**: Same build environment for all releases.
+- ✅ **Quality**: Automated quality checks prevent regressions.
+- ✅ **Automation**: No manual release steps required.
+- ✅ **Transparency**: All build artifacts and logs are preserved.
+- ✅ **Reliability**: Comprehensive validation ensures release quality.
+- ✅ **Resource Optimization**: Eliminates redundant builds and setup steps.
 
 ## 🧪 Testing
 
 ### GUI testing
 
-- **God Mode**: Activate it by pressing `Command+G` in the app to show **GOD MODE** button and **Advanced Settings**
-- **Manual Testing**: Test all UI interactions and automation flows
-- **Log Monitoring**: Use `./Scripts/logs.sh` to monitor real-time logs
+- **God Mode**: Activate it by pressing `Command+G` in the app to show **GOD MODE** button and **Advanced Settings**.
+- **Manual Testing**: Test all UI interactions and automation flows.
+- **Log Monitoring**: Use `./Scripts/logs.sh` to monitor real-time logs.
 - **Browser Window**: Optional for development and support. By default, automation runs invisibly. Enable "Show browser window" in God Mode Advanced Settings to monitor automation and diagnose issues.
 
 ### CLI testing
 
-1. **Build CLI**: `./Scripts/odyssey.sh build`
-2. **Test Commands**: `swift run --package-path . odyssey-cli help`
-3. **Export Token**: Generate token from GUI for testing
-4. **Test GitHub Actions**: Verify `.github/workflows/build-release.yml` works correctly
+1. **Build CLI**: `./Scripts/odyssey.sh build`.
+2. **Test Commands**: `swift run --package-path . odyssey-cli help`.
+3. **Export Token**: Generate token from GUI for testing.
+4. **Test GitHub Actions**: Verify `.github/workflows/build-release.yml` works correctly.
 
 ### CLI integration
 
-- **GitHub Actions**: Perfect for automated reservation scheduling
-- **CI/CD**: Integrate with existing automation pipelines
+- **GitHub Actions**: Perfect for automated reservation scheduling.
+- **CI/CD**: Integrate with existing automation pipelines.
 
 ## 🚀 Release process
 
@@ -222,9 +222,9 @@ The release process uses two scripts for a complete workflow:
 
    This step:
 
-   - Updates all version references in code
-   - Builds CLI release version
-   - Prepares for deployment
+   - Updates all version references in code.
+   - Builds CLI release version.
+   - Prepares for deployment.
 
 ### Step 2: Build and deploy
 
@@ -236,46 +236,46 @@ The release process uses two scripts for a complete workflow:
 
    This step:
 
-   - Builds both GUI and CLI applications in release mode
-   - Creates DMG installer and CLI binary
-   - Code signs both applications
-   - Prepares release artifacts for GitHub Actions
+   - Builds both GUI and CLI applications in release mode.
+   - Creates DMG installer and CLI binary.
+   - Code signs both applications.
+   - Prepares release artifacts for GitHub Actions.
 
 ### Automated CI/CD pipeline
 
 When you push a version tag, the CI/CD pipeline automatically:
 
-- Builds both GUI and CLI applications
-- Creates DMG installer and CLI binary
-- Code signs both applications
-- Publishes to GitHub Releases with comprehensive release notes
-- Calculates and displays file sizes
-- Generates changelog from git commits
+- Builds both GUI and CLI applications.
+- Creates DMG installer and CLI binary.
+- Code signs both applications.
+- Publishes to GitHub Releases with comprehensive release notes.
+- Calculates and displays file sizes.
+- Generates changelog from git commits.
 
 ### Automated CI/CD features
 
-- ✅ **Unified Script Usage**: GitHub Actions now use our existing scripts instead of duplicating commands
-- ✅ **Version Validation**: Ensures tag version matches `project.yml` and `Info.plist`
-- ✅ **Dual Build**: Creates both GUI app and CLI binary
-- ✅ **Code Signing**: Automatically signs both applications
-- ✅ **DMG Creation**: Creates professional installer with app icon
-- ✅ **Release Notes**: Auto-generates comprehensive release notes with features and troubleshooting
-- ✅ **File Size Tracking**: Displays app, DMG, and CLI sizes
-- ✅ **Changelog Generation**: Creates changelog from git commits since last tag
-- ✅ **GitHub Integration**: Automatically publishes to GitHub Releases
-- ✅ **Comprehensive Linting**: Uses configuration files to ignore acceptable warnings while catching critical issues
+- ✅ **Unified Script Usage**: GitHub Actions now use our existing scripts instead of duplicating commands.
+- ✅ **Version Validation**: Ensures tag version matches `project.yml` and `Info.plist`.
+- ✅ **Dual Build**: Creates both GUI app and CLI binary.
+- ✅ **Code Signing**: Automatically signs both applications.
+- ✅ **DMG Creation**: Creates professional installer with app icon.
+- ✅ **Release Notes**: Auto-generates comprehensive release notes with features and troubleshooting.
+- ✅ **File Size Tracking**: Displays app, DMG, and CLI sizes.
+- ✅ **Changelog Generation**: Creates changelog from git commits since last tag.
+- ✅ **GitHub Integration**: Automatically publishes to GitHub Releases.
+- ✅ **Comprehensive Linting**: Uses configuration files to ignore acceptable warnings while catching critical issues.
 
 ### 🤖 Automated CI/CD workflow
 
 The project includes a comprehensive CI/CD workflow:
 
-- ✅ **Automated Builds**: Triggers on version tags
-- ✅ **Dual Artifacts**: Creates both GUI app and CLI binary
-- ✅ **Code Signing**: Automatically signs applications
-- ✅ **DMG Creation**: Creates professional installer
-- ✅ **Release Notes**: Auto-generates changelog from commits
-- ✅ **GitHub Integration**: Publishes to GitHub Releases
-- ✅ **Comprehensive Linting**: Runs all quality checks
+- ✅ **Automated Builds**: Triggers on version tags.
+- ✅ **Dual Artifacts**: Creates both GUI app and CLI binary.
+- ✅ **Code Signing**: Automatically signs applications.
+- ✅ **DMG Creation**: Creates professional installer.
+- ✅ **Release Notes**: Auto-generates changelog from commits.
+- ✅ **GitHub Integration**: Publishes to GitHub Releases.
+- ✅ **Comprehensive Linting**: Runs all quality checks.
 
 ## 🛠️ Development workflow
 
@@ -283,16 +283,16 @@ The project includes various automation scripts in the `Scripts/` directory to s
 
 **Key Workflows:**
 
-- **Development Setup**: Use setup scripts to configure your environment
-- **Quality Assurance**: Run linting and testing scripts before committing
-- **Release Management**: Use release scripts for version updates and deployment
-- **Logging**: Monitor application logs for debugging and troubleshooting
+- **Development Setup**: Use setup scripts to configure your environment.
+- **Quality Assurance**: Run linting and testing scripts before committing.
+- **Release Management**: Use release scripts for version updates and deployment.
+- **Logging**: Monitor application logs for debugging and troubleshooting.
 
 ## 📦 Related documentation
 
-- [README.md](../README.md) - User installation and setup
-- [USER_GUIDE.md](USER_GUIDE.md) - GUI app user guide
-- [CLI.md](CLI.md) - Command-line interface documentation
+- [README.md](../README.md) - User installation and setup.
+- [USER_GUIDE.md](USER_GUIDE.md) - GUI app user guide.
+- [CLI.md](CLI.md) - Command-line interface documentation.
 
 ## 🛡️ Security & compliance
 
@@ -306,5 +306,5 @@ The project includes various automation scripts in the `Scripts/` directory to s
 
 ## 🙌 Need help?
 
-- Open an issue on [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues)
-- For advanced troubleshooting, check the logs in Console.app and enable "Show browser window" in God Mode Advanced Settings to monitor automation
+- Open an issue on [GitHub Issues](https://github.com/Amet13/ODYSSEY/issues).
+- For advanced troubleshooting, check the logs in Console.app and enable "Show browser window" in God Mode Advanced Settings to monitor automation.

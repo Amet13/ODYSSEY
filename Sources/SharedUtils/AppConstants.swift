@@ -37,7 +37,7 @@ public enum AppConstants {
   public static let gmailImapServer = "imap.gmail.com"
   public static let gmailImapPort: UInt16 = 993
   public static let verificationEmailFrom = "noreply@frontdesksuite.com"
-  public static let verificationEmailSubject = "Verify your email"
+  public static let verificationEmailSubject = "Verify your email."
 
   // MARK: - User Agent Strings
 

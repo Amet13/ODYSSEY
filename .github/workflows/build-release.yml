@@ -94,8 +94,9 @@ jobs:
             ### 💻 CLI Tool
             1. Download `odyssey-cli` above
             2. Make executable: `chmod +x odyssey-cli`
-            3. Export token from GUI: `export ODYSSEY_EXPORT_TOKEN="<token>"`
-            4. Run: `./odyssey-cli run`
+            3. Add ODYSSEY to the trust list: `sudo xattr -rd com.apple.quarantine ./odyssey-cli`
+            4. Export token from GUI: `export ODYSSEY_EXPORT_TOKEN="<token>"`
+            5. Run: `./odyssey-cli run`
 
             ## ⚙️ Requirements
             - macOS 15 or later

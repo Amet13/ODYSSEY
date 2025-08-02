@@ -1,4 +1,4 @@
-# 💻 **ODYSSEY CLI guide**
+# 💻 **ODYSSEY CLI Guide**
 
 The ODYSSEY CLI provides command-line automation capabilities using the same powerful WebKit automation engine as the GUI version, ensuring consistent behavior and reliability.
 
@@ -6,8 +6,9 @@ The ODYSSEY CLI provides command-line automation capabilities using the same pow
 
 > **Prerequisite:** First, configure the GUI app. See **[USER_GUIDE.md](USER_GUIDE.md)** for setup instructions.
 
-1. **Download:** Download `odyssey-cli` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
+1. **Download:** Download the `odyssey-cli` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
 2. **Make executable:** Run `chmod +x odyssey-cli`.
+3. **Add ODYSSEY to the trust list:** Run `sudo xattr -rd com.apple.quarantine ./odyssey-cli`.
 
 ## 🔧 Export token details
 
@@ -20,11 +21,11 @@ The export token is a compressed, base64-encoded configuration containing only e
 
 - **Export token from the app**
 
-  - Open the ODYSSEY app
-  - Click **Export** button
-  - Select configurations to be exported
-  - Click **Export Token** button
-  - The export token will be copied to your clipboard automatically
+  - Open the ODYSSEY app.
+  - Click the **Export** button.
+  - Select configurations to be exported.
+  - Click the **Export Token** button.
+  - The export token will be copied to your clipboard automatically.
 
 <div align="center">
   <img src="Images/export.png" width="300" alt="Export">
@@ -78,12 +79,12 @@ Run real reservations for configurations scheduled N days before reservation day
 
 **Features:**
 
-- ✅ **Real Automation**: Uses the same WebKit automation as the GUI app
-- ✅ **Parallel Execution**: Runs multiple reservations simultaneously
-- ✅ **Headless Mode**: Always runs without browser window (perfect for CI/CD)
-- ✅ **Progress Tracking**: Shows real-time progress and status updates
-- ✅ **Error Handling**: Displays detailed error messages if reservation fails
-- ✅ **Timeout Protection**: 5-minute timeout to prevent hanging
+- ✅ **Real Automation**: Uses the same WebKit automation as the GUI app.
+- ✅ **Parallel Execution**: Runs multiple reservations simultaneously.
+- ✅ **Headless Mode**: Always runs without browser window (perfect for CI/CD).
+- ✅ **Progress Tracking**: Shows real-time progress and status updates.
+- ✅ **Error Handling**: Displays detailed error messages if reservation fails.
+- ✅ **Timeout Protection**: 5-minute timeout to prevent hanging.
 
 ### 📋 `configs`
 
@@ -158,7 +159,7 @@ Use only macOS runners.
 
 ### 📋 Step 1: Fork the Repository
 
-1. **Fork ODYSSEY**: Go to [https://github.com/Amet13/ODYSSEY](https://github.com/Amet13/ODYSSEY) and click "Fork"
+1. **Fork ODYSSEY**: Go to [https://github.com/Amet13/ODYSSEY](https://github.com/Amet13/ODYSSEY) and click "Fork".
 2. **Clone your fork**:
 
    ```bash
@@ -168,27 +169,27 @@ Use only macOS runners.
 
 ### 🔐 Step 2: Add GitHub Secret
 
-1. **Go to your fork**: Navigate to your forked repository on GitHub
-2. **Settings**: Click on "Settings" tab
-3. **Secrets**: Click on "Secrets and variables" → "Actions"
-4. **New repository secret**: Click "New repository secret"
+1. **Go to your fork**: Navigate to your forked repository on GitHub.
+2. **Settings**: Click on the "Settings" tab.
+3. **Secrets**: Click on "Secrets and variables" → "Actions".
+4. **New repository secret**: Click "New repository secret".
 5. **Add secret**:
    - **Name**: `ODYSSEY_EXPORT_TOKEN`
-   - **Value**: Your exported token from the GUI app
-6. **Save**: Click "Add secret"
+   - **Value**: Your exported token from the GUI app.
+6. **Save**: Click "Add secret".
 
 ### ⚙️ Step 3: Use the Workflow
 
 The workflow file is already included in the repository. It will automatically:
 
-- Download the latest CLI from releases
-- Run reservations using your export token
-- Upload logs for debugging
+- Download the latest CLI from releases.
+- Run reservations using your export token.
+- Upload logs for debugging.
 
 ## 🔒 Security
 
-- Export tokens contain sensitive information (email credentials, phone numbers)
-- Store tokens securely in CLI secrets
-- Never commit tokens to version control
-- Use environment variables for token storage
-- Tokens are base64-encoded and LZFSE-compressed for efficiency
+- Export tokens contain sensitive information (email credentials, phone numbers).
+- Store tokens securely in CLI secrets.
+- Never commit tokens to version control.
+- Use environment variables for token storage.
+- Tokens are base64-encoded and LZFSE-compressed for efficiency.

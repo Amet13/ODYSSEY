@@ -350,7 +350,7 @@ struct ConfigurationDetailView: View {
             .controlSize(.regular)
         }
       }
-      Text("Select one day and one time slot for your reservation")
+      Text("Select one day and one time slot for your reservation.")
         .font(.system(size: AppConstants.fontBody))
         .foregroundColor(.odysseySecondaryText)
       if dayTimeSlots.isEmpty {
@@ -437,7 +437,7 @@ struct ConfigurationDetailView: View {
     numberOfPeople = config.numberOfPeople
     isEnabled = config.isEnabled
 
-    // Don't update the name when editing an existing configuration
+    // Don't update the name when editing an existing configuration.
     // to preserve custom names that users have set.
   }
 

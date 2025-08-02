@@ -1,18 +1,18 @@
 //
-//  WebKitService.swift
-//  ODYSSEY
+// WebKitService.swift
+// ODYSSEY
 //
-//  Created by ODYSSEY Team
+// Created by ODYSSEY Team
 //
-//  IMPORTANT: WebKit Native Approach
-//  ===================================
-//  This service implements a native Swift WebKit approach for web automation
-//  that provides:
-//  - No external dependencies
-//  - Native macOS integration
-//  - Better performance and reliability
-//  - Smaller app footprint
-//  - No permission issues
+// IMPORTANT: WebKit Native Approach
+// ===================================
+// This service implements a native Swift WebKit approach for web automation
+// that provides:
+// - No external dependencies
+// - Native macOS integration
+// - Better performance and reliability
+// - Smaller app footprint
+// - No permission issues
 //
 
 import AppKit

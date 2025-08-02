@@ -12,9 +12,9 @@ public final class ErrorHandlingService: ObservableObject {
 
   /// Handles errors with consistent logging and user-friendly messages
   /// - Parameters:
-  ///   - error: The error to handle
-  ///   - context: The context where the error occurred
-  ///   - userFacing: Whether to show a user-facing error message
+  ///   - error: The error to handle.
+  ///   - context: The context where the error occurred.
+  ///   - userFacing: Whether to show a user-facing error message.
   public nonisolated func handleError(_ error: Error, context: String, userFacing: Bool = false) {
     let errorMessage = "❌ \(context): \(error.localizedDescription)"
     logger.error("\(errorMessage).")
@@ -30,9 +30,9 @@ public final class ErrorHandlingService: ObservableObject {
 
   /// Handles unified errors with enhanced formatting and categorization
   /// - Parameters:
-  ///   - error: The unified error to handle
-  ///   - context: The context where the error occurred
-  ///   - userFacing: Whether to show a user-facing error message
+  ///   - error: The unified error to handle.
+  ///   - context: The context where the error occurred.
+  ///   - userFacing: Whether to show a user-facing error message.
   public nonisolated func handleUnifiedError(
     _ error: UnifiedErrorProtocol,
     context: String,
@@ -85,9 +85,9 @@ public final class ErrorHandlingService: ObservableObject {
     logger.info("✅ [\(context)] \(message).")
   }
 
-  /// Converts any error to a user-friendly message
-  /// - Parameter error: The error to convert
-  /// - Returns: User-friendly error message
+  /// Converts any error to a user-friendly message.
+  /// - Parameter error: The error to convert.
+  /// - Returns: User-friendly error message.
   public nonisolated func getUserFriendlyMessage(for error: Error) -> String {
     if let unifiedError = error as? UnifiedErrorProtocol {
       return unifiedError.userFriendlyMessage

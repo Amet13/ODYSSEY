@@ -58,7 +58,7 @@ extension Date {
 ///
 /// Provides verification code management and deduplication capabilities for email verification workflows.
 extension [String] {
-  /// Returns the most recent verification code from an array of codes
+  /// Returns the most recent verification code from an array of codes.
   var mostRecentCode: String? {
     return last
   }
@@ -158,7 +158,7 @@ extension Logger {
     info("\(message): \(sensitiveData.maskedForLogging)")
   }
 
-  /// Logs an error with additional context
+  /// Logs an error with additional context.
   func errorWithContext(_ message: String, error: Error, context: String = "") {
     let contextPrefix = context.isEmpty ? "" : "[\(context)] "
     self.error("\(contextPrefix)\(message): \(error.localizedDescription)")

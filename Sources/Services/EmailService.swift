@@ -106,7 +106,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     case gmail
   }
 
-  /// Represents an email message
+  /// Represents an email message.
   struct EmailMessage {
     let id: String
     let from: String
@@ -156,7 +156,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
   /// Validates Gmail-specific requirements
   /// - Parameters:
   ///   - email: The email address
-  ///   - password: The password (should be an app password for Gmail)
+  ///   - password: The password (should be an app password for Gmail).
   ///   - server: The IMAP server
   /// - Returns: Validation result
   private func validateGmailSettings(email: String, password: String, server: String) -> Result<
@@ -267,9 +267,9 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         Your verification code is:
         \(latestCode).
 
-        The code must be entered on the booking page to confirm your booking.
+        The code must be entered on the booking page to confirm your booking."
 
-        You can also confirm your email or phone number at the link below:
+        You can also confirm your email or phone number at the link below:"
         https://ca.fdesk.click/r/L1s5K
         """
 
@@ -1509,7 +1509,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         }
       }
       // Make subject search more flexible to catch variations
-      let subject = "Verify your email"
+      let subject = "Verify your email."
       let dateFormatter = DateFormatter()
       dateFormatter.dateFormat = "d-MMM-yyyy"
       dateFormatter.locale = Locale(identifier: "en_US_POSIX")
@@ -1838,7 +1838,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
       diagnostic += "📧 Detected Gmail account\n"
       diagnostic += "For Gmail, you need to:\n"
       diagnostic += "1. Enable 2-factor authentication\n"
-      diagnostic += "2. Generate an App Password\n"
+      diagnostic += "2. Generate an App Password.\n"
       diagnostic += "3. Use 'imap.gmail.com' as server\n"
       diagnostic += "4. Use port 993 with SSL/TLS\n\n"
 
@@ -1877,13 +1877,13 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         diagnostic += "💡 Troubleshooting:\n"
         if isGmail {
           diagnostic +=
-            "- Make sure you're using an App Password, not your regular Gmail password\n"
+            "- Make sure you're using an App Password, not your regular Gmail password.\n"
           diagnostic += "- Generate a new App Password: Google Account → Security → App passwords\n"
           diagnostic += "- App Password format: xxxx xxxx xxxx xxxx\n"
         } else {
           diagnostic += "- Check your email and password\n"
           diagnostic += "- Make sure your email provider allows IMAP access\n"
-          diagnostic += "- Try enabling 2-factor authentication and using an app password\n"
+          diagnostic += "- Try enabling 2-factor authentication and using an app password.\n"
         }
       } else if error.contains("Connection failed") {
         diagnostic += "💡 Troubleshooting:\n"
@@ -2005,7 +2005,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         id: UUID().uuidString,
         from: AppConstants.verificationEmailFrom,
         subject: AppConstants.verificationEmailSubject,
-        body: "Your verification code is: \(code)",
+        body: "Your verification code is: \(code).",
         date: Date(),
       )
     }

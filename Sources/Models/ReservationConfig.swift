@@ -1,7 +1,7 @@
 import Foundation
 
 /// Configuration for a single reservation automation
-/// Represents all settings needed to automate a reservation at an Ottawa recreation facility
+/// Represents all settings needed to automate a reservation at an Ottawa recreation facility.
 public struct ReservationConfig: Identifiable, Equatable, Codable, Sendable {
   public var id: UUID
 

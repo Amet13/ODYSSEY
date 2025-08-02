@@ -37,11 +37,11 @@ public enum LoggingUtils {
 
   // MARK: - Error Messages
 
-  /// Log an error message with standard format
+  /// Log an error message with standard format.
   /// - Parameters:
-  ///   - logger: The logger instance
-  ///   - message: The error message
-  ///   - context: Optional context for the message
+  ///   - logger: The logger instance.
+  ///   - message: The error message.
+  ///   - context: Optional context for the message.
   public static func logError(
     _ logger: Logger,
     _ message: String,
@@ -51,12 +51,12 @@ public enum LoggingUtils {
     logger.error("❌ \(formattedMessage)")
   }
 
-  /// Log an error with privacy protection
+  /// Log an error with privacy protection.
   /// - Parameters:
-  ///   - logger: The logger instance
-  ///   - message: The error message
-  ///   - privateData: Data to be marked as private
-  ///   - context: Optional context for the message
+  ///   - logger: The logger instance.
+  ///   - message: The error message.
+  ///   - privateData: Data to be marked as private.
+  ///   - context: Optional context for the message.
   public static func logError(
     _ logger: Logger,
     _ message: String,
@@ -85,11 +85,11 @@ public enum LoggingUtils {
 
   // MARK: - Info Messages
 
-  /// Log an info message with standard format
+  /// Log an info message with standard format.
   /// - Parameters:
-  ///   - logger: The logger instance
-  ///   - message: The info message
-  ///   - context: Optional context for the message
+  ///   - logger: The logger instance.
+  ///   - message: The info message.
+  ///   - context: Optional context for the message.
   public static func logInfo(
     _ logger: Logger,
     _ message: String,
@@ -99,12 +99,12 @@ public enum LoggingUtils {
     logger.info("ℹ️ \(formattedMessage)")
   }
 
-  /// Log an info message with privacy protection
+  /// Log an info message with privacy protection.
   /// - Parameters:
-  ///   - logger: The logger instance
-  ///   - message: The info message
-  ///   - privateData: Data to be marked as private
-  ///   - context: Optional context for the message
+  ///   - logger: The logger instance.
+  ///   - message: The info message.
+  ///   - privateData: Data to be marked as private.
+  ///   - context: Optional context for the message.
   public static func logInfo(
     _ logger: Logger,
     _ message: String,
@@ -199,7 +199,7 @@ public enum LoggingUtils {
 
   // MARK: - Automation Messages
 
-  /// Log an automation-related message
+  /// Log an automation-related message.
   /// - Parameters:
   ///   - logger: The logger instance
   ///   - message: The automation message
@@ -239,7 +239,7 @@ public enum LoggingUtils {
     logger.warning("⚠️ \(message)")
   }
 
-  /// Log an initialization message with standard format
+  /// Log an initialization message with standard format.
   /// - Parameters:
   ///   - logger: The logger instance
   ///   - serviceName: The name of the service being initialized

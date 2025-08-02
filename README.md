@@ -18,11 +18,12 @@
 
 ## 🚀 Quick Start
 
-1. **Download** `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
+1. **Download** the `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
 2. **Install:** Open the installer and drag `ODYSSEY.app` to **Applications**.
-3. **Launch:** Open the app. You'll see a new "Sports Court" icon in your menu bar.
-4. **Configure:** Click the icon to add your settings and create your first configuration.
-5. **Automate!** Enable autorun, or run it manually, and let ODYSSEY book your sports for you! 🎉
+3. **Add ODYSSEY to the trust list:** Run `sudo xattr -rd com.apple.quarantine /Applications/ODYSSEY.app` in your terminal.
+4. **Launch:** Open the app. You'll see a new "Sports Court" icon in your menu bar.
+5. **Configure:** Click the icon to add your settings and create your first configuration.
+6. **Automate!** Enable autorun, or run it manually, and let ODYSSEY book your sports for you! 🎉
 
 ## ✨ Key Features
 
@@ -38,6 +39,43 @@
 - **Start here** → **[USER_GUIDE.md](Documentation/USER_GUIDE.md)** – Complete app setup and usage guide.
 - **For automation** → **[CLI.md](Documentation/CLI.md)** – Command-line interface for CI/CD and remote automation.
 - **For developers** → **[DEVELOPMENT.md](Documentation/DEVELOPMENT.md)** – Development workflow and contribution guidelines.
+
+## ⚖️ Ethical Considerations & Legal Notice
+
+### 🛡️ Responsible Usage Guidelines
+
+**IMPORTANT:** This tool is designed to assist with legitimate reservation booking only. Users must:
+
+- ✅ **Use responsibly** - Only automate bookings for yourself and your legitimate group members
+- ✅ **Respect rate limits** - The app includes built-in delays to avoid overwhelming servers
+- ✅ **No commercial use** - Do not use for commercial booking services or reselling
+
+### 🚫 Prohibited Uses
+
+**DO NOT:**
+
+- ❌ Use for commercial booking services or reselling reservations
+- ❌ Create multiple accounts to circumvent booking limits
+- ❌ Overwhelm servers with excessive requests
+- ❌ Share accounts or credentials with others
+- ❌ Use for any malicious or harmful purposes
+
+### 📋 Legal Disclaimer
+
+This software is provided "as is" without warranty. Users are responsible for:
+
+- Respecting booking policies and limitations
+- Using the application in accordance with applicable laws
+- Understanding that automation may be subject to website terms of service
+
+### 🔒 Privacy & Security
+
+- All automation runs locally on your machines
+- No user data is transmitted to external servers
+- Credentials are stored securely in macOS Keychain
+- No tracking or analytics are collected
+
+**By using this application, you acknowledge that you understand and agree to these terms of use.**
 
 ## 📄 License
 

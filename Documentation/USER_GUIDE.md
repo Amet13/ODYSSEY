@@ -1,10 +1,11 @@
-# 👤 **ODYSSEY user guide**
+# 👤 **ODYSSEY User Guide**
 
 ## 📦 Installation
 
-1. **Download** `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
+1. **Download** the `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
 2. **Install:** Open the installer and drag `ODYSSEY.app` to **Applications**. Eject the `.dmg` archive.
-3. **Launch:** Open the installed app. It will appear in your menu bar.
+3. **Add ODYSSEY to the trust list:** Run `sudo xattr -rd com.apple.quarantine /Applications/ODYSSEY.app` in your terminal.
+4. **Launch:** Open the app. You'll see a new "Sports Court" icon in your menu bar.
 
 For CLI installation and setup, see the complete **[CLI documentation](CLI.md)**.
 
@@ -24,7 +25,7 @@ For CLI installation and setup, see the complete **[CLI documentation](CLI.md)**
 
 ### ➕ Adding a reservation configuration
 
-1. **Add configuration:** Click the or the **+** or **Add configuration** button.
+1. **Add configuration:** Click the **+** or **Add Configuration** button.
 2. **Fill in the required fields:**
    - **Facility URL:** The facility URL in format `https://reservation.frontdesksuite.ca/rcfs/[facility-name]`.
    - **Sport name:** Select the sport.
@@ -68,7 +69,7 @@ For CLI installation and setup, see the complete **[CLI documentation](CLI.md)**
 
 ### 📧 Email setup
 
-The app can connect to your email account using IMAP and automatically parse verification codes for approving reservation.
+The app can connect to your email account using IMAP and automatically parse verification codes for approving reservations.
 
 Gmail does not support using your regular password for IMAP. You need to generate an [App Password](https://support.google.com/mail/answer/185833?hl=en) and use it with ODYSSEY.
 

@@ -462,8 +462,8 @@ private struct EmptyStateView: View {
       }
       .buttonStyle(.borderedProminent)
       .controlSize(.regular)
-      .accessibilityLabel("Add your first reservation configuration")
-      .accessibilityHint("Double tap to create your first reservation configuration")
+      .accessibilityLabel("Add your first reservation configuration.")
+      .accessibilityHint("Double tap to create your first reservation configuration.")
       .accessibilityAddTraits(.isButton)
       .keyboardShortcut("n", modifiers: .command)
       Spacer()

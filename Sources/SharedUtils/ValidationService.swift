@@ -231,9 +231,9 @@ final class ValidationService {
 
   // MARK: - User Settings Validation
 
-  /// Validates user settings
-  /// - Parameter settings: Settings to validate
-  /// - Returns: Validation result with errors
+  /// Validates user settings.
+  /// - Parameter settings: Settings to validate.
+  /// - Returns: Validation result with errors.
   func validateUserSettings(_ settings: UserSettings) -> ValidationResult {
     var errors: [String] = []
 

@@ -93,7 +93,7 @@ struct CLI {
   private static func printUsage() {
     print(
       """
-      🚀 ODYSSEY CLI - Ottawa Drop-in Your Sports & Schedule Easily Yourself
+      🚀 ODYSSEY CLI - Ottawa Drop-in Your Sports & Schedule Easily Yourself.
 
       This CLI provides remote automation capabilities.
 
