@@ -46,34 +46,32 @@
 
 **IMPORTANT:** This tool is designed to assist with legitimate reservation booking only. Users must:
 
-- ✅ **Use responsibly** - Only automate bookings for yourself and your legitimate group members
-- ✅ **Respect rate limits** - The app includes built-in delays to avoid overwhelming servers
-- ✅ **No commercial use** - Do not use for commercial booking services or reselling
+- ✅ **Use responsibly** - Only automate bookings for yourself and your legitimate group members.
+- ✅ **Respect rate limits** - The app includes built-in delays to avoid overwhelming servers.
 
 ### 🚫 Prohibited Uses
 
 **DO NOT:**
 
-- ❌ Use for commercial booking services or reselling reservations
-- ❌ Create multiple accounts to circumvent booking limits
-- ❌ Overwhelm servers with excessive requests
-- ❌ Share accounts or credentials with others
-- ❌ Use for any malicious or harmful purposes
+- ❌ Use for commercial booking services or reselling reservations.
+- ❌ Share accounts or credentials with others.
+- ❌ Use for any malicious or harmful purposes.
 
 ### 📋 Legal Disclaimer
 
 This software is provided "as is" without warranty. Users are responsible for:
 
-- Respecting booking policies and limitations
-- Using the application in accordance with applicable laws
-- Understanding that automation may be subject to website terms of service
+- Ensuring compliance with Ottawa Recreation's terms of service.
+- Respecting booking policies and limitations.
+- Using the application in accordance with applicable laws.
+- Understanding that automation may be subject to website terms of service.
 
 ### 🔒 Privacy & Security
 
-- All automation runs locally on your machines
-- No user data is transmitted to external servers
-- Credentials are stored securely in macOS Keychain
-- No tracking or analytics are collected
+- All automation runs locally on your machine.
+- No user data is transmitted to external servers.
+- Credentials are stored securely in macOS Keychain.
+- No tracking or analytics are collected.
 
 **By using this application, you acknowledge that you understand and agree to these terms of use.**
 
