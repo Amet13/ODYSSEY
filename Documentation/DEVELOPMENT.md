@@ -214,8 +214,8 @@ The release process is fully automated through GitHub Actions:
 1. **Push a version tag** to trigger the release:
 
    ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
+   git tag v1.1.0
+   git push origin v1.1.0
    ```
 
 2. **GitHub Actions automatically**:
