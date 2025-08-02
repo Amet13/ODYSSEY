@@ -5,10 +5,10 @@ import os.log
 /// Contains all page state detection functionality
 @MainActor
 public final class JavaScriptPages {
-    private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "JavaScriptPages")
+  private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "JavaScriptPages")
 
-    /// Page detection library
-    public static let pagesLibrary = """
+  /// Page detection library
+  public static let pagesLibrary = """
     // ===== PAGE DETECTION =====
 
     // Check if email verification is required

@@ -27,7 +27,7 @@ The export token is a compressed, base64-encoded configuration containing only e
   - The export token will be copied to your clipboard automatically
 
 <div align="center">
-  <img src="Images/export.png" width="300">
+  <img src="Images/export.png" width="300" alt="Export">
 </div>
 
 - **Set up environment variable**
@@ -37,6 +37,7 @@ The export token is a compressed, base64-encoded configuration containing only e
   ```
 
 - **Test the CLI**
+
   ```bash
   ./odyssey-cli configs
   ./odyssey-cli settings
@@ -159,6 +160,7 @@ Use only macOS runners.
 
 1. **Fork ODYSSEY**: Go to [https://github.com/Amet13/ODYSSEY](https://github.com/Amet13/ODYSSEY) and click "Fork"
 2. **Clone your fork**:
+
    ```bash
    git clone https://github.com/<YOUR_USERNAME>/ODYSSEY.git
    cd ODYSSEY

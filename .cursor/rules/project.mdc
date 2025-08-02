@@ -77,7 +77,7 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 
 ### Code Style & Standards
 
-- **Swift Style**: Follow official Swift style guide and SwiftLint rules
+- **Swift Style**: Follow official Swift style guide and swift-format rules
 - **Documentation**: Use JSDoc-style comments for all public methods and classes
 - **Error Handling**: Use structured logging with `os.log` and proper error propagation
 - **Memory Management**: Use `[weak self]` capture lists and proper cleanup
@@ -138,24 +138,22 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 
 ### Build Process
 
-- **Always rebuild app using `./Scripts/build.sh` after changing or fixing code**
-- The build process includes: `swiftlint`, `swiftformat`
+- Always rebuild app using `./Scripts/odyssey.sh build` after changing or fixing code, also run linter using `./Scripts/odyssey.sh lint` command
 - Never skip the build step after making changes
 - Verify the app launches successfully after each build
 - Check for any build warnings or errors
 
 ### Documentation Standards
 
-- **Always update documentation if something changes**
+- Always update documentation if something changes
 - Keep README.md and other docs in sync with code changes
 - Update any relevant documentation when adding new features
 - Maintain accurate and current documentation
 
 ### Code Quality
 
-- **All code must pass SwiftLint with zero errors and minimal warnings before pushing or releasing**
+- All code must pass swift-format with zero errors and minimal warnings before pushing or releasing
 - All linter violations must be fixed or explicitly justified in code review
-- Do not push or release code with unresolved SwiftLint errors
 - Keep the repository clean by removing duplicate information
 - **Protocol-Oriented Design**: Use protocols for better testability and maintainability
 - **Extensions**: Use Swift extensions for code organization and reusability

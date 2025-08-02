@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 📋 Version History
 
+### 🏗️ [1.1.2] - 2025-01-XX
+
+#### ✨ Added
+
+- **🔧 DRY Refactoring**: Applied Don't Repeat Yourself principle to eliminate code duplications
+- **📝 Modular Functions**: Extracted common patterns into reusable helper functions
+- **🎯 Improved Maintainability**: Better code organization with focused, single-responsibility functions
+- **📊 Enhanced Readability**: Cleaner code structure with logical function grouping
+
+#### 🛠️ Changed
+
+- **🔧 Function Extraction**: Split large functions into smaller, focused helper functions:
+  - `check_macos_requirements()` - macOS version and platform validation
+  - `install_homebrew()` - Homebrew installation logic
+  - `install_xcode_tools()` - Xcode command line tools installation
+  - `run_swift_format()` - Swift code formatting and linting
+  - `build_cli()` - CLI building with configurable configuration
+  - `manage_existing_instances()` - Process management for existing ODYSSEY instances
+  - `launch_odyssey()` - Application launching with verification
+  - `show_build_summary()` - Build summary display
+  - `update_version_files()` - Version file updates for releases
+- **📝 Code Reuse**: Eliminated duplicate code patterns across multiple functions
+- **🎯 Better Organization**: Logical grouping of related functionality
+- **📊 Improved Testing**: Each function can now be tested independently
+
+#### 🗑️ Removed
+
+- **❌ Code Duplications**: Removed repeated code blocks and patterns
+- **❌ Large Monolithic Functions**: Split into smaller, focused functions
+- **❌ Redundant Logic**: Consolidated duplicate validation and setup logic
+
+### 🏗️ [1.1.1] - 2025-01-XX
+
+#### ✨ Added
+
+- **🔧 swift-format Integration**: Replaced SwiftFormat and SwiftLint with unified swift-format tool
+- **📝 Configuration Management**: Added `.swift-format` configuration file for consistent formatting
+- **🎯 Selective Linting**: Implemented directory-specific linting to exclude problematic files
+- **📊 Improved Linting**: Reduced warnings from 1000+ to manageable levels
+
+#### 🛠️ Changed
+
+- **🔧 Linting Tools**: Migrated from SwiftFormat/SwiftLint to swift-format for unified experience
+- **📝 Code Formatting**: Updated line length limit to 150 characters for better readability
+- **🎯 Linting Strategy**: Implemented selective directory scanning to focus on core code
+- **📊 Warning Management**: Disabled strict rules for better development experience
+
+#### 🗑️ Removed
+
+- **❌ SwiftFormat**: Removed SwiftFormat dependency and configuration
+- **❌ SwiftLint**: Removed SwiftLint dependency and `.swiftlint.yml` configuration
+- **❌ Ignore Files**: Removed unnecessary `.swift-format-ignore` file
+
 ### 🏗️ [1.0.0] - 2025-08-01
 
 #### ✨ Added

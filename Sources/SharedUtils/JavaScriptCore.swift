@@ -5,10 +5,10 @@ import os.log
 /// Contains essential element finding and interaction functions
 @MainActor
 public final class JavaScriptCore {
-    private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "JavaScriptCore")
+  private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "JavaScriptCore")
 
-    /// Core automation library with essential functions
-    public static let coreLibrary = """
+  /// Core automation library with essential functions
+  public static let coreLibrary = """
     window.odyssey = {
         // ===== CENTRALIZED CONSTANTS =====
 

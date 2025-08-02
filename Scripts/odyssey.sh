@@ -2,9 +2,9 @@
 
 # ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself
 # Unified Development and CI/CD Script
-# 
+#
 # Usage: $0 <command> [options]
-# 
+#
 # This script consolidates all ODYSSEY development and deployment functionality
 # into a single, unified command-line interface.
 
@@ -68,7 +68,7 @@ check_prerequisites() {
     local missing_tools=()
 
     # Check for required tools
-    local required_tools=("xcodebuild" "xcodegen" "swift")
+    local required_tools=("xcodebuild" "xcodegen" "swift" "swift-format")
     for tool in "${required_tools[@]}"; do
         if ! command_exists "$tool"; then
             missing_tools+=("$tool")
@@ -84,7 +84,105 @@ check_prerequisites() {
     print_status "success" "All prerequisites satisfied"
 }
 
+# Function to install development tools
+install_tools() {
+    local tools=(
+        "xcodegen"
+        "swift-format"
+        "shellcheck"
+        "yamllint"
+        "markdownlint-cli"
+        "actionlint"
+        "create-dmg"
+    )
 
+    for tool in "${tools[@]}"; do
+        if command -v "$tool" &> /dev/null; then
+            log_success "$tool already installed"
+        else
+            log_info "Installing $tool..."
+            brew install "$tool"
+            log_success "$tool installed"
+        fi
+    done
+}
+
+# Function to find the latest built app
+find_built_app() {
+    local app_path
+    app_path=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -path "*/Build/Products/Debug/*" -type d -exec ls -td {} + 2>/dev/null | head -1)
+
+    if [ -z "$app_path" ]; then
+        app_path=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
+    fi
+
+    if [ -z "$app_path" ]; then
+        print_status "error" "Could not find built application"
+        exit 1
+    fi
+
+    echo "$app_path"
+}
+
+# Function to find CLI path
+find_cli_path() {
+    local config=${1:-debug}
+    local cli_path
+    cli_path=$(swift build --product odyssey-cli --configuration "$config" --show-bin-path)/odyssey-cli
+
+    if [ ! -f "$cli_path" ]; then
+        print_status "error" "Could not find CLI. Run build first."
+        exit 1
+    fi
+
+    echo "$cli_path"
+}
+
+# Function to validate app structure
+validate_app_structure() {
+    local app_path=$1
+
+    print_status "info" "App structure analysis:"
+    if [ -f "$app_path/Contents/Info.plist" ]; then
+        print_status "success" "Info.plist found"
+    else
+        print_status "error" "Info.plist missing"
+        return 1
+    fi
+
+    if [ -d "$app_path/Contents/Resources" ]; then
+        print_status "success" "Resources directory found"
+    else
+        print_status "warning" "Resources directory missing"
+    fi
+
+    return 0
+}
+
+# Function to perform code signing
+perform_code_signing() {
+    local app_path=$1
+    local cli_path=$2
+
+    print_status "info" "Code signing status:"
+
+    if security find-identity -v -p codesigning | grep -q "Developer ID Application"; then
+        local identity
+        identity=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | cut -d'"' -f2)
+ 
+        # Sign the app
+        codesign --force --verify --verbose --sign "$identity" "$app_path"
+        print_status "success" "App code signed"
+ 
+        # Sign the CLI
+        codesign --force --verify --verbose --sign "$identity" "$cli_path"
+        print_status "success" "CLI code signed"
+ 
+        print_status "success" "Code signing completed"
+    else
+        print_status "warning" "No Developer ID identity found, skipping code signing"
+    fi
+}
 
 # Function to validate we're in the ODYSSEY directory
 validate_project_root() {
@@ -179,10 +277,8 @@ show_usage() {
     echo "  $script_name release 3.2.0"
 }
 
-# Function to setup development environment
-setup_dev_environment() {
-    print_status "step" "Setting up ODYSSEY development environment..."
-
+# Function to check macOS requirements
+check_macos_requirements() {
     # Check if we're on macOS
     if [[ "$OSTYPE" != "darwin"* ]]; then
         log_error "This script is designed for macOS only"
@@ -197,12 +293,14 @@ setup_dev_environment() {
     fi
 
     log_success "macOS version check passed: $MACOS_VERSION"
+}
 
-    # Install Homebrew if needed
+# Function to install Homebrew if needed
+install_homebrew() {
     if ! command -v brew &> /dev/null; then
         log_info "Installing Homebrew..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-        
+
         # Add Homebrew to PATH if needed
         if [[ "$PATH" != *"/opt/homebrew/bin"* ]]; then
             echo "eval \"\$(/opt/homebrew/bin/brew shellenv)\"" >> ~/.zshrc
@@ -212,8 +310,10 @@ setup_dev_environment() {
     else
         log_success "Homebrew already installed"
     fi
+}
 
-    # Install Xcode command line tools if needed
+# Function to install Xcode command line tools
+install_xcode_tools() {
     if ! xcode-select -p &> /dev/null; then
         log_info "Installing Xcode command line tools..."
         xcode-select --install
@@ -224,153 +324,53 @@ setup_dev_environment() {
     else
         log_success "Xcode command line tools already installed"
     fi
-
-    # Install development tools
-    log_info "Installing development tools..."
-    local tools=(
-        "xcodegen"
-        "swiftlint"
-        "swiftformat"
-        "shellcheck"
-        "yamllint"
-        "markdownlint-cli"
-        "actionlint"
-        "create-dmg"
-    )
-
-    for tool in "${tools[@]}"; do
-        if command -v "$tool" &> /dev/null; then
-            log_success "$tool already installed"
-        else
-            log_info "Installing $tool..."
-            brew install "$tool"
-            log_success "$tool installed"
-        fi
-    done
-
-    # Setup development environment
-    log_info "Setting up development environment..."
-    log_success "Development environment setup completed!"
 }
 
-# Function to build the application
-build_application() {
-    print_status "step" "Building ODYSSEY application..."
-
-    # Check prerequisites
-    check_prerequisites
-
-    # Generate Xcode project
-    generate_xcode_project
-
-    # Code quality checks
-    print_status "step" "Running code quality checks..."
-
-    # Format Swift code
-    if command_exists swiftformat; then
-        print_status "info" "Formatting Swift code with SwiftFormat..."
-        if swiftformat --lint "$SOURCES_PATH" >/dev/null 2>&1; then
+# Function to run swift-format
+run_swift_format() {
+    if command_exists swift-format; then
+        print_status "info" "Formatting and linting Swift code with swift-format..."
+        if swift-format format --in-place --recursive "$SOURCES_PATH"; then
             print_status "success" "Code formatting is correct"
         else
             print_status "warning" "Code formatting issues found. Running auto-format..."
-            swiftformat "$SOURCES_PATH"
+            swift-format format --in-place --recursive "$SOURCES_PATH"
             print_status "success" "Code auto-formatted"
         fi
     else
-        print_status "warning" "SwiftFormat not found. Skipping code formatting."
+        print_status "warning" "swift-format not found. Skipping code formatting and linting."
     fi
+}
 
-    # Lint Swift code
-    if command_exists swiftlint; then
-        print_status "info" "Linting Swift code with SwiftLint..."
-        if swiftlint lint --config .swiftlint.yml --quiet --fix --format; then
-            print_status "success" "Code linting passed"
-        else
-            print_status "warning" "Code linting issues found (non-blocking)"
-        fi
-    else
-        print_status "warning" "SwiftLint not found. Skipping linting."
-    fi
-
-    # Build project
-    print_status "step" "Building project..."
-    measure_time xcodebuild build \
-        -project "$XCODEPROJ_PATH" \
-        -scheme "$SCHEME_NAME" \
-        -configuration "$BUILD_CONFIG" \
-        -destination 'platform=macOS' \
-        -quiet \
-        -showBuildTimingSummary
-
-    # Build CLI (Debug only for development)
+# Function to build CLI
+build_cli() {
+    local config=${1:-debug}
     print_status "step" "Building CLI tool..."
-    print_status "info" "Building CLI in debug configuration..."
-    measure_time swift build --product odyssey-cli --configuration debug
+    print_status "info" "Building CLI in $config configuration..."
+    measure_time swift build --product odyssey-cli --configuration "$config"
 
     # Check CLI build success
-    CLI_PATH=$(swift build --product odyssey-cli --configuration debug --show-bin-path)/odyssey-cli
-    if [ -f "$CLI_PATH" ]; then
-        chmod +x "$CLI_PATH"
-        print_status "success" "CLI built successfully at: $CLI_PATH"
+    CLI_PATH=$(find_cli_path "$config")
+    chmod +x "$CLI_PATH"
+    print_status "success" "CLI built successfully at: $CLI_PATH"
 
-        # Test CLI
-        print_status "info" "Testing CLI..."
-        if "$CLI_PATH" version >/dev/null 2>&1; then
-            print_status "success" "CLI test passed"
-        else
-            print_status "warning" "CLI test failed"
-        fi
-
-        # Code sign CLI
-        print_status "info" "Code signing CLI..."
-        codesign --remove-signature "$CLI_PATH" 2>/dev/null || true
-        codesign --force --deep --sign - "$CLI_PATH"
-        print_status "success" "CLI code signing completed"
+    # Test CLI
+    print_status "info" "Testing CLI..."
+    if "$CLI_PATH" version >/dev/null 2>&1; then
+        print_status "success" "CLI test passed"
     else
-        print_status "error" "CLI build failed"
-        exit 1
+        print_status "warning" "CLI test failed"
     fi
 
-    # Find the built app
-    print_status "step" "Locating built application..."
-    LATEST_APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -path "*/Build/Products/Debug/*" -type d -exec ls -td {} + 2>/dev/null | head -1)
+    # Code sign CLI
+    print_status "info" "Code signing CLI..."
+    codesign --remove-signature "$CLI_PATH" 2>/dev/null || true
+    codesign --force --deep --sign - "$CLI_PATH"
+    print_status "success" "CLI code signing completed"
+}
 
-    if [ -z "$LATEST_APP_PATH" ]; then
-        print_status "error" "Could not find built application"
-        exit 1
-    fi
-
-    APP_PATH="$LATEST_APP_PATH"
-    print_status "success" "App built at: $APP_PATH"
-
-    # App analysis
-    print_status "step" "Analyzing built application..."
-
-
-
-    # Check app structure
-    print_status "info" "App structure analysis:"
-    if [ -f "$APP_PATH/Contents/Info.plist" ]; then
-        print_status "success" "Info.plist found"
-    else
-        print_status "error" "Info.plist missing"
-    fi
-
-    if [ -d "$APP_PATH/Contents/Resources" ]; then
-        print_status "success" "Resources directory found"
-    else
-        print_status "warning" "Resources directory missing"
-    fi
-
-    # Check code signing
-    print_status "info" "Code signing status:"
-    if codesign -dv "$APP_PATH" 2>/dev/null; then
-        print_status "success" "App is code signed"
-    else
-        print_status "warning" "App is not code signed (expected for development)"
-    fi
-
-    # Stop existing ODYSSEY instance if running
+# Function to manage existing ODYSSEY instances
+manage_existing_instances() {
     print_status "step" "Managing existing ODYSSEY instances..."
     if pgrep -f "$PROJECT_NAME" > /dev/null; then
         print_status "info" "Found running $PROJECT_NAME process, terminating..."
@@ -395,10 +395,13 @@ build_application() {
     else
         print_status "info" "No running $PROJECT_NAME process found"
     fi
+}
 
-    # Launch ODYSSEY
+# Function to launch ODYSSEY
+launch_odyssey() {
+    local app_path=$1
     print_status "step" "Launching $PROJECT_NAME..."
-    open "$APP_PATH"
+    open "$app_path"
 
     # Wait for the app to launch and verify it's running
     print_status "info" "Waiting for app to launch..."
@@ -414,16 +417,19 @@ build_application() {
     if ! pgrep -f "$PROJECT_NAME" > /dev/null; then
         print_status "warning" "$PROJECT_NAME may not have launched properly"
     fi
+}
 
-    # Build summary
+# Function to show build summary
+show_build_summary() {
+    local app_path=$1
+    local cli_path=$2
     echo ""
     print_status "step" "Build Summary"
     echo -e "${CYAN}================================${NC}"
     print_status "info" "Project: $PROJECT_NAME"
     print_status "info" "Configuration: $BUILD_CONFIG"
-
-    print_status "info" "App Location: $APP_PATH"
-    print_status "info" "CLI Location: $CLI_PATH"
+    print_status "info" "App Location: $app_path"
+    print_status "info" "CLI Location: $cli_path"
     print_status "info" "Status: Running in menu bar"
 
     echo ""
@@ -433,11 +439,87 @@ build_application() {
     echo "1. Open $XCODEPROJ_PATH in Xcode for development"
     echo "2. Run the app to configure your reservations"
     echo "3. The app will appear in your menu bar"
-    echo "4. Use CLI: $CLI_PATH <command> for remote automation"
+    echo "4. Use CLI: $cli_path <command> for remote automation"
     echo ""
     print_status "info" "For more information, see Documentation/README.md"
     echo ""
     print_status "success" "Happy coding! 🚀"
+}
+
+# Function to setup development environment
+setup_dev_environment() {
+    print_status "step" "Setting up ODYSSEY development environment..."
+
+    check_macos_requirements
+    install_homebrew
+    install_xcode_tools
+
+    # Install development tools
+    log_info "Installing development tools..."
+    install_tools
+
+    # Setup development environment
+    log_info "Setting up development environment..."
+    log_success "Development environment setup completed!"
+}
+
+# Function to build the application
+build_application() {
+    print_status "step" "Building ODYSSEY application..."
+
+    # Check prerequisites
+    check_prerequisites
+
+    # Generate Xcode project
+    generate_xcode_project
+
+    # Code quality checks
+    print_status "step" "Running code quality checks..."
+    run_swift_format
+
+    # Build project
+    print_status "step" "Building project..."
+    measure_time xcodebuild build \
+        -project "$XCODEPROJ_PATH" \
+        -scheme "$SCHEME_NAME" \
+        -configuration "$BUILD_CONFIG" \
+        -destination 'platform=macOS' \
+        -quiet \
+        -showBuildTimingSummary
+
+    # Build CLI
+    build_cli debug
+
+    # Find the built app
+    print_status "step" "Locating built application..."
+    LATEST_APP_PATH=$(find_built_app)
+
+    if [ -z "$LATEST_APP_PATH" ]; then
+        print_status "error" "Could not find built application"
+        exit 1
+    fi
+
+    APP_PATH="$LATEST_APP_PATH"
+    print_status "success" "App built at: $APP_PATH"
+
+    # App analysis
+    print_status "step" "Analyzing built application..."
+    validate_app_structure "$APP_PATH"
+
+    # Check code signing
+    print_status "info" "Code signing status:"
+    if codesign -dv "$APP_PATH" 2>/dev/null; then
+        print_status "success" "App is code signed"
+    else
+        print_status "warning" "App is not code signed (expected for development)"
+    fi
+
+    # Manage existing instances and launch
+    manage_existing_instances
+    launch_odyssey "$APP_PATH"
+
+    # Show build summary
+    show_build_summary "$APP_PATH" "$CLI_PATH"
 }
 
 # Function to run comprehensive linting
@@ -447,8 +529,7 @@ run_linting() {
     # Check if linters are installed
     local missing_linters=()
     local required_linters=(
-        "swiftlint"
-        "swiftformat"
+        "swift-format"
         "shellcheck"
         "yamllint"
         "markdownlint"
@@ -475,22 +556,13 @@ run_linting() {
 
     local failed_linters=()
 
-    # Run SwiftLint
-    print_status "step" "Running SwiftLint..."
-    if swiftlint lint --quiet; then
-        print_status "success" "SwiftLint passed"
+    # Run swift-format
+    print_status "step" "Running swift-format..."
+    if swift-format format --in-place --recursive "$SOURCES_PATH"; then
+        print_status "success" "swift-format passed"
     else
-        print_status "error" "SwiftLint found issues"
-        failed_linters+=("SwiftLint")
-    fi
-
-    # Run SwiftFormat
-    print_status "step" "Running SwiftFormat..."
-    if swiftformat --lint Sources/ --quiet; then
-        print_status "success" "SwiftFormat passed"
-    else
-        print_status "warning" "SwiftFormat found issues (run 'swiftformat Sources/' to fix)"
-        failed_linters+=("SwiftFormat")
+        print_status "warning" "swift-format found issues (run 'swift-format format --configuration .swift-format --recursive Sources/' to fix)"
+        failed_linters+=("swift-format")
     fi
 
     # Run ShellCheck
@@ -504,7 +576,7 @@ run_linting() {
 
     # Run YAML Linting
     print_status "step" "Running YAML Linting..."
-    if yamllint Config/project.yml .github/workflows/*.yml; then
+    if yamllint -c .yamllint .; then
         print_status "success" "YAML Linting passed"
     else
         print_status "warning" "YAML Linting found issues (mostly style warnings)"
@@ -513,7 +585,7 @@ run_linting() {
 
     # Run Markdown Linting
     print_status "step" "Running Markdown Linting..."
-    if markdownlint --config .markdownlint.json README.md Documentation/*.md .github/*.md; then
+    if markdownlint --config .markdownlint.json .; then
         print_status "success" "Markdown Linting passed"
     else
         print_status "warning" "Markdown Linting found issues (acceptable warnings ignored)"
@@ -581,8 +653,6 @@ run_tests() {
 run_ci() {
     print_status "step" "Running CI pipeline..."
 
-
-
     # Setup development environment
     setup_dev_environment
 
@@ -595,40 +665,11 @@ run_ci() {
     print_status "success" "CI pipeline completed successfully"
 }
 
-# Function to create release
-create_release() {
+# Function to update version files
+update_version_files() {
     local version=$1
-    
-    if [ -z "$version" ]; then
-        print_status "error" "Version is required for release command"
-        show_usage
-        exit 1
-    fi
-
-    validate_version "$version"
-    
-    print_status "step" "Creating release v$version..."
-
-
-
-    # Get current version
-    local current_version
-    current_version=$(get_current_version)
-    print_status "info" "Current version: $current_version"
-
-    # Check if version is different
-    if [ "$version" = "$current_version" ]; then
-        print_status "warning" "Version $version is already the current version"
-        read -p "Continue anyway? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            exit 1
-        fi
-    fi
-
-    # Update version files
     print_status "step" "Updating version files..."
-    
+
     # Update project.yml
     sed -i '' "s/MARKETING_VERSION: \".*\"/MARKETING_VERSION: \"$version\"/" "$PROJECT_PATH"
     sed -i '' "s/CFBundleShortVersionString: .*/CFBundleShortVersionString: $version/" "$PROJECT_PATH"
@@ -674,31 +715,44 @@ EOF
     sed -i '' "3r /tmp/changelog_entry.md" "CHANGELOG.md"
     rm /tmp/changelog_entry.md
     print_status "success" "Updated changelog"
+}
+
+# Function to create release
+create_release() {
+    local version=$1
+
+    if [ -z "$version" ]; then
+        print_status "error" "Version is required for release command"
+        show_usage
+        exit 1
+    fi
+
+    validate_version "$version"
+
+    print_status "step" "Creating release v$version..."
+
+    # Get current version
+    local current_version
+    current_version=$(get_current_version)
+    print_status "info" "Current version: $current_version"
+
+    # Check if version is different
+    if [ "$version" = "$current_version" ]; then
+        print_status "warning" "Version $version is already the current version"
+        read -p "Continue anyway? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
+    fi
+
+    # Update version files
+    update_version_files "$version"
 
     # Build CLI release version
     print_status "step" "Building CLI release version..."
     generate_xcode_project
-    swift build --product odyssey-cli --configuration release
-    CLI_PATH=$(swift build --product odyssey-cli --configuration release --show-bin-path)/odyssey-cli
-    if [ -f "$CLI_PATH" ]; then
-        chmod +x "$CLI_PATH"
-        print_status "success" "CLI release built successfully"
-
-        # Test CLI
-        if "$CLI_PATH" version >/dev/null 2>&1; then
-            print_status "success" "CLI release test passed"
-        else
-            print_status "warning" "CLI release test failed"
-        fi
-
-        # Code sign CLI
-        codesign --remove-signature "$CLI_PATH" 2>/dev/null || true
-        codesign --force --deep --sign - "$CLI_PATH"
-        print_status "success" "CLI release code signing completed"
-    else
-        print_status "error" "CLI release build failed"
-        exit 1
-    fi
+    build_cli release
 
     print_status "success" "Release v$version prepared successfully!"
 }
@@ -707,12 +761,10 @@ EOF
 deploy_release() {
     print_status "step" "Deploying release artifacts..."
 
-
-
     # Build application in release mode
     print_status "step" "Building application in release mode..."
     generate_xcode_project
-    
+
     xcodebuild build \
         -project "$XCODEPROJ_PATH" \
         -scheme "$SCHEME_NAME" \
@@ -722,31 +774,15 @@ deploy_release() {
         -showBuildTimingSummary
 
     # Find the built app
-    APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
-    if [ -z "$APP_PATH" ]; then
-        print_status "error" "Could not find built application"
-        exit 1
-    fi
+    APP_PATH=$(find_built_app)
     print_status "success" "Application built at: $APP_PATH"
 
     # Build CLI in release mode
-    print_status "step" "Building CLI in release mode..."
-    swift build --product odyssey-cli --configuration release
-    CLI_PATH=$(swift build --product odyssey-cli --configuration release --show-bin-path)/odyssey-cli
-    chmod +x "$CLI_PATH"
-    print_status "success" "CLI built at: $CLI_PATH"
+    build_cli release
 
     # Code sign
     print_status "step" "Code signing applications..."
-    if security find-identity -v -p codesigning | grep -q "Developer ID Application"; then
-        local identity
-        identity=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | cut -d'"' -f2)
-        codesign --force --verify --verbose --sign "$identity" "$APP_PATH"
-        codesign --force --verify --verbose --sign "$identity" "$CLI_PATH"
-        print_status "success" "Code signing completed"
-    else
-        print_status "warning" "No Developer ID identity found, skipping code signing"
-    fi
+    perform_code_signing "$APP_PATH" "$CLI_PATH"
 
     # Create DMG
     print_status "step" "Creating DMG installer..."
@@ -774,20 +810,7 @@ deploy_release() {
 
     # Analyze build
     print_status "step" "Analyzing build..."
-
-    if [ -f "$APP_PATH/Contents/Info.plist" ]; then
-        print_status "success" "Info.plist found"
-    else
-        print_status "error" "Info.plist missing"
-        exit 1
-    fi
-
-    if [ -d "$APP_PATH/Contents/Resources" ]; then
-        print_status "success" "Resources directory found"
-    else
-        print_status "error" "Resources directory missing"
-        exit 1
-    fi
+    validate_app_structure "$APP_PATH"
 
     print_status "success" "Deployment completed successfully!"
 }
@@ -796,46 +819,19 @@ deploy_release() {
 code_sign() {
     print_status "step" "Code signing applications..."
 
-
-
     # Find the built app
-    APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "ODYSSEY.app" -type d 2>/dev/null | head -1)
-    if [ -z "$APP_PATH" ]; then
-        print_status "error" "Could not find built application. Run build first."
-        exit 1
-    fi
+    APP_PATH=$(find_built_app)
 
     # Find the CLI
-    CLI_PATH=$(swift build --product odyssey-cli --configuration release --show-bin-path)/odyssey-cli
-    if [ ! -f "$CLI_PATH" ]; then
-        print_status "error" "Could not find CLI. Run build first."
-        exit 1
-    fi
+    CLI_PATH=$(find_cli_path release)
 
-    # Check if we have a developer identity
-    if security find-identity -v -p codesigning | grep -q "Developer ID Application"; then
-        local identity
-        identity=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | cut -d'"' -f2)
-
-        # Sign the app
-        codesign --force --verify --verbose --sign "$identity" "$APP_PATH"
-        print_status "success" "App code signed"
-
-        # Sign the CLI
-        codesign --force --verify --verbose --sign "$identity" "$CLI_PATH"
-        print_status "success" "CLI code signed"
-
-        print_status "success" "Code signing completed"
-    else
-        print_status "warning" "No Developer ID identity found, skipping code signing"
-    fi
+    # Perform code signing
+    perform_code_signing "$APP_PATH" "$CLI_PATH"
 }
 
 # Function to generate changelog
 generate_changelog() {
     print_status "step" "Generating changelog..."
-
-
 
     # Extract version from tag or use current tag
     local version="${GITHUB_REF#refs/tags/}"
@@ -962,4 +958,4 @@ main() {
 }
 
 # Run main function with all arguments
-main "$@" 
+main "$@"

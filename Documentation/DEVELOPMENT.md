@@ -46,6 +46,7 @@ Both versions share the same backend services and automation engine, so contribu
    ```
 
 5. **Run quality checks**:
+
    ```bash
    ./Scripts/odyssey.sh lint
    ```
@@ -77,8 +78,7 @@ Both versions share the same backend services and automation engine, so contribu
 
 The project includes comprehensive automated quality checks:
 
-- ✅ SwiftLint code quality checks
-- ✅ SwiftFormat code formatting validation
+- ✅ swift-format code quality checks
 - ✅ ShellCheck bash script linting
 - ✅ YAML and Markdown linting
 - ✅ GitHub Actions workflow validation
@@ -149,7 +149,7 @@ The codebase follows a modular service-oriented architecture with these key prin
 
 #### Code Quality Standards
 
-- **SwiftLint Compliance**: Follow established code style guidelines
+- **swift-format Compliance**: Follow established code style guidelines
 - **Documentation**: Use JSDoc-style comments for all public methods
 - **Error Handling**: Implement comprehensive error handling
 - **Performance**: Optimize for memory usage and responsiveness
@@ -158,7 +158,7 @@ The codebase follows a modular service-oriented architecture with these key prin
 
 The pipeline includes:
 
-- ✅ **Quality Checks**: SwiftLint, SwiftFormat, ShellCheck, YAML/Markdown linting
+- ✅ **Quality Checks**: swift-format, ShellCheck, YAML/Markdown linting
 - ✅ **Build Validation**: Xcode project generation with XcodeGen
 - ✅ **Debug and Release builds** for GUI app
 - ✅ **CLI binary compilation** and testing
@@ -217,9 +217,11 @@ The release process uses two scripts for a complete workflow:
 ### Step 1: Prepare release
 
 1. **Update version and prepare release**:
+
    ```bash
    ./Scripts/create-release.sh 1.0.0
    ```
+
    This step:
    - Updates all version references in code
    - Adds changelog entry
@@ -229,9 +231,11 @@ The release process uses two scripts for a complete workflow:
 ### Step 2: Build and deploy
 
 1. **Build and deploy the release**:
+
    ```bash
    ./Scripts/deploy.sh release
    ```
+
    This step:
    - Builds both GUI and CLI applications
    - Creates DMG installer and CLI binary

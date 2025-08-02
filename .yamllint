@@ -1,9 +1,12 @@
 extends: default
 
+ignore:
+  - .build/
+
 rules:
   # Disable acceptable warnings
   line-length: disable
   document-start: disable
   truthy: disable
-  trailing-spaces: disable
+  #  trailing-spaces: disable
   comments: disable

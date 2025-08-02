@@ -5,10 +5,10 @@ import os.log
 /// Contains all form-related automation functionality
 @MainActor
 public final class JavaScriptForms {
-    private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "JavaScriptForms")
+  private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "JavaScriptForms")
 
-    /// Form handling library
-    public static let formsLibrary = """
+  /// Form handling library
+  public static let formsLibrary = """
     // ===== FORM FILLING =====
 
     // Fill all contact fields using browser autofill and click confirm with delay
