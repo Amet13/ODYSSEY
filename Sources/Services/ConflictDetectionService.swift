@@ -6,7 +6,8 @@ import os.log
 @MainActor
 public final class ConflictDetectionService: ObservableObject {
   public static let shared = ConflictDetectionService()
-  private let logger = Logger(subsystem: "com.odyssey.app", category: "ConflictDetectionService")
+  private let logger = Logger(
+    subsystem: AppConstants.loggingSubsystem, category: "ConflictDetectionService")
 
   private init() {
     logger.info("🔧 ConflictDetectionService initialized.")

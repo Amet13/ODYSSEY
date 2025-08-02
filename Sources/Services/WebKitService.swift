@@ -267,7 +267,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
   @MainActor
   private func setupDebugWindow() {
     guard let webView, let debugWindowManager else {
-      logger.warning("⚠️ Cannot setup debug window: WebView or debug window manager not available")
+      logger.warning("⚠️ Cannot setup debug window: WebView or debug window manager not available.")
       return
     }
 
@@ -290,7 +290,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
   private func injectAntiDetectionScripts() {
     guard let webView, let antiDetectionService else {
-      logger.warning("⚠️ Cannot inject anti-detection scripts: WebView or service not available")
+      logger.warning("⚠️ Cannot inject anti-detection scripts: WebView or service not available.")
       return
     }
 
@@ -314,7 +314,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
           logger.info("🔍 [ButtonScan] \(line, privacy: .public)")
         }
       } else {
-        logger.error("❌ [ButtonScan] Unexpected JS result: \(String(describing: result))")
+        logger.error("❌ [ButtonScan] Unexpected JS result: \(String(describing: result)).")
       }
     } catch {
       logger.error(
@@ -362,7 +362,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     }
     // Use the new async cleanup function
     await cleanupWebView()
-    // Only close browser window if requested
+
     if closeWindow {
       await MainActor.run {
         if let debugWindowManager = self.debugWindowManager {
@@ -703,10 +703,10 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     email: String,
     name: String,
   ) async -> Bool {
-    logger.info("👤 Filling contact fields with autofill and human movements")
+    logger.info("👤 Filling contact fields with autofill and human movements.")
 
     guard let webView else {
-      logger.error("❌ WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
 
@@ -719,22 +719,22 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         let success = dict["success"] as? Bool,
         success
       {
-        logger.info("✅ All contact fields filled successfully")
+        logger.info("✅ All contact fields filled successfully.")
         return true
       } else {
-        logger.error("❌ Failed to fill contact fields")
+        logger.error("❌ Failed to fill contact fields.")
         return false
       }
     } catch {
-      logger.error("❌ Error filling contact fields: \(error.localizedDescription)")
+      logger.error("❌ Error filling contact fields: \(error.localizedDescription).")
       return false
     }
   }
 
   public func typeText(_ text: String, into selector: String) async -> Bool {
-    logger.info("⌨️ Typing text '\(text)' into selector: \(selector)")
+    logger.info("⌨️ Typing text '\(text)' into selector: \(selector).")
     guard let webView else {
-      logger.error("❌ WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
 
@@ -742,14 +742,14 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       let result = try await webView.evaluateJavaScript(
         "window.odyssey.typeText('\(selector)', '\(text)');")
       if let found = result as? Bool, found {
-        logger.info("✅ Text typed successfully: \(text)")
+        logger.info("✅ Text typed successfully: \(text).")
         return true
       } else {
-        logger.error("❌ Failed to type text: \(text)")
+        logger.error("❌ Failed to type text: \(text).")
         return false
       }
     } catch {
-      logger.error("❌ Error typing text: \(error.localizedDescription)")
+      logger.error("❌ Error typing text: \(error.localizedDescription).")
       return false
     }
   }
@@ -799,7 +799,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
   /// Now also checks for the presence of a button with the configured sport name
   public func waitForDOMReady() async -> Bool {
     guard webView != nil else {
-      logger.error("❌ waitForDOMReady: WebView not initialized")
+      logger.error("❌ waitForDOMReady: WebView not initialized.")
       return false
     }
     let configSport = currentConfig?.sportName ?? ""
@@ -1416,7 +1416,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
   /// Parses 4-digit verification code from email body
   private func parseVerificationCode(from emailBody: String) -> String {
-    // Look for pattern: "Your verification code is: XXXX."
+    // Extract verification code from email body using regex patterns
     let pattern = #"Your verification code is:\s*(\d{4})\s*\."#
 
     if let regex = try? NSRegularExpression(pattern: pattern, options: []) {
@@ -1530,8 +1530,10 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     let emailService = EmailService.shared
     for (index, code) in codes.enumerated() {
-      // Validate code: must be 4 digits and not '0000'
-      if code.count != 4 || !code.allSatisfy(\.isNumber) || code == "0000" {
+      // Validate code: must be 4 digits and not suspicious
+      if code.count != 4 || !code.allSatisfy(\.isNumber)
+        || AppConstants.suspiciousVerificationCodes.contains(code)
+      {
         logger.warning("Instance \(self.instanceId): Skipping invalid code: \(code)")
 
         continue

@@ -517,7 +517,7 @@ struct ConfigurationDetailView: View {
     if let homeIndex = url.range(of: "Home")?.lowerBound {
       // Return everything up to (but not including) "Home/...".
       let trimmedURL = String(url[..<homeIndex])
-      Logger(subsystem: "com.odyssey.app", category: "ConfigurationDetailView")
+      Logger(subsystem: AppConstants.loggingSubsystem, category: "ConfigurationDetailView")
         .info("✂️ Trimmed facility URL from '\(url)' to '\(trimmedURL)'.")
       return trimmedURL
     }
@@ -568,7 +568,7 @@ struct ConfigurationDetailView: View {
    - Returns: Void
    */
   private func updateConfigurationName() {
-    // Only update the name if we're creating a new configuration or if the name is empty.
+
     // This preserves custom names when editing existing configurations.
     if !isEditingExistingConfig || name.isEmpty {
       let facilityName = extractFacilityName(from: facilityURL)
@@ -625,7 +625,7 @@ struct ConfigurationDetailView: View {
       let defaultTime = Self.normalizeTime(hour: 18, minute: 0)
       dayTimeSlots[day] = [defaultTime]
     }
-    // Only allow one timeslot per day - no additional timeslots.
+
   }
 
   /**
@@ -818,7 +818,7 @@ struct DayPickerView: View {
   @ObservedObject var userSettingsManager = UserSettingsManager.shared
 
   var availableDays: [ReservationConfig.Weekday] {
-    // Only show days if no day is currently selected (restrict to one day)
+
     if selectedDays.isEmpty {
       return ReservationConfig.Weekday.allCases
     } else {

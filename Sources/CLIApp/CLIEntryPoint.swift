@@ -47,7 +47,7 @@ private func initializeServices() {
 /// CLI for ODYSSEY that provides remote automation capabilities
 @main
 struct CLI {
-  private static let logger = Logger(subsystem: "com.odyssey.cli", category: "CLI")
+  private static let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "CLI")
 
   static func main() async {
     // Initialize services for CLI
@@ -800,7 +800,6 @@ struct CLI {
     var totalErrors = 0
     var totalWarnings = 0
 
-    // Simple JavaScript validation using regex patterns
     let jsFiles = [
       "Sources/SharedUtils/JavaScriptPages.swift",
       "Sources/SharedUtils/JavaScriptLibrary.swift",

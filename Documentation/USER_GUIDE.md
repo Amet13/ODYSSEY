@@ -1,4 +1,4 @@
-# 👤 **ODYSSEY User Guide**
+# 👤 ODYSSEY User Guide
 
 ## 📦 Installation
 
@@ -11,7 +11,7 @@ For CLI installation and setup, see the complete **[CLI documentation](CLI.md)**
 
 ## ⚙️ Configuration
 
-### 🎯 First-time setup
+### 🎯 First-time Setup
 
 1. **Launch ODYSSEY:** Click the menu bar icon.
 2. **Add configuration:** Click the **+** or **Add Configuration** button.
@@ -23,7 +23,7 @@ For CLI installation and setup, see the complete **[CLI documentation](CLI.md)**
   <p><em>Main screen when no configurations are added</em></p>
 </div>
 
-### ➕ Adding a reservation configuration
+### ➕ Adding a Reservation Configuration
 
 1. **Add configuration:** Click the **+** or **Add Configuration** button.
 2. **Fill in the required fields:**
@@ -39,25 +39,25 @@ For CLI installation and setup, see the complete **[CLI documentation](CLI.md)**
   <p><em>Adding a new reservation configuration</em></p>
 </div>
 
-### 🔧 Managing configurations
+### 🔧 Managing Configurations
 
-#### ▶️ Run manually
+#### ▶️ Run Manually
 
 - **Run:** Click the play button to run a configuration immediately.
 - **Test:** Useful for testing or immediate bookings.
 
-#### ✅ Enable/disable
+#### ✅ Enable/Disable
 
 - **Toggle:** Use the toggle switch to enable or disable automatic runs (2 days prior at 6 p.m.).
 - **Disabled:** Disabled configurations won't run automatically.
 
-#### ✏️ Edit configuration
+#### ✏️ Edit Configuration
 
 - **Edit:** Click the pencil icon to edit a configuration.
 - **Modify:** All fields can be modified.
 - **Save:** Changes are saved immediately.
 
-#### 🗑️ Delete configuration
+#### 🗑️ Delete Configuration
 
 - **Delete:** Click the trash icon to delete a configuration.
 - **Confirm:** You'll be asked to confirm this action to prevent accidental deletion.
@@ -67,7 +67,7 @@ For CLI installation and setup, see the complete **[CLI documentation](CLI.md)**
   <p><em>Main screen with active configurations</em></p>
 </div>
 
-### 📧 Email setup
+### 📧 Email Setup
 
 The app can connect to your email account using IMAP and automatically parse verification codes for approving reservations.
 

@@ -29,7 +29,7 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
     logger.info("🏀 Starting sports fetch process...")
 
     guard let webView else {
-      logger.error("❌ WebView not initialized for sports fetch")
+      logger.error("❌ WebView not initialized for sports fetch.")
       completion([])
       return
     }
@@ -80,7 +80,7 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
     logger.info("🔍 Starting sports detection script execution...")
 
     guard let webView else {
-      logger.error("❌ WebView is nil in executeSportsDetectionScript")
+      logger.error("❌ WebView is nil in executeSportsDetectionScript.")
       return
     }
 
@@ -122,17 +122,17 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
 
 extension FacilityService: WKNavigationDelegate {
   public func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation?) {
-    logger.info("🚀 WebView navigation started")
+    logger.info("🚀 WebView navigation started.")
   }
 
   public func webView(
     _: WKWebView, didReceiveServerRedirectForProvisionalNavigation _: WKNavigation?
   ) {
-    logger.info("🔄 WebView received server redirect")
+    logger.info("🔄 WebView received server redirect.")
   }
 
   public func webView(_: WKWebView, didCommit _: WKNavigation?) {
-    logger.info("📄 WebView did commit navigation")
+    logger.info("📄 WebView did commit navigation.")
   }
 
   public func webView(_: WKWebView, didFinish _: WKNavigation?) {
@@ -148,7 +148,7 @@ extension FacilityService: WKNavigationDelegate {
   }
 
   public func webView(_: WKWebView, didFail _: WKNavigation?, withError error: Error) {
-    logger.error("❌ WebView navigation failed: \(error.localizedDescription)")
+    logger.error("❌ WebView navigation failed: \(error.localizedDescription).")
     isLoading = false
     completionHandler?([])
   }
@@ -156,7 +156,7 @@ extension FacilityService: WKNavigationDelegate {
   public func webView(
     _: WKWebView, didFailProvisionalNavigation _: WKNavigation?, withError error: Error
   ) {
-    logger.error("❌ WebView provisional navigation failed: \(error.localizedDescription)")
+    logger.error("❌ WebView provisional navigation failed: \(error.localizedDescription).")
     isLoading = false
     completionHandler?([])
   }

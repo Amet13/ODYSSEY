@@ -7,7 +7,8 @@ import os.log
 public final class CLIExportService: ObservableObject {
   public static let shared = CLIExportService()
 
-  private let logger = Logger(subsystem: "com.odyssey.app", category: "CLIExportService")
+  private let logger = Logger(
+    subsystem: AppConstants.loggingSubsystem, category: "CLIExportService")
 
   public init() {}
 

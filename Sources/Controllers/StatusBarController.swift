@@ -16,7 +16,8 @@ class StatusBarController: NSObject {
   private let statusManager = ReservationStatusManager.shared
 
   private var cancellables = Set<AnyCancellable>()
-  private let logger = Logger(subsystem: "com.odyssey.app", category: "StatusBarController")
+  private let logger = Logger(
+    subsystem: AppConstants.loggingSubsystem, category: "StatusBarController")
 
   override init() {
     statusBar = NSStatusBar.system

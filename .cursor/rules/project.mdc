@@ -188,7 +188,7 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 
 - **App Sandbox**: Enable App Sandbox for enhanced security
 - **Code Signing**: Implement proper code signing with Developer ID
-- **Notarization**: App is **code signed but not notarized by Apple** (see README and DEVELOPMENT.md)
+- **Notarization**: App is **code signed but not notarized by Apple**
 - **Secure Credential Storage**: Use Keychain Services for sensitive data
 - **Input Validation**: Validate and sanitize all user inputs
 - **Network Security**: Use HTTPS and certificate pinning where appropriate
@@ -264,7 +264,6 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 - **Code Review:** Review for functionality, style, and security
 - **Testing:** Ensure all changes are properly tested
 - **Documentation:** Update documentation for all changes
-- **Communication:** Use GitHub Issues for collaboration
 
 ## 🛡️ Ethical Automation
 

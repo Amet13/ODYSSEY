@@ -110,7 +110,7 @@ public final class EmailCore: ObservableObject, @unchecked Sendable, EmailServic
   // MARK: - Initialization
 
   private init() {
-    self.logger = Logger(subsystem: "com.odyssey.email", category: "EmailCore")
+    self.logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "EmailCore")
     self.userSettingsManager = UserSettingsManager.shared
   }
 

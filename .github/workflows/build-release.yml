@@ -26,17 +26,9 @@ jobs:
         with:
           xcode-version: "16.4"
 
-      - name: Setup development environment
+      - name: Run CI pipeline
         run: |
-          ./Scripts/odyssey.sh setup
-
-      - name: Run comprehensive linting
-        run: |
-          ./Scripts/odyssey.sh lint
-
-      - name: Build and test
-        run: |
-          ./Scripts/odyssey.sh build
+          ./Scripts/odyssey.sh ci
 
   # For releases - use our deploy script
   release:
@@ -53,13 +45,9 @@ jobs:
         with:
           xcode-version: "16.4"
 
-      - name: Setup development environment
+      - name: Run CI pipeline
         run: |
-          ./Scripts/odyssey.sh setup
-
-      - name: Run comprehensive linting
-        run: |
-          ./Scripts/odyssey.sh lint
+          ./Scripts/odyssey.sh ci
 
       - name: Build and prepare release
         run: |

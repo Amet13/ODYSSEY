@@ -6,7 +6,8 @@ import os.log
 /// Handles advanced human-like behavior patterns for automation
 @MainActor
 public final class WebKitHumanBehavior: ObservableObject {
-  private let logger = Logger(subsystem: "com.odyssey.app", category: "WebKitHumanBehavior")
+  private let logger = Logger(
+    subsystem: AppConstants.loggingSubsystem, category: "WebKitHumanBehavior")
 
   // Behavior configuration
   private let instanceId: String

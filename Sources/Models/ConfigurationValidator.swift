@@ -6,7 +6,8 @@ import os.log
 @MainActor
 public final class ConfigurationValidator: ObservableObject {
   public static let shared = ConfigurationValidator()
-  private let logger = Logger(subsystem: "com.odyssey.app", category: "ConfigurationValidator")
+  private let logger = Logger(
+    subsystem: AppConstants.loggingSubsystem, category: "ConfigurationValidator")
 
   private init() {}
 
@@ -126,7 +127,7 @@ public final class ConfigurationValidator: ObservableObject {
   /// - Parameter server: The server to validate
   /// - Returns: True if valid IMAP server format
   private func isValidIMAPServer(_ server: String) -> Bool {
-    // Basic validation for IMAP server format
+
     let validDomains = ["gmail.com", "outlook.com", "yahoo.com", "icloud.com"]
     let serverLower = server.lowercased()
 

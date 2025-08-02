@@ -35,7 +35,7 @@ struct SettingsFormView: View {
 
   @State private var tempSettings: UserSettings
 
-  private let logger = Logger(subsystem: "com.odyssey.app", category: "SettingsView")
+  private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "SettingsView")
 
   init(
     configurationManager: ConfigurationManager,

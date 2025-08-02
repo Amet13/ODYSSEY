@@ -5,7 +5,8 @@ import os.log
 @MainActor
 class WebKitScriptManager {
   static let shared = WebKitScriptManager()
-  private let logger = Logger(subsystem: "com.odyssey.app", category: "WebKitScriptManager")
+  private let logger = Logger(
+    subsystem: AppConstants.loggingSubsystem, category: "WebKitScriptManager")
   private init() {}
 
   func injectAutomationScripts(into webView: WKWebView) {

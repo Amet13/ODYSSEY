@@ -1,5 +1,5 @@
+---
 name: ODYSSEY
-# Dual-interface application: GUI (macOS Menu Bar App) + CLI (Command Line Interface)
 options:
   bundleIdPrefix: com.odyssey
   deploymentTarget:
