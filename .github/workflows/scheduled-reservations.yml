@@ -17,7 +17,7 @@ jobs:
 
       - name: Download ODYSSEY CLI
         run: |
-          curl -L -o odyssey-cli https://github.com/Amet13/ODYSSEY/releases/latest/download/odyssey-cli
+          curl -Ls -o odyssey-cli https://github.com/Amet13/ODYSSEY/releases/latest/download/odyssey-cli
           chmod +x odyssey-cli
           sudo xattr -rd com.apple.quarantine ./odyssey-cli
 
