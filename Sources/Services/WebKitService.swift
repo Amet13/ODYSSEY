@@ -947,89 +947,25 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
         logger.info("📅 Selecting time slot: \(dayName, privacy: .private) at \(timeString, privacy: .private)")
 
-        let script = "window.odyssey.selectTimeSlot('\(dayName)', '\(timeString)');"
-        do {
-            let result = try await webView?.evaluateJavaScript(script)
-            logger.info("📊 [TimeSlot][DaySection] JS result: \(String(describing: result), privacy: .private)")
-            if let dict = result as? [String: Any], let clicked = dict["clicked"] as? Bool, clicked {
-                logger.info("📊 [TimeSlot][DaySection] Day section expanded successfully")
-
-                // Check if time slot was also clicked
-                if let timeSlotClicked = dict["timeSlotClicked"] as? Bool, timeSlotClicked {
-                    logger.info("✅ [TimeSlot] Time slot clicked successfully")
-
-                    // Wait for page to load after time slot click
-                    logger.info("⏳ [TimeSlot] Waiting for page to load after time slot click...")
-                    try await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second
-
-                    // Check if we're already on the contact form page
-                    let contactFormReady = await waitForContactInfoPage()
-                    if contactFormReady {
-                        logger
-                            .info(
-                                "Contact form page already loaded after time slot selection - skipping continue button check",
-                            )
-                    } else {
-                        // Check for continue button after time slot selection
-                        let continueClicked = await checkAndClickContinueButton()
-                        if continueClicked {
-                            logger.info("✅ Continue button clicked after time slot selection")
-                        } else {
-                            logger.warning("⚠️ No continue button found after time slot selection")
-                        }
-                    }
-                }
-
-                return true
-            } else {
-                // Log analysis results
-                if let dict = result as? [String: Any], let analysis = dict["analysis"] as? [String: Any] {
-                    let symbolMatches = analysis["symbolMatches"] as? [[String: Any]] ?? []
-                    let dayMatches = analysis["dayMatches"] as? [[String: Any]] ?? []
-                    let elementsWithSymbols = analysis["elementsWithSymbols"] as? Int ?? 0
-
-                    let symbolLog = symbolMatches.map { match in
-                        let symbol = match["symbol"] as? String ?? "?"
-                        let count = match["count"] as? Int ?? 0
-                        return "\(symbol):\(count)"
-                    }.joined(separator: ", ")
-
-                    let dayLog = dayMatches.map { match in
-                        let day = match["day"] as? String ?? "?"
-                        let count = match["count"] as? Int ?? 0
-                        return "\(day):\(count)"
-                    }.joined(separator: ", ")
-
-                    logger
-                        .error(
-                            "[TimeSlot][DaySection] Page analysis - Symbols: [\(symbolLog)], Days: [\(dayLog)], Elements with symbols: \(elementsWithSymbols)",
-                        )
-                }
-
-                // Log candidates as simple strings to avoid privacy redaction
-                if let dict = result as? [String: Any], let candidates = dict["candidates"] as? [[String: Any]] {
-                    let candidateStrings = candidates.map { candidate in
-                        let text = candidate["text"] as? String ?? "unknown"
-                        let tag = candidate["tag"] as? String ?? "unknown"
-                        let visible = candidate["visible"] as? Bool ?? false
-                        return "[\(tag)] \(text) (visible: \(visible))"
-                    }
-                    logger
-                        .error(
-                            "[TimeSlot][DaySection] Failed to expand day section. Found \(candidates.count) candidates: \(candidateStrings.joined(separator: ", "))",
-                        )
-                } else {
-                    logger
-                        .error(
-                            "[TimeSlot][DaySection] Failed to expand day section. No candidates found or result format error.",
-                        )
-                }
-                return false
-            }
-        } catch {
-            logger.error("[TimeSlot][DaySection] JS error: \(error.localizedDescription, privacy: .private)")
+        // First expand the day section
+        let dayExpanded = await expandDaySection(dayName: dayName)
+        if !dayExpanded {
+            logger.error("❌ Failed to expand day section: \(dayName, privacy: .private)")
             return false
         }
+
+        // Wait a moment for the day section to fully expand
+        try? await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second
+
+        // Then click the time button
+        let timeClicked = await clickTimeButton(timeString: timeString, dayName: dayName)
+        if !timeClicked {
+            logger.error("❌ Failed to click time button: \(timeString, privacy: .private)")
+            return false
+        }
+
+        logger.info("✅ Time slot selection completed successfully")
+        return true
     }
 
     public func expandDaySection(dayName: String) async -> Bool {

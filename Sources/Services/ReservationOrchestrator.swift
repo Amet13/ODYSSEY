@@ -735,6 +735,10 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                 separateWebKitService.reinjectScripts()
                 try await Task.sleep(nanoseconds: 1_000_000_000) // Wait 1 second for scripts to load
             }
+
+            // Add additional wait to ensure page is fully loaded
+            logger.info("⏳ Waiting for page to fully stabilize for \(config.name)...")
+            try await Task.sleep(nanoseconds: 2_000_000_000) // Wait 2 seconds
             let buttonClicked = await separateWebKitService.findAndClickElement(withText: config.sportName)
             if buttonClicked {
                 logger.info("⏳ Waiting for group size page for \(config.name).")
@@ -768,6 +772,16 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
                     let timeString = timeSlot.formattedTime()
                     logger
                         .info("Attempting to select for \(config.name): \(dayName) at \(timeString, privacy: .private)")
+
+                    // Add debugging for time slot selection
+                    logger.info("🔍 [\(config.name)] Starting time slot selection process...")
+                    logger.info("🔍 [\(config.name)] Day: \(dayName), Time: \(timeString)")
+
+                    // Verify JavaScript again before time slot selection
+                    let jsAvailableBeforeTimeSlot = await separateWebKitService.verifyJavaScriptLibrary()
+                    logger
+                        .info("🔍 [\(config.name)] JavaScript available before time slot: \(jsAvailableBeforeTimeSlot)")
+
                     let timeSlotSelected = await separateWebKitService.selectTimeSlot(
                         dayName: dayName,
                         timeString: timeString,
