@@ -8,5 +8,4 @@ rules:
   line-length: disable
   document-start: disable
   truthy: disable
-  #  trailing-spaces: disable
   comments: disable

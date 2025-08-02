@@ -1,5 +1,5 @@
 ---
-name: Automated Reservation
+name: Scheduled Reservation
 
 on:
   schedule:

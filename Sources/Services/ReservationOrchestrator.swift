@@ -523,7 +523,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
 
         let retryTextDetected = await webKitService.detectRetryText()
         if retryTextDetected {
-          logger.warning("Retry text detected - handling captcha retry")
+          logger.warning("⚠️ Retry text detected - handling captcha retry")
           LoggingService.shared.log(
             "Retry text detected - handling captcha retry",
             level: .warning,
@@ -564,7 +564,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
           try? await Task.sleep(nanoseconds: 300_000_000)
           let retryTextAfterClick = await webKitService.detectRetryText()
           if retryTextAfterClick {
-            logger.warning("Retry text detected after confirm button click")
+            logger.warning("⚠️ Retry text detected after confirm button click")
             LoggingService.shared.log(
               "Retry text detected after confirm button click",
               level: .warning,
