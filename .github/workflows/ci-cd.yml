@@ -74,8 +74,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            release_files/ODYSSEY.app
             release_files/odyssey-cli
+            ODYSSEY.dmg
           name: ${{ github.ref_name }}
           body: |
             # 🚀 ODYSSEY ${{ github.ref_name }} Release
@@ -87,8 +87,8 @@ jobs:
             ## 📦 Installation
 
             ### 🖥️ GUI Application
-            1. Download `ODYSSEY.app` above
-            2. Drag to your Applications folder
+            1. Download `ODYSSEY.dmg` above
+            2. Open the DMG file and drag ODYSSEY.app to your Applications folder
             3. Right-click and select "Open" on first launch
 
             ### 💻 CLI Tool
