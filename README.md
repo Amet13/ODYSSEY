@@ -73,7 +73,7 @@ This software is provided "as is" without warranty. Users are responsible for:
 - Credentials are stored securely in macOS Keychain.
 - No tracking or analytics are collected.
 
-**By using this application, you acknowledge that you understand and agree to these terms of use.**
+By using this application, you acknowledge that you understand and agree to these terms of use.
 
 ## 📄 License
 

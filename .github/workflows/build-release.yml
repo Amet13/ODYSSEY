@@ -68,8 +68,6 @@ jobs:
           body: |
             # 🚀 ODYSSEY ${{ github.ref_name }} Release
 
-            ## 📋 What's Changed
-
             ${{ steps.changelog.outputs.CHANGELOG }}
 
             ## 📦 Installation
