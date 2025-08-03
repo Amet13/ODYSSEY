@@ -2,6 +2,40 @@
 
 The ODYSSEY CLI provides command-line automation capabilities using the same powerful WebKit automation engine as the GUI version, ensuring consistent behavior and reliability.
 
+## 🛠️ Development Scripts
+
+For developers, ODYSSEY includes a unified development script that provides comprehensive tooling:
+
+```bash
+# Build the CLI
+./Scripts/odyssey.sh build
+
+# Run linting and quality checks
+./Scripts/odyssey.sh lint
+
+# Validate version consistency
+./Scripts/odyssey.sh validate
+
+# Create version tags
+./Scripts/odyssey.sh tag vX.Y.Z
+
+# Show application logs
+./Scripts/odyssey.sh logs
+```
+
+**Available Commands:**
+- `setup` - Setup development environment
+- `build` - Build application and CLI
+- `lint` - Run comprehensive linting
+- `clean` - Clean build artifacts
+- `tag vX.Y.Z` - Update version and create git tag
+- `validate` - Validate version consistency
+- `ci` - Run CI pipeline
+- `deploy` - Deploy and create release artifacts
+- `changelog` - Generate commit-based changelog
+- `logs` - Show application logs
+- `help` - Show help message
+
 ## ⚙️ Installation
 
 > **Prerequisite:** First, configure the GUI app. See **[USER_GUIDE.md](USER_GUIDE.md)** for setup instructions.

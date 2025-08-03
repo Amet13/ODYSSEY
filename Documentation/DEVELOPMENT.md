@@ -81,6 +81,7 @@ The project includes comprehensive automated quality checks:
 - ✅ Project structure validation.
 - ✅ Comprehensive linting with `./Scripts/odyssey.sh lint`.
 - ✅ CLI build and testing.
+- ✅ Version consistency validation with `./Scripts/odyssey.sh validate`.
 
 ### Example: Running All Checks
 
@@ -93,6 +94,9 @@ The project includes comprehensive automated quality checks:
 
 # Clean build artifacts
 ./Scripts/odyssey.sh clean
+
+# Validate version consistency
+./Scripts/odyssey.sh validate
 ```
 
 ### CI/CD Pipeline Integration
@@ -205,17 +209,35 @@ The pipeline includes:
 
 ## 🚀 Release Process
 
-The release process uses a streamlined workflow with automated CI/CD:
+The release process uses a streamlined workflow with automated CI/CD and centralized version management.
+
+### Version Management
+
+ODYSSEY uses a centralized version management system with the `odyssey.sh` script:
+
+```bash
+# Create a new version tag (updates all files and creates git tag)
+./Scripts/odyssey.sh tag vX.Y.Z
+
+# Validate version consistency across all files
+./Scripts/odyssey.sh validate
+```
+
+**Version Management Features:**
+- ✅ **Centralized versioning** with `VERSION` file as single source of truth
+- ✅ **Automatic file updates** across all version locations
+- ✅ **Version consistency validation** to prevent mismatches
+- ✅ **Git integration** with automatic commits and tag creation
+- ✅ **Safety checks** for uncommitted changes and existing tags
 
 ### Automated Release Process
 
 The release process is fully automated through GitHub Actions:
 
-1. **Push a version tag** to trigger the release:
+1. **Create a version tag** using the unified script:
 
    ```bash
-   git tag v1.1.0
-   git push origin v1.1.0
+   ./Scripts/odyssey.sh tag vX.Y.Z
    ```
 
 2. **GitHub Actions automatically**:
@@ -270,11 +292,68 @@ The project includes a comprehensive CI/CD workflow:
 - **Release Management:** Use release scripts for version updates and deployment.
 - **Logging:** Monitor application logs for debugging and troubleshooting.
 
+## 🛠️ Development Scripts
+
+### odyssey.sh - Unified Development Script
+
+The `./Scripts/odyssey.sh` script provides a unified interface for all development tasks:
+
+```bash
+# Development Commands
+./Scripts/odyssey.sh setup      # Setup development environment
+./Scripts/odyssey.sh build      # Build application and CLI
+./Scripts/odyssey.sh lint       # Run comprehensive linting
+./Scripts/odyssey.sh clean      # Clean build artifacts
+
+# Version Management
+./Scripts/odyssey.sh tag vX.Y.Z # Update version and create git tag
+./Scripts/odyssey.sh validate   # Validate version consistency
+
+# CI/CD Commands
+./Scripts/odyssey.sh ci         # Run CI pipeline (setup, lint, build)
+./Scripts/odyssey.sh deploy     # Deploy and create release artifacts
+./Scripts/odyssey.sh changelog  # Generate commit-based changelog
+
+# Utility Commands
+./Scripts/odyssey.sh logs       # Show application logs
+./Scripts/odyssey.sh help       # Show help message
+```
+
+**Key Features:**
+- ✅ **Unified interface** for all development tasks
+- ✅ **Automated environment setup** with dependency installation
+- ✅ **Comprehensive linting** with multiple tools
+- ✅ **Version management** with consistency validation
+- ✅ **CI/CD integration** for automated releases
+- ✅ **Error handling** with clear status messages
+
+### Script Categories
+
+**Development Commands:**
+- `setup` - Install dependencies and configure development environment
+- `build` - Build both GUI app and CLI binary
+- `lint` - Run comprehensive code quality checks
+- `clean` - Remove build artifacts and temporary files
+
+**Version Management:**
+- `tag vX.Y.Z` - Update version across all files and create git tag
+- `validate` - Check version consistency across all project files
+
+**CI/CD Commands:**
+- `ci` - Run complete CI pipeline (setup, lint, build)
+- `deploy` - Create release artifacts and DMG installer
+- `changelog` - Generate changelog from git commits
+
+**Utility Commands:**
+- `logs` - Monitor application logs in real-time
+- `help` - Display command usage and examples
+
 ## 📦 Related Documentation
 
 - [README.md](../README.md) - User installation and setup.
 - [USER_GUIDE.md](USER_GUIDE.md) - GUI app user guide.
 - [CLI.md](CLI.md) - Command-line interface documentation.
+- [VERSION_MANAGEMENT.md](VERSION_MANAGEMENT.md) - Version management and tagging.
 
 ## 🛡️ Security & Compliance
 

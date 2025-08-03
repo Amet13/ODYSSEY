@@ -39,6 +39,7 @@
 - **Start here** → **[USER_GUIDE.md](Documentation/USER_GUIDE.md)** – Complete app setup and usage guide.
 - **For automation** → **[CLI.md](Documentation/CLI.md)** – Command-line interface for CI/CD and remote automation.
 - **For developers** → **[DEVELOPMENT.md](Documentation/DEVELOPMENT.md)** – Development workflow and contribution guidelines.
+- **Version management** → **[VERSION_MANAGEMENT.md](Documentation/VERSION_MANAGEMENT.md)** – Version tagging and consistency.
 
 ## ⚖️ Ethical Considerations & Legal Notice
 

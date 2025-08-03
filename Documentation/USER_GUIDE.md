@@ -87,3 +87,13 @@ Gmail does not support using your regular password for IMAP. You need to generat
    - ⚠️ _Warnings._
    - ❌ _Errors._
    - 🔍 _Debug information._
+
+## 🛠️ For Developers
+
+If you're contributing to ODYSSEY development, see the **[Development Guide](DEVELOPMENT.md)** for comprehensive information about:
+
+- **Development environment setup** with `./Scripts/odyssey.sh setup`
+- **Building and testing** with `./Scripts/odyssey.sh build`
+- **Code quality checks** with `./Scripts/odyssey.sh lint`
+- **Version management** with `./Scripts/odyssey.sh tag vX.Y.Z`
+- **CI/CD integration** and automated releases

@@ -358,7 +358,8 @@ show_usage() {
     echo "  clean       Clean build artifacts"
     echo ""
     echo "Version Management:"
-    echo "  tag <v>     Update version and create git tag (e.g., tag v2.0.0)"
+    echo "  tag <v>     Update version and create git tag (e.g., tag vX.Y.Z)"
+    echo "  validate    Validate version consistency across files"
     echo ""
     echo "CI/CD Commands:"
     echo "  ci          Run CI pipeline (setup, lint, build)"
@@ -372,7 +373,7 @@ show_usage() {
     echo "Examples:"
     echo "  $script_name setup"
     echo "  $script_name build"
-    echo "  $script_name tag v2.0.0"
+    echo "  $script_name tag vX.Y.Z"
     echo "  $script_name ci"
     echo "  $script_name deploy"
 }
@@ -1023,10 +1024,14 @@ main() {
             validate_project_root
             if [ -z "${1:-}" ]; then
                 print_status "error" "Version required for tag command"
-                print_status "info" "Usage: $0 tag <version> (e.g., tag v2.0.0)"
+                print_status "info" "Usage: $0 tag <version> (e.g., tag vX.Y.Z)"
                 exit 1
             fi
             create_version_tag "$1"
+            ;;
+        "validate")
+            validate_project_root
+            validate_version_consistency
             ;;
         "ci")
             validate_project_root
