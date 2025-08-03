@@ -280,7 +280,7 @@ update_version_in_files() {
     print_status "success" "Updated VERSION file"
     
     # Update Info.plist
-    sed -i '' "s/<string>.*<\/string>.*CFBundleShortVersionString/<string>$version<\/string> <!-- CFBundleShortVersionString/" "Sources/AppCore/Info.plist"
+    sed -i '' "s/<string>.*<\/string>.*CFBundleShortVersionString/<string>$version<\/string>/" "Sources/AppCore/Info.plist"
     print_status "success" "Updated Info.plist"
     
     # Update AppConstants.swift
@@ -764,7 +764,7 @@ update_version_files() {
     print_status "success" "Updated project.yml"
 
     # Update Info.plist
-    sed -i '' "s/<string>.*<\/string>.*CFBundleShortVersionString/<string>$version<\/string> <!-- CFBundleShortVersionString/" "Sources/AppCore/Info.plist"
+    sed -i '' "s/<string>.*<\/string>.*CFBundleShortVersionString/<string>$version<\/string>/" "Sources/AppCore/Info.plist"
     print_status "success" "Updated Info.plist"
 
     # Update AppConstants.swift
