@@ -89,22 +89,6 @@ jobs:
 
             ## ⚙️ Requirements
             - macOS 15 or later
-
-            ## 🔧 Key Features
-
-            ### 🖥️ GUI Application
-            - Native macOS menu bar app with WebKit automation
-            - Smart scheduling and multiple configurations
-            - Secure Keychain storage and email verification
-
-            ### 💻 CLI Tool
-            - Headless automation for CI/CD and remote servers
-            - Same WebKit engine as GUI with parallel execution
-
-            ## 🛡️ Security
-            - This app is code signed but **not notarized by Apple**
-            - All automation runs locally on your machine
-            - No user data transmitted without consent
           draft: false
           prerelease: false
         env:

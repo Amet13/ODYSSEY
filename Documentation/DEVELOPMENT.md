@@ -224,6 +224,7 @@ ODYSSEY uses a centralized version management system with the `odyssey.sh` scrip
 ```
 
 **Version Management Features:**
+
 - ✅ **Centralized versioning** with `VERSION` file as single source of truth
 - ✅ **Automatic file updates** across all version locations
 - ✅ **Version consistency validation** to prevent mismatches
@@ -320,6 +321,7 @@ The `./Scripts/odyssey.sh` script provides a unified interface for all developme
 ```
 
 **Key Features:**
+
 - ✅ **Unified interface** for all development tasks
 - ✅ **Automated environment setup** with dependency installation
 - ✅ **Comprehensive linting** with multiple tools
@@ -330,21 +332,25 @@ The `./Scripts/odyssey.sh` script provides a unified interface for all developme
 ### Script Categories
 
 **Development Commands:**
+
 - `setup` - Install dependencies and configure development environment
 - `build` - Build both GUI app and CLI binary
 - `lint` - Run comprehensive code quality checks
 - `clean` - Remove build artifacts and temporary files
 
 **Version Management:**
+
 - `tag vX.Y.Z` - Update version across all files and create git tag
 - `validate` - Check version consistency across all project files
 
 **CI/CD Commands:**
+
 - `ci` - Run complete CI pipeline (setup, lint, build)
 - `deploy` - Create release artifacts and DMG installer
 - `changelog` - Generate changelog from git commits
 
 **Utility Commands:**
+
 - `logs` - Monitor application logs in real-time
 - `help` - Display command usage and examples
 
@@ -353,7 +359,6 @@ The `./Scripts/odyssey.sh` script provides a unified interface for all developme
 - [README.md](../README.md) - User installation and setup.
 - [USER_GUIDE.md](USER_GUIDE.md) - GUI app user guide.
 - [CLI.md](CLI.md) - Command-line interface documentation.
-- [VERSION_MANAGEMENT.md](VERSION_MANAGEMENT.md) - Version management and tagging.
 
 ## 🛡️ Security & Compliance
 

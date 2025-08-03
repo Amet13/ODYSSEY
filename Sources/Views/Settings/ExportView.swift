@@ -11,9 +11,6 @@ struct ExportView: View {
   @State private var errorMessage: String?
 
   init(configurationManager: ConfigurationManager) {
-    print(
-      "DEBUG: ExportView init called with \(configurationManager.settings.configurations.count) configurations",
-    )
     self.configurationManager = configurationManager
   }
 

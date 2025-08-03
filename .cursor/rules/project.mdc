@@ -83,6 +83,36 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 - **Memory Management**: Use `[weak self]` capture lists and proper cleanup
 - **Naming**: Use clear, descriptive names following Swift conventions
 
+### Formatting Standards
+
+**ALWAYS respect `.editorconfig` and `.gitattributes` files for consistent formatting:**
+
+#### EditorConfig Standards
+
+- **Universal**: UTF-8 charset, LF line endings, trim trailing whitespace, insert final newline
+- **Swift Files**: 2-space indentation, 100 character max line length
+- **YAML/JSON**: 2-space indentation
+- **Markdown**: No trailing whitespace trimming, no line length limit
+- **Shell Scripts**: 2-space indentation
+- **Property Lists**: Tab indentation, 2-space size
+- **Package.swift**: 4-space indentation
+- **Documentation**: No line length limit
+
+#### GitAttributes Standards
+
+- **Text Files**: Auto-detect with LF normalization
+- **Swift/Shell/Config**: Explicit LF line endings
+- **Binary Files**: Marked as binary (images, Xcode files, build artifacts)
+- **Version File**: Explicit LF line endings
+
+#### Formatting Enforcement
+
+- **Before Committing**: Always run `./Scripts/odyssey.sh lint` to ensure compliance
+- **Editor Integration**: Configure your editor to respect `.editorconfig`
+- **Line Endings**: Ensure all text files use LF (Unix) line endings
+- **Whitespace**: Trim trailing whitespace except in Markdown files
+- **Indentation**: Use spaces (not tabs) for all files except property lists
+
 ### Architecture Principles
 
 - **Protocol-Oriented Design**: Clear interfaces defined in `Sources/Utils/Protocols.swift`
@@ -159,6 +189,18 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 - **Extensions**: Use Swift extensions for code organization and reusability
 - **Validation**: Use centralized validation for consistency
 - **Constants**: Use centralized constants for maintainability
+
+#### Formatting Compliance
+
+- **ALWAYS respect `.editorconfig` and `.gitattributes`** when making any code changes
+- **Swift Formatting**: Use 2-space indentation, 100 character line limit
+- **Shell Scripts**: Use 2-space indentation, LF line endings
+- **YAML/JSON**: Use 2-space indentation, LF line endings
+- **Markdown**: No trailing whitespace trimming, no line length limit
+- **Property Lists**: Use tab indentation, 2-space size
+- **Package.swift**: Use 4-space indentation
+- **Line Endings**: All text files must use LF (Unix) line endings
+- **Before Linting**: Ensure your editor respects `.editorconfig` settings
 
 ### User Experience
 

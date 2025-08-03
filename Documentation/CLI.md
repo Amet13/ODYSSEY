@@ -24,6 +24,7 @@ For developers, ODYSSEY includes a unified development script that provides comp
 ```
 
 **Available Commands:**
+
 - `setup` - Setup development environment
 - `build` - Build application and CLI
 - `lint` - Run comprehensive linting

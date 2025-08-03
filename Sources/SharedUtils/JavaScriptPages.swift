@@ -229,7 +229,7 @@ public final class JavaScriptPages {
                 reason = 'error_text_found';
             } else if (!stillOnVerificationPage) {
                 // If we moved away from verification page, be VERY conservative about success
-            
+
                 const hasSpecificSuccess = lowerText.includes('please bring') ||
                                         lowerText.includes('unable to attend') ||
                                         (title.toLowerCase().includes('confirmation') &&

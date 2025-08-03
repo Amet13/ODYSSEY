@@ -19,7 +19,7 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: 15
     PRODUCT_BUNDLE_IDENTIFIER: com.odyssey.app
     PRODUCT_NAME: ODYSSEY
-    MARKETING_VERSION: ${MARKETING_VERSION}
+    MARKETING_VERSION: "2.0.0"
     CURRENT_PROJECT_VERSION: 1
     INFOPLIST_FILE: ../Sources/AppCore/Info.plist
     INFOPLIST_KEY_CFBundleDisplayName: ODYSSEY
@@ -136,7 +136,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.odyssey.app
         PRODUCT_NAME: ODYSSEY
-        MARKETING_VERSION: ${MARKETING_VERSION}
+        MARKETING_VERSION: "2.0.0"
         CURRENT_PROJECT_VERSION: 11
         INFOPLIST_FILE: ../Sources/AppCore/Info.plist
         INFOPLIST_KEY_CFBundleDisplayName: ODYSSEY

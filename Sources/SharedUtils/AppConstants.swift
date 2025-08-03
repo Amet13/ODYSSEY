@@ -111,9 +111,9 @@ public enum AppConstants {
   // MARK: - Keyboard Shortcuts
 
   // Key codes for global keyboard shortcuts
-  public static let keyCodeG: UInt16 = 5      // 'g' key for God Mode
-  public static let keyCodeN: UInt16 = 45     // 'n' key for New Configuration
-  public static let keyCodeComma: UInt16 = 43 // ',' key for Settings
+  public static let keyCodeG: UInt16 = 5  // 'g' key for God Mode
+  public static let keyCodeN: UInt16 = 45  // 'n' key for New Configuration
+  public static let keyCodeComma: UInt16 = 43  // ',' key for Settings
 
   // MARK: - Verification Code Filtering
 
