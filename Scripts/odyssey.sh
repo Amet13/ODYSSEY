@@ -251,16 +251,97 @@ validate_version() {
     fi
 }
 
-# Function to get current version from Info.plist
+# Function to get current version from VERSION file
 get_current_version() {
-    # Try to get version from Info.plist first, then fallback to project.yml
-    local version
-    version=$(grep -A1 "CFBundleShortVersionString" Sources/AppCore/Info.plist | tail -1 | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
-    if [ -n "$version" ] && [ "$version" != "CFBundleShortVersionString" ]; then
-        echo "$version"
+    if [ -f "VERSION" ]; then
+        cat VERSION | tr -d '[:space:]'
     else
-        # Fallback to project.yml if Info.plist doesn't have a valid version
-        grep "MARKETING_VERSION:" Config/project.yml | sed 's/.*MARKETING_VERSION: "\(.*\)"/\1/' | head -1
+        print_status "error" "VERSION file not found"
+        exit 1
+    fi
+}
+
+# Function to validate version format
+validate_version_format() {
+    local version=$1
+    if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        print_status "error" "Invalid version format: $version. Use MAJOR.MINOR.PATCH"
+        exit 1
+    fi
+}
+
+# Function to update version in all files
+update_version_in_files() {
+    local version=$1
+    print_status "info" "Updating version to $version in all files..."
+    
+    # Update VERSION file
+    echo "$version" > VERSION
+    print_status "success" "Updated VERSION file"
+    
+    # Update Info.plist
+    sed -i '' "s/<string>.*<\/string>.*CFBundleShortVersionString/<string>$version<\/string> <!-- CFBundleShortVersionString/" "Sources/AppCore/Info.plist"
+    print_status "success" "Updated Info.plist"
+    
+    # Update AppConstants.swift
+    sed -i '' "s/appVersion = \".*\"/appVersion = \"$version\"/" "Sources/SharedUtils/AppConstants.swift"
+    print_status "success" "Updated AppConstants.swift"
+    
+    # Update CLIExportService.swift
+    sed -i '' "s/version: String = \".*\"/version: String = \"$version\"/" "Sources/Services/CLIExportService.swift"
+    print_status "success" "Updated CLIExportService.swift"
+    
+    # Update project.yml
+    sed -i '' "s/CFBundleShortVersionString: .*/CFBundleShortVersionString: $version/" "Config/project.yml"
+    print_status "success" "Updated project.yml"
+}
+
+# Function to validate version consistency
+validate_version_consistency() {
+    local expected_version
+    expected_version=$(get_current_version)
+    local errors=0
+    
+    print_status "info" "Validating version consistency..."
+    
+    # Check Info.plist
+    local info_plist_version
+    info_plist_version=$(grep -A1 "CFBundleShortVersionString" Sources/AppCore/Info.plist | tail -1 | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+    if [ "$info_plist_version" != "$expected_version" ]; then
+        print_status "error" "Version mismatch in Info.plist: expected $expected_version, found $info_plist_version"
+        errors=$((errors + 1))
+    fi
+    
+    # Check AppConstants.swift
+    local app_constants_version
+    app_constants_version=$(grep "appVersion = \".*\"" Sources/SharedUtils/AppConstants.swift | sed 's/.*appVersion = "\(.*\)"/\1/')
+    if [ "$app_constants_version" != "$expected_version" ]; then
+        print_status "error" "Version mismatch in AppConstants.swift: expected $expected_version, found $app_constants_version"
+        errors=$((errors + 1))
+    fi
+    
+    # Check CLIExportService.swift
+    local cli_version
+    cli_version=$(grep "version: String = \".*\"" Sources/Services/CLIExportService.swift | sed 's/.*version: String = "\(.*\)"/\1/')
+    if [ "$cli_version" != "$expected_version" ]; then
+        print_status "error" "Version mismatch in CLIExportService.swift: expected $expected_version, found $cli_version"
+        errors=$((errors + 1))
+    fi
+    
+    # Check project.yml
+    local project_version
+    project_version=$(grep "CFBundleShortVersionString:" Config/project.yml | sed 's/.*CFBundleShortVersionString: \(.*\)/\1/')
+    if [ "$project_version" != "$expected_version" ]; then
+        print_status "error" "Version mismatch in project.yml: expected $expected_version, found $project_version"
+        errors=$((errors + 1))
+    fi
+    
+    if [ $errors -eq 0 ]; then
+        print_status "success" "Version consistency validated across all files"
+        return 0
+    else
+        print_status "error" "Found $errors version inconsistency errors"
+        return 1
     fi
 }
 
@@ -274,14 +355,15 @@ show_usage() {
     echo "  setup       Setup development environment"
     echo "  build       Build application and CLI"
     echo "  lint        Run comprehensive linting"
-
     echo "  clean       Clean build artifacts"
+    echo ""
+    echo "Version Management:"
+    echo "  tag <v>     Update version and create git tag (e.g., tag v2.0.0)"
     echo ""
     echo "CI/CD Commands:"
     echo "  ci          Run CI pipeline (setup, lint, build)"
     echo "  deploy      Deploy and create release artifacts"
     echo "  changelog   Generate commit-based changelog"
-
     echo ""
     echo "Utility Commands:"
     echo "  logs        Show application logs"
@@ -290,6 +372,7 @@ show_usage() {
     echo "Examples:"
     echo "  $script_name setup"
     echo "  $script_name build"
+    echo "  $script_name tag v2.0.0"
     echo "  $script_name ci"
     echo "  $script_name deploy"
 }
@@ -590,7 +673,7 @@ run_linting() {
     if swift-format format --in-place --recursive "$SOURCES_PATH"; then
         print_status "success" "swift-format passed"
     else
-        print_status "warning" "swift-format found issues (run 'swift-format format --configuration .swift-format --recursive Sources/' to fix)"
+        print_status "warning" "swift-format found issues (run 'swift-format format --recursive Sources/' to fix)"
         failed_linters+=("swift-format")
     fi
 
@@ -824,6 +907,65 @@ generate_changelog() {
     print_status "success" "Categorized commit-based changelog generated"
 }
 
+# Function to create version tag
+create_version_tag() {
+    local version=$1
+    
+    # Remove 'v' prefix if present
+    local clean_version=${version#v}
+    
+    print_status "step" "Creating version tag: $version"
+    
+    # Validate version format
+    validate_version_format "$clean_version"
+    
+    # Check if we're in a git repository
+    if [ ! -d ".git" ]; then
+        print_status "error" "Not in a git repository"
+        exit 1
+    fi
+    
+    # Check if there are uncommitted changes
+    if [ -n "$(git status --porcelain)" ]; then
+        print_status "error" "There are uncommitted changes. Please commit or stash them first."
+        print_status "info" "Run 'git status' to see uncommitted changes"
+        exit 1
+    fi
+    
+    # Check if tag already exists
+    if git tag -l | grep -q "^$version$"; then
+        print_status "error" "Tag $version already exists"
+        exit 1
+    fi
+    
+    # Update version in all files
+    print_status "info" "Updating version to $clean_version in all files..."
+    update_version_in_files "$clean_version"
+    
+    # Validate version consistency
+    if ! validate_version_consistency; then
+        print_status "error" "Version consistency validation failed"
+        exit 1
+    fi
+    
+    # Commit version changes
+    print_status "info" "Committing version changes..."
+    git add VERSION Sources/AppCore/Info.plist Sources/SharedUtils/AppConstants.swift Sources/Services/CLIExportService.swift Config/project.yml
+    git commit -m "chore: bump version to $clean_version"
+    
+    # Create and push tag
+    print_status "info" "Creating git tag: $version"
+    git tag -a "$version" -m "Release $version"
+    
+    # Push changes and tag
+    print_status "info" "Pushing changes and tag to remote..."
+    git push origin main
+    git push origin "$version"
+    
+    print_status "success" "Version tag $version created and pushed successfully!"
+    print_status "info" "Version updated to $clean_version in all files"
+}
+
 # Function to show application logs
 show_logs() {
     print_status "step" "Showing ODYSSEY application logs..."
@@ -873,10 +1015,18 @@ main() {
             validate_project_root
             run_linting
             ;;
-
         "clean")
             validate_project_root
             clean_builds
+            ;;
+        "tag")
+            validate_project_root
+            if [ -z "${1:-}" ]; then
+                print_status "error" "Version required for tag command"
+                print_status "info" "Usage: $0 tag <version> (e.g., tag v2.0.0)"
+                exit 1
+            fi
+            create_version_tag "$1"
             ;;
         "ci")
             validate_project_root
@@ -886,7 +1036,6 @@ main() {
             validate_project_root
             deploy_release
             ;;
-
         "changelog")
             validate_project_root
             generate_changelog

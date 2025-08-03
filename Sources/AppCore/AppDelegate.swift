@@ -99,7 +99,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Set up global keyboard monitor for various shortcuts
     globalKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
       // Check for Command+G (God Mode toggle)
-      if event.modifierFlags.contains(.command), event.keyCode == 5 {  // keyCode 5 is 'g'
+      if event.modifierFlags.contains(.command), event.keyCode == AppConstants.keyCodeG {
         self?.logger.info("⌨️ Global Command+G detected - toggling God Mode UI.")
 
         // Toggle God Mode UI through the status bar controller
@@ -111,7 +111,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       }
 
       // Check for Command+N (Add Configuration)
-      if event.modifierFlags.contains(.command), event.keyCode == 45 {  // keyCode 45 is 'n'
+      if event.modifierFlags.contains(.command), event.keyCode == AppConstants.keyCodeN {
         self?.logger.info("⌨️ Global Command+N detected - adding configuration.")
 
         // Add configuration through the status bar controller
@@ -123,7 +123,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       }
 
       // Check for Command+, (Settings)
-      if event.modifierFlags.contains(.command), event.keyCode == 43 {  // keyCode 43 is ','
+      if event.modifierFlags.contains(.command), event.keyCode == AppConstants.keyCodeComma {
         self?.logger.info("⌨️ Global Command+, detected - opening settings.")
 
         // Open settings through the status bar controller
