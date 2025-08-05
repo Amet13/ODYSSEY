@@ -10,6 +10,9 @@
 
 set -e
 
+# Set Homebrew to not auto-update to speed up CI/CD and prevent unnecessary updates
+export HOMEBREW_NO_AUTO_UPDATE=1
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -93,26 +96,31 @@ install_tools() {
         "create-dmg"
     )
 
+    # Check if all tools are already installed first
+    local missing_tools=()
     for tool in "${tools[@]}"; do
         # Special case for markdownlint-cli - check for markdownlint binary
         if [ "$tool" = "markdownlint-cli" ]; then
-            if command -v "markdownlint" &> /dev/null; then
-                log_success "$tool already installed"
-            else
-                log_info "Installing $tool..."
-                brew install "$tool"
-                log_success "$tool installed"
+            if ! command -v "markdownlint" &> /dev/null; then
+                missing_tools+=("$tool")
             fi
         else
-            if command -v "$tool" &> /dev/null; then
-                log_success "$tool already installed"
-            else
-                log_info "Installing $tool..."
-                brew install "$tool"
-                log_success "$tool installed"
+            if ! command -v "$tool" &> /dev/null; then
+                missing_tools+=("$tool")
             fi
         fi
     done
+
+    # If all tools are installed, skip installation
+    if [ ${#missing_tools[@]} -eq 0 ]; then
+        log_success "All development tools already installed"
+        return 0
+    fi
+
+    # Install missing tools in batch for better performance
+    log_info "Installing missing development tools: ${missing_tools[*]}..."
+    brew install "${missing_tools[@]}"
+    log_success "Development tools installation completed"
 }
 
 # Function to find the latest built app
