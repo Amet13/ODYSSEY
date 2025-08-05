@@ -680,7 +680,7 @@ struct CLI {
       let autorunDay =
         calendar.date(byAdding: .day, value: -priorDays, to: reservationDay) ?? reservationDay
 
-      if autorunDay > today {
+      if autorunDay >= today {
         if let currentNextRunDate = nextRunDate {
           if autorunDay < currentNextRunDate {
             nextRunDate = autorunDay
