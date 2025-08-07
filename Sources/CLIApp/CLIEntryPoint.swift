@@ -215,7 +215,6 @@ struct CLI {
     _ exportConfig: CLIExportService.CLIExportConfig, priorDays: Int
   ) {
     print("❌ No configurations are scheduled to run today")
-    print("💡 Configurations are only run \(priorDays) days before their reservation day")
     print("📅 Today's date: \(formatDate(Date()))")
     print()
     print("📋 All configurations:")
@@ -640,19 +639,25 @@ struct CLI {
     for (day, timeSlots) in config.dayTimeSlots {
       guard !timeSlots.isEmpty else { continue }
 
-      // Find the next occurrence of the reservation day
-      let targetWeekday = day.calendarWeekday
-      let currentWeekday = calendar.component(.weekday, from: today)
-      var daysUntilTarget = targetWeekday - currentWeekday
-      if daysUntilTarget <= 0 { daysUntilTarget += 7 }
-      let reservationDay = calendar.date(byAdding: .day, value: daysUntilTarget, to: today) ?? today
+      // Check if today is the autorun day for any upcoming reservation
+      for weekOffset in 0...4 {
+        let baseDate = calendar.date(byAdding: .weekOfYear, value: weekOffset, to: today) ?? today
 
-      // Autorun should be priorDays before reservation day
-      let autorunDay =
-        calendar.date(byAdding: .day, value: -priorDays, to: reservationDay) ?? reservationDay
+        // Find the next occurrence of the reservation day from the base date
+        let targetWeekday = day.calendarWeekday
+        let baseWeekday = calendar.component(.weekday, from: baseDate)
+        var daysUntilTarget = targetWeekday - baseWeekday
+        if daysUntilTarget <= 0 { daysUntilTarget += 7 }
+        let reservationDay =
+          calendar.date(byAdding: .day, value: daysUntilTarget, to: baseDate) ?? baseDate
 
-      if calendar.isDate(today, inSameDayAs: autorunDay) {
-        return true
+        // Autorun should be priorDays before reservation day
+        let autorunDay =
+          calendar.date(byAdding: .day, value: -priorDays, to: reservationDay) ?? reservationDay
+
+        if calendar.isDate(today, inSameDayAs: autorunDay) {
+          return true
+        }
       }
     }
     return false
@@ -669,24 +674,34 @@ struct CLI {
     for (day, timeSlots) in config.dayTimeSlots {
       guard !timeSlots.isEmpty else { continue }
 
-      // Find the next occurrence of the reservation day
-      let targetWeekday = day.calendarWeekday
-      let currentWeekday = calendar.component(.weekday, from: today)
-      var daysUntilTarget = targetWeekday - currentWeekday
-      if daysUntilTarget <= 0 { daysUntilTarget += 7 }
-      let reservationDay = calendar.date(byAdding: .day, value: daysUntilTarget, to: today) ?? today
+      // Look for the next autorun date that hasn't passed yet
+      // We need to check multiple weeks ahead to find the next valid autorun date
+      for weekOffset in 0...4 {
+        let baseDate = calendar.date(byAdding: .weekOfYear, value: weekOffset, to: today) ?? today
 
-      // Autorun should be priorDays before reservation day
-      let autorunDay =
-        calendar.date(byAdding: .day, value: -priorDays, to: reservationDay) ?? reservationDay
+        // Find the next occurrence of the reservation day from the base date
+        let targetWeekday = day.calendarWeekday
+        let baseWeekday = calendar.component(.weekday, from: baseDate)
+        var daysUntilTarget = targetWeekday - baseWeekday
+        if daysUntilTarget <= 0 { daysUntilTarget += 7 }
+        let reservationDay =
+          calendar.date(byAdding: .day, value: daysUntilTarget, to: baseDate) ?? baseDate
 
-      if autorunDay >= today {
-        if let currentNextRunDate = nextRunDate {
-          if autorunDay < currentNextRunDate {
+        // Autorun should be priorDays before reservation day
+        let autorunDay =
+          calendar.date(byAdding: .day, value: -priorDays, to: reservationDay) ?? reservationDay
+
+        // Only consider autorun dates that are today or in the future
+        if autorunDay >= today {
+          if let currentNextRunDate = nextRunDate {
+            if autorunDay < currentNextRunDate {
+              nextRunDate = autorunDay
+            }
+          } else {
             nextRunDate = autorunDay
           }
-        } else {
-          nextRunDate = autorunDay
+          // Found a valid autorun date, no need to check more weeks
+          break
         }
       }
     }
