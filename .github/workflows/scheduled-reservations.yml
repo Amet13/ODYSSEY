@@ -36,10 +36,27 @@ jobs:
         env:
           ODYSSEY_EXPORT_TOKEN: ${{ secrets.ODYSSEY_EXPORT_TOKEN }}
 
-      - name: Upload screenshots as artifacts
+      - name: Check for screenshots
         if: always()
+        id: screenshots
+        run: |
+          if [ -d "screenshots" ] && [ "$(ls -A screenshots 2>/dev/null)" ]; then
+            echo "📸 Screenshots found, will upload artifacts"
+            echo "screenshots_exist=true" >> $GITHUB_OUTPUT
+          else
+            echo "📸 No screenshots found, skipping artifact upload"
+            echo "screenshots_exist=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload screenshots as artifacts
+        if: always() && steps.screenshots.outputs.screenshots_exist == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: failure-screenshots
           path: screenshots/
           retention-days: 30
+
+      - name: Skip screenshot upload
+        if: always() && steps.screenshots.outputs.screenshots_exist == 'false'
+        run: |
+          echo "📸 No screenshots to upload - this is normal when reservations succeed"

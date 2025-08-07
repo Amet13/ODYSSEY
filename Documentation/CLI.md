@@ -74,16 +74,6 @@ Run real reservations for configurations scheduled N days before reservation day
 ./odyssey-cli run --screenshots --hide --now
 ```
 
-**Features:**
-
-- ✅ **Real Automation**: Uses the same WebKit automation as the GUI app.
-- ✅ **Parallel Execution**: Runs multiple reservations simultaneously.
-- ✅ **Headless Mode**: Always runs without browser window (perfect for CI/CD).
-- ✅ **Progress Tracking**: Shows real-time progress and status updates.
-- ✅ **Error Handling**: Displays detailed error messages if reservation fails.
-- ✅ **Timeout Protection**: 5-minute timeout to prevent hanging.
-- ✅ **Privacy Mode**: `--hide` flag masks sensitive information for public environments.
-
 ### 📋 `configs`
 
 List all available configurations from the export token.
@@ -132,6 +122,15 @@ Phone: 1234567890
 Email: johndoe@gmail.com
 IMAP Password: my-s3cur3-p@ssw0rd
 IMAP Server: imap.gmail.com
+```
+
+### 🔍 `validate-javascript`
+
+Validate JavaScript code in the project for syntax errors, dangerous patterns, and best practices.
+
+```bash
+# Validate all JavaScript files in the project
+./odyssey-cli validate-javascript
 ```
 
 ### ❓ `help`

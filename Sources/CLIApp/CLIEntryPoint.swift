@@ -100,10 +100,10 @@ struct CLI {
       Usage: odyssey-cli <command> [options]
 
       Commands:
-        run                   Run reservations for configurations (use --now for immediate execution)
+        run                   Run reservations for configurations
         configs               List all available configurations
-        validate-javascript   Validate JavaScript code in the project
         settings              Show user settings from export token
+        validate-javascript   Validate JavaScript code in the project
         help                  Show this help message
         version               Show version information
 
@@ -113,7 +113,9 @@ struct CLI {
         odyssey-cli run --prior 3          # Run 3 days before reservation (default: 2)
         odyssey-cli run --hide             # Hide sensitive information in output
         odyssey-cli run --screenshots      # Enable screenshot capture on failure
+
         odyssey-cli configs                # List all configurations
+
         odyssey-cli settings               # Show user settings from export token
         odyssey-cli settings --unmask      # Show unmasked settings
 
