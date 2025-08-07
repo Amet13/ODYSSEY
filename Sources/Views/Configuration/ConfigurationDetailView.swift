@@ -506,20 +506,25 @@ struct ConfigurationDetailView: View {
   }
 
   /**
-   Trims a facility URL to remove everything from Home/... onwards.
+   Trims a facility URL to remove everything after the facility name.
    - Parameter url: The URL string to trim.
    - Returns: The trimmed URL string.
    */
   private func trimFacilityURL(_ url: String) -> String {
     guard !url.isEmpty else { return url }
 
-    // Find the position of "Home/..." in the URL.
-    if let homeIndex = url.range(of: "Home")?.lowerBound {
-      // Return everything up to (but not including) "Home/...".
-      let trimmedURL = String(url[..<homeIndex])
-      Logger(subsystem: AppConstants.loggingSubsystem, category: "ConfigurationDetailView")
-        .info("✂️ Trimmed facility URL from '\(url)' to '\(trimmedURL)'.")
-      return trimmedURL
+    // Pattern to match the base facility URL structure
+    // This will capture: https://reservation.frontdesksuite.ca/rcfs/facility-name
+    let pattern = #"^https://reservation\.frontdesksuite\.ca/rcfs/[^/]+"#
+
+    if let regex = try? NSRegularExpression(pattern: pattern) {
+      let nsrange = NSRange(url.startIndex..<url.endIndex, in: url)
+      if let match = regex.firstMatch(in: url, options: [], range: nsrange) {
+        let trimmedURL = String(url[Range(match.range, in: url)!])
+        Logger(subsystem: AppConstants.loggingSubsystem, category: "ConfigurationDetailView")
+          .info("✂️ Trimmed facility URL from '\(url)' to '\(trimmedURL)'.")
+        return trimmedURL
+      }
     }
 
     return url
