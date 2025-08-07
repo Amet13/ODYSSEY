@@ -42,18 +42,29 @@
 
 ## ⚖️ Ethical Considerations & Legal Notice
 
+### 🎓 Educational Purpose
+
+This application demonstrates modern macOS development techniques and best practices:
+
+- **SwiftUI & AppKit integration** - Modern macOS UI development.
+- **WebKit automation** - Browser automation and web interaction.
+- **Menu bar applications** - System integration and background processing.
+- **CLI development** - Command-line interface for automation.
+- **CI/CD pipelines** - Automated testing and deployment.
+- **Security practices** - Keychain integration and secure credential management.
+
 ### 🛡️ Responsible Usage Guidelines
 
-**IMPORTANT:** This tool is designed to assist with legitimate reservation booking only. Users must:
+**IMPORTANT:** This tool is designed for educational purposes and legitimate personal use only. Users must:
 
-- ✅ **Use responsibly** - Only automate bookings for yourself and your legitimate group members.
+- ✅ **Use responsibly** - Only use for personal educational and development purposes.
 - ✅ **Respect rate limits** - The app includes built-in delays to avoid overwhelming servers.
 
 ### 🚫 Prohibited Uses
 
 **DO NOT:**
 
-- ❌ Use for commercial booking services or reselling reservations.
+- ❌ Use for commercial services or reselling.
 - ❌ Share accounts or credentials with others.
 - ❌ Use for any malicious or harmful purposes.
 
@@ -61,7 +72,6 @@
 
 This software is provided "as is" without warranty. Users are responsible for:
 
-- Respecting booking policies and limitations.
 - Using the application in accordance with applicable laws.
 - Understanding that automation may be subject to website terms of service.
 
