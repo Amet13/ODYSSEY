@@ -10,15 +10,8 @@
 
 set -e
 
-# Set Homebrew to not auto-update to speed up CI/CD and prevent unnecessary updates
+# Set Homebrew to not auto-update to prevent unnecessary updates
 export HOMEBREW_NO_AUTO_UPDATE=1
-
-# Additional CI optimizations
-if [ -n "$CI" ]; then
-    export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
-    export HOMEBREW_NO_ANALYTICS=1
-    export HOMEBREW_NO_ENV_HINTS=1
-fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -127,12 +120,8 @@ install_tools() {
     # Install missing tools in batch for better performance
     log_info "Installing missing development tools: ${missing_tools[*]}..."
 
-    # Use brew install with --quiet to reduce output in CI
-    if [ -n "$CI" ]; then
-        brew install --quiet "${missing_tools[@]}"
-    else
-        brew install "${missing_tools[@]}"
-    fi
+    # Install with minimal output and no analytics
+    HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_ANALYTICS=1 brew install --quiet "${missing_tools[@]}"
 
     log_success "Development tools installation completed"
 }
