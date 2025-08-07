@@ -514,10 +514,20 @@ struct ConfigurationDetailView: View {
     guard !url.isEmpty else { return url }
 
     // Pattern to match the base facility URL structure
-    // This will capture: https://reservation.frontdesksuite.ca/rcfs/facility-name
-    let pattern = #"^https://reservation\.frontdesksuite\.ca/rcfs/[^/]+"#
+    // This will capture: https://reservation.frontdesksuite.ca/rcfs/facility-name (with optional trailing slash)
+    let pattern = #"^https://reservation\.frontdesksuite\.ca/rcfs/[^/]+/?$"#
 
     if let regex = try? NSRegularExpression(pattern: pattern) {
+      let nsrange = NSRange(url.startIndex..<url.endIndex, in: url)
+      if regex.firstMatch(in: url, options: [], range: nsrange) != nil {
+        // If the URL already matches the expected pattern, return it as is
+        return url
+      }
+    }
+
+    // If the URL doesn't match the expected pattern, try to extract the base URL
+    let basePattern = #"^https://reservation\.frontdesksuite\.ca/rcfs/[^/]+"#
+    if let regex = try? NSRegularExpression(pattern: basePattern) {
       let nsrange = NSRange(url.startIndex..<url.endIndex, in: url)
       if let match = regex.firstMatch(in: url, options: [], range: nsrange) {
         let trimmedURL = String(url[Range(match.range, in: url)!])

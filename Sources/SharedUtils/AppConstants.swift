@@ -98,6 +98,7 @@ public enum AppConstants {
     "verificationCode": "\\b\\d{4}\\b",
     "phoneNumber": "^\\+?[1-9]\\d{1,14}$",
     "email": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
+    "facilityURL": "^https://reservation\\.frontdesksuite\\.ca/rcfs/[^/]+/?$",
   ]
 
   // MARK: - Magic Numbers and Limits
@@ -121,7 +122,7 @@ public enum AppConstants {
   public static let maxEmailLength: Int = 254
 
   // UI limits
-  public static let maxConfigurationNameLength: Int = 30
+  public static let maxConfigurationNameLength: Int = 60
   public static let maxSportNameLength: Int = 50
   public static let maxFacilityNameLength: Int = 30
 
