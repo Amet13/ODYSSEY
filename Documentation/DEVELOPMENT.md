@@ -103,12 +103,12 @@ The unified CI/CD pipeline (`.github/workflows/build-release.yml`) automatically
 
 The project maintains high code quality standards with:
 
-- **📝 Consistent Logging**: All log messages use emojis and proper punctuation.
-- **🎯 DRY Principle**: No code duplication, centralized validation and utilities.
-- **🔧 Clean Architecture**: Modular services with clear separation of concerns.
-- **📚 Comprehensive Documentation**: Up-to-date guides and examples.
-- **⚡ Performance**: Optimized for speed and memory efficiency.
-- **🛡️ Security**: Secure credential storage and input validation.
+- **📝 Consistent Logging:** All log messages use emojis and proper punctuation.
+- **🎯 DRY Principle:** No code duplication, centralized validation and utilities.
+- **🔧 Clean Architecture:** Modular services with clear separation of concerns.
+- **📚 Comprehensive Documentation:** Up-to-date guides and examples.
+- **⚡ Performance:** Optimized for speed and memory efficiency.
+- **🛡️ Security:** Secure credential storage and input validation.
 
 ## 🏗️ Service Architecture
 
@@ -128,10 +128,10 @@ The codebase follows a modular service-oriented architecture with these key prin
 
 #### Service Categories
 
-- **Email Services**: Handle email integration, authentication, and verification.
-- **Reservation Services**: Manage booking logic, status tracking, and orchestration.
-- **WebKit Services**: Provide browser automation and web interaction capabilities.
-- **Infrastructure Services**: Handle data persistence, configuration, and utilities.
+- **Email Services:** Handle email integration, authentication, and verification.
+- **Reservation Services:** Manage booking logic, status tracking, and orchestration.
+- **WebKit Services:** Provide browser automation and web interaction capabilities.
+- **Infrastructure Services:** Handle data persistence, configuration, and utilities.
 
 ### Development Guidelines
 
@@ -150,18 +150,6 @@ The codebase follows a modular service-oriented architecture with these key prin
 - **Error Handling:** Implement comprehensive error handling.
 - **Performance:** Optimize for memory usage and responsiveness.
 
-#### Unified Pipeline Structure
-
-The pipeline includes:
-
-- ✅ **Quality Checks**: swift-format, ShellCheck, YAML/Markdown linting.
-- ✅ **Build Validation**: Xcode project generation with XcodeGen.
-- ✅ **Debug and Release builds** for GUI app.
-- ✅ **CLI binary compilation** and testing.
-- ✅ **App structure analysis** and size validation.
-- ✅ **Build artifact uploads** for debugging.
-- ✅ **Changelog generation** and upload.
-
 #### Automated Workflows
 
 - ✅ **Unified Script Usage:** GitHub Actions now use our existing scripts instead of duplicating commands.
@@ -172,16 +160,6 @@ The pipeline includes:
 - ✅ **GitHub Releases publication** with comprehensive notes.
 - ✅ **File size tracking** and reporting.
 - ✅ **Professional release notes** with installation instructions.
-
-#### Pipeline Benefits
-
-- ✅ **Efficiency:** Single workflow eliminates duplication and maintenance overhead.
-- ✅ **Consistency:** Same build environment for all releases.
-- ✅ **Quality:** Automated quality checks prevent regressions.
-- ✅ **Automation:** No manual release steps required.
-- ✅ **Transparency:** All build artifacts and logs are preserved.
-- ✅ **Reliability:** Comprehensive validation ensures release quality.
-- ✅ **Resource Optimization:** Eliminates redundant builds and setup steps.
 
 ## 🧪 Testing
 
@@ -194,14 +172,14 @@ The pipeline includes:
 
 ### CLI Testing
 
-1. **Build CLI**: `./Scripts/odyssey.sh build`.
-2. **Test Commands**: `./.build/arm64-apple-macosx/debug/odyssey-cli`.
-3. **Export Token**: Generate token from GUI for testing.
-4. **Test GitHub Actions**: Verify `.github/workflows/build-release.yml` works correctly.
+1. **Build CLI:** `./Scripts/odyssey.sh build`.
+2. **Test Commands:** `./.build/arm64-apple-macosx/debug/odyssey-cli`.
+3. **Export Token:** Generate token from GUI for testing.
+4. **Test GitHub Actions:** Verify `.github/workflows/build-release.yml` works correctly.
 
 ### CLI Integration
 
-- **Scheduled Reservations:** Refer to `.github/workflows/scheduled-reservations.yml` for automated reservation booking.
+- **Scheduled Reservations:** See `.github/workflows/scheduled-reservations.yml` for automated reservation booking.
 
 ## 🚀 Release Process
 
@@ -226,20 +204,11 @@ The release process is fully automated through GitHub Actions and can be initiat
    - Create and push git tag
    - Push changes to main branch
 
-### Automated CI/CD Pipeline
+### 🤖 Automated CI/CD Workflow
 
-When you push a version tag, the CI/CD pipeline automatically:
+The project includes a comprehensive CI/CD workflow:
 
-- Builds both GUI and CLI applications.
-- Creates DMG installer and CLI binary.
-- Code signs both applications.
-- Publishes to GitHub Releases with comprehensive release notes.
-- Calculates and displays file sizes.
-- Generates changelog from git commits.
-
-### Automated CI/CD Features
-
-- ✅ **Unified Script Usage:** GitHub Actions now use our existing scripts instead of duplicating commands.
+- ✅ **Unified Script Usage:** GitHub Actions use our existing scripts instead of duplicating commands.
 - ✅ **Version Validation:** Ensures tag version matches `project.yml` and `Info.plist`.
 - ✅ **Dual Build:** Creates both GUI app and CLI binary.
 - ✅ **Code Signing:** Automatically signs both applications.
@@ -249,18 +218,6 @@ When you push a version tag, the CI/CD pipeline automatically:
 - ✅ **Changelog Generation:** Creates changelog from git commits since last tag.
 - ✅ **GitHub Integration:** Automatically publishes to GitHub Releases.
 - ✅ **Comprehensive Linting:** Uses configuration files to ignore acceptable warnings while catching critical issues.
-
-### 🤖 Automated CI/CD Workflow
-
-The project includes a comprehensive CI/CD workflow:
-
-- ✅ **Automated Builds:** Triggers on version tags.
-- ✅ **Dual Artifacts:** Creates both GUI app and CLI binary.
-- ✅ **Code Signing:** Automatically signs applications.
-- ✅ **DMG Creation:** Creates professional installer.
-- ✅ **Release Notes:** Auto-generates changelog from commits.
-- ✅ **GitHub Integration:** Publishes to GitHub Releases.
-- ✅ **Comprehensive Linting:** Runs all quality checks.
 
 **Key Workflows:**
 

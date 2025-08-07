@@ -10,48 +10,36 @@ The ODYSSEY CLI provides command-line automation capabilities using the same pow
 2. **Make executable:** Run `chmod +x odyssey-cli`.
 3. **Add ODYSSEY to the trust list:** Run `sudo xattr -rd com.apple.quarantine ./odyssey-cli`.
 
-## 🔧 Export Token Details
+## 🔧 Configuration
+
+### Export Token Setup
 
 The export token is a compressed, base64-encoded configuration containing only essential data for CLI automation:
 
 - **User settings:** Name, phone, email credentials, IMAP server (_do not share this data, it contains sensitive information_).
 - **Selected configurations:** All reservation configurations chosen for export.
 
-## 🔧 Configuration
+#### Getting Your Export Token
 
-- **Export token from the app**
-
-  - Open the ODYSSEY app.
-  - Click the **Export** button.
-  - Select configurations to be exported.
-  - Click the **Export Token** button.
-  - The export token will be copied to your clipboard automatically.
+1. **Open the ODYSSEY app.**
+2. **Click the Export button.**
+3. **Select configurations to be exported.**
+4. **Click the Export Token button.**
+5. **The export token will be copied to your clipboard automatically.**
 
 <div align="center">
   <img src="Images/export.png" width="300" alt="Export">
 </div>
 
-- **Set up environment variable**
-
-  ```bash
-  export ODYSSEY_EXPORT_TOKEN="your_export_token_here"
-  ```
-
-- **Test the CLI**
-
-  ```bash
-  ./odyssey-cli configs
-  ./odyssey-cli settings
-  ```
-
-## 🎯 Basic usage
+#### Setting Up the CLI
 
 ```bash
 # Set your export token
-export ODYSSEY_EXPORT_TOKEN="<exported_token>"
+export ODYSSEY_EXPORT_TOKEN="your_export_token_here"
 
-# Run all enabled configurations
-./odyssey-cli run
+# Test the CLI
+./odyssey-cli configs
+./odyssey-cli settings
 ```
 
 ## 📋 Environment variables
@@ -95,42 +83,6 @@ Run real reservations for configurations scheduled N days before reservation day
 - ✅ **Error Handling**: Displays detailed error messages if reservation fails.
 - ✅ **Timeout Protection**: 5-minute timeout to prevent hanging.
 - ✅ **Privacy Mode**: `--hide` flag masks sensitive information for public environments.
-
-### 🕶️ Privacy Mode (`--hide`)
-
-The `--hide` flag is designed for use in public CI/CD environments where you want to track reservation status without exposing sensitive information.
-
-**What gets hidden:**
-
-- User name (shows "👤 User: \*\*\*")
-- Email address (shows "📧 Email: **_@_**")
-- Configuration names (shows "Configuration X" instead of actual names)
-- Status updates use generic "Configuration" instead of specific names
-
-**Example output with `--hide`:**
-
-```bash
-./odyssey-cli run --hide
-🕶️ Hiding sensitive information (--hide flag detected)
-👤 User: ***
-📧 Email: ***@***
-📋 Configurations: 2
-
-🔍 Found 0 configurations scheduled for today (2 days before reservation)
-❌ No configurations are scheduled to run today
-📅 Today's date: Aug 6, 2025
-
-📋 All configurations:
-   - Configuration 1: Next run Aug 12, 2025
-   - Configuration 2: Next run Aug 10, 2025
-```
-
-**Perfect for:**
-
-- Public GitHub Actions workflows
-- Shared CI/CD pipelines
-- Screenshots in documentation
-- Any environment where you want to protect privacy
 
 ### 📋 `configs`
 
@@ -232,14 +184,21 @@ The workflow file is already included in the repository. It will automatically:
 - Run reservations using your export token with `--hide` flag for privacy.
 - Upload logs for debugging.
 
-**Refer to `.github/workflows/scheduled-reservations.yml` pipeline** for the complete automation setup.
+**See `.github/workflows/scheduled-reservations.yml` pipeline** for the complete automation setup.
 
 > **💡 Privacy Tip:** The workflow uses the `--hide` flag to protect sensitive information in public logs while still allowing you to track reservation status.
 
-## 🔒 Security
+## 🔒 Security & Best Practices
 
-- Export tokens contain sensitive information (email credentials, phone numbers).
-- Store tokens securely in CLI secrets.
-- Never commit tokens to version control.
-- Use environment variables for token storage.
+### Token Security
+
+- **Export tokens contain sensitive information** (email credentials, phone numbers).
+- **Store tokens securely** in CLI secrets or environment variables.
+- **Never commit tokens** to version control.
+- **Use environment variables** for token storage in production.
+
+### Technical Details
+
 - Tokens are base64-encoded and LZFSE-compressed for efficiency.
+- The `--hide` flag masks sensitive information for public environments.
+- All automation runs locally on your machine (except CI/CD).

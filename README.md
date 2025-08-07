@@ -49,8 +49,6 @@ This application demonstrates modern macOS development techniques and best pract
 - **SwiftUI & AppKit integration** - Modern macOS UI development.
 - **WebKit automation** - Browser automation and web interaction.
 - **Menu bar applications** - System integration and background processing.
-- **CLI development** - Command-line interface for automation.
-- **CI/CD pipelines** - Automated testing and deployment.
 - **Security practices** - Keychain integration and secure credential management.
 
 ### 🛡️ Responsible Usage Guidelines
