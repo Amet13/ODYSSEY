@@ -285,14 +285,13 @@ show_usage() {
     echo "  setup       Setup development environment"
     echo "  build       Build application and CLI"
     echo "  lint        Run comprehensive linting"
-
     echo "  clean       Clean build artifacts"
     echo ""
-    echo "CI/CD Commands:"
+    echo "Release Commands:"
+    echo "  release     Create a new release (version, build, tag, push)"
     echo "  ci          Run CI pipeline (setup, lint, build)"
     echo "  deploy      Deploy and create release artifacts"
     echo "  changelog   Generate commit-based changelog"
-
     echo ""
     echo "Utility Commands:"
     echo "  logs        Show application logs"
@@ -301,6 +300,7 @@ show_usage() {
     echo "Examples:"
     echo "  $script_name setup"
     echo "  $script_name build"
+    echo "  $script_name release 1.1.1"
     echo "  $script_name ci"
     echo "  $script_name deploy"
 }
@@ -704,8 +704,73 @@ update_version_files() {
     # Update CLIExportService.swift
     sed -i '' "s/version: String = \".*\"/version: String = \"$version\"/" "Sources/Services/CLIExportService.swift"
     print_status "success" "Updated CLIExportService.swift"
+}
 
+# Function to create release
+create_release() {
+    local version=$1
 
+    if [ -z "$version" ]; then
+        print_status "error" "Version is required. Usage: $0 release <version>"
+        print_status "info" "Example: $0 release 1.1.1"
+        exit 1
+    fi
+
+    # Validate version format
+    validate_version "$version"
+
+    print_status "step" "Creating release v$version..."
+
+    # Check if we're in a clean git state
+    if [ -n "$(git status --porcelain)" ]; then
+        print_status "error" "Git working directory is not clean. Please commit or stash changes first."
+        exit 1
+    fi
+
+    # Check if tag already exists
+    if git tag -l "v$version" | grep -q "v$version"; then
+        print_status "error" "Tag v$version already exists"
+        exit 1
+    fi
+
+    # Update version files
+    update_version_files "$version"
+
+    # Build applications to ensure everything works
+    print_status "step" "Building applications to validate changes..."
+    build_application
+
+    # Test CLI to ensure it works with new version
+    print_status "step" "Testing CLI with new version..."
+    CLI_PATH=$(find_cli_path debug)
+    if "$CLI_PATH" version >/dev/null 2>&1; then
+        print_status "success" "CLI test passed"
+    else
+        print_status "error" "CLI test failed"
+        exit 1
+    fi
+
+    # Commit changes
+    print_status "step" "Committing version changes..."
+    git add .
+    git commit -m "🔖 Release v$version
+
+- Updated version to $version in all files
+- Built and tested applications
+- Validated CLI functionality"
+
+    # Create and push tag
+    print_status "step" "Creating git tag v$version..."
+    git tag "v$version"
+
+    # Push changes and tag
+    print_status "step" "Pushing changes and tag to main..."
+    git push origin main
+    git push origin "v$version"
+
+    print_status "success" "Release v$version created successfully!"
+    print_status "info" "GitHub Actions will automatically build and publish the release"
+    print_status "info" "Monitor the release at: https://github.com/Amet13/ODYSSEY/releases"
 }
 
 
@@ -900,6 +965,10 @@ main() {
         "clean")
             validate_project_root
             clean_builds
+            ;;
+        "release")
+            validate_project_root
+            create_release "$1"
             ;;
         "ci")
             validate_project_root

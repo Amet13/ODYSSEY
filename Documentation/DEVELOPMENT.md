@@ -209,23 +209,22 @@ The release process uses a streamlined workflow with automated CI/CD:
 
 ### Automated Release Process
 
-The release process is fully automated through GitHub Actions:
+The release process is fully automated through GitHub Actions and can be initiated using the unified script:
 
-1. **Push a version tag** to trigger the release:
+1. **Create a new release** using the unified script:
 
    ```bash
-   git tag v1.1.0
-   git push origin v1.1.0
+   ./Scripts/odyssey.sh release 1.1.1
    ```
 
-2. **GitHub Actions automatically**:
+   This command will:
 
-   - Runs CI pipeline (setup, lint, build)
-   - Builds both GUI and CLI applications in release mode
-   - Creates DMG installer and CLI binary
-   - Code signs both applications
-   - Generates commit-based changelog
-   - Publishes to GitHub Releases with comprehensive release notes
+   - Validate the version format
+   - Update version in all files (project.yml, Info.plist, AppConstants.swift, CLIExportService.swift)
+   - Build and test both GUI and CLI applications
+   - Commit changes with a descriptive message
+   - Create and push git tag
+   - Push changes to main branch
 
 ### Automated CI/CD Pipeline
 
