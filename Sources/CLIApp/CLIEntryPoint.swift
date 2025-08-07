@@ -111,6 +111,7 @@ struct CLI {
         odyssey-cli run                    # Run configurations scheduled for today
         odyssey-cli run --now              # Run configurations immediately
         odyssey-cli run --prior 3          # Run 3 days before reservation (default: 2)
+        odyssey-cli run --hide             # Hide sensitive information in output
         odyssey-cli configs                # List all configurations
         odyssey-cli settings               # Show user settings from export token
         odyssey-cli settings --unmask      # Show unmasked settings
@@ -164,8 +165,11 @@ struct CLI {
     logger.info("✅ Updated ConfigurationManager with \(configs.count) CLI configurations")
   }
 
-  private static func parseArguments(_ args: [String]) -> (runNow: Bool, priorDays: Int) {
+  private static func parseArguments(_ args: [String]) -> (
+    runNow: Bool, priorDays: Int, hideInfo: Bool
+  ) {
     let runNow = args.contains("--now")
+    let hideInfo = args.contains("--hide")
     var priorDays = 2  // Default: 2 days before reservation
 
     // Parse --prior flag
@@ -189,7 +193,11 @@ struct CLI {
       print("⚡ Running reservations immediately (--now flag detected)")
     }
 
-    return (runNow, priorDays)
+    if hideInfo {
+      print("🕶️ Hiding sensitive information (--hide flag detected)")
+    }
+
+    return (runNow, priorDays, hideInfo)
   }
 
   private static func getExportToken() -> String {
@@ -202,29 +210,42 @@ struct CLI {
     return exportToken
   }
 
-  private static func printConfigurationSummary(_ exportConfig: CLIExportService.CLIExportConfig) {
-    print("👤 User: \(exportConfig.userSettings.name)")
-    print(
-      "📧 Email: ***@\(exportConfig.userSettings.imapEmail.components(separatedBy: "@").last ?? "unknown")"
-    )
-    print("📋 Configurations: \(exportConfig.selectedConfigurations.count)")
+  private static func printConfigurationSummary(
+    _ exportConfig: CLIExportService.CLIExportConfig, hideInfo: Bool = false
+  ) {
+    if hideInfo {
+      print("👤 User: ***")
+      print("📧 Email: ***@***")
+      print("📋 Configurations: \(exportConfig.selectedConfigurations.count)")
+    } else {
+      print("👤 User: \(exportConfig.userSettings.name)")
+      print(
+        "📧 Email: ***@\(exportConfig.userSettings.imapEmail.components(separatedBy: "@").last ?? "unknown")"
+      )
+      print("📋 Configurations: \(exportConfig.selectedConfigurations.count)")
+    }
     print()
   }
 
   private static func handleEmptyConfigurations(
-    _ exportConfig: CLIExportService.CLIExportConfig, priorDays: Int
+    _ exportConfig: CLIExportService.CLIExportConfig, priorDays: Int, hideInfo: Bool = false
   ) {
     print("❌ No configurations are scheduled to run today")
     print("📅 Today's date: \(formatDate(Date()))")
     print()
     print("📋 All configurations:")
-    for config in exportConfig.selectedConfigurations {
+    for (index, config) in exportConfig.selectedConfigurations.enumerated() {
       let nextRunDate = getNextRunDate(for: config, priorDays: priorDays)
-      print("   - \(config.name): Next run \(formatDate(nextRunDate))")
+      if hideInfo {
+        print("   - Configuration \(index + 1): Next run \(formatDate(nextRunDate))")
+      } else {
+        print("   - \(config.name): Next run \(formatDate(nextRunDate))")
+      }
     }
   }
 
-  private static func waitForReservationCompletion(configIds: [UUID]) async {
+  private static func waitForReservationCompletion(configIds: [UUID], hideInfo: Bool = false) async
+  {
     var attempts = 0
     let maxAttempts = 300  // 5 minutes timeout
     var lastStatus = ReservationRunStatus.idle
@@ -256,6 +277,7 @@ struct CLI {
       await handleConfigStatusChanges(
         currentConfigStatuses: currentConfigStatuses,
         configStatuses: &configStatuses,
+        hideInfo: hideInfo,
       )
 
       // Show logs and progress
@@ -332,29 +354,33 @@ struct CLI {
   private static func handleConfigStatusChanges(
     currentConfigStatuses: [UUID: ReservationRunStatus],
     configStatuses: inout [UUID: ReservationRunStatus],
+    hideInfo: Bool = false,
   ) async {
     for (configId, configStatus) in currentConfigStatuses {
       if configStatuses[configId] != configStatus {
         configStatuses[configId] = configStatus
         if let configName = await getConfigName(for: configId) {
-          printConfigStatus(configName: configName, status: configStatus)
+          printConfigStatus(configName: configName, status: configStatus, hideInfo: hideInfo)
         }
       }
     }
   }
 
-  private static func printConfigStatus(configName: String, status: ReservationRunStatus) {
+  private static func printConfigStatus(
+    configName: String, status: ReservationRunStatus, hideInfo: Bool = false
+  ) {
+    let displayName = hideInfo ? "Configuration" : configName
     switch status {
     case .running:
-      print("   🔄 \(configName): Starting...")
+      print("   🔄 \(displayName): Starting...")
     case .success:
-      print("   ✅ \(configName): Completed successfully!")
+      print("   ✅ \(displayName): Completed successfully!")
     case let .failed(error):
-      print("   ❌ \(configName): Failed - \(error)")
+      print("   ❌ \(displayName): Failed - \(error)")
     case .idle:
       break  // Don't show idle status
     case .stopped:
-      print("   ⏹️ \(configName): Stopped")
+      print("   ⏹️ \(displayName): Stopped")
     }
   }
 
@@ -470,7 +496,7 @@ struct CLI {
     logger.info("🚀 Starting CLI reservation run")
 
     // Parse command line arguments
-    let (runNow, priorDays) = parseArguments(args)
+    let (runNow, priorDays, hideInfo) = parseArguments(args)
 
     // Get export token
     let exportToken = getExportToken()
@@ -480,7 +506,7 @@ struct CLI {
       let exportConfig = try decodeExportToken(exportToken)
 
       // Print configuration summary
-      printConfigurationSummary(exportConfig)
+      printConfigurationSummary(exportConfig, hideInfo: hideInfo)
 
       // Filter configurations that should run today (priorDays before reservation day)
       let configsToRun = exportConfig.selectedConfigurations.filter { config in
@@ -492,7 +518,7 @@ struct CLI {
       )
 
       if configsToRun.isEmpty {
-        handleEmptyConfigurations(exportConfig, priorDays: priorDays)
+        handleEmptyConfigurations(exportConfig, priorDays: priorDays, hideInfo: hideInfo)
         return
       }
 
@@ -524,7 +550,7 @@ struct CLI {
       }
 
       // Wait for completion
-      await waitForReservationCompletion(configIds: configsToRun.map(\.id))
+      await waitForReservationCompletion(configIds: configsToRun.map(\.id), hideInfo: hideInfo)
 
       print()
 

@@ -62,7 +62,7 @@ export ODYSSEY_EXPORT_TOKEN="<exported_token>"
 
 ## 🛠️ Commands
 
-### ▶️ `run [--now] [--prior <days>]`
+### ▶️ `run [--now] [--prior <days>] [--hide]`
 
 Run real reservations for configurations scheduled N days before reservation day using the same automation engine as the GUI app.
 
@@ -75,6 +75,9 @@ Run real reservations for configurations scheduled N days before reservation day
 
 # Run 1 day before reservation (usually for debugging)
 ./odyssey-cli run --prior 1
+
+# Run with hidden sensitive information (perfect for public CI/CD)
+./odyssey-cli run --hide
 ```
 
 **Features:**
@@ -85,6 +88,43 @@ Run real reservations for configurations scheduled N days before reservation day
 - ✅ **Progress Tracking**: Shows real-time progress and status updates.
 - ✅ **Error Handling**: Displays detailed error messages if reservation fails.
 - ✅ **Timeout Protection**: 5-minute timeout to prevent hanging.
+- ✅ **Privacy Mode**: `--hide` flag masks sensitive information for public environments.
+
+### 🕶️ Privacy Mode (`--hide`)
+
+The `--hide` flag is designed for use in public CI/CD environments where you want to track reservation status without exposing sensitive information.
+
+**What gets hidden:**
+
+- User name (shows "👤 User: \*\*\*")
+- Email address (shows "📧 Email: **_@_**")
+- Configuration names (shows "Configuration X" instead of actual names)
+- Status updates use generic "Configuration" instead of specific names
+
+**Example output with `--hide`:**
+
+```bash
+./odyssey-cli run --hide
+🕶️ Hiding sensitive information (--hide flag detected)
+👤 User: ***
+📧 Email: ***@***
+📋 Configurations: 2
+
+🔍 Found 0 configurations scheduled for today (2 days before reservation)
+❌ No configurations are scheduled to run today
+📅 Today's date: Aug 6, 2025
+
+📋 All configurations:
+   - Configuration 1: Next run Aug 12, 2025
+   - Configuration 2: Next run Aug 10, 2025
+```
+
+**Perfect for:**
+
+- Public GitHub Actions workflows
+- Shared CI/CD pipelines
+- Screenshots in documentation
+- Any environment where you want to protect privacy
 
 ### 📋 `configs`
 
@@ -183,10 +223,12 @@ Use only macOS runners.
 The workflow file is already included in the repository. It will automatically:
 
 - Download the latest CLI from releases.
-- Run reservations using your export token.
+- Run reservations using your export token with `--hide` flag for privacy.
 - Upload logs for debugging.
 
 **Refer to `.github/workflows/scheduled-reservations.yml` pipeline** for the complete automation setup.
+
+> **💡 Privacy Tip:** The workflow uses the `--hide` flag to protect sensitive information in public logs while still allowing you to track reservation status.
 
 ## 🔒 Security
 

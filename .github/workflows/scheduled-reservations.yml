@@ -24,6 +24,6 @@ jobs:
       - name: Run Reservations
         run: |
           echo "🚀 Starting ODYSSEY reservation automation..."
-          ./odyssey-cli run
+          ./odyssey-cli run --hide
         env:
           ODYSSEY_EXPORT_TOKEN: ${{ secrets.ODYSSEY_EXPORT_TOKEN }}
