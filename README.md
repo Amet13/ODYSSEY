@@ -61,15 +61,14 @@
 
 This software is provided "as is" without warranty. Users are responsible for:
 
-- Ensuring compliance with Ottawa Recreation's terms of service.
 - Respecting booking policies and limitations.
 - Using the application in accordance with applicable laws.
 - Understanding that automation may be subject to website terms of service.
 
 ### 🔒 Privacy & Security
 
-- All automation runs locally on your machine.
-- No user data is transmitted to external servers.
+- All automation runs locally on your machine (except CI).
+- No user data is transmitted to external servers (except CI).
 - Credentials are stored securely in macOS Keychain.
 - No tracking or analytics are collected.
 

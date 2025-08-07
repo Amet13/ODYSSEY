@@ -26,9 +26,34 @@ jobs:
         with:
           xcode-version: "16.4"
 
+      - name: Cache Homebrew packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            /opt/homebrew/Cellar
+            /opt/homebrew/Library/Taps
+            /opt/homebrew/var/homebrew
+          key: ${{ runner.os }}-homebrew-${{ hashFiles('Scripts/odyssey.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-homebrew-
+
+      - name: Check Homebrew cache status
+        run: |
+          echo "🔍 Checking Homebrew cache status..."
+          echo "Installed packages:"
+          brew list --formula | grep -E "(xcodegen|swift-format|shellcheck|yamllint|markdownlint|actionlint|create-dmg)" || echo "No cached packages found"
+
       - name: Run CI pipeline
+        env:
+          CI: true
         run: |
           ./Scripts/odyssey.sh ci
+
+      - name: Show final cache status
+        run: |
+          echo "🔍 Final Homebrew cache status:"
+          echo "All installed packages:"
+          brew list --formula | sort
 
   # For releases - use our deploy script
   release:
@@ -45,9 +70,34 @@ jobs:
         with:
           xcode-version: "16.4"
 
+      - name: Cache Homebrew packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            /opt/homebrew/Cellar
+            /opt/homebrew/Library/Taps
+            /opt/homebrew/var/homebrew
+          key: ${{ runner.os }}-homebrew-${{ hashFiles('Scripts/odyssey.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-homebrew-
+
+      - name: Check Homebrew cache status
+        run: |
+          echo "🔍 Checking Homebrew cache status..."
+          echo "Installed packages:"
+          brew list --formula | grep -E "(xcodegen|swift-format|shellcheck|yamllint|markdownlint|actionlint|create-dmg)" || echo "No cached packages found"
+
       - name: Run CI pipeline
+        env:
+          CI: true
         run: |
           ./Scripts/odyssey.sh ci
+
+      - name: Show final cache status
+        run: |
+          echo "🔍 Final Homebrew cache status:"
+          echo "All installed packages:"
+          brew list --formula | sort
 
       - name: Build and prepare release
         run: |
