@@ -84,8 +84,6 @@ jobs:
             ODYSSEY.dmg
           name: ${{ github.ref_name }}
           body: |
-            # 🚀 ODYSSEY ${{ github.ref_name }} Release
-
             ${{ steps.changelog.outputs.CHANGELOG }}
 
             ## 📦 Installation

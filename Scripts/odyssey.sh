@@ -878,38 +878,27 @@ generate_changelog() {
         print_status "info" "Generating changelog for all commits (no previous tag found)"
     fi
 
-    # Categorize commits for better organization
-    local categorized_changelog=""
+    # Output simple changelog without categorization
+    local simple_changelog=""
     if [ -n "$changelog" ]; then
-        categorized_changelog="## 🚀 New Features"$'\n'
-        categorized_changelog+="$(echo "$changelog" | grep -i "add\|new\|feature" || echo "- No new features")"$'\n\n'
-
-        categorized_changelog+="## 🐛 Bug Fixes"$'\n'
-        categorized_changelog+="$(echo "$changelog" | grep -i "fix\|bug\|issue" || echo "- No bug fixes")"$'\n\n'
-
-        categorized_changelog+="## 🔧 Improvements"$'\n'
-        categorized_changelog+="$(echo "$changelog" | grep -i "improve\|enhance\|update\|refactor" || echo "- No improvements")"$'\n\n'
-
-        categorized_changelog+="## 📚 Documentation"$'\n'
-        categorized_changelog+="$(echo "$changelog" | grep -i "doc\|readme\|comment" || echo "- No documentation changes")"$'\n\n'
-
-        categorized_changelog+="## 🔄 Other Changes"$'\n'
-        categorized_changelog+="$(echo "$changelog" | grep -v -i "add\|new\|feature\|fix\|bug\|issue\|improve\|enhance\|update\|refactor\|doc\|readme\|comment" || echo "- No other changes")"$'\n'
+        simple_changelog="$changelog"
+    else
+        simple_changelog="- No commits found"
     fi
 
     # Output for GitHub Actions
     if [ -n "$GITHUB_OUTPUT" ]; then
         {
             echo "CHANGELOG<<EOF"
-            echo "$categorized_changelog"
+            echo "$simple_changelog"
             echo "EOF"
         } >> "$GITHUB_OUTPUT"
-        print_status "success" "Categorized changelog generated and sent to GitHub Actions"
+        print_status "success" "Simple changelog generated and sent to GitHub Actions"
     fi
 
     # Also output to stdout for local use
-    echo "$categorized_changelog"
-    print_status "success" "Categorized commit-based changelog generated"
+    echo "$simple_changelog"
+    print_status "success" "Simple commit-based changelog generated"
 }
 
 # Function to show application logs
