@@ -127,6 +127,9 @@ temp/
 .env.test.local
 .env.production.local
 
+# Screenshots (generated during CLI runs)
+screenshots/
+
 # Build artifacts
 *.app
 *.dmg

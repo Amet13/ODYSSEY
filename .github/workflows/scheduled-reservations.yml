@@ -24,6 +24,14 @@ jobs:
       - name: Run Reservations
         run: |
           echo "🚀 Starting ODYSSEY reservation automation..."
-          ./odyssey-cli run --hide
+          ./odyssey-cli run --hide --screenshots
         env:
           ODYSSEY_EXPORT_TOKEN: ${{ secrets.ODYSSEY_EXPORT_TOKEN }}
+
+      - name: Upload screenshots as artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-screenshots
+          path: screenshots/
+          retention-days: 30

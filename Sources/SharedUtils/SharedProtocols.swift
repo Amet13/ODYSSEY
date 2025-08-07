@@ -55,7 +55,7 @@ public final class ServiceRegistry {
 /// Protocol for the main WebKit automation service used by ODYSSEY.
 @MainActor
 @preconcurrency
-public protocol WebKitServiceProtocol: AnyObject {
+public protocol WebKitServiceProtocol: AnyObject, Sendable {
   /// Indicates if the service is connected to a web automation session
   var isConnected: Bool { get }
   /// Indicates if the service is currently running a web automation task
@@ -214,6 +214,20 @@ public protocol WebKitServiceProtocol: AnyObject {
    - Returns: True if successful.
    */
   func clickTimeButton(timeString: String, dayName: String) async -> Bool
+
+  // Screenshot functionality
+  /**
+   Sets the screenshot directory for failure screenshots.
+   - Parameter directory: The directory to save screenshots.
+   */
+  func setScreenshotDirectory(_ directory: String)
+
+  /**
+   Takes a screenshot of the current web page and saves it to the configured directory.
+   - Parameter filename: Optional filename for the screenshot.
+   - Returns: The path to the saved screenshot, or nil if failed.
+   */
+  func takeScreenshot(filename: String?) async -> String?
 }
 
 // MARK: - EmailService Protocol

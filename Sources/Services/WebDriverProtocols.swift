@@ -51,6 +51,10 @@ public protocol WebAutomationServiceProtocol: ObservableObject, Sendable {
   func isEmailVerificationRequired() async -> Bool
   func handleEmailVerification(verificationStart: Date) async -> Bool
   func checkReservationComplete() async -> Bool
+
+  // Screenshot functionality
+  func setScreenshotDirectory(_ directory: String)
+  func takeScreenshot(filename: String?) async -> String?
 }
 
 // MARK: - Web Element Protocol.

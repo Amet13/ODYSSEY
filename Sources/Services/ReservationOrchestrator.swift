@@ -981,6 +981,27 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       }
     } catch {
       logger.error("❌ Reservation failed for \(config.name): \(error.localizedDescription).")
+
+      // Take screenshot before disconnecting if WebKit service is available
+      if separateWebKitService.isConnected, separateWebKitService.webView != nil {
+        logger.info("📸 Taking failure screenshot for \(config.name)...")
+
+        // Set screenshot directory on the WebKit service
+        await MainActor.run {
+          separateWebKitService.setScreenshotDirectory("screenshots")
+        }
+
+        let filename =
+          "failure_\(config.name.replacingOccurrences(of: " ", with: "_"))_\(Date().timeIntervalSince1970).png"
+        if let screenshotPath = await separateWebKitService.takeScreenshot(filename: filename) {
+          logger.info("📸 Failure screenshot saved: \(screenshotPath)")
+        } else {
+          logger.error("❌ Failed to capture failure screenshot for \(config.name)")
+        }
+      } else {
+        logger.warning("⚠️ WebKit service not available for screenshot capture")
+      }
+
       await MainActor.run {
         statusManager.setLastRunInfo(
           for: config.id,

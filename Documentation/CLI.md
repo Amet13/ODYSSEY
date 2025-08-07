@@ -62,7 +62,7 @@ export ODYSSEY_EXPORT_TOKEN="<exported_token>"
 
 ## 🛠️ Commands
 
-### ▶️ `run [--now] [--prior <days>] [--hide]`
+### ▶️ `run [--now] [--prior <days>] [--hide] [--screenshots]`
 
 Run real reservations for configurations scheduled N days before reservation day using the same automation engine as the GUI app.
 
@@ -78,6 +78,12 @@ Run real reservations for configurations scheduled N days before reservation day
 
 # Run with hidden sensitive information (perfect for public CI/CD)
 ./odyssey-cli run --hide
+
+# Run with screenshot capture on failure (for debugging)
+./odyssey-cli run --screenshots
+
+# Combine multiple flags
+./odyssey-cli run --screenshots --hide --now
 ```
 
 **Features:**

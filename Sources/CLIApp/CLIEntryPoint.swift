@@ -112,6 +112,7 @@ struct CLI {
         odyssey-cli run --now              # Run configurations immediately
         odyssey-cli run --prior 3          # Run 3 days before reservation (default: 2)
         odyssey-cli run --hide             # Hide sensitive information in output
+        odyssey-cli run --screenshots      # Enable screenshot capture on failure
         odyssey-cli configs                # List all configurations
         odyssey-cli settings               # Show user settings from export token
         odyssey-cli settings --unmask      # Show unmasked settings
@@ -166,10 +167,11 @@ struct CLI {
   }
 
   private static func parseArguments(_ args: [String]) -> (
-    runNow: Bool, priorDays: Int, hideInfo: Bool
+    runNow: Bool, priorDays: Int, hideInfo: Bool, enableScreenshots: Bool
   ) {
     let runNow = args.contains("--now")
     let hideInfo = args.contains("--hide")
+    let enableScreenshots = args.contains("--screenshots")
     var priorDays = 2  // Default: 2 days before reservation
 
     // Parse --prior flag
@@ -197,7 +199,11 @@ struct CLI {
       print("🕶️ Hiding sensitive information (--hide flag detected)")
     }
 
-    return (runNow, priorDays, hideInfo)
+    if enableScreenshots {
+      print("📸 Screenshot capture enabled (--screenshots flag detected)")
+    }
+
+    return (runNow, priorDays, hideInfo, enableScreenshots)
   }
 
   private static func getExportToken() -> String {
@@ -208,6 +214,53 @@ struct CLI {
       exit(1)
     }
     return exportToken
+  }
+
+  private static func setupScreenshotDirectory() async {
+    // Create screenshots directory in current working directory
+    let screenshotDir = "screenshots"
+
+    let webKitService = await ServiceRegistry.shared.resolve(WebKitServiceProtocol.self)
+    await MainActor.run {
+      webKitService.setScreenshotDirectory(screenshotDir)
+    }
+
+    logger.info("📸 Screenshot directory configured: \(screenshotDir)")
+  }
+
+  private static func captureFailureScreenshots(configStatuses: [UUID: ReservationRunStatus]) async
+  {
+    let failedConfigs = configStatuses.filter { _, status in
+      if case .failed = status { return true }
+      return false
+    }
+
+    if failedConfigs.isEmpty {
+      return
+    }
+
+    print("📸 Screenshots were captured during reservation failures.")
+    print("📸 Check the 'screenshots/' directory for failure screenshots.")
+
+    // List any existing screenshot files
+    let fileManager = FileManager.default
+    let screenshotDir = "screenshots"
+
+    if fileManager.fileExists(atPath: screenshotDir) {
+      do {
+        let files = try fileManager.contentsOfDirectory(atPath: screenshotDir)
+        let screenshotFiles = files.filter { $0.hasSuffix(".png") }
+
+        if !screenshotFiles.isEmpty {
+          print("📸 Found \(screenshotFiles.count) screenshot file(s):")
+          for file in screenshotFiles {
+            print("   📸 \(file)")
+          }
+        }
+      } catch {
+        print("⚠️ Could not list screenshot files: \(error.localizedDescription)")
+      }
+    }
   }
 
   private static func printConfigurationSummary(
@@ -244,8 +297,11 @@ struct CLI {
     }
   }
 
-  private static func waitForReservationCompletion(configIds: [UUID], hideInfo: Bool = false) async
-  {
+  private static func waitForReservationCompletion(
+    configIds: [UUID],
+    hideInfo: Bool = false,
+    enableScreenshots: Bool = false
+  ) async {
     var attempts = 0
     let maxAttempts = 300  // 5 minutes timeout
     var lastStatus = ReservationRunStatus.idle
@@ -290,6 +346,12 @@ struct CLI {
       // Check if all configs are done
       if await areAllConfigsDone(configStatuses: configStatuses) {
         await printDetailedResults(configIds: configIds, finalStatuses: configStatuses)
+
+        // Capture screenshots for failed configurations (only if enabled)
+        if enableScreenshots {
+          await captureFailureScreenshots(configStatuses: configStatuses)
+        }
+
         break
       }
 
@@ -303,6 +365,11 @@ struct CLI {
       logToTerminal("⏰ Reservations timed out after 5 minutes", level: "ERROR")
       await printDetailedResults(
         configIds: configIds, finalStatuses: configStatuses, timedOut: true)
+
+      // Capture screenshots for timed out configurations (only if enabled)
+      if enableScreenshots {
+        await captureFailureScreenshots(configStatuses: configStatuses)
+      }
     }
   }
 
@@ -496,7 +563,7 @@ struct CLI {
     logger.info("🚀 Starting CLI reservation run")
 
     // Parse command line arguments
-    let (runNow, priorDays, hideInfo) = parseArguments(args)
+    let (runNow, priorDays, hideInfo, enableScreenshots) = parseArguments(args)
 
     // Get export token
     let exportToken = getExportToken()
@@ -520,6 +587,11 @@ struct CLI {
       if configsToRun.isEmpty {
         handleEmptyConfigurations(exportConfig, priorDays: priorDays, hideInfo: hideInfo)
         return
+      }
+
+      // Setup screenshot directory for failure captures (only if screenshots enabled)
+      if enableScreenshots {
+        await setupScreenshotDirectory()
       }
 
       // Check current time and wait if necessary (skip if --now is used)
@@ -550,7 +622,11 @@ struct CLI {
       }
 
       // Wait for completion
-      await waitForReservationCompletion(configIds: configsToRun.map(\.id), hideInfo: hideInfo)
+      await waitForReservationCompletion(
+        configIds: configsToRun.map(\.id),
+        hideInfo: hideInfo,
+        enableScreenshots: enableScreenshots
+      )
 
       print()
 

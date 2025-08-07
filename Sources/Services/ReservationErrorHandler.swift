@@ -49,6 +49,27 @@ public final class ReservationErrorHandler: @unchecked Sendable {
     }
 
     logger.error("❌ Reservation failed for \(config.name): \(error.localizedDescription).")
+
+    // Take screenshot before disconnecting if WebKit service is available
+    if webKitService.isConnected, webKitService.webView != nil {
+      logger.info("📸 Taking failure screenshot for \(config.name)...")
+
+      // Set screenshot directory on the WebKit service
+      await MainActor.run {
+        webKitService.setScreenshotDirectory("screenshots")
+      }
+
+      let filename =
+        "failure_\(config.name.replacingOccurrences(of: " ", with: "_"))_\(Date().timeIntervalSince1970).png"
+      if let screenshotPath = await webKitService.takeScreenshot(filename: filename) {
+        logger.info("📸 Failure screenshot saved: \(screenshotPath)")
+      } else {
+        logger.error("❌ Failed to capture failure screenshot for \(config.name)")
+      }
+    } else {
+      logger.warning("⚠️ WebKit service not available for screenshot capture")
+    }
+
     logger.info("🧹 Cleaning up WebKit session after error.")
 
     let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure

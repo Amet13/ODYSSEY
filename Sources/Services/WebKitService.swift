@@ -98,6 +98,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
   // Completion handlers for async navigation and script operations
   var navigationCompletions: [String: @Sendable (Bool) -> Void] = [:]
   private var scriptCompletions: [String: @Sendable (Any?) -> Void] = [:]
+
+  // Screenshot functionality
+  private var screenshotDirectory: String?
   private var elementCompletions: [String: @Sendable (String?) -> Void] = [:]
 
   @MainActor private static var liveInstanceCount = 0
@@ -319,6 +322,97 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     } catch {
       logger.error(
         "❌ [ButtonScan] JS error: \(error.localizedDescription, privacy: .public) | \(error)")
+    }
+  }
+
+  // MARK: - Screenshot Methods
+
+  /**
+   Sets the screenshot directory for failure screenshots.
+   - Parameter directory: The directory to save screenshots.
+   */
+  public func setScreenshotDirectory(_ directory: String) {
+    screenshotDirectory = directory
+    logger.info("📸 Screenshot directory set to: \(directory)")
+  }
+
+  /**
+   Takes a screenshot of the current web page and saves it to the configured directory.
+   - Parameter filename: Optional filename for the screenshot.
+   - Returns: The path to the saved screenshot, or nil if failed.
+   */
+  public func takeScreenshot(filename: String? = nil) async -> String? {
+    guard let webView = webView else {
+      logger.error("📸 Cannot take screenshot: WebView is nil")
+      return nil
+    }
+
+    guard let screenshotDirectory = screenshotDirectory else {
+      logger.error("📸 Cannot take screenshot: Screenshot directory not configured")
+      return nil
+    }
+
+    logger.info("📸 Starting screenshot capture for WebView: \(webView)")
+
+    do {
+      // Create screenshot directory if it doesn't exist
+      let fileManager = FileManager.default
+      if !fileManager.fileExists(atPath: screenshotDirectory) {
+        try fileManager.createDirectory(
+          atPath: screenshotDirectory, withIntermediateDirectories: true)
+        logger.info("📁 Created screenshot directory: \(screenshotDirectory)")
+      }
+
+      // Generate filename if not provided
+      let finalFilename = filename ?? "screenshot_\(Date().timeIntervalSince1970).png"
+      let screenshotPath = "\(screenshotDirectory)/\(finalFilename)"
+
+      logger.info("📸 Taking screenshot with WebView: \(webView)")
+
+      // Take screenshot using WKWebView's takeSnapshot method and convert to PNG data immediately
+      let pngData = try await withCheckedThrowingContinuation {
+        (continuation: CheckedContinuation<Data, Error>) in
+        // Ensure we're on the main actor for WebKit operations
+        Task { @MainActor in
+          webView.takeSnapshot(with: nil) { image, error in
+            if let error = error {
+              continuation.resume(throwing: error)
+            } else if let image = image {
+              // Convert NSImage to PNG data immediately on MainActor
+              guard let tiffData = image.tiffRepresentation,
+                let bitmapRep = NSBitmapImageRep(data: tiffData),
+                let pngData = bitmapRep.representation(
+                  using: NSBitmapImageRep.FileType.png, properties: [:])
+              else {
+                continuation.resume(
+                  throwing: NSError(
+                    domain: "WebKitService", code: -1,
+                    userInfo: [
+                      NSLocalizedDescriptionKey: "Failed to convert screenshot to PNG format"
+                    ]))
+                return
+              }
+              continuation.resume(returning: pngData)
+            } else {
+              continuation.resume(
+                throwing: NSError(
+                  domain: "WebKitService", code: -1,
+                  userInfo: [NSLocalizedDescriptionKey: "Failed to capture screenshot"]))
+            }
+          }
+        }
+      }
+
+      // Write PNG data to file
+      try pngData.write(to: URL(fileURLWithPath: screenshotPath))
+
+      logger.info("📸 Actual screenshot saved successfully: \(screenshotPath)")
+      return screenshotPath
+
+    } catch {
+      logger.error("📸 Failed to take screenshot: \(error.localizedDescription)")
+      logger.error("📸 Error details: \(error)")
+      return nil
     }
   }
 
