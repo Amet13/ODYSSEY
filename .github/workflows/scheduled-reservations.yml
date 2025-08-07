@@ -10,8 +10,16 @@ jobs:
   run-reservations:
     runs-on: macos-15
     name: Execute Scheduled Reservations
+    timeout-minutes: 10
+    env:
+      TZ: America/Toronto
 
     steps:
+      - name: Set timezone to Toronto
+        run: |
+          sudo systemsetup -settimezone "America/Toronto"
+          echo "System timezone set to Toronto: $(date)"
+
       - name: Checkout code
         uses: actions/checkout@v4
 

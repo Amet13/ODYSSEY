@@ -17,7 +17,14 @@ jobs:
   ci:
     if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/v')
     runs-on: macos-15
+    env:
+      TZ: America/Toronto
     steps:
+      - name: Set timezone to Toronto
+        run: |
+          sudo systemsetup -settimezone "America/Toronto"
+          echo "System timezone set to Toronto: $(date)"
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -36,7 +43,14 @@ jobs:
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: macos-15
+    env:
+      TZ: America/Toronto
     steps:
+      - name: Set timezone to Toronto
+        run: |
+          sudo systemsetup -settimezone "America/Toronto"
+          echo "System timezone set to Toronto: $(date)"
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
