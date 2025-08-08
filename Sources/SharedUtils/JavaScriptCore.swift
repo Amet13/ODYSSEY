@@ -30,8 +30,8 @@ public final class JavaScriptCore {
 
             // Name field selectors
             nameSelectors: [
-                'input[name*="field2021"]',
-                'input[id*="field2021"]'
+                'input[name*="field"]',
+                'input[id*="field"]'
             ],
 
             // Submit button selectors

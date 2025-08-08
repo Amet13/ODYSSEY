@@ -78,7 +78,7 @@ public final class JavaScriptPages {
     checkContactInfoPage: function() {
         const phoneField = document.getElementById('telephone');
         const emailField = document.getElementById('email');
-        const nameField = document.getElementById('field2021');
+        const nameField = document.querySelector('input[name*="field"], input[id*="field"]');
         const confirmButton = document.querySelector('button[type="submit"], input[type="submit"], .mdc-button');
 
         return !!(phoneField || emailField || nameField || confirmButton);
