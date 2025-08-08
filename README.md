@@ -57,21 +57,21 @@ This application demonstrates modern macOS development techniques including Swif
 
 **✅ Permitted:**
 
-- Personal educational and development purposes
-- Respecting rate limits with built-in delays
+- Personal educational and development purposes.
+- Respecting rate limits with built-in delays.
 
 **❌ Prohibited:**
 
-- Commercial services or reselling
-- Sharing accounts or credentials
-- Any malicious or harmful purposes
+- Commercial services or reselling.
+- Sharing accounts or credentials.
+- Any malicious or harmful purposes.
 
 ### 🔒 Privacy & Security
 
-- All automation runs locally on your machine (except CI)
-- No user data transmitted to external servers (except CI)
-- Credentials stored securely in macOS Keychain
-- No tracking or analytics collected
+- All automation runs locally on your machine (except CI).
+- No user data transmitted to external servers (except CI).
+- Credentials stored securely in macOS Keychain.
+- No tracking or analytics collected.
 
 **Legal Disclaimer:** This software is provided "as is" without warranty. Users are responsible for using the application in accordance with applicable laws and website terms of service.
 

@@ -82,11 +82,11 @@ class WebKitNavigation: WebKitNavigationProtocol {
     logger.info("🔄 Refreshing page...")
     webView.reload()
     try await waitForPageLoad()
-    logger.info("✅ Page refresh completed")
+    logger.info("✅ Page refresh completed.")
   }
 
   func waitForElement(_ selector: String) async throws -> Bool {
-    logger.info("🔍 Waiting for element: \(selector)")
+    logger.info("🔍 Waiting for element: \(selector).")
 
     let startTime = Date()
     while Date().timeIntervalSince(startTime) < timeout {
@@ -95,17 +95,17 @@ class WebKitNavigation: WebKitNavigationProtocol {
           try await webView
           .evaluateJavaScript("window.odyssey.findElementBySelector('\(selector)');")
         if let found = result as? Bool, found {
-          logger.info("✅ Element found: \(selector)")
+          logger.info("✅ Element found: \(selector).")
           return true
         }
       } catch {
-        logger.error("❌ JavaScript evaluation failed: \(error.localizedDescription)")
+        logger.error("❌ JavaScript evaluation failed: \(error.localizedDescription).")
       }
 
       try await Task.sleep(nanoseconds: 100_000_000)  // 0.1 seconds
     }
 
-    logger.error("❌ Element not found: \(selector)")
+    logger.error("❌ Element not found: \(selector).")
     return false
   }
 }

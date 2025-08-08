@@ -2287,12 +2287,12 @@ public class WebKitScriptMessageHandler: NSObject, WKScriptMessageHandler {
       if let body = message.body as? [String: Any], let type = body["type"] as? String {
         switch type {
         case "scriptInjected":
-          delegate?.logger.info("Automation scripts injected successfully")
+          delegate?.logger.info("✅ Automation scripts injected successfully.")
         case "contactFormCheckError":
           if let data = body["data"] as? [String: Any], let msg = data["message"] as? String,
             let stack = data["stack"] as? String
           {
-            delegate?.logger.error("[ContactForm][JS] Error: \(msg)\nStack: \(stack)")
+            delegate?.logger.error("❌ [ContactForm][JS] Error: \(msg)\nStack: \(stack).")
           }
         case "contactFormTimeout":
           if let data = body["data"] as? [String: Any], let html = data["html"] as? String,
@@ -2307,7 +2307,7 @@ public class WebKitScriptMessageHandler: NSObject, WKScriptMessageHandler {
           if let data = body["data"] as? [String: Any], let msg = data["message"] as? String,
             let stack = data["stack"] as? String
           {
-            delegate?.logger.error("[ContactForm][JS] Timeout error: \(msg)\nStack: \(stack)")
+            delegate?.logger.error("❌ [ContactForm][JS] Timeout error: \(msg)\nStack: \(stack).")
           }
         default:
           break
