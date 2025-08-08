@@ -1,82 +1,318 @@
-<div align="center">
-  <img src="Sources/Resources/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" alt="ODYSSEY Logo" width="200" style="border-radius: 20px;">
-  <h1>ODYSSEY</h1>
-  <p><strong>Ottawa Drop-in Your Sports & Schedule Easily Yourself</strong></p>
-  <p><em>macOS Menu Bar App + Command Line Interface for Sports Reservation Automation</em></p>
-  <p>
-    <a href="https://github.com/Amet13/ODYSSEY/actions/workflows/build-release.yml">
-<img src="https://github.com/Amet13/ODYSSEY/actions/workflows/build-release.yml/badge.svg" alt="CI/CD Status">
-    </a>
-    <a href="https://github.com/Amet13/ODYSSEY/releases">
-      <img src="https://img.shields.io/github/v/release/Amet13/ODYSSEY?label=version" alt="Latest Release">
-    </a>
-    <a href="https://github.com/Amet13/ODYSSEY/blob/main/LICENSE">
-      <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License">
-    </a>
-  </p>
-</div>
+# ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself
+
+> **Automated sports reservation booking for Ottawa Recreation facilities**
+
+A sophisticated dual-interface application that automates sports reservation bookings for Ottawa Recreation facilities, featuring both GUI and CLI versions for maximum flexibility.
 
 ## 🚀 Quick Start
 
-- **Download** the `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
-- **Install:** Open the installer and drag `ODYSSEY.app` to **Applications**.
-- **Add to the quarantine:** Run in your terminal:
+### Prerequisites
+- **macOS 15 or later** (for users)
+- **Xcode 16+** and Homebrew (for development)
+- Valid Ottawa Recreation account
 
-  ```bash
-  sudo xattr -rd com.apple.quarantine /Applications/ODYSSEY.app
-  ```
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Amet13/ODYSSEY.git
+   cd ODYSSEY
+   ```
 
-- **Launch:** Open the app. You'll see a new icon in your menu bar.
-- **Configure:** Click the icon to add your settings and create your first configuration(s).
-- **Automate!** Enable autorun, or run it manually, and let ODYSSEY book your sports for you! 🎉
+2. Build the application:
+   ```bash
+   ./Scripts/odyssey.sh build
+   ```
 
-## ✨ Key Features
+3. Launch the GUI version or use the CLI:
+   ```bash
+   # GUI (menu bar app)
+   open ODYSSEY.app
+   
+   # CLI
+   ./Scripts/odyssey.sh run
+   ```
 
-- 🖥️ **GUI & CLI versions** – Menu bar app + command-line automation.
-- 🛡️ **Native WebKit automation** – Robust, human-like browser automation.
-- ⏰ **Smart scheduling** – Automated runs based on your time slots.
-- 🔒 **Secure & private** – Local processing, Keychain storage, no external data.
-- 📧 **Email integration** – Automated verification and confirmations.
-- 🎨 **Modern interface** – Beautiful SwiftUI with dark mode support.
+### First Configuration
+1. Open the menu bar app (GUI) or use CLI export
+2. Add your Ottawa Recreation credentials
+3. Configure your preferred sports and time slots
+4. Test the automation with a dry run
 
-## 📚 Documentation
+## 🎯 Project Overview
 
-- **[USER_GUIDE.md](Documentation/USER_GUIDE.md)** – Complete app setup and usage guide.
-- **[CLI.md](Documentation/CLI.md)** – Command-line interface for CI/CD and remote automation.
-- **[DEVELOPMENT.md](Documentation/DEVELOPMENT.md)** – Development workflow and contribution guidelines.
+ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 
-## ⚖️ Ethical Considerations & Legal Notice
+### 🖥️ GUI Version (macOS Menu Bar App)
 
-### 🎓 Educational Purpose
+- Requires **macOS 15 or later** for users (see README for details)
+- For development: requires **Xcode 16+**, Homebrew
+- Runs quietly in the menu bar (not dock) using `LSUIElement = true`
+- Provides a modern SwiftUI interface for configuration management
+- Features anti-detection (human-like automation), secure Keychain storage, and automated email verification (IMAP/Gmail)
 
-This application demonstrates modern macOS development techniques including SwiftUI & AppKit integration, WebKit automation, menu bar applications, and secure credential management.
+### 💻 CLI Version (Command Line Interface)
 
-### 🛡️ Responsible Usage
+- Same macOS requirements as GUI version
+- Command-line interface for remote automation
+- Perfect for CI/CD pipelines and server environments
+- Uses the same WebKit automation engine as the GUI
 
-**IMPORTANT:** This tool is designed for educational purposes and legitimate personal use only.
+### 🔄 Shared Core
 
-**✅ Permitted:**
+- Automates web-based reservation booking for Ottawa Recreation facilities
+- Uses **Swift WebKit (WKWebView)** for robust, native web automation
+- Schedules automatic runs based on configured time slots
+- Supports multiple configurations for different sports and facilities
+- Includes comprehensive logging and error handling
+- Both versions share the same backend services and automation engine
 
-- Personal educational and development purposes.
-- Respecting rate limits with built-in delays.
+## 🏗️ Architecture & Technology Stack
 
-**❌ Prohibited:**
+### Core Technologies
 
-- Commercial services or reselling.
-- Sharing accounts or credentials.
-- Any malicious or harmful purposes.
+- **SwiftUI** - Modern, declarative UI framework for macOS
+- **AppKit** - Native macOS menu bar integration via `StatusBarController`
+- **WebKit (WKWebView)** - Native web automation engine for browser automation
+- **Combine** - Reactive programming for async operations and state management
+- **UserDefaults** - Persistent configuration storage via `ConfigurationManager`
+- **Timer** - Automated scheduling system for reservation automation
+- **os.log** - Structured logging for debugging and monitoring
 
-### 🔒 Privacy & Security
+### Modular Architecture
 
-- All automation runs locally on your machine (except CI).
-- No user data transmitted to external servers (except CI).
-- Credentials stored securely in macOS Keychain.
-- No tracking or analytics collected.
+ODYSSEY uses a **modular Swift Package Manager** architecture with three main targets:
 
-**Legal Disclaimer:** This software is provided "as is" without warranty. Users are responsible for using the application in accordance with applicable laws and website terms of service.
+- **`ODYSSEY` (GUI):** macOS menu bar application built with SwiftUI
+- **`ODYSSEYCLI` (CLI):** Command-line interface for automation
+- **`ODYSSEYBackend` (Library):** Shared backend services and automation engine
 
-By using this application, you acknowledge that you understand and agree to these terms of use.
+### Architecture Layers
 
-## 📄 License
+- **Presentation:** User interface and user interaction logic (`Views/`, `Controllers/`)
+- **Application:** Business logic orchestration and use cases (`Application/`)
+- **Domain:** Core business entities and domain logic (`Domain/`)
+- **Infrastructure:** External services, automation, and data persistence (`Infrastructure/`, `Services/`)
+- **Shared:** Common utilities and protocols (`SharedUtils/`, `SharedCore/`)
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+### Key Components
+
+#### GUI Components
+
+1. **AppDelegate** - Application lifecycle and scheduling management
+2. **StatusBarController** - Menu bar integration and UI management
+3. **Views** - SwiftUI interface components for configuration management
+
+#### CLI Components
+
+4. **CLIEntryPoint.swift** - Command-line interface entry point and argument parsing
+5. **CLIExportService** - Configuration export/import for CLI usage
+
+#### Shared Core Components
+
+6. **ConfigurationManager** - Settings and data persistence (singleton)
+7. **ReservationOrchestrator** - Web automation orchestration
+8. **WebKitService** - Native web automation engine (singleton)
+9. **FacilityService** - Web scraping and facility data management
+10. **EmailService** - IMAP integration and email testing
+11. **UserSettingsManager** - User configuration and settings management
+12. **ValidationService** - Centralized validation logic (singleton)
+13. **AppConstants** - Centralized application constants
+
+## 🎯 Development Guidelines
+
+### Code Style & Standards
+
+- **Swift Style**: Follow official Swift style guide and swift-format rules
+- **Documentation**: Use JSDoc-style comments for all public methods and classes
+- **Error Handling**: Use structured logging with `os.log` and proper error propagation
+- **Memory Management**: Use `[weak self]` capture lists and proper cleanup
+- **Naming**: Use clear, descriptive names following Swift conventions
+
+### Architecture Principles
+
+- **Protocol-Oriented Design**: Clear interfaces defined in `Sources/SharedCore/Protocols/` and `Sources/SharedUtils/SharedProtocols.swift`
+- **Separation of Concerns**: Each service has a single responsibility
+- **Dependency Injection**: Use singletons for shared services
+- **Reactive Programming**: Use Combine for state management and async operations
+- **Error Recovery**: Implement graceful error handling throughout
+- **Performance**: Optimize for memory usage and responsiveness
+- **Validation**: Centralized validation in `ValidationService`
+- **Constants**: Centralized constants in `AppConstants`
+
+### Security & Privacy
+
+- **Local Processing**: All automation runs locally on user's machine
+- **User Consent**: Require explicit permission for all external integrations
+- **Data Privacy**: No user data transmitted without consent
+- **Secure Connections**: Use HTTPS and App Transport Security
+- **Input Validation**: Validate and sanitize all user inputs
+
+### WebKit Integration
+
+- **Native Approach**: Uses WKWebView for web automation
+- **No External Dependencies**: No ChromeDriver, no Chrome, no non-native browsers required
+- **Better Performance**: Native macOS integration
+- **Smaller Footprint**: No additional browser dependencies
+- **No Permission Issues**: Standard app sandbox permissions only
+
+### CLI Development Guidelines
+
+- **Shared Services**: CLI uses the same backend services as the GUI
+- **Environment Variables**: All CLI configuration should be environment-based
+- **Error Handling**: Provide clear error messages for CLI users
+- **Documentation**: Update CLI documentation when adding new commands
+- **Testing**: Test CLI commands with real export tokens
+- **Headless Mode**: CLI always runs without browser windows
+- **Token-Based**: Uses export tokens from GUI for configuration
+
+### Error Handling
+
+- **WebKit Management**: Handle WebKit crashes and timeouts gracefully
+- **Network Issues**: Implement retry logic for network failures
+- **Process Management**: Handle WebKit startup/shutdown gracefully
+- **Fallback Strategies**: Provide clear error messages for automation failures
+
+## 🔧 Development Workflow
+
+### Git Commit Guidelines
+
+- **Do NOT commit code with git until explicitly told to do so**
+- Always wait for explicit permission before committing changes
+- Use descriptive commit messages when committing
+- Test thoroughly before requesting commit permission
+
+### Build Process
+
+- Always rebuild app using `./Scripts/odyssey.sh build` after changing or fixing code, also run linter using `./Scripts/odyssey.sh lint` command
+- Never skip the build step after making changes
+- Verify the app launches successfully after each build
+- Check for any build warnings or errors
+
+### Documentation Standards
+
+- Always update documentation if something changes
+- Keep README.md and other docs in sync with code changes
+- Update any relevant documentation when adding new features
+- Maintain accurate and current documentation
+
+### Code Quality
+
+- All code must pass swift-format with zero errors and minimal warnings before pushing or releasing
+- All linter violations must be fixed or explicitly justified in code review
+- Keep the repository clean by removing duplicate information
+- **Protocol-Oriented Design**: Use protocols for better testability and maintainability
+- **Extensions**: Use Swift extensions for code organization and reusability
+- **Validation**: Use centralized validation for consistency
+- **Constants**: Use centralized constants for maintainability
+
+### User Experience
+
+- **Loading States**: Always show loading indicators for async operations
+- **Progress Indicators**: Display progress for long-running operations
+- **Feedback**: Provide immediate visual feedback for user actions
+- **Error States**: Show clear error messages with actionable guidance
+- **Success States**: Confirm successful operations with appropriate feedback
+
+### Loading States Implementation
+
+- **SwiftUI Progress Views**: Use `ProgressView` for indeterminate loading
+- **Progress Bars**: Implement `ProgressView(progress:)` for determinate operations
+- **Loading Overlays**: Show loading states over content during operations
+- **Skeleton Screens**: Use placeholder content during data loading
+- **Status Updates**: Provide real-time status updates for long operations
+
+### Progress Indicators
+
+- **Reservation Progress**: Show step-by-step progress for reservation automation
+- **File Operations**: Display progress for configuration saves/loads
+- **Network Operations**: Show progress for web requests and automation
+- **Background Tasks**: Indicate progress for scheduled operations
+- **Error Recovery**: Show progress during error recovery operations
+
+### Security & Code Signing
+
+- **App Sandbox**: Enable App Sandbox for enhanced security
+- **Code Signing**: Implement proper code signing with Developer ID
+- **Notarization**: App is **code signed but not notarized by Apple**
+- **Secure Credential Storage**: Use Keychain Services for sensitive data
+- **Input Validation**: Validate and sanitize all user inputs
+- **Network Security**: Use HTTPS and certificate pinning where appropriate
+
+### Logging Standards
+
+- **Emoji Usage:** **ALWAYS use emojis in log messages** for better readability and quick visual identification
+- **Consistent Format:** All log messages must follow the pattern: `logger.level("emoji message.")`
+- **Punctuation:** Always end log messages with periods (.) for completed statements
+- **Privacy:** Use `privacy: .private` for sensitive data in logs
+
+### Debugging
+
+- **Logging:** Use `os.log` with appropriate categories and emojis
+- **Console:** Check Console app for detailed logs
+- **WebKit:** Test automation manually with WebKit debugging
+- **Network:** Monitor network requests and responses
+
+## 📚 Documentation Standards
+
+- **Code Comments:** Use JSDoc-style comments for all public APIs
+- **README Files:** Maintain comprehensive documentation in each directory
+- **Changelog:** Document all changes in commit-based changelog generation
+- **User Guides:** Provide clear installation and usage instructions
+- **API Documentation:** Document all public interfaces and methods
+
+## 🚀 Release Process
+
+### Version Management
+
+- **Semantic Versioning:** Follow MAJOR.MINOR.PATCH format
+- **Changelog:** Update commit-based changelog generation with all changes
+- **Version Numbers:** Update all version references consistently
+- **Build Numbers:** Increment build number for each release
+
+### Security Implementation
+
+- **App Sandbox Configuration:**
+
+  - Enable in `Info.plist` with appropriate entitlements
+  - Configure network access for web automation
+  - Set file system permissions for configuration storage
+  - Enable user interaction for window management
+
+- **Code Signing Setup:**
+
+  - Sign all binaries and frameworks
+  - Implement proper provisioning profiles
+  - Test signed builds thoroughly
+
+- **Secure Credential Storage:**
+  - Use Keychain Services for email credentials
+  - Implement secure credential retrieval
+  - Handle credential updates securely
+  - Provide user-friendly credential management
+
+### Quality Assurance
+
+- **Code Review:** Self-review all changes before submission
+- **Testing:** Test on multiple macOS versions
+- **Performance:** Monitor app size and memory usage
+- **Security:** Validate all security settings and permissions
+
+### Distribution
+
+- **DMG Creation:** Use `create-dmg` for installer creation
+- **Code Signing:** Sign with Developer ID for distribution
+- **GitHub Releases:** Create releases with proper documentation
+
+## 🤝 Collaboration Guidelines
+
+- **Pull Requests:** Use descriptive titles and detailed descriptions
+- **Code Review:** Review for functionality, style, and security
+- **Testing:** Ensure all changes are properly tested
+- **Documentation:** Update documentation for all changes
+
+## 🛡️ Ethical Automation
+
+- **Rate Limiting:** Implement appropriate delays and rate limits
+- **User Consent:** Require explicit permission for automation
+- **Community Benefit:** Focus on positive community impact
+- **Transparency:** Be clear about automation capabilities and limitations
