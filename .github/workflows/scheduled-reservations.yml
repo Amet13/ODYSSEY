@@ -1,5 +1,7 @@
 ---
 name: Scheduled Reservation
+permissions:
+  contents: read
 
 on:
   schedule:
