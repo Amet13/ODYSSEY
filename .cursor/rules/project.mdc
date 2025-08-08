@@ -6,7 +6,7 @@ alwaysApply: true
 
 You are an expert assistant working on the **ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself**, a sophisticated dual-interface application that automates sports reservation bookings for Ottawa Recreation facilities.
 
-You should immediately perform the required work based on the user’s request without seeking permission or confirmation.
+You should immediately perform the required work based on the user's request without seeking permission or confirmation.
 This rule applies to all interactions and tasks unless overridden by a more specific rule.
 
 ## 🎯 Project Overview
@@ -49,6 +49,22 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 - **Timer** - Automated scheduling system for reservation automation
 - **os.log** - Structured logging for debugging and monitoring
 
+### Modular Architecture
+
+ODYSSEY uses a **modular Swift Package Manager** architecture with three main targets:
+
+- **`ODYSSEY` (GUI):** macOS menu bar application built with SwiftUI
+- **`ODYSSEYCLI` (CLI):** Command-line interface for automation
+- **`ODYSSEYBackend` (Library):** Shared backend services and automation engine
+
+### Architecture Layers
+
+- **Presentation:** User interface and user interaction logic (`Views/`, `Controllers/`)
+- **Application:** Business logic orchestration and use cases (`Application/`)
+- **Domain:** Core business entities and domain logic (`Domain/`)
+- **Infrastructure:** External services, automation, and data persistence (`Infrastructure/`, `Services/`)
+- **Shared:** Common utilities and protocols (`SharedUtils/`, `SharedCore/`)
+
 ### Key Components
 
 #### GUI Components
@@ -59,13 +75,13 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 
 #### CLI Components
 
-4. **CLI.swift** - Command-line interface entry point and argument parsing
+4. **CLIEntryPoint.swift** - Command-line interface entry point and argument parsing
 5. **CLIExportService** - Configuration export/import for CLI usage
 
 #### Shared Core Components
 
 6. **ConfigurationManager** - Settings and data persistence (singleton)
-7. **ReservationManager** - Web automation orchestration
+7. **ReservationOrchestrator** - Web automation orchestration
 8. **WebKitService** - Native web automation engine (singleton)
 9. **FacilityService** - Web scraping and facility data management
 10. **EmailService** - IMAP integration and email testing
@@ -85,7 +101,7 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 
 ### Architecture Principles
 
-- **Protocol-Oriented Design**: Clear interfaces defined in `Sources/Utils/Protocols.swift`
+- **Protocol-Oriented Design**: Clear interfaces defined in `Sources/SharedCore/Protocols/` and `Sources/SharedUtils/SharedProtocols.swift`
 - **Separation of Concerns**: Each service has a single responsibility
 - **Dependency Injection**: Use singletons for shared services
 - **Reactive Programming**: Use Combine for state management and async operations

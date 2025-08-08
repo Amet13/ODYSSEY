@@ -9,7 +9,6 @@ on:
 jobs:
   run-reservations:
     runs-on: macos-15
-    name: Execute Scheduled Reservations
     timeout-minutes: 10
     env:
       TZ: America/Toronto
