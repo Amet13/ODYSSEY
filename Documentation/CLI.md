@@ -174,7 +174,7 @@ The workflow file is already included in the repository. It will automatically:
 - Run reservations using your export token with `--hide` flag for privacy.
 - Upload logs for debugging.
 
-**See `.github/workflows/scheduled-reservations.yml` pipeline** for the complete automation setup.
+See `.github/workflows/scheduled-reservations.yml` for the complete automation setup.
 
 ## 🔒 Security & Best Practices
 
