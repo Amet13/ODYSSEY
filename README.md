@@ -18,17 +18,17 @@
 
 ## 🚀 Quick Start
 
-1. **Download** the `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
-2. **Install:** Open the installer and drag `ODYSSEY.app` to **Applications**.
-3. **Add to the quarantine:** Run in your terminal:
+- **Download** the `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
+- **Install:** Open the installer and drag `ODYSSEY.app` to **Applications**.
+- **Add to the quarantine:** Run in your terminal:
 
-```bash
-sudo xattr -rd com.apple.quarantine /Applications/ODYSSEY.app
-```
+  ```bash
+  sudo xattr -rd com.apple.quarantine /Applications/ODYSSEY.app
+  ```
 
-4. **Launch:** Open the app. You'll see a new icon in your menu bar.
-5. **Configure:** Click the icon to add your settings and create your first configuration(s).
-6. **Automate!** Enable autorun, or run it manually, and let ODYSSEY book your sports for you! 🎉
+- **Launch:** Open the app. You'll see a new icon in your menu bar.
+- **Configure:** Click the icon to add your settings and create your first configuration(s).
+- **Automate!** Enable autorun, or run it manually, and let ODYSSEY book your sports for you! 🎉
 
 ## ✨ Key Features
 
@@ -41,9 +41,9 @@ sudo xattr -rd com.apple.quarantine /Applications/ODYSSEY.app
 
 ## 📚 Documentation
 
-- **Start here** → **[USER_GUIDE.md](Documentation/USER_GUIDE.md)** – Complete app setup and usage guide.
-- **For automation** → **[CLI.md](Documentation/CLI.md)** – Command-line interface for CI/CD and remote automation.
-- **For developers** → **[DEVELOPMENT.md](Documentation/DEVELOPMENT.md)** – Development workflow and contribution guidelines.
+- **[USER_GUIDE.md](Documentation/USER_GUIDE.md)** – Complete app setup and usage guide.
+- **[CLI.md](Documentation/CLI.md)** – Command-line interface for CI/CD and remote automation.
+- **[DEVELOPMENT.md](Documentation/DEVELOPMENT.md)** – Development workflow and contribution guidelines.
 
 ## ⚖️ Ethical Considerations & Legal Notice
 

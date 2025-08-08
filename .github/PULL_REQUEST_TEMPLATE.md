@@ -8,10 +8,6 @@ Brief description of the changes made in this pull request.
 - [ ] All existing functionality still works
 - [ ] New functionality has been tested
 
-## 📸 Screenshots (if applicable)
-
-Add screenshots or GIFs to show the changes visually.
-
 ## 📋 Checklist
 
 - [ ] My code follows the project's style guidelines
@@ -19,7 +15,3 @@ Add screenshots or GIFs to show the changes visually.
 - [ ] I have run `./Scripts/odyssey.sh build` and the build succeeds
 - [ ] I have updated relevant documentation
 - [ ] I have tested the CLI version if applicable
-
-## 📝 Additional Notes
-
-Any additional information that reviewers should know about this pull request.

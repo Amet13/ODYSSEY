@@ -444,7 +444,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
   }
 
   public func disconnect(closeWindow: Bool = true) async {
-    logger.info("🔌 Starting WebKit service disconnect. closeWindow=\(closeWindow)")
+    logger.info("🔌 Starting WebKit service disconnect. closeWindow=\(closeWindow).")
     // Mark as disconnected first to prevent new operations
     isConnected = false
     isRunning = false
@@ -471,7 +471,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     await MainActor.run {
       let allWindows = NSApplication.shared.windows
       for window in allWindows where window.title.contains("ODYSSEY Web Automation") {
-        logger.info("🪟 Failsafe: Forcibly closing window with title: \(window.title)")
+        logger.info("🪟 Failsafe: Forcibly closing window with title: \(window.title).")
         window.close()
       }
     }
@@ -862,14 +862,14 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     do {
       let result = try await executeScriptInternal(
         "window.odyssey.findAndClickElementByText('\(text)');")?.value
-      logger.info("🔘 [ButtonClick] JS result: \(String(describing: result), privacy: .public)")
+      logger.info("🔘 [ButtonClick] JS result: \(String(describing: result), privacy: .public).")
       if let str = result as? String {
         if str == "clicked" || str == "dispatched" {
           // Add human-like delay after successful click
           await humanBehaviorService.addHumanDelay()
           return true
         } else if str.starts(with: "error:") {
-          logger.error("❌ [ButtonClick] JS error: \(str, privacy: .public)")
+          logger.error("❌ [ButtonClick] JS error: \(str, privacy: .public).")
           return false
         } else {
           logger
@@ -879,7 +879,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
           return false
         }
       } else {
-        logger.error("❌ [ButtonClick] Unexpected JS result: \(String(describing: result))")
+        logger.error("❌ [ButtonClick] Unexpected JS result: \(String(describing: result)).")
         return false
       }
     } catch {
@@ -902,31 +902,31 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     do {
       logger.info("🔧 Executing enhanced DOM ready/button check script...")
       let result = try await executeScriptInternal(script)?.value
-      logger.info("📊 DOM/button check result: \(String(describing: result))")
+      logger.info("📊 DOM/button check result: \(String(describing: result)).")
       if let dict = result as? [String: Any] {
         let readyState = dict["readyState"] as? String ?? ""
         let buttonFound = dict["buttonFound"] as? Bool ?? false
-        logger.info("📄 document.readyState=\(readyState), buttonFound=\(buttonFound)")
+        logger.info("📄 document.readyState=\(readyState), buttonFound=\(buttonFound).")
         if readyState == "complete" || buttonFound {
-          logger.info("✅ DOM ready or button found, proceeding")
+          logger.info("✅ DOM ready or button found, proceeding.")
           return true
         } else {
-          logger.error("❌ DOM not ready and button not found")
+          logger.error("❌ DOM not ready and button not found.")
           return false
         }
       } else {
-        logger.error("❌ Unexpected result from DOM/button check: \(String(describing: result))")
+        logger.error("❌ Unexpected result from DOM/button check: \(String(describing: result)).")
         return false
       }
     } catch {
-      logger.error("❌ Error waiting for DOM ready/button: \(error.localizedDescription)")
+      logger.error("❌ Error waiting for DOM ready/button: \(error.localizedDescription).")
       return false
     }
   }
 
   public func fillNumberOfPeople(_ numberOfPeople: Int) async -> Bool {
     guard webView != nil else {
-      logger.error("❌ WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
 
@@ -937,11 +937,11 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       if let success = result as? Bool, success {
         return true
       } else {
-        logger.error("❌ Field not found or not filled: \(String(describing: result))")
+        logger.error("❌ Field not found or not filled: \(String(describing: result)).")
         return false
       }
     } catch {
-      logger.error("❌ Error filling number of people: \(error.localizedDescription)")
+      logger.error("❌ Error filling number of people: \(error.localizedDescription).")
       return false
     }
   }
@@ -955,7 +955,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     logger.info("🔘 [ConfirmClick] Executing centralized confirm button click.")
     do {
       let result = try await executeScriptInternal("window.odyssey.clickConfirmButton();")
-      logger.info("🔘 [ConfirmClick] JS result: \(String(describing: result), privacy: .public)")
+      logger.info("🔘 [ConfirmClick] JS result: \(String(describing: result), privacy: .public).")
       if let str = result?.value as? String, str == "clicked" {
         // Wait a moment for the page to settle
         try? await Task.sleep(nanoseconds: 1_000_000_000)  // 1 second
@@ -972,7 +972,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         return false
       }
     } catch {
-      logger.error("❌ Error clicking confirm button: \(error.localizedDescription)")
+      logger.error("❌ Error clicking confirm button: \(error.localizedDescription).")
       return false
     }
   }
@@ -995,15 +995,15 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       do {
         let result = try await webView.evaluateJavaScript(script)
         if let found = result as? Bool, found {
-          logger.info("📊 Group size input found on poll #\(pollCount)")
+          logger.info("📊 Group size input found on poll #\(pollCount).")
           return true
         }
       } catch {
-        logger.error("[GroupSizePoll][poll \(pollCount)] JS error: \(error.localizedDescription)")
+        logger.error("[GroupSizePoll][poll \(pollCount)] JS error: \(error.localizedDescription).")
       }
       try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
     }
-    logger.error("❌ Group size page load timeout after \(Int(timeout))s and \(pollCount) polls")
+    logger.error("❌ Group size page load timeout after \(Int(timeout))s and \(pollCount) polls.")
     return false
   }
 
@@ -1020,16 +1020,16 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     do {
       let result = try await executeScriptInternal(script)?.value as? Bool ?? false
 
-      logger.info("📊 [TimeSelection] JavaScript result: \(result)")
+      logger.info("📊 [TimeSelection] JavaScript result: \(result).")
 
       if result {
-        logger.info("✅ Time selection page loaded successfully")
+        logger.info("✅ Time selection page loaded successfully.")
       } else {
-        logger.error("❌ Time selection page not detected")
+        logger.error("❌ Time selection page not detected.")
       }
       return result
     } catch {
-      logger.error("❌ Error checking time selection page: \(error.localizedDescription)")
+      logger.error("❌ Error checking time selection page: \(error.localizedDescription).")
       return false
     }
   }
@@ -1046,7 +1046,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     // First expand the day section
     let dayExpanded = await expandDaySection(dayName: dayName)
     if !dayExpanded {
-      logger.error("❌ Failed to expand day section: \(dayName, privacy: .private)")
+      logger.error("❌ Failed to expand day section: \(dayName, privacy: .private).")
       return false
     }
 
@@ -1056,21 +1056,21 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     // Then click the time button
     let timeClicked = await clickTimeButton(timeString: timeString, dayName: dayName)
     if !timeClicked {
-      logger.error("❌ Failed to click time button: \(timeString, privacy: .private)")
+      logger.error("❌ Failed to click time button: \(timeString, privacy: .private).")
       return false
     }
 
-    logger.info("✅ Time slot selection completed successfully")
+    logger.info("✅ Time slot selection completed successfully.")
     return true
   }
 
   public func expandDaySection(dayName: String) async -> Bool {
     guard let webView else {
-      logger.error("❌ [DaySection] WebView not initialized")
+      logger.error("❌ [DaySection] WebView not initialized.")
       return false
     }
 
-    logger.info("📅 [DaySection] Expanding day section for: \(dayName, privacy: .private)")
+    logger.info("📅 [DaySection] Expanding day section for: \(dayName, privacy: .private).")
 
     // First check if the JavaScript library is available
     let checkScript =
@@ -1095,17 +1095,17 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     do {
       logger.info("📅 [DaySection] Executing JavaScript script...")
       let result = try await webView.evaluateJavaScript(script)
-      logger.info("📊 [DaySection] JS result: \(String(describing: result), privacy: .private)")
+      logger.info("📊 [DaySection] JS result: \(String(describing: result), privacy: .private).")
 
       if let success = result as? Bool, success {
-        logger.info("✅ [DaySection] Day section expanded successfully")
+        logger.info("✅ [DaySection] Day section expanded successfully.")
         return true
       } else {
-        logger.error("❌ [DaySection] Failed to expand day section")
+        logger.error("❌ [DaySection] Failed to expand day section.")
         return false
       }
     } catch {
-      logger.error("❌ [DaySection] JS error: \(error.localizedDescription, privacy: .private)")
+      logger.error("❌ [DaySection] JS error: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
@@ -1142,24 +1142,24 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     do {
       let result = try await webView.evaluateJavaScript(script)
-      logger.info("📊 [TimeButton] JS result: \(String(describing: result), privacy: .private)")
+      logger.info("📊 [TimeButton] JS result: \(String(describing: result), privacy: .private).")
 
       if let success = result as? Bool, success {
-        logger.info("✅ [TimeButton] Time button clicked successfully")
+        logger.info("✅ [TimeButton] Time button clicked successfully.")
         return true
       } else {
-        logger.error("❌ [TimeButton] Failed to click time button")
+        logger.error("❌ [TimeButton] Failed to click time button.")
         return false
       }
     } catch {
-      logger.error("[TimeButton] JS error: \(error.localizedDescription, privacy: .private)")
+      logger.error("[TimeButton] JS error: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
 
   public func verifyJavaScriptLibrary() async -> Bool {
     guard let webView else {
-      logger.error("❌ WebView not initialized for JavaScript verification")
+      logger.error("❌ WebView not initialized for JavaScript verification.")
       return false
     }
 
@@ -1171,13 +1171,13 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         "🔧 JavaScript library verification: \(isAvailable ? "✅ Available" : "❌ Not available")")
       return isAvailable
     } catch {
-      logger.error("❌ Error verifying JavaScript library: \(error.localizedDescription)")
+      logger.error("❌ Error verifying JavaScript library: \(error.localizedDescription).")
       return false
     }
   }
 
   public func reinjectScripts() {
-    logger.info("🔄 Re-injecting scripts for instance: \(self.instanceId)")
+    logger.info("🔄 Re-injecting scripts for instance: \(self.instanceId).")
     injectAutomationScripts()
     injectAntiDetectionScripts()
   }
@@ -1200,7 +1200,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         .error(
           "❌ [ContinueButton] Error checking for continue button: \(error.localizedDescription, privacy: .public)",
         )
-      logger.error("❌ [ContinueButton] Continue button error details: \(error, privacy: .public)")
+      logger.error("❌ [ContinueButton] Continue button error details: \(error, privacy: .public).")
       return false
     }
   }
@@ -1222,7 +1222,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       do {
         let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
         if result {
-          logger.info("✅ Contact info page loaded successfully on poll #\(pollCount)")
+          logger.info("✅ Contact info page loaded successfully on poll #\(pollCount).")
 
           // Activate enhanced antidetection measures immediately when contact page is detected
           logger.info("🛡️ Activating enhanced antidetection measures for contact form page...")
@@ -1230,18 +1230,18 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
           return true
         }
       } catch {
-        logger.error("[ContactPagePoll][poll \(pollCount)] JS error: \(error.localizedDescription)")
+        logger.error("[ContactPagePoll][poll \(pollCount)] JS error: \(error.localizedDescription).")
       }
       try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
     }
 
-    logger.error("❌ Contact info page load timeout after \(Int(timeout))s and \(pollCount) polls")
+    logger.error("❌ Contact info page load timeout after \(Int(timeout))s and \(pollCount) polls.")
     return false
   }
 
   public func fillPhoneNumber(_ phoneNumber: String) async -> Bool {
     guard let webView else {
-      logger.error("WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
 
@@ -1256,23 +1256,23 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     do {
       let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
       if result {
-        logger.info("✅ Successfully filled phone number with enhanced human-like behavior")
+        logger.info("✅ Successfully filled phone number with enhanced human-like behavior.")
         // Optimized delay after filling to avoid reCAPTCHA (0.4-0.7 second)
         try? await Task.sleep(nanoseconds: UInt64.random(in: 400_000_000...700_000_000))
         return true
       } else {
-        logger.error("❌ Failed to fill phone number - field not found")
+        logger.error("❌ Failed to fill phone number - field not found.")
         return false
       }
     } catch {
-      logger.error("❌ Error filling phone number: \(error.localizedDescription)")
+      logger.error("❌ Error filling phone number: \(error.localizedDescription).")
       return false
     }
   }
 
   public func fillEmail(_ email: String) async -> Bool {
     guard let webView else {
-      logger.error("WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
 
@@ -1287,29 +1287,29 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     do {
       let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
       if result {
-        logger.info("✅ Successfully filled email with enhanced human-like behavior")
+        logger.info("✅ Successfully filled email with enhanced human-like behavior.")
         // Optimized delay after filling to avoid reCAPTCHA (0.4-0.7 second)
         try? await Task.sleep(nanoseconds: UInt64.random(in: 400_000_000...700_000_000))
         return true
       } else {
-        logger.error("❌ Failed to fill email - field not found")
+        logger.error("❌ Failed to fill email - field not found.")
         return false
       }
     } catch {
-      logger.error("❌ Error filling email: \(error.localizedDescription)")
+      logger.error("❌ Error filling email: \(error.localizedDescription).")
       return false
     }
   }
 
   public func fillName(_ name: String) async -> Bool {
     guard let webView else {
-      logger.error("WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
 
     // Check if we're still connected before proceeding
     guard isConnected else {
-      logger.error("WebKit service is not connected")
+      logger.error("❌ WebKit service is not connected.")
       return false
     }
 
@@ -1324,22 +1324,22 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     do {
       // Double-check that we are still connected before executing JavaScript
       guard isConnected else {
-        logger.error("WebKit service is not connected before JavaScript execution")
+        logger.error("❌ WebKit service is not connected before JavaScript execution.")
         return false
       }
 
       let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
       if result {
-        logger.info("✅ Successfully filled name with enhanced human-like behavior")
+        logger.info("✅ Successfully filled name with enhanced human-like behavior.")
         // Optimized delay after filling to avoid reCAPTCHA (0.4-0.7 second)
         try? await Task.sleep(nanoseconds: UInt64.random(in: 400_000_000...700_000_000))
         return true
       } else {
-        logger.error("❌ Failed to fill name - field not found")
+        logger.error("❌ Failed to fill name - field not found.")
         return false
       }
     } catch {
-      logger.error("❌ Error filling name: \(error.localizedDescription)")
+      logger.error("❌ Error filling name: \(error.localizedDescription).")
       return false
     }
   }
@@ -1351,7 +1351,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     }
 
     // Essential anti-detection before clicking
-    logger.info("🛡️ Applying essential anti-detection before confirm button click")
+    logger.info("🛡️ Applying essential anti-detection before confirm button click.")
     await addQuickPause()
 
     // Add human-like delay before clicking (1-1.5 seconds)
@@ -1362,14 +1362,14 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     do {
       let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
       if result {
-        logger.info("✅ Successfully clicked contact info confirm button with human-like behavior")
+        logger.info("✅ Successfully clicked contact info confirm button with human-like behavior.")
         return true
       } else {
-        logger.error("❌ Failed to click contact info confirm button")
+        logger.error("❌ Failed to click contact info confirm button.")
         return false
       }
     } catch {
-      logger.error("❌ Error clicking contact info confirm button: \(error.localizedDescription)")
+      logger.error("❌ Error clicking contact info confirm button: \(error.localizedDescription).")
       return false
     }
   }

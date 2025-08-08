@@ -149,12 +149,12 @@ struct CLI {
 
       // CLI always runs in headless mode - browser window will be hidden
       userSettings.showBrowserWindow = false
-      logger.info("🕶️ CLI mode - browser window will be hidden")
+      logger.info("🕶️ CLI mode - browser window will be hidden.")
 
       UserSettingsManager.shared.userSettings = userSettings
     }
 
-    logger.info("✅ Updated UserSettingsManager with CLI user settings")
+    logger.info("✅ Updated UserSettingsManager with CLI user settings.")
   }
 
   private static func updateConfigurationManagerForCLI(_ configs: [ReservationConfig]) async {
@@ -163,7 +163,7 @@ struct CLI {
       ConfigurationManager.shared.settings.configurations = configs
     }
 
-    logger.info("✅ Updated ConfigurationManager with \(configs.count) CLI configurations")
+    logger.info("✅ Updated ConfigurationManager with \(configs.count) CLI configurations.")
   }
 
   private static func parseArguments(_ args: [String]) -> (
@@ -225,7 +225,7 @@ struct CLI {
       webKitService.setScreenshotDirectory(screenshotDir)
     }
 
-    logger.info("📸 Screenshot directory configured: \(screenshotDir)")
+    logger.info("📸 Screenshot directory configured: \(screenshotDir).")
   }
 
   private static func captureFailureScreenshots(configStatuses: [UUID: ReservationRunStatus]) async
@@ -560,7 +560,7 @@ struct CLI {
   }
 
   private static func runReservations(_ args: [String]) async {
-    logger.info("🚀 Starting CLI reservation run")
+    logger.info("🚀 Starting CLI reservation run.")
 
     // Parse command line arguments
     let (runNow, priorDays, hideInfo, enableScreenshots) = parseArguments(args)
@@ -630,10 +630,10 @@ struct CLI {
 
       print()
 
-      logger.info("✅ CLI reservation run completed")
+      logger.info("✅ CLI reservation run completed.")
 
     } catch {
-      logger.error("❌ Failed to load configuration from token: \(error.localizedDescription)")
+      logger.error("❌ Failed to load configuration from token: \(error.localizedDescription).")
       print("❌ Error loading configuration: \(error.localizedDescription)")
       exit(1)
     }
@@ -645,7 +645,7 @@ struct CLI {
 
     // Set timezone to Toronto
     guard let torontoTimeZone = TimeZone(identifier: "America/Toronto") else {
-      logger.error("❌ Failed to get Toronto timezone")
+      logger.error("❌ Failed to get Toronto timezone.")
       return now
     }
     var torontoCalendar = calendar
@@ -664,7 +664,7 @@ struct CLI {
   private static func waitUntilTargetTime(_ targetTime: Date) async {
     let calendar = Calendar.current
     guard let torontoTimeZone = TimeZone(identifier: "America/Toronto") else {
-      logger.error("❌ Failed to get Toronto timezone")
+      logger.error("❌ Failed to get Toronto timezone.")
       return
     }
     var torontoCalendar = calendar

@@ -176,8 +176,6 @@ The workflow file is already included in the repository. It will automatically:
 
 **See `.github/workflows/scheduled-reservations.yml` pipeline** for the complete automation setup.
 
-> **💡 Privacy Tip:** The workflow uses the `--hide` flag to protect sensitive information in public logs while still allowing you to track reservation status.
-
 ## 🔒 Security & Best Practices
 
 ### Token Security
@@ -186,9 +184,3 @@ The workflow file is already included in the repository. It will automatically:
 - **Store tokens securely** in CLI secrets or environment variables.
 - **Never commit tokens** to version control.
 - **Use environment variables** for token storage in production.
-
-### Technical Details
-
-- Tokens are base64-encoded and LZFSE-compressed for efficiency.
-- The `--hide` flag masks sensitive information for public environments.
-- All automation runs locally on your machine (except CI/CD).
