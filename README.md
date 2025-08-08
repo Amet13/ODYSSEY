@@ -20,9 +20,14 @@
 
 1. **Download** the `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
 2. **Install:** Open the installer and drag `ODYSSEY.app` to **Applications**.
-3. **Add ODYSSEY to the trust list:** Run `sudo xattr -rd com.apple.quarantine /Applications/ODYSSEY.app` in your terminal.
-4. **Launch:** Open the app. You'll see a new "Sports Court" icon in your menu bar.
-5. **Configure:** Click the icon to add your settings and create your first configuration.
+3. **Add to the quarantine:** Run in your terminal:
+
+```bash
+sudo xattr -rd com.apple.quarantine /Applications/ODYSSEY.app
+```
+
+4. **Launch:** Open the app. You'll see a new icon in your menu bar.
+5. **Configure:** Click the icon to add your settings and create your first configuration(s).
 6. **Automate!** Enable autorun, or run it manually, and let ODYSSEY book your sports for you! 🎉
 
 ## ✨ Key Features
@@ -44,41 +49,31 @@
 
 ### 🎓 Educational Purpose
 
-This application demonstrates modern macOS development techniques and best practices:
+This application demonstrates modern macOS development techniques including SwiftUI & AppKit integration, WebKit automation, menu bar applications, and secure credential management.
 
-- **SwiftUI & AppKit integration** - Modern macOS UI development.
-- **WebKit automation** - Browser automation and web interaction.
-- **Menu bar applications** - System integration and background processing.
-- **Security practices** - Keychain integration and secure credential management.
+### 🛡️ Responsible Usage
 
-### 🛡️ Responsible Usage Guidelines
+**IMPORTANT:** This tool is designed for educational purposes and legitimate personal use only.
 
-**IMPORTANT:** This tool is designed for educational purposes and legitimate personal use only. Users must:
+**✅ Permitted:**
 
-- ✅ **Use responsibly** - Only use for personal educational and development purposes.
-- ✅ **Respect rate limits** - The app includes built-in delays to avoid overwhelming servers.
+- Personal educational and development purposes
+- Respecting rate limits with built-in delays
 
-### 🚫 Prohibited Uses
+**❌ Prohibited:**
 
-**DO NOT:**
-
-- ❌ Use for commercial services or reselling.
-- ❌ Share accounts or credentials with others.
-- ❌ Use for any malicious or harmful purposes.
-
-### 📋 Legal Disclaimer
-
-This software is provided "as is" without warranty. Users are responsible for:
-
-- Using the application in accordance with applicable laws.
-- Understanding that automation may be subject to website terms of service.
+- Commercial services or reselling
+- Sharing accounts or credentials
+- Any malicious or harmful purposes
 
 ### 🔒 Privacy & Security
 
-- All automation runs locally on your machine (except CI).
-- No user data is transmitted to external servers (except CI).
-- Credentials are stored securely in macOS Keychain.
-- No tracking or analytics are collected.
+- All automation runs locally on your machine (except CI)
+- No user data transmitted to external servers (except CI)
+- Credentials stored securely in macOS Keychain
+- No tracking or analytics collected
+
+**Legal Disclaimer:** This software is provided "as is" without warranty. Users are responsible for using the application in accordance with applicable laws and website terms of service.
 
 By using this application, you acknowledge that you understand and agree to these terms of use.
 

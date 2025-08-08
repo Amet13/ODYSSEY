@@ -813,7 +813,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             )
 
           logger.info("🔍 [\(config.name)] Starting time slot selection process...")
-          logger.info("🔍 [\(config.name)] Day: \(dayName), Time: \(timeString)")
+          logger.info("🔍 [\(config.name)] Day: \(dayName), Time: \(timeString).")
 
           // Verify JavaScript again before time slot selection
           let jsAvailableBeforeTimeSlot = await separateWebKitService.verifyJavaScriptLibrary()
@@ -943,10 +943,10 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             }
             let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
             if shouldClose {
-              logger.info("🪟 Auto-close on failure enabled - closing window")
+              logger.info("🪟 Auto-close on failure enabled - closing window.")
               await separateWebKitService.disconnect(closeWindow: true)
             } else {
-              logger.info("🪟 Auto-close on failure disabled - keeping window open to show error")
+              logger.info("🪟 Auto-close on failure disabled - keeping window open to show error.")
               await separateWebKitService.disconnect(closeWindow: false)
             }
             return
@@ -994,12 +994,12 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         let filename =
           "failure_\(config.name.replacingOccurrences(of: " ", with: "_"))_\(Date().timeIntervalSince1970).png"
         if let screenshotPath = await separateWebKitService.takeScreenshot(filename: filename) {
-          logger.info("📸 Failure screenshot saved: \(screenshotPath)")
+          logger.info("📸 Failure screenshot saved: \(screenshotPath).")
         } else {
-          logger.error("❌ Failed to capture failure screenshot for \(config.name)")
+          logger.error("❌ Failed to capture failure screenshot for \(config.name).")
         }
       } else {
-        logger.warning("⚠️ WebKit service not available for screenshot capture")
+        logger.warning("⚠️ WebKit service not available for screenshot capture.")
       }
 
       await MainActor.run {
@@ -1015,16 +1015,16 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       }
       let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
       if shouldClose {
-        logger.info("🪟 Auto-close on failure enabled - closing window")
+        logger.info("🪟 Auto-close on failure enabled - closing window.")
         await separateWebKitService.disconnect(closeWindow: true)
       } else {
-        logger.info("🪟 Auto-close on failure disabled - keeping window open to show error")
+        logger.info("🪟 Auto-close on failure disabled - keeping window open to show error.")
         await separateWebKitService.disconnect(closeWindow: false)
       }
       return
     }
     // Always close window on successful reservation (regardless of settings)
-    logger.info("🎉 Reservation completed successfully - closing window")
+    logger.info("🎉 Reservation completed successfully - closing window.")
     await separateWebKitService.disconnect(closeWindow: true)
   }
 

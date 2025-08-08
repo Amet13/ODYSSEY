@@ -299,23 +299,23 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
     if let last = lastAttempt {
       let interval = now.timeIntervalSince(last)
-      logger.info("[IMAP][\(connectionID)] Time since last connection: \(interval) seconds")
+      logger.info("[IMAP][\(connectionID)] Time since last connection: \(interval) seconds.")
     } else {
-      logger.info("[IMAP][\(connectionID)] First connection attempt in this session")
+      logger.info("[IMAP][\(connectionID)] First connection attempt in this session.")
     }
-    logger.info("[IMAP][\(connectionID)] Starting fetchVerificationCodesForToday() at \(now)")
-    logger.info("📧 EmailService: Starting fetchVerificationCodesForToday()")
-    logger.info("📧 EmailService: Using searchSince: \(searchSince)")
-    logger.info("📧 EmailService: Original since parameter was: \(since)")
-    logger.info("📧 EmailService: Time difference: \(searchSince.timeIntervalSince(since)) seconds")
+    logger.info("[IMAP][\(connectionID)] Starting fetchVerificationCodesForToday() at \(now).")
+    logger.info("📧 EmailService: Starting fetchVerificationCodesForToday().")
+    logger.info("📧 EmailService: Using searchSince: \(searchSince).")
+    logger.info("📧 EmailService: Original since parameter was: \(since).")
+    logger.info("📧 EmailService: Time difference: \(searchSince.timeIntervalSince(since)) seconds.")
 
     let settings = userSettingsManager.userSettings
     guard settings.hasEmailConfigured else {
-      logger.error("❌ EmailService: Incomplete email settings for code extraction")
+      logger.error("❌ EmailService: Incomplete email settings for code extraction.")
       return []
     }
 
-    logger.info("✅ EmailService: Email settings are configured")
+    logger.info("✅ EmailService: Email settings are configured.")
 
     // Use the same NWConnection-based implementation that works for the test
     // ---
@@ -329,7 +329,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
   ///   - instanceId: Unique identifier for the WebKit instance
   /// - Returns: Array of verification codes for this instance
   func fetchAndConsumeVerificationCodes(since: Date, instanceId: String) async -> [String] {
-    logger.info("📧 EmailService: Fetching and consuming codes for instance: \(instanceId)")
+    logger.info("📧 EmailService: Fetching and consuming codes for instance: \(instanceId).")
 
     // Use a shared code pool to ensure each instance gets unique codes
     return await SharedVerificationCodePool.shared.consumeCodes(for: instanceId, since: since)
@@ -357,7 +357,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
   /// Fetches verification codes using the same connection logic as the test
   private func fetchVerificationCodesWithSameConnection(since: Date) async -> [String] {
-    logger.info("🔍 EmailService: Fetching verification codes with same connection logic")
+    logger.info("🔍 EmailService: Fetching verification codes with same connection logic.")
 
     // Use the same NWConnection-based implementation that works for the test
     return await fetchVerificationCodesWithNWConnection(since: since)
@@ -367,7 +367,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
   private func fetchVerificationCodesWithNWConnection(since: Date) async -> [String] {
     let settings = userSettingsManager.userSettings
 
-    logger.info("🔍 EmailService: Fetching verification codes with NWConnection")
+    logger.info("🔍 EmailService: Fetching verification codes with NWConnection.")
 
     // Determine port and TLS settings based on server
     let server = settings.currentServer

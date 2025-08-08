@@ -8,7 +8,7 @@ The ODYSSEY CLI provides command-line automation capabilities using the same pow
 
 1. **Download:** Download the `odyssey-cli` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
 2. **Make executable:** Run `chmod +x odyssey-cli`.
-3. **Add ODYSSEY to the trust list:** Run `sudo xattr -rd com.apple.quarantine ./odyssey-cli`.
+3. **Add to the quarantine:** Run `sudo xattr -rd com.apple.quarantine ./odyssey-cli`.
 
 ## 🔧 Configuration
 
@@ -28,7 +28,7 @@ The export token is a compressed, base64-encoded configuration containing only e
 5. **The export token will be copied to your clipboard automatically.**
 
 <div align="center">
-  <img src="Images/export.png" width="300" alt="Export">
+  <img src="Images/export-token-screen.png" width="300" alt="Export">
 </div>
 
 #### Setting Up the CLI

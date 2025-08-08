@@ -134,7 +134,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     logger.info("🔧 WebKitService initialized (DI mode).")
     Task { @MainActor in
       Self.liveInstanceCount += 1
-      logger.info("🔄 WebKitService init. Live instances: \(Self.liveInstanceCount)")
+      logger.info("🔄 WebKitService init. Live instances: \(Self.liveInstanceCount).")
     }
 
     if webView == nil {
@@ -148,7 +148,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     logger.info("🔧 WebKitService initialized.")
     Task { @MainActor in
       Self.liveInstanceCount += 1
-      logger.info("🔄 WebKitService init. Live instances: \(Self.liveInstanceCount)")
+      logger.info("🔄 WebKitService init. Live instances: \(Self.liveInstanceCount).")
     }
     setupWebView()
     // Do not show browser window at app launch
@@ -166,7 +166,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
   @MainActor private static func handleDeinitCleanup(logger: Logger) {
     liveInstanceCount -= 1
-    logger.info("✅ WebKitService cleanup completed. Live instances: \(liveInstanceCount)")
+    logger.info("✅ WebKitService cleanup completed. Live instances: \(liveInstanceCount).")
   }
 
   deinit {
@@ -177,7 +177,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     webView = nil
     MainActor.assumeIsolated {
       Self.liveInstanceCount -= 1
-      logger.info("✅ WebKitService cleanup completed. Live instances: \(Self.liveInstanceCount)")
+      logger.info("✅ WebKitService cleanup completed. Live instances: \(Self.liveInstanceCount).")
     }
   }
 
@@ -288,7 +288,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     let script = WKUserScript(
       source: automationScript, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
     webView?.configuration.userContentController.addUserScript(script)
-    logger.info("✅ Automation scripts injected for instance: \(self.instanceId)")
+    logger.info("✅ Automation scripts injected for instance: \(self.instanceId).")
   }
 
   private func injectAntiDetectionScripts() {
@@ -314,7 +314,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       let result = try await webView.evaluateJavaScript("window.odyssey.logAllButtonsAndLinks();")
       if let arr = result as? [String] {
         for line in arr {
-          logger.info("🔍 [ButtonScan] \(line, privacy: .public)")
+          logger.info("🔍 [ButtonScan] \(line, privacy: .public).")
         }
       } else {
         logger.error("❌ [ButtonScan] Unexpected JS result: \(String(describing: result)).")
@@ -333,7 +333,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
    */
   public func setScreenshotDirectory(_ directory: String) {
     screenshotDirectory = directory
-    logger.info("📸 Screenshot directory set to: \(directory)")
+    logger.info("📸 Screenshot directory set to: \(directory).")
   }
 
   /**
@@ -343,16 +343,16 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
    */
   public func takeScreenshot(filename: String? = nil) async -> String? {
     guard let webView = webView else {
-      logger.error("📸 Cannot take screenshot: WebView is nil")
+      logger.error("📸 Cannot take screenshot: WebView is nil.")
       return nil
     }
 
     guard let screenshotDirectory = screenshotDirectory else {
-      logger.error("📸 Cannot take screenshot: Screenshot directory not configured")
+      logger.error("📸 Cannot take screenshot: Screenshot directory not configured.")
       return nil
     }
 
-    logger.info("📸 Starting screenshot capture for WebView: \(webView)")
+    logger.info("📸 Starting screenshot capture for WebView: \(webView).")
 
     do {
       // Create screenshot directory if it doesn't exist
@@ -360,14 +360,14 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       if !fileManager.fileExists(atPath: screenshotDirectory) {
         try fileManager.createDirectory(
           atPath: screenshotDirectory, withIntermediateDirectories: true)
-        logger.info("📁 Created screenshot directory: \(screenshotDirectory)")
+        logger.info("📁 Created screenshot directory: \(screenshotDirectory).")
       }
 
       // Generate filename if not provided
       let finalFilename = filename ?? "screenshot_\(Date().timeIntervalSince1970).png"
       let screenshotPath = "\(screenshotDirectory)/\(finalFilename)"
 
-      logger.info("📸 Taking screenshot with WebView: \(webView)")
+      logger.info("📸 Taking screenshot with WebView: \(webView).")
 
       // Take screenshot using WKWebView's takeSnapshot method and convert to PNG data immediately
       let pngData = try await withCheckedThrowingContinuation {
@@ -406,12 +406,12 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       // Write PNG data to file
       try pngData.write(to: URL(fileURLWithPath: screenshotPath))
 
-      logger.info("📸 Actual screenshot saved successfully: \(screenshotPath)")
+      logger.info("📸 Actual screenshot saved successfully: \(screenshotPath).")
       return screenshotPath
 
     } catch {
-      logger.error("📸 Failed to take screenshot: \(error.localizedDescription)")
-      logger.error("📸 Error details: \(error)")
+      logger.error("📸 Failed to take screenshot: \(error.localizedDescription).")
+      logger.error("📸 Error details: \(error).")
       return nil
     }
   }

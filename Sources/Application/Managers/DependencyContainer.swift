@@ -110,7 +110,7 @@ class DependencyContainer {
     let webView = webKitEngine.createWebView()
     try webKitEngine.configureWebView(webView)
 
-    logger.info("✅ All services initialized successfully")
+    logger.info("✅ All services initialized successfully.")
   }
 
   func cleanup() async throws {
@@ -120,7 +120,7 @@ class DependencyContainer {
     webKitEngine.cleanup()
     try await emailClient.disconnect()
 
-    logger.info("✅ All services cleaned up successfully")
+    logger.info("✅ All services cleaned up successfully.")
   }
 }
 
@@ -136,7 +136,7 @@ class UserDefaultsStorageService: StorageServiceProtocol {
   func save(_ object: some Encodable, forKey key: String) throws {
     let data = try JSONEncoder().encode(object)
     userDefaults.set(data, forKey: key)
-    logger.info("💾 Saved object for key: \(key)")
+    logger.info("💾 Saved object for key: \(key).")
   }
 
   func load<T: Decodable>(_ type: T.Type, forKey key: String) throws -> T? {
@@ -144,19 +144,19 @@ class UserDefaultsStorageService: StorageServiceProtocol {
       return nil
     }
     let object = try JSONDecoder().decode(type, from: data)
-    logger.info("📥 Loaded object for key: \(key)")
+    logger.info("📥 Loaded object for key: \(key).")
     return object
   }
 
   func delete(forKey key: String) {
     userDefaults.removeObject(forKey: key)
-    logger.info("🗑️ Deleted data for key: \(key)")
+    logger.info("🗑️ Deleted data for key: \(key).")
   }
 
   func clearAll() {
     // UserDefaults doesn't provide a direct way to clear all keys
     // This is a simplified implementation
-    logger.info("🧹 Cleared all data")
+    logger.info("🧹 Cleared all data.")
   }
 }
 

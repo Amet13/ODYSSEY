@@ -16,7 +16,7 @@ public final class EmailKeychainHelper {
    * - Returns: True if successful, false otherwise.
    */
   public func storeEmailCredentials(email: String, password: String) -> Bool {
-    logger.info("🔐 Storing email credentials in keychain")
+    logger.info("🔐 Storing email credentials in keychain.")
 
     let query: [String: Any] = [
       kSecClass as String: kSecClassGenericPassword,
@@ -32,10 +32,10 @@ public final class EmailKeychainHelper {
     let status = SecItemAdd(query as CFDictionary, nil)
 
     if status == errSecSuccess {
-      logger.info("✅ Email credentials stored successfully")
+      logger.info("✅ Email credentials stored successfully.")
       return true
     } else {
-      logger.error("❌ Failed to store email credentials: \(status)")
+      logger.error("❌ Failed to store email credentials: \(status).")
       return false
     }
   }
@@ -46,7 +46,7 @@ public final class EmailKeychainHelper {
    * - Returns: The password if found, nil otherwise.
    */
   public func retrieveEmailCredentials(email: String) -> String? {
-    logger.info("🔍 Retrieving email credentials from keychain")
+    logger.info("🔍 Retrieving email credentials from keychain.")
 
     let query: [String: Any] = [
       kSecClass as String: kSecClassGenericPassword,
@@ -62,10 +62,10 @@ public final class EmailKeychainHelper {
       let data = result as? Data,
       let password = String(data: data, encoding: .utf8)
     {
-      logger.info("✅ Email credentials retrieved successfully")
+      logger.info("✅ Email credentials retrieved successfully.")
       return password
     } else {
-      logger.warning("⚠️ Email credentials not found in keychain")
+      logger.warning("⚠️ Email credentials not found in keychain.")
       return nil
     }
   }
@@ -76,7 +76,7 @@ public final class EmailKeychainHelper {
    * - Returns: True if successful, false otherwise.
    */
   public func deleteEmailCredentials(email: String) -> Bool {
-    logger.info("🗑️ Deleting email credentials from keychain")
+    logger.info("🗑️ Deleting email credentials from keychain.")
 
     let query: [String: Any] = [
       kSecClass as String: kSecClassGenericPassword,
@@ -86,10 +86,10 @@ public final class EmailKeychainHelper {
     let status = SecItemDelete(query as CFDictionary)
 
     if status == errSecSuccess || status == errSecItemNotFound {
-      logger.info("✅ Email credentials deleted successfully")
+      logger.info("✅ Email credentials deleted successfully.")
       return true
     } else {
-      logger.error("❌ Failed to delete email credentials: \(status)")
+      logger.error("❌ Failed to delete email credentials: \(status).")
       return false
     }
   }
@@ -100,7 +100,7 @@ public final class EmailKeychainHelper {
    * - Returns: True if credentials exist, false otherwise.
    */
   public func hasEmailCredentials(email: String) -> Bool {
-    logger.info("🔍 Checking if email credentials exist in keychain")
+    logger.info("🔍 Checking if email credentials exist in keychain.")
 
     let query: [String: Any] = [
       kSecClass as String: kSecClassGenericPassword,
@@ -112,7 +112,7 @@ public final class EmailKeychainHelper {
     let status = SecItemCopyMatching(query as CFDictionary, nil)
     let exists = status == errSecSuccess
 
-    logger.info("✅ Email credentials exist: \(exists)")
+    logger.info("✅ Email credentials exist: \(exists).")
     return exists
   }
 
@@ -124,7 +124,7 @@ public final class EmailKeychainHelper {
    * - Returns: True if successful, false otherwise.
    */
   public func updateEmailCredentials(email: String, password: String) -> Bool {
-    logger.info("🔄 Updating email credentials in keychain")
+    logger.info("🔄 Updating email credentials in keychain.")
 
     let query: [String: Any] = [
       kSecClass as String: kSecClassGenericPassword,
@@ -138,10 +138,10 @@ public final class EmailKeychainHelper {
     let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
 
     if status == errSecSuccess {
-      logger.info("✅ Email credentials updated successfully")
+      logger.info("✅ Email credentials updated successfully.")
       return true
     } else {
-      logger.error("❌ Failed to update email credentials: \(status)")
+      logger.error("❌ Failed to update email credentials: \(status).")
       return false
     }
   }
