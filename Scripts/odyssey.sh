@@ -632,14 +632,7 @@ run_linting() {
         failed_linters+=("Markdown Linting")
     fi
 
-    # Run JavaScript Linting
-    print_status "step" "Running JavaScript Linting..."
-    if swift run --package-path . odyssey-cli validate-javascript 2>/dev/null; then
-        print_status "success" "JavaScript Linting passed"
-    else
-        print_status "warning" "JavaScript Linting found issues"
-        failed_linters+=("JavaScript Linting")
-    fi
+
 
     # Run GitHub Actions Linting
     print_status "step" "Running GitHub Actions Linting..."

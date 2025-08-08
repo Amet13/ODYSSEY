@@ -124,15 +124,6 @@ IMAP Password: my-s3cur3-p@ssw0rd
 IMAP Server: imap.gmail.com
 ```
 
-### 🔍 `validate-javascript`
-
-Validate JavaScript code in the project for syntax errors, dangerous patterns, and best practices.
-
-```bash
-# Validate all JavaScript files in the project
-./odyssey-cli validate-javascript
-```
-
 ### ❓ `help`
 
 Show CLI help and usage information.

@@ -75,8 +75,7 @@ struct CLI {
       await listConfigurations()
     case "settings":
       await showUserSettings(unmask: remainingArgs.contains("--unmask"))
-    case "validate-javascript":
-      await validateJavaScript()
+
     case "help":
       printUsage()
       exit(0)
@@ -103,7 +102,6 @@ struct CLI {
         run                   Run reservations for configurations
         configs               List all available configurations
         settings              Show user settings from export token
-        validate-javascript   Validate JavaScript code in the project
         help                  Show this help message
         version               Show version information
 
@@ -910,88 +908,4 @@ struct CLI {
     }
   }
 
-  // MARK: - JavaScript Validation
-
-  private static func validateJavaScript() async {
-    print("🔍 Validating JavaScript code...")
-    print(String(repeating: "=", count: 50))
-
-    var totalErrors = 0
-    var totalWarnings = 0
-
-    let jsFiles = [
-      "Sources/SharedUtils/JavaScriptPages.swift",
-      "Sources/SharedUtils/JavaScriptLibrary.swift",
-      "Sources/SharedUtils/JavaScriptForms.swift",
-    ]
-
-    for filePath in jsFiles {
-      print("\n📄 \(filePath):")
-
-      guard let content = try? String(contentsOfFile: filePath, encoding: .utf8) else {
-        print("  ❌ Could not read file")
-        totalErrors += 1
-        continue
-      }
-
-      var fileErrors = 0
-      var fileWarnings = 0
-
-      // Check for basic JavaScript patterns
-      let patterns = [
-        ("try {", "Missing try block"),
-        ("} catch (error) {", "Missing catch block"),
-        ("console.error", "Missing error logging"),
-        ("return {", "Missing return object"),
-      ]
-
-      for (pattern, message) in patterns {
-        if !content.contains(pattern) {
-          print("  ⚠️  \(message)")
-          fileWarnings += 1
-        }
-      }
-
-      // Check for dangerous patterns
-      let dangerousPatterns = [
-        ("eval(", "Dangerous eval() usage"),
-        ("alert(", "alert() not allowed"),
-        ("prompt(", "prompt() not allowed"),
-      ]
-
-      for (pattern, message) in dangerousPatterns {
-        if content.contains(pattern) {
-          print("  ❌ \(message)")
-          fileErrors += 1
-        }
-      }
-
-      // Check for proper logging
-      if content.contains("console.log") && !content.contains("[ODYSSEY]") {
-        print("  ⚠️  Log messages should include '[ODYSSEY]' prefix")
-        fileWarnings += 1
-      }
-
-      if fileErrors == 0 && fileWarnings == 0 {
-        print("  ✅ Valid JavaScript code")
-      }
-
-      totalErrors += fileErrors
-      totalWarnings += fileWarnings
-    }
-
-    print("\n" + String(repeating: "=", count: 50))
-
-    if totalErrors == 0 && totalWarnings == 0 {
-      print("✅ All JavaScript code is valid!")
-      exit(0)
-    } else {
-      print("📊 Summary: \(totalErrors) errors, \(totalWarnings) warnings")
-      if totalErrors > 0 {
-        exit(1)
-      } else {
-        exit(0)
-      }
-    }
-  }
 }

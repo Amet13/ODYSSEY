@@ -37,10 +37,10 @@ jobs:
         run: |
           if [ -d "screenshots" ] && [ "$(ls -A screenshots 2>/dev/null)" ]; then
             echo "📸 Screenshots found, will upload artifacts"
-            echo "screenshots_exist=true" >> $GITHUB_OUTPUT
+            echo "screenshots_exist=true" >> "$GITHUB_OUTPUT"
           else
             echo "📸 No screenshots found, skipping artifact upload"
-            echo "screenshots_exist=false" >> $GITHUB_OUTPUT
+            echo "screenshots_exist=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Upload screenshots as artifacts
