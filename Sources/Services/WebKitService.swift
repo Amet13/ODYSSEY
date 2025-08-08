@@ -1230,7 +1230,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
           return true
         }
       } catch {
-        logger.error("[ContactPagePoll][poll \(pollCount)] JS error: \(error.localizedDescription).")
+        logger.error(
+          "[ContactPagePoll][poll \(pollCount)] JS error: \(error.localizedDescription).")
       }
       try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
     }
@@ -1346,7 +1347,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
   public func clickContactInfoConfirmButtonWithRetry() async -> Bool {
     guard let webView else {
-      logger.error("WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
 
@@ -1376,7 +1377,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
   public func isEmailVerificationRequired() async -> Bool {
     guard let webView else {
-      logger.error("WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
 
@@ -1388,20 +1389,20 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     do {
       let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
       if result {
-        logger.info("📧 Email verification required")
+        logger.info("📧 Email verification required.")
       } else {
-        logger.info("🛡️ No email verification required")
+        logger.info("🛡️ No email verification required.")
       }
       return result
     } catch {
-      logger.error("❌ Error checking email verification: \(error.localizedDescription)")
+      logger.error("❌ Error checking email verification: \(error.localizedDescription).")
       return false
     }
   }
 
   public func handleEmailVerification(verificationStart: Date) async -> Bool {
     guard webView != nil else {
-      logger.error("WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
 
@@ -1411,7 +1412,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     await updateTask("Waiting for verification page...")
     let verificationPageReady = await waitForVerificationPage()
     if !verificationPageReady {
-      logger.error("❌ Instance \(self.instanceId): Verification page failed to load")
+      logger.error("❌ Instance \(self.instanceId): Verification page failed to load.")
       return false
     }
 
@@ -1420,18 +1421,18 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     let verificationSuccess = await tryVerificationCodesWithRetry(
       verificationStart: verificationStart)
     if !verificationSuccess {
-      logger.error("❌ Instance \(self.instanceId): All verification attempts failed")
+      logger.error("❌ Instance \(self.instanceId): All verification attempts failed.")
       return false
     }
 
-    logger.info("✅ Instance \(self.instanceId): Email verification completed successfully")
+    logger.info("✅ Instance \(self.instanceId): Email verification completed successfully.")
     return true
   }
 
   /// Waits for the verification page to load
   private func waitForVerificationPage() async -> Bool {
     guard let webView else {
-      logger.error("WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
 
@@ -1439,7 +1440,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     let pollInterval: TimeInterval = AppConstants.pollInterval
     let start = Date()
 
-    logger.info("Waiting for verification page to load (timeout: \(timeout)s)")
+    logger.info("⏳ Waiting for verification page to load (timeout: \(timeout)s).")
 
     while Date().timeIntervalSince(start) < timeout {
       let script = "window.odyssey.checkVerificationPage();"
@@ -1457,10 +1458,10 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             .info(
               "Verification page check - Input: \(hasInput), Text: \(hasText), Pattern: \(hasPattern), Loading: \(isLoading)",
             )
-          logger.info("Page content preview: \(bodyTextPreview)")
+          logger.info("📄 Page content preview: \(bodyTextPreview).")
 
           if hasInput || hasText || hasPattern {
-            logger.info("✅ Verification page detected successfully")
+            logger.info("✅ Verification page detected successfully.")
             return true
           }
 
@@ -1469,13 +1470,13 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
           }
         }
       } catch {
-        logger.error("❌ Error checking verification page: \(error.localizedDescription)")
+        logger.error("❌ Error checking verification page: \(error.localizedDescription).")
       }
 
       try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
     }
 
-    logger.error("❌ Verification page load timeout after \(timeout) seconds")
+    logger.error("❌ Verification page load timeout after \(timeout) seconds.")
     return false
   }
 
@@ -1498,13 +1499,13 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       // Fetch verification codes using the correct method
       let codes = await emailService.fetchVerificationCodesForToday(since: verificationStart)
       if let code = codes.first {
-        logger.info("✅ Found verification email, parsed code: \(code)")
+        logger.info("✅ Found verification email, parsed code: \(code).")
         return code
       }
       logger.info("⏳ Verification code not found yet, retrying in \(retryDelay)s...")
       try? await Task.sleep(nanoseconds: UInt64(retryDelay * 1_000_000_000))
     }
-    logger.error("❌ Timed out waiting for verification code after \(maxTotalWait)s")
+    logger.error("❌ Timed out waiting for verification code after \(maxTotalWait)s.")
     return ""
   }
 
@@ -1519,7 +1520,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         let codeRange = match.range(at: 1)
         if let range = Range(codeRange, in: emailBody) {
           let code = String(emailBody[range])
-          logger.info("🔍 Parsed verification code: \(code, privacy: .private)")
+          logger.info("🔍 Parsed verification code: \(code, privacy: .private).")
           return code
         }
       }
@@ -1533,19 +1534,19 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         let codeRange = match.range(at: 1)
         if let range = Range(codeRange, in: emailBody) {
           let code = String(emailBody[range])
-          logger.info("🔍 Parsed verification code (fallback): \(code, privacy: .private)")
+          logger.info("🔍 Parsed verification code (fallback): \(code, privacy: .private).")
           return code
         }
       }
     }
 
-    logger.error("❌ Could not parse verification code from email body")
+    logger.error("❌ Could not parse verification code from email body.")
     return ""
   }
 
   /// Fetches all verification codes from email using IMAP
   private func fetchAllVerificationCodesFromEmail(verificationStart: Date) async -> [String] {
-    logger.info("📧 Fetching all verification codes from email for instance: \(self.instanceId)")
+    logger.info("📧 Fetching all verification codes from email for instance: \(self.instanceId).")
 
     // Initial wait before checking for the email
     let initialWait: TimeInterval = AppConstants.initialWait  // 10 seconds
@@ -1555,7 +1556,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     // Use shared email service but with instance-specific logging and timing
     let emailService = EmailService.shared
-    logger.info("📧 Using EmailService for WebKit instance: \(self.instanceId)")
+    logger.info("📧 Using EmailService for WebKit instance: \(self.instanceId).")
 
     // Wait for the initial period
     logger
@@ -1592,7 +1593,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         codes = await emailService.fetchVerificationCodesForToday(since: broaderStart)
 
         if !codes.isEmpty {
-          logger.info("📧 Instance \(self.instanceId): Broader search found \(codes.count) codes")
+          logger.info("📧 Instance \(self.instanceId): Broader search found \(codes.count) codes.")
         }
       }
 
@@ -1628,7 +1629,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       if code.count != 4 || !code.allSatisfy(\.isNumber)
         || AppConstants.suspiciousVerificationCodes.contains(code)
       {
-        logger.warning("Instance \(self.instanceId): Skipping invalid code: \(code)")
+        logger.warning("⚠️ Instance \(self.instanceId): Skipping invalid code: \(code).")
 
         continue
       }
@@ -1647,7 +1648,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       await updateTask("Trying verification code \(index + 1)/\(codes.count)...")
       let fillSuccess = await fillVerificationCode(code)
       if !fillSuccess {
-        logger.warning("Instance \(self.instanceId): Failed to fill verification code \(index + 1)")
+        logger.warning(
+          "⚠️ Instance \(self.instanceId): Failed to fill verification code \(index + 1).")
 
         continue
       }
@@ -1666,7 +1668,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       }
       await updateTask("Waiting for verification response...")
       try? await Task.sleep(nanoseconds: 5_000_000_000)
-      logger.info("Instance \(self.instanceId): Finished waiting for verification response")
+      logger.info("⏳ Instance \(self.instanceId): Finished waiting for verification response.")
       logger.info(
         "🔍 Instance \(self.instanceId): Checking verification result for code \(index + 1)...")
       let verificationSuccess = await checkVerificationSuccess()
@@ -1683,7 +1685,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
         return true  // TERMINATE IMMEDIATELY ON SUCCESS OR TERMINAL STATE
       }
-      logger.warning("Instance \(self.instanceId): ❌ Verification code \(index + 1) was rejected")
+      logger.warning(
+        "⚠️ Instance \(self.instanceId): ❌ Verification code \(index + 1) was rejected.")
       let stillOnVerificationPage = await checkIfStillOnVerificationPage()
       if stillOnVerificationPage {
         logger.info(
@@ -1725,7 +1728,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
   /// Tries verification codes with retry mechanism that fetches new codes if initial ones fail
   private func tryVerificationCodesWithRetry(verificationStart: Date) async -> Bool {
-    logger.info("Instance \(self.instanceId): Starting verification with retry mechanism")
+    logger.info("🔄 Instance \(self.instanceId): Starting verification with retry mechanism.")
     let maxRetryAttempts = 3
     var retryCount = 0
     while retryCount < maxRetryAttempts {
@@ -1735,7 +1738,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         "Fetching verification codes (attempt \(retryCount + 1)/\(maxRetryAttempts))...")
       let verificationCodes = await fetchAllVerificationCodesFromEmail(
         verificationStart: verificationStart)
-      logger.info("Instance \(self.instanceId): Codes fetched for this round: \(verificationCodes)")
+      logger.info(
+        "📧 Instance \(self.instanceId): Codes fetched for this round: \(verificationCodes).")
       if verificationCodes.isEmpty {
         logger.warning(
           "Instance \(self.instanceId): No verification codes found in attempt \(retryCount + 1)")
@@ -1781,7 +1785,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     )
     let directCodes = await EmailService.shared.fetchVerificationCodesForToday(
       since: verificationStart)
-    logger.info("Instance \(self.instanceId): Codes fetched for final direct fetch: \(directCodes)")
+    logger.info(
+      "📧 Instance \(self.instanceId): Codes fetched for final direct fetch: \(directCodes).")
     if !directCodes.isEmpty {
       logger
         .info(
@@ -1812,7 +1817,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
   /// Checks if the verification was successful by looking for success indicators
   private func checkVerificationSuccess() async -> Bool {
     guard let webView else {
-      logger.error("WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
 
@@ -1831,9 +1836,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
           )
 
         if success {
-          logger.info("Instance \(self.instanceId): 🎉 SUCCESS detected - reason: \(reason)")
+          logger.info("🎉 Instance \(self.instanceId): SUCCESS detected - reason: \(reason).")
         } else {
-          logger.info("Instance \(self.instanceId): ❌ FAILURE detected - reason: \(reason)")
+          logger.info("❌ Instance \(self.instanceId): FAILURE detected - reason: \(reason).")
         }
         return success
       } else {
@@ -1849,14 +1854,15 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         )
     }
 
-    logger.error("Instance \(self.instanceId): Defaulting to FAILURE due to error or parsing issue")
+    logger.error(
+      "❌ Instance \(self.instanceId): Defaulting to FAILURE due to error or parsing issue.")
     return false
   }
 
   /// Checks if we're still on the verification page
   private func checkIfStillOnVerificationPage() async -> Bool {
     guard let webView else {
-      logger.error("WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
 
@@ -1864,7 +1870,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     do {
       let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
-      logger.info("Instance \(self.instanceId): Still on verification page: \(result)")
+      logger.info("📄 Instance \(self.instanceId): Still on verification page: \(result).")
       return result
     } catch {
       logger
@@ -1878,7 +1884,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
   /// Clears the verification input field for the next attempt
   private func clearVerificationInput() async {
     guard let webView else {
-      logger.error("WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return
     }
 
@@ -1886,7 +1892,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     do {
       _ = try await webView.evaluateJavaScript(script)
-      logger.info("Instance \(self.instanceId): Cleared verification input field")
+      logger.info("🧹 Instance \(self.instanceId): Cleared verification input field.")
     } catch {
       logger
         .error(
@@ -1898,7 +1904,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
   /// Fills verification code into the input field using browser autofill behavior
   private func fillVerificationCode(_ code: String) async -> Bool {
     guard let webView else {
-      logger.error("WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
 
@@ -1914,7 +1920,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         try? await Task.sleep(nanoseconds: UInt64.random(in: 100_000_000...300_000_000))
         return true
       } else {
-        logger.error("Instance \(self.instanceId): Failed to fill verification code with autofill")
+        logger.error(
+          "❌ Instance \(self.instanceId): Failed to fill verification code with autofill.")
         return false
       }
     } catch {
@@ -1928,13 +1935,13 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
   /// Updates the current task for logging purposes
   private func updateTask(_ task: String) async {
-    logger.info("Task: \(task)")
+    logger.info("📋 Task: \(task).")
   }
 
   /// Clicks the submit button for verification
   private func clickVerificationSubmitButton() async -> Bool {
     guard let webView else {
-      logger.error("WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
     let maxAttempts = 10
@@ -1944,10 +1951,11 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
         let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
         if result {
-          logger.info("✅ [ConfirmClick] Success on attempt \(attempt): Button clicked successfully")
+          logger.info(
+            "✅ [ConfirmClick] Success on attempt \(attempt): Button clicked successfully.")
           return true
         } else {
-          logger.info("🔄 [ConfirmClick] Attempt \(attempt) did not find/click button")
+          logger.info("🔄 [ConfirmClick] Attempt \(attempt) did not find/click button.")
         }
       } catch {
         logger
@@ -1966,7 +1974,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
   /// Detects if "Retry" text appears on the page (indicating reCAPTCHA failure)
   public func detectRetryText() async -> Bool {
     guard let webView else {
-      logger.error("WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
 
@@ -1975,11 +1983,11 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     do {
       let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
       if result {
-        logger.warning("⚠️ Retry text detected - reCAPTCHA likely failed")
+        logger.warning("⚠️ Retry text detected - reCAPTCHA likely failed.")
       }
       return result
     } catch {
-      logger.error("❌ Error detecting retry text: \(error.localizedDescription)")
+      logger.error("❌ Error detecting retry text: \(error.localizedDescription).")
       return false
     }
   }
@@ -1987,7 +1995,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
   /// Handle captcha retry with human behavior simulation
   public func handleCaptchaRetry() async -> Bool {
     guard let webView else {
-      logger.error("WebView not initialized")
+      logger.error("❌ WebView not initialized.")
       return false
     }
 
@@ -1998,13 +2006,13 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     do {
       let result = try await webView.evaluateJavaScript(script) as? Bool ?? false
       if result {
-        logger.info("✅ Captcha retry initiated with human behavior")
+        logger.info("✅ Captcha retry initiated with human behavior.")
       } else {
-        logger.error("❌ Failed to handle captcha retry")
+        logger.error("❌ Failed to handle captcha retry.")
       }
       return result
     } catch {
-      logger.error("❌ Error handling captcha retry: \(error.localizedDescription)")
+      logger.error("❌ Error handling captcha retry: \(error.localizedDescription).")
       return false
     }
   }
@@ -2021,7 +2029,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       _ = try await webView.evaluateJavaScript(cleanupScript)
       logger.info("🧹 Session cleanup completed.")
     } catch {
-      logger.error("❌ Failed to cleanup session: \(error.localizedDescription)")
+      logger.error("❌ Failed to cleanup session: \(error.localizedDescription).")
     }
 
     // Apply basic anti-detection measures using centralized library
@@ -2031,7 +2039,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       _ = try await webView.evaluateJavaScript(script)
       logger.info("🛡️ Basic anti-detection measures applied successfully.")
     } catch {
-      logger.error("❌ Failed to apply anti-detection measures: \(error.localizedDescription)")
+      logger.error("❌ Failed to apply anti-detection measures: \(error.localizedDescription).")
     }
 
     // Quick human-like behavior simulation (much faster)
@@ -2052,7 +2060,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     do {
       _ = try await webView.evaluateJavaScript(script)
     } catch {
-      logger.error("❌ Error simulating mouse movement: \(error.localizedDescription)")
+      logger.error("❌ Error simulating mouse movement: \(error.localizedDescription).")
     }
   }
 
@@ -2068,7 +2076,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     do {
       _ = try await webView.evaluateJavaScript(script)
     } catch {
-      logger.error("❌ Error simulating scrolling: \(error.localizedDescription)")
+      logger.error("❌ Error simulating scrolling: \(error.localizedDescription).")
     }
   }
 
@@ -2159,7 +2167,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       return
     }
 
-    logger.info("🪟 Browser window closed by user - resetting WebKit service state")
+    logger.info("🪟 Browser window closed by user - resetting WebKit service state.")
 
     // Reset service state when window is manually closed
     Task {
@@ -2179,7 +2187,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         // Clear WebView reference
         self.webView = nil
 
-        logger.info("🪟 WebKit service state reset after manual window closure")
+        logger.info("🪟 WebKit service state reset after manual window closure.")
       }
 
       // Notify ReservationManager about window closure
@@ -2205,25 +2213,25 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         let title = result["title"] as? String ?? "No title"
 
         logger.info("🔍 Reservation completion check results:")
-        logger.info("📄 Page title: \(title)")
-        logger.info("📝 Page text preview: \(pageText)")
-        logger.info("✅ Is complete: \(isComplete)")
+        logger.info("📄 Page title: \(title).")
+        logger.info("📝 Page text preview: \(pageText).")
+        logger.info("✅ Is complete: \(isComplete).")
 
         if isComplete {
           logger.info("✅ Reservation completion detected!")
-          logger.info("📋 Completion details: \(result)")
+          logger.info("📋 Completion details: \(result).")
           return true
         } else {
-          logger.warning("⚠️ Reservation completion not detected")
-          logger.info("📋 Incomplete details: \(result)")
+          logger.warning("⚠️ Reservation completion not detected.")
+          logger.info("📋 Incomplete details: \(result).")
           return false
         }
       } else {
-        logger.error("❌ Reservation completion check returned invalid result")
+        logger.error("❌ Reservation completion check returned invalid result.")
         return false
       }
     } catch {
-      logger.error("❌ Error checking reservation completion: \(error.localizedDescription)")
+      logger.error("❌ Error checking reservation completion: \(error.localizedDescription).")
       return false
     }
   }

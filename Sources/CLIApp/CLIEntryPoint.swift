@@ -860,7 +860,7 @@ struct CLI {
         print()
       }
     } catch {
-      logger.error("❌ Failed to load configuration from token: \(error.localizedDescription)")
+      logger.error("❌ Failed to load configuration from token: \(error.localizedDescription).")
       print("❌ Error loading configuration: \(error.localizedDescription)")
       exit(1)
     }
@@ -902,7 +902,7 @@ struct CLI {
       print()
 
     } catch {
-      logger.error("❌ Failed to load configuration from token: \(error.localizedDescription)")
+      logger.error("❌ Failed to load configuration from token: \(error.localizedDescription).")
       print("❌ Error loading configuration: \(error.localizedDescription)")
       exit(1)
     }

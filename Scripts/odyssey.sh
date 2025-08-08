@@ -632,8 +632,6 @@ run_linting() {
         failed_linters+=("Markdown Linting")
     fi
 
-
-
     # Run GitHub Actions Linting
     print_status "step" "Running GitHub Actions Linting..."
     if actionlint .github/workflows/*.yml; then
@@ -657,8 +655,6 @@ run_linting() {
     echo ""
     print_status "info" "Linting completed. Check output above for details."
 }
-
-
 
 # Function to run CI pipeline
 run_ci() {
@@ -789,8 +785,6 @@ deploy_release() {
     APP_PATH=$(find_built_app Release)
     print_status "success" "Application built at: $APP_PATH"
 
-
-
     # Build CLI in release mode
     build_cli release
 
@@ -801,8 +795,6 @@ deploy_release() {
     # Copy app to release_files
     cp -R "$APP_PATH" release_files/
     print_status "success" "App copied to release_files/"
-
-
 
     # Copy CLI to release_files
     cp "$CLI_PATH" release_files/
@@ -842,10 +834,6 @@ deploy_release() {
 
     print_status "success" "Deployment completed successfully!"
 }
-
-
-
-
 
 # Function to generate commit-based changelog
 generate_changelog() {

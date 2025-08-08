@@ -402,10 +402,10 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             )
           }
         case let .failed(error):
-          self.logger.error("❌ EmailService: Connection failed: \(error)")
+          self.logger.error("❌ EmailService: Connection failed: \(error).")
           continuation.resume(returning: [])
         case .cancelled:
-          self.logger.error("❌ EmailService: Connection cancelled")
+          self.logger.error("❌ EmailService: Connection cancelled.")
           continuation.resume(returning: [])
         default:
           break
@@ -453,7 +453,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
           )
         }
       case let .failure(error, _):
-        self.logger.error("❌ EmailService: Authentication failed: \(error)")
+        self.logger.error("❌ EmailService: Authentication failed: \(error).")
         continuation.resume(returning: [])
       }
     }
@@ -473,9 +473,9 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     let searchSince = since.timeIntervalSinceNow > -600 ? since : Date().addingTimeInterval(-600)
     let sinceDateStr = dateFormatter.string(from: searchSince)
 
-    logger.info("📧 EmailService: NWConnection search using timestamp: \(searchSince)")
-    logger.info("📧 EmailService: Original since parameter was: \(since)")
-    logger.info("📧 EmailService: Time difference: \(searchSince.timeIntervalSince(since)) seconds")
+    logger.info("📧 EmailService: NWConnection search using timestamp: \(searchSince).")
+    logger.info("📧 EmailService: Original since parameter was: \(since).")
+    logger.info("📧 EmailService: Time difference: \(searchSince.timeIntervalSince(since)) seconds.")
 
     // First try: Search for emails with specific subject
     let specificSearchCommand =
@@ -490,7 +490,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
       switch result {
       case let .success(searchResponse):
-        self.logger.info("📧 EmailService: Specific subject search response: \(searchResponse)")
+        self.logger.info("📧 EmailService: Specific subject search response: \(searchResponse).")
 
         // Parse message IDs from search response
         let lines = searchResponse.components(separatedBy: .newlines)
@@ -499,7 +499,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         let ids = parts.dropFirst().compactMap { Int($0) }
 
         if !ids.isEmpty {
-          self.logger.info("📧 EmailService: Found \(ids.count) emails with specific subject")
+          self.logger.info("📧 EmailService: Found \(ids.count) emails with specific subject.")
           self.fetchAndExtractCodes(connection: connection, ids: ids, continuation: continuation)
           return
         }
@@ -521,7 +521,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
               switch result {
               case let .success(fallbackResponse):
-                self.logger.info("📧 EmailService: Fallback search response: \(fallbackResponse)")
+                self.logger.info("📧 EmailService: Fallback search response: \(fallbackResponse).")
 
                 let fallbackLines = fallbackResponse.components(separatedBy: .newlines)
                 let fallbackSearchLine = fallbackLines.first(where: { $0.contains("SEARCH") }) ?? ""
@@ -545,14 +545,14 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                 }
 
               case let .failure(error):
-                self.logger.error("❌ EmailService: Fallback search failed: \(error)")
+                self.logger.error("❌ EmailService: Fallback search failed: \(error).")
                 continuation.resume(returning: [])
               }
             }
         }
 
       case let .failure(error):
-        self.logger.error("❌ EmailService: Specific subject search failed: \(error)")
+        self.logger.error("❌ EmailService: Specific subject search failed: \(error).")
         continuation.resume(returning: [])
       }
     }
@@ -565,7 +565,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     continuation: CheckedContinuation<[String], Never>,
   ) {
     // Fetch ALL emails, not just the last one
-    self.logger.info("📧 EmailService: Fetching \(ids.count) emails for verification codes")
+    self.logger.info("📧 EmailService: Fetching \(ids.count) emails for verification codes.")
 
     Task {
       var allCodes: Set<String> = []
@@ -613,7 +613,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
           }
 
         } catch {
-          self.logger.error("❌ EmailService: Fetch failed for email \(emailId): \(error)")
+          self.logger.error("❌ EmailService: Fetch failed for email \(emailId): \(error).")
           // Continue with next email even if this one fails
         }
       }

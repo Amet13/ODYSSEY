@@ -27,7 +27,7 @@ class WebKitEngine: NSObject, WebKitEngineProtocol {
     logger.info("🔧 Creating WebView...")
     let webView = WKWebView(frame: .zero, configuration: configuration)
     self.webView = webView
-    logger.info("✅ WebView created successfully")
+    logger.info("✅ WebView created successfully.")
     return webView
   }
 
@@ -45,28 +45,28 @@ class WebKitEngine: NSObject, WebKitEngineProtocol {
     webView.configuration.defaultWebpagePreferences.allowsContentJavaScript = true
     webView.configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
 
-    logger.info("✅ WebView configured successfully")
+    logger.info("✅ WebView configured successfully.")
   }
 
   func cleanup() {
     logger.info("🧹 Cleaning up WebKit engine...")
     webView?.stopLoading()
     webView = nil
-    logger.info("✅ WebKit engine cleanup completed")
+    logger.info("✅ WebKit engine cleanup completed.")
   }
 }
 
 extension WebKitEngine: WKNavigationDelegate {
   func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation?) {
-    logger.info("🌐 Navigation started")
+    logger.info("🌐 Navigation started.")
   }
 
   func webView(_: WKWebView, didFinish _: WKNavigation?) {
-    logger.info("✅ Navigation completed")
+    logger.info("✅ Navigation completed.")
   }
 
   func webView(_: WKWebView, didFail _: WKNavigation?, withError error: Error) {
-    logger.error("❌ Navigation failed: \(error.localizedDescription)")
+    logger.error("❌ Navigation failed: \(error.localizedDescription).")
   }
 }
 
