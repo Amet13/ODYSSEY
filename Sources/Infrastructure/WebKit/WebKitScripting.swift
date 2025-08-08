@@ -34,22 +34,22 @@ class WebKitScripting: WebKitScriptingProtocol {
 
     // Use the centralized library for script injection
     _ = try await evaluateJavaScript(script)
-    logger.info("✅ Script injection completed")
+    logger.info("✅ Script injection completed.")
   }
 
   func clickElement(_ selector: String) async throws {
-    logger.info("🖱️ Clicking element: \(selector)")
+    logger.info("🖱️ Clicking element: \(selector).")
 
     let result = try await evaluateJavaScript("window.odyssey.clickElement('\(selector)');")
     guard let clicked = result as? Bool, clicked else {
       throw DomainError.automation(.elementNotFound(selector))
     }
 
-    logger.info("✅ Element clicked successfully")
+    logger.info("✅ Element clicked successfully.")
   }
 
   func typeText(_ text: String, into selector: String) async throws {
-    logger.info("⌨️ Typing text into element: \(selector)")
+    logger.info("⌨️ Typing text into element: \(selector).")
 
     let result = try await evaluateJavaScript(
       "window.odyssey.typeTextIntoElement('\(selector)', '\(text)');")
@@ -57,11 +57,11 @@ class WebKitScripting: WebKitScriptingProtocol {
       throw DomainError.automation(.elementNotFound(selector))
     }
 
-    logger.info("✅ Text typed successfully")
+    logger.info("✅ Text typed successfully.")
   }
 
   func getElementText(_ selector: String) async throws -> String? {
-    logger.info("📖 Getting element text: \(selector)")
+    logger.info("📖 Getting element text: \(selector).")
 
     let result = try await evaluateJavaScript("window.odyssey.getElementText('\(selector)');")
     let text = result as? String
@@ -70,7 +70,7 @@ class WebKitScripting: WebKitScriptingProtocol {
   }
 
   func waitForElementToBeClickable(_ selector: String) async throws -> Bool {
-    logger.info("⏳ Waiting for element to be clickable: \(selector)")
+    logger.info("⏳ Waiting for element to be clickable: \(selector).")
 
     let startTime = Date()
     while Date().timeIntervalSince(startTime) < timeout {
@@ -78,17 +78,17 @@ class WebKitScripting: WebKitScriptingProtocol {
         let result = try await evaluateJavaScript(
           "window.odyssey.isElementClickable('\(selector)');")
         if let clickable = result as? Bool, clickable {
-          logger.info("✅ Element is clickable: \(selector)")
+          logger.info("✅ Element is clickable: \(selector).")
           return true
         }
       } catch {
-        logger.error("❌ JavaScript evaluation failed: \(error.localizedDescription)")
+        logger.error("❌ JavaScript evaluation failed: \(error.localizedDescription).")
       }
 
       try await Task.sleep(nanoseconds: 100_000_000)  // 0.1 seconds
     }
 
-    logger.error("❌ Element not clickable: \(selector)")
+    logger.error("❌ Element not clickable: \(selector).")
     return false
   }
 }

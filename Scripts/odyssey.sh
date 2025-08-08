@@ -6,11 +6,11 @@
 # Usage: $0 <command> [options]
 #
 # This script consolidates all ODYSSEY development and deployment functionality
-# into a single, unified command-line interface.
+# into a single, unified command-line interface for building, testing, and releasing.
 
 set -e
 
-# Set Homebrew to not auto-update to prevent unnecessary updates
+# Prevent Homebrew from auto-updating to avoid unnecessary delays
 export HOMEBREW_NO_AUTO_UPDATE=1
 
 # Colors for output
@@ -30,7 +30,7 @@ SOURCES_PATH="Sources"
 BUILD_CONFIG="Debug"
 SCHEME_NAME="ODYSSEY"
 
-# Function to print colored output (unified logging)
+# Function to print colored output with unified logging format
 print_status() {
     local status=$1
     local message=$2
@@ -43,7 +43,7 @@ print_status() {
     esac
 }
 
-# Alias functions for consistency
+# Alias functions for consistent logging
 log_info() { print_status "info" "$1"; }
 log_success() { print_status "success" "$1"; }
 log_warning() { print_status "warning" "$1"; }
@@ -481,7 +481,7 @@ show_build_summary() {
     echo "3. The app will appear in your menu bar"
     echo "4. Use CLI: $cli_path <command> for remote automation"
     echo ""
-    print_status "info" "For more information, see Documentation/README.md"
+    print_status "info" "For more information, see Documentation/USER_GUIDE.md"
     echo ""
     print_status "success" "Happy coding! 🚀"
 }
@@ -632,8 +632,6 @@ run_linting() {
         failed_linters+=("Markdown Linting")
     fi
 
-
-
     # Run GitHub Actions Linting
     print_status "step" "Running GitHub Actions Linting..."
     if actionlint .github/workflows/*.yml; then
@@ -657,8 +655,6 @@ run_linting() {
     echo ""
     print_status "info" "Linting completed. Check output above for details."
 }
-
-
 
 # Function to run CI pipeline
 run_ci() {
@@ -789,8 +785,6 @@ deploy_release() {
     APP_PATH=$(find_built_app Release)
     print_status "success" "Application built at: $APP_PATH"
 
-
-
     # Build CLI in release mode
     build_cli release
 
@@ -801,8 +795,6 @@ deploy_release() {
     # Copy app to release_files
     cp -R "$APP_PATH" release_files/
     print_status "success" "App copied to release_files/"
-
-
 
     # Copy CLI to release_files
     cp "$CLI_PATH" release_files/
@@ -842,10 +834,6 @@ deploy_release() {
 
     print_status "success" "Deployment completed successfully!"
 }
-
-
-
-
 
 # Function to generate commit-based changelog
 generate_changelog() {

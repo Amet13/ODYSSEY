@@ -299,23 +299,23 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
     if let last = lastAttempt {
       let interval = now.timeIntervalSince(last)
-      logger.info("[IMAP][\(connectionID)] Time since last connection: \(interval) seconds")
+      logger.info("[IMAP][\(connectionID)] Time since last connection: \(interval) seconds.")
     } else {
-      logger.info("[IMAP][\(connectionID)] First connection attempt in this session")
+      logger.info("[IMAP][\(connectionID)] First connection attempt in this session.")
     }
-    logger.info("[IMAP][\(connectionID)] Starting fetchVerificationCodesForToday() at \(now)")
-    logger.info("📧 EmailService: Starting fetchVerificationCodesForToday()")
-    logger.info("📧 EmailService: Using searchSince: \(searchSince)")
-    logger.info("📧 EmailService: Original since parameter was: \(since)")
-    logger.info("📧 EmailService: Time difference: \(searchSince.timeIntervalSince(since)) seconds")
+    logger.info("[IMAP][\(connectionID)] Starting fetchVerificationCodesForToday() at \(now).")
+    logger.info("📧 EmailService: Starting fetchVerificationCodesForToday().")
+    logger.info("📧 EmailService: Using searchSince: \(searchSince).")
+    logger.info("📧 EmailService: Original since parameter was: \(since).")
+    logger.info("📧 EmailService: Time difference: \(searchSince.timeIntervalSince(since)) seconds.")
 
     let settings = userSettingsManager.userSettings
     guard settings.hasEmailConfigured else {
-      logger.error("❌ EmailService: Incomplete email settings for code extraction")
+      logger.error("❌ EmailService: Incomplete email settings for code extraction.")
       return []
     }
 
-    logger.info("✅ EmailService: Email settings are configured")
+    logger.info("✅ EmailService: Email settings are configured.")
 
     // Use the same NWConnection-based implementation that works for the test
     // ---
@@ -329,7 +329,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
   ///   - instanceId: Unique identifier for the WebKit instance
   /// - Returns: Array of verification codes for this instance
   func fetchAndConsumeVerificationCodes(since: Date, instanceId: String) async -> [String] {
-    logger.info("📧 EmailService: Fetching and consuming codes for instance: \(instanceId)")
+    logger.info("📧 EmailService: Fetching and consuming codes for instance: \(instanceId).")
 
     // Use a shared code pool to ensure each instance gets unique codes
     return await SharedVerificationCodePool.shared.consumeCodes(for: instanceId, since: since)
@@ -357,7 +357,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
   /// Fetches verification codes using the same connection logic as the test
   private func fetchVerificationCodesWithSameConnection(since: Date) async -> [String] {
-    logger.info("🔍 EmailService: Fetching verification codes with same connection logic")
+    logger.info("🔍 EmailService: Fetching verification codes with same connection logic.")
 
     // Use the same NWConnection-based implementation that works for the test
     return await fetchVerificationCodesWithNWConnection(since: since)
@@ -367,7 +367,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
   private func fetchVerificationCodesWithNWConnection(since: Date) async -> [String] {
     let settings = userSettingsManager.userSettings
 
-    logger.info("🔍 EmailService: Fetching verification codes with NWConnection")
+    logger.info("🔍 EmailService: Fetching verification codes with NWConnection.")
 
     // Determine port and TLS settings based on server
     let server = settings.currentServer
@@ -402,10 +402,10 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             )
           }
         case let .failed(error):
-          self.logger.error("❌ EmailService: Connection failed: \(error)")
+          self.logger.error("❌ EmailService: Connection failed: \(error).")
           continuation.resume(returning: [])
         case .cancelled:
-          self.logger.error("❌ EmailService: Connection cancelled")
+          self.logger.error("❌ EmailService: Connection cancelled.")
           continuation.resume(returning: [])
         default:
           break
@@ -453,7 +453,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
           )
         }
       case let .failure(error, _):
-        self.logger.error("❌ EmailService: Authentication failed: \(error)")
+        self.logger.error("❌ EmailService: Authentication failed: \(error).")
         continuation.resume(returning: [])
       }
     }
@@ -473,9 +473,9 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     let searchSince = since.timeIntervalSinceNow > -600 ? since : Date().addingTimeInterval(-600)
     let sinceDateStr = dateFormatter.string(from: searchSince)
 
-    logger.info("📧 EmailService: NWConnection search using timestamp: \(searchSince)")
-    logger.info("📧 EmailService: Original since parameter was: \(since)")
-    logger.info("📧 EmailService: Time difference: \(searchSince.timeIntervalSince(since)) seconds")
+    logger.info("📧 EmailService: NWConnection search using timestamp: \(searchSince).")
+    logger.info("📧 EmailService: Original since parameter was: \(since).")
+    logger.info("📧 EmailService: Time difference: \(searchSince.timeIntervalSince(since)) seconds.")
 
     // First try: Search for emails with specific subject
     let specificSearchCommand =
@@ -490,7 +490,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
       switch result {
       case let .success(searchResponse):
-        self.logger.info("📧 EmailService: Specific subject search response: \(searchResponse)")
+        self.logger.info("📧 EmailService: Specific subject search response: \(searchResponse).")
 
         // Parse message IDs from search response
         let lines = searchResponse.components(separatedBy: .newlines)
@@ -499,7 +499,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         let ids = parts.dropFirst().compactMap { Int($0) }
 
         if !ids.isEmpty {
-          self.logger.info("📧 EmailService: Found \(ids.count) emails with specific subject")
+          self.logger.info("📧 EmailService: Found \(ids.count) emails with specific subject.")
           self.fetchAndExtractCodes(connection: connection, ids: ids, continuation: continuation)
           return
         }
@@ -521,7 +521,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
               switch result {
               case let .success(fallbackResponse):
-                self.logger.info("📧 EmailService: Fallback search response: \(fallbackResponse)")
+                self.logger.info("📧 EmailService: Fallback search response: \(fallbackResponse).")
 
                 let fallbackLines = fallbackResponse.components(separatedBy: .newlines)
                 let fallbackSearchLine = fallbackLines.first(where: { $0.contains("SEARCH") }) ?? ""
@@ -545,14 +545,14 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                 }
 
               case let .failure(error):
-                self.logger.error("❌ EmailService: Fallback search failed: \(error)")
+                self.logger.error("❌ EmailService: Fallback search failed: \(error).")
                 continuation.resume(returning: [])
               }
             }
         }
 
       case let .failure(error):
-        self.logger.error("❌ EmailService: Specific subject search failed: \(error)")
+        self.logger.error("❌ EmailService: Specific subject search failed: \(error).")
         continuation.resume(returning: [])
       }
     }
@@ -565,7 +565,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     continuation: CheckedContinuation<[String], Never>,
   ) {
     // Fetch ALL emails, not just the last one
-    self.logger.info("📧 EmailService: Fetching \(ids.count) emails for verification codes")
+    self.logger.info("📧 EmailService: Fetching \(ids.count) emails for verification codes.")
 
     Task {
       var allCodes: Set<String> = []
@@ -613,7 +613,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
           }
 
         } catch {
-          self.logger.error("❌ EmailService: Fetch failed for email \(emailId): \(error)")
+          self.logger.error("❌ EmailService: Fetch failed for email \(emailId): \(error).")
           // Continue with next email even if this one fails
         }
       }
@@ -759,12 +759,12 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     EmailService.lastIMAPConnectionTimestamp = now
     if let last = lastAttempt {
       let interval = now.timeIntervalSince(last)
-      logger.info("[IMAP][\(connectionID)] Time since last connection: \(interval) seconds")
+      logger.info("[IMAP][\(connectionID)] Time since last connection: \(interval) seconds.")
     } else {
-      logger.info("[IMAP][\(connectionID)] First connection attempt in this session")
+      logger.info("[IMAP][\(connectionID)] First connection attempt in this session.")
     }
-    logger.info("[IMAP][\(connectionID)] Starting connectToIMAP at \(now)")
-    logger.info("[IMAP][\(connectionID)] Attempting connection to \(server):\(port) TLS=\(useTLS)")
+    logger.info("[IMAP][\(connectionID)] Starting connectToIMAP at \(now).")
+    logger.info("[IMAP][\(connectionID)] Attempting connection to \(server):\(port) TLS=\(useTLS).")
 
     let provider: EmailProvider = server == "imap.gmail.com" ? .gmail : .imap
     logger
@@ -820,7 +820,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
       if !state.didResume {
         state.didResume = true
         let provider: EmailProvider = server == "imap.gmail.com" ? .gmail : .imap
-        logger.error("[IMAP][\(connectionID)] Fallback: forcibly resuming continuation after 35s")
+        logger.error("[IMAP][\(connectionID)] Fallback: forcibly resuming continuation after 35s.")
         continuation.resume(
           returning: .failure(
             "IMAP connection did not complete or resume in time (internal fallback)",
@@ -938,11 +938,11 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
       guard let self else { return }
       switch result {
       case let .success(greeting):
-        logger.info("[IMAP] Greeting received: \(greeting.prefix(200))")
+        logger.info("[IMAP] Greeting received: \(greeting.prefix(200)).")
 
         // Check for authentication errors in the greeting
         if greeting.contains("NO"), greeting.lowercased().contains("login") {
-          logger.error("[IMAP] Authentication failed in greeting: \(greeting)")
+          logger.error("[IMAP] Authentication failed in greeting: \(greeting).")
           completion(
             .failure(
               "Authentication failed: Invalid email or password",
@@ -952,7 +952,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         }
 
         if greeting.contains("BAD") {
-          logger.error("[IMAP] Server rejected connection: \(greeting)")
+          logger.error("[IMAP] Server rejected connection: \(greeting).")
           completion(
             .failure(
               "Server rejected connection: \(greeting)",
@@ -962,7 +962,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         }
 
         if !useTLS, greeting.contains("STARTTLS") {
-          logger.info("[IMAP] Server supports STARTTLS, upgrading connection")
+          logger.info("[IMAP] Server supports STARTTLS, upgrading connection.")
           Task {
             await self
               .upgradeToTLS(
@@ -988,7 +988,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
               }
           }
         } else {
-          logger.info("[IMAP] Proceeding with authentication")
+          logger.info("[IMAP] Proceeding with authentication.")
           Task {
             await self.continueIMAPHandshake(
               connection: connection,
@@ -1001,7 +1001,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
           }
         }
       case let .failure(error):
-        logger.error("[IMAP] Failed to receive greeting: \(error.localizedDescription)")
+        logger.error("[IMAP] Failed to receive greeting: \(error.localizedDescription).")
 
         // Provide more specific error messages
         if error.localizedDescription.contains("timeout") {
@@ -1046,10 +1046,10 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
               guard let self else { return }
               switch result {
               case let .success(loginResponse):
-                self.logger.info("[IMAP] LOGIN response: \(loginResponse)")
+                self.logger.info("[IMAP] LOGIN response: \(loginResponse).")
                 // Parse response lines for the LOGIN tag (a002)
                 let loginLines = loginResponse.components(separatedBy: .newlines)
-                self.logger.info("[IMAP] LOGIN response lines: \(loginLines)")
+                self.logger.info("[IMAP] LOGIN response lines: \(loginLines).")
 
                 // Check ALL lines for authentication result, not just the first tagged line
                 var authenticationResult: String?
@@ -1057,7 +1057,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                   let trimmedLine = line.trimmingCharacters(in: .whitespaces)
                   if trimmedLine.hasPrefix("a002") {
                     authenticationResult = trimmedLine
-                    self.logger.info("[IMAP] Found tagged line: '\(trimmedLine)'")
+                    self.logger.info("[IMAP] Found tagged line: '\(trimmedLine)'.")
                     break
                   }
                 }
@@ -1070,7 +1070,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                         .contains("BAD")
                     {
                       authenticationResult = trimmedLine
-                      self.logger.info("[IMAP] Found auth result line: '\(trimmedLine)'")
+                      self.logger.info("[IMAP] Found auth result line: '\(trimmedLine)'.")
                       break
                     }
                   }
@@ -1078,7 +1078,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
                 if let result = authenticationResult {
                   if result.contains("OK") {
-                    self.logger.info("[IMAP] Authentication successful: \(result)")
+                    self.logger.info("[IMAP] Authentication successful: \(result).")
                     // Continue with SELECT INBOX
                     let selectCommand = "a003 SELECT INBOX\r\n"
                     Task {
@@ -1222,21 +1222,21 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                         }
                     }
                   } else if result.contains("NO") || result.lowercased().contains("login") {
-                    self.logger.error("[IMAP] Authentication failed: \(result)")
+                    self.logger.error("[IMAP] Authentication failed: \(result).")
                     completion(
                       .failure(
                         "Authentication failed: Invalid email or password",
                         provider: provider,
                       ))
                   } else if result.contains("BAD") {
-                    self.logger.error("[IMAP] Authentication error: \(result)")
+                    self.logger.error("[IMAP] Authentication error: \(result).")
                     completion(
                       .failure(
                         "Authentication error: " + result,
                         provider: provider,
                       ))
                   } else {
-                    self.logger.error("[IMAP] Unknown authentication result: \(result)")
+                    self.logger.error("[IMAP] Unknown authentication result: \(result).")
                     completion(
                       .failure(
                         "Authentication failed: Unknown response",
@@ -1244,7 +1244,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                       ))
                   }
                 } else {
-                  self.logger.error("[IMAP] No authentication result found in response")
+                  self.logger.error("[IMAP] No authentication result found in response.")
                   completion(
                     .failure(
                       "Authentication failed: No response from server",
@@ -1262,7 +1262,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         }
       case let .failure(error):
         let errorMessage = "IMAP capability command failed: \(error.localizedDescription)"
-        self.logger.error("❌ \(errorMessage)")
+        self.logger.error("❌ \(errorMessage).")
         completion(
           .failure(
             "IMAP command failed: \(error.localizedDescription)",
@@ -1299,17 +1299,17 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     completion: @escaping @Sendable (Result<String, IMAPError>) -> Void,
   ) async {
     let data = Data(command.utf8)
-    logger.info("📤 IMAP Command: \(command.trimmingCharacters(in: .whitespacesAndNewlines))")
+    logger.info("📤 IMAP Command: \(command.trimmingCharacters(in: .whitespacesAndNewlines)).")
 
     connection.send(
       content: data,
       completion: .contentProcessed { [self] error in
         if let error {
-          logger.error("❌ IMAP send error: \(error.localizedDescription)")
+          logger.error("❌ IMAP send error: \(error.localizedDescription).")
           completion(.failure(.commandFailed("Send failed: \(error.localizedDescription)")))
           return
         }
-        logger.info("✅ IMAP command sent successfully")
+        logger.info("✅ IMAP command sent successfully.")
         Task { await self.receiveIMAPResponse(connection: connection, completion: completion) }
       })
   }
@@ -1321,16 +1321,16 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     connection.receive(minimumIncompleteLength: 1, maximumLength: 65_536) {
       [self] data, _, _, error in
       if let error {
-        logger.error("❌ [IMAP] Receive error: \(error.localizedDescription)")
+        logger.error("❌ [IMAP] Receive error: \(error.localizedDescription).")
         completion(.failure(.invalidResponse("Receive failed: \(error.localizedDescription)")))
         return
       }
       guard let data, let response = String(data: data, encoding: .utf8) else {
-        logger.error("❌ [IMAP] Invalid response data (empty or not UTF-8)")
+        logger.error("❌ [IMAP] Invalid response data (empty or not UTF-8).")
         completion(.failure(.invalidResponse("Invalid response data")))
         return
       }
-      logger.info("[IMAP] Raw server response: \(response.prefix(500))")
+      logger.info("[IMAP] Raw server response: \(response.prefix(500)).")
       completion(.success(response))
     }
   }
@@ -1433,7 +1433,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
         foundCodes.append(contentsOf: codes)
       } catch {
-        logger.error("❌ Regex error for pattern \(context): \(error.localizedDescription)")
+        logger.error("❌ Regex error for pattern \(context): \(error.localizedDescription).")
       }
     }
     foundCodes = Array(Set(foundCodes))  // Unique
@@ -1447,10 +1447,10 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
           "📋 Extracted \(filtered.count) unique verification codes (contextual): \(filtered)")
         return filtered
       } else {
-        logger.warning("⚠️ All contextual codes were filtered out as suspicious: \(foundCodes)")
+        logger.warning("⚠️ All contextual codes were filtered out as suspicious: \(foundCodes).")
       }
     }
-    logger.error("⚠️ No contextual code found, using fallback pattern: \\b\\d{4}\\b")
+    logger.error("⚠️ No contextual code found, using fallback pattern: \\b\\d{4}\\b.")
     // Fallback pattern
     do {
       let fallbackPattern = "\\b\\d{4}\\b"
@@ -1471,12 +1471,12 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
           "📋 Extracted \(filtered.count) unique verification codes (fallback): \(filtered)")
         return filtered
       } else {
-        logger.warning("⚠️ All fallback codes were filtered out as suspicious: \(codes)")
+        logger.warning("⚠️ All fallback codes were filtered out as suspicious: \(codes).")
       }
     } catch {
-      logger.error("❌ Regex error for fallback pattern: \(error.localizedDescription)")
+      logger.error("❌ Regex error for fallback pattern: \(error.localizedDescription).")
     }
-    logger.error("⚠️ No verification codes found in email body")
+    logger.error("⚠️ No verification codes found in email body.")
     return []
   }
 
@@ -1731,14 +1731,14 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         for id in idsAll {
           sendCommand("a9 FETCH \(id) (BODY[HEADER.FIELDS (SUBJECT FROM DATE)])")
           let headerResp = await expect("a9")
-          logger.info("📧 Email ID \(id) header: \n\(headerResp)")
+          logger.info("📧 Email ID \(id) header: \n\(headerResp).")
         }
       }
 
       ids = Array(Set(ids)).sorted()
 
       if ids.isEmpty {
-        logger.warning("⚠️ No email IDs found in any search strategy")
+        logger.warning("⚠️ No email IDs found in any search strategy.")
         return []
       }
 
@@ -1754,10 +1754,10 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
       altDateFormatter.dateFormat = "d MMM yyyy HH:mm:ss Z"
 
       for id in ids {
-        logger.info("📄 Processing email ID \(id)")
+        logger.info("📄 Processing email ID \(id).")
         sendCommand("a4 FETCH \(id) BODY[HEADER.FIELDS (DATE FROM SUBJECT)]")
         let headerResp = await expect("a4")
-        logger.info("📬 Email ID \(id) headers: \(headerResp.prefix(500))")
+        logger.info("📬 Email ID \(id) headers: \(headerResp.prefix(500)).")
 
         // Parse Date: header
         let dateLine = headerResp.components(separatedBy: "\n")
@@ -1770,7 +1770,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             omittingEmptySubsequences: false,
           ).last?.trimmingCharacters(in: .whitespacesAndNewlines)
         else {
-          logger.info("📅 Skipping email ID \(id): Could not find date header")
+          logger.info("📅 Skipping email ID \(id): Could not find date header.")
           continue
         }
 
@@ -1782,7 +1782,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         }
 
         guard let emailDate else {
-          logger.info("📅 Skipping email ID \(id): Could not parse date '\(dateStr)'")
+          logger.info("📅 Skipping email ID \(id): Could not parse date '\(dateStr)'.")
           continue
         }
 
@@ -1800,15 +1800,15 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         sendCommand("a5 FETCH \(id) BODY[TEXT]")
         let bodyResp = await expect("a5")
         let body = await extractBodyFromResponse(bodyResp)
-        logger.info("📧 Email ID \(id) body (truncated): \(body.prefix(500))")
+        logger.info("📧 Email ID \(id) body (truncated): \(body.prefix(500)).")
 
         // Extract verification codes
         let emailCodes = await extractVerificationCodes(from: body)
-        logger.info("🔢 Email ID \(id) contains codes: \(emailCodes)")
+        logger.info("🔢 Email ID \(id) contains codes: \(emailCodes).")
         codes.append(contentsOf: emailCodes)
       }
 
-      logger.info("📋 Found \(codes.count) verification codes: \(codes)")
+      logger.info("📋 Found \(codes.count) verification codes: \(codes).")
       return codes
     }()
   }
@@ -1978,7 +1978,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     case let .failure(error):
       Task { @MainActor in
         self.userFacingError = error.localizedDescription
-        logger.error("❌ Email service error: \(error.localizedDescription)")
+        logger.error("❌ Email service error: \(error.localizedDescription).")
       }
       return nil
     }
@@ -1989,7 +1989,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
     let settings = userSettingsManager.userSettings
     guard settings.hasEmailConfigured else {
-      logger.error("❌ Email settings not configured")
+      logger.error("❌ Email settings not configured.")
       throw IMAPError.connectionFailed("Email settings not configured")
     }
 
@@ -2010,7 +2010,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
       )
     }
 
-    logger.info("✅ Found \(emails.count) verification emails")
+    logger.info("✅ Found \(emails.count) verification emails.")
     return emails
   }
 }

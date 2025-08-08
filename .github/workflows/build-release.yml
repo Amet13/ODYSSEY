@@ -81,13 +81,13 @@ jobs:
             ### 🖥️ GUI Application
             1. Download `ODYSSEY.dmg` above
             2. Open the DMG file and drag `ODYSSEY.app` to your Applications folder
-            3. Add ODYSSEY to the trust list: `sudo xattr -rd com.apple.quarantine /Applications/ODYSSEY.app`
+            3. Add to the quarantine: `sudo xattr -rd com.apple.quarantine /Applications/ODYSSEY.app`
             4. Right-click and select "Open" on first launch
 
             ### 💻 CLI Tool
             1. Download `odyssey-cli` above
             2. Make executable: `chmod +x odyssey-cli`
-            3. Add ODYSSEY to the trust list: `sudo xattr -rd com.apple.quarantine ./odyssey-cli`
+            3. Add to the quarantine: `sudo xattr -rd com.apple.quarantine ./odyssey-cli`
             4. Export token from GUI: `export ODYSSEY_EXPORT_TOKEN="<token>"`
             5. Run: `./odyssey-cli run`
 

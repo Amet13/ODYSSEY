@@ -28,7 +28,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
   }
 
   func createReservation(_ config: ReservationConfig) async throws -> Reservation {
-    logger.info("📝 Creating reservation for configuration: \(config.name)")
+    logger.info("📝 Creating reservation for configuration: \(config.name).")
 
     // Validate configuration
     try validateConfiguration(config)
@@ -39,12 +39,12 @@ class ReservationUseCase: ReservationUseCaseProtocol {
     // Save to repository
     try await repository.save(reservation)
 
-    logger.info("✅ Reservation created successfully: \(reservation.id)")
+    logger.info("✅ Reservation created successfully: \(reservation.id).")
     return reservation
   }
 
   func executeReservation(_ reservation: Reservation) async throws -> ReservationResult {
-    logger.info("🚀 Executing reservation: \(reservation.id)")
+    logger.info("🚀 Executing reservation: \(reservation.id).")
 
     // Update status to in progress
     var updatedReservation = reservation
@@ -75,7 +75,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
 
       try await repository.save(finalReservation)
 
-      logger.info("✅ Reservation execution completed: \(reservation.id)")
+      logger.info("✅ Reservation execution completed: \(reservation.id).")
       return result
 
     } catch {
@@ -97,13 +97,13 @@ class ReservationUseCase: ReservationUseCaseProtocol {
 
       try await repository.save(failedReservation)
 
-      logger.error("❌ Reservation execution failed: \(error.localizedDescription)")
+      logger.error("❌ Reservation execution failed: \(error.localizedDescription).")
       throw error
     }
   }
 
   func cancelReservation(_ reservation: Reservation) async throws {
-    logger.info("❌ Cancelling reservation: \(reservation.id)")
+    logger.info("❌ Cancelling reservation: \(reservation.id).")
 
     guard reservation.status != .completed, reservation.status != .failed else {
       throw DomainError.validation(.invalidFormat("Cannot cancel completed or failed reservation"))
@@ -119,7 +119,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
     )
 
     try await repository.save(cancelledReservation)
-    logger.info("✅ Reservation cancelled successfully")
+    logger.info("✅ Reservation cancelled successfully.")
   }
 
   func getReservationStatus(_ id: UUID) async throws -> ReservationStatus {
@@ -153,7 +153,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
   private func executeReservationAutomation(_ reservation: Reservation) async throws
     -> ReservationResult
   {
-    logger.info("🤖 Starting automation for reservation: \(reservation.id)")
+    logger.info("🤖 Starting automation for reservation: \(reservation.id).")
 
     let config = reservation.configuration
 
@@ -186,7 +186,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
     // Submit reservation
     try await submitReservation()
 
-    logger.info("✅ Automation completed successfully")
+    logger.info("✅ Automation completed successfully.")
     return ReservationResult(
       success: true,
       message: "Reservation completed successfully",
@@ -232,7 +232,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
       throw DomainError.automation(.elementNotFound("Verify button"))
     }
 
-    logger.info("✅ Email verification completed")
+    logger.info("✅ Email verification completed.")
   }
 
   private func extractVerificationCode(from content: String) -> String? {
@@ -249,14 +249,14 @@ class ReservationUseCase: ReservationUseCaseProtocol {
       return nil
     }
     let code = String(content[range])
-    logger.info("🔐 Extracted verification code: \(code)")
+    logger.info("🔐 Extracted verification code: \(code).")
     return code
   }
 
   // MARK: - Helper Methods
 
   private func selectSport(_ sportName: String) async throws {
-    logger.info("🏀 Selecting sport: \(sportName)")
+    logger.info("🏀 Selecting sport: \(sportName).")
 
     // Find and click sport selection
     let sportSelector = "input[name='sport'], select[name='sport'], .sport-selector"
@@ -271,11 +271,11 @@ class ReservationUseCase: ReservationUseCaseProtocol {
       throw DomainError.automation(.elementNotFound("Sport input"))
     }
 
-    logger.info("✅ Sport selected")
+    logger.info("✅ Sport selected.")
   }
 
   private func selectTimeSlot(_ timeSlot: TimeSlot) async throws {
-    logger.info("⏰ Selecting time slot: \(timeSlot.time)")
+    logger.info("⏰ Selecting time slot: \(timeSlot.time).")
 
     // Select time slot
     let timeSelector = "input[name='time'], select[name='time'], .time-selector"
@@ -294,11 +294,11 @@ class ReservationUseCase: ReservationUseCaseProtocol {
       throw DomainError.automation(.elementNotFound("Time input"))
     }
 
-    logger.info("✅ Time slot selected")
+    logger.info("✅ Time slot selected.")
   }
 
   private func fillContactInformation(_: ReservationConfig) async throws {
-    logger.info("📝 Filling contact information")
+    logger.info("📝 Filling contact information.")
 
     // Get user settings for contact information
     let userSettings = UserSettingsManager.shared.userSettings
@@ -315,11 +315,11 @@ class ReservationUseCase: ReservationUseCaseProtocol {
       throw DomainError.automation(.elementNotFound("Contact form"))
     }
 
-    logger.info("✅ Contact information filled")
+    logger.info("✅ Contact information filled.")
   }
 
   private func submitReservation() async throws {
-    logger.info("📤 Submitting reservation")
+    logger.info("📤 Submitting reservation.")
 
     let submitSelector =
       "button[type='submit'], input[type='submit'], .submit-button, .reserve-button"
@@ -331,7 +331,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
     // Wait for submission to complete
     try await Task.sleep(nanoseconds: 2_000_000_000)  // 2 seconds
 
-    logger.info("✅ Reservation submitted")
+    logger.info("✅ Reservation submitted.")
   }
 
   private func extractFacilityName(from urlString: String) -> String {

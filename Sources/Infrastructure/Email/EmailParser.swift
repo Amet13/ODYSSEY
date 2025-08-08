@@ -12,11 +12,11 @@ class EmailParser: EmailParserProtocol {
   private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "EmailParser")
 
   func parseVerificationCode(_ email: Email) -> String? {
-    logger.info("🔍 Parsing verification code from email: \(email.subject)")
+    logger.info("🔍 Parsing verification code from email: \(email.subject).")
 
     // Check if this is a verification email
     guard isVerificationEmail(email) else {
-      logger.info("❌ Email is not a verification email")
+      logger.info("❌ Email is not a verification email.")
       return nil
     }
 
@@ -24,9 +24,9 @@ class EmailParser: EmailParserProtocol {
     let verificationCode = extractVerificationCodeFromText(email.body)
 
     if let code = verificationCode {
-      logger.info("✅ Verification code found: \(code)")
+      logger.info("✅ Verification code found: \(code).")
     } else {
-      logger.info("❌ No verification code found in email")
+      logger.info("❌ No verification code found in email.")
     }
 
     return verificationCode
@@ -37,7 +37,7 @@ class EmailParser: EmailParserProtocol {
 
     // Clean up HTML tags if present
     let cleanBody = removeHTMLTags(from: email.body)
-    logger.info("✅ Email body parsed successfully")
+    logger.info("✅ Email body parsed successfully.")
 
     return cleanBody
   }
@@ -49,7 +49,7 @@ class EmailParser: EmailParserProtocol {
       parseVerificationCode(email)
     }
 
-    logger.info("✅ Extracted \(codes.count) verification codes")
+    logger.info("✅ Extracted \(codes.count) verification codes.")
     return codes
   }
 

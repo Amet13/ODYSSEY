@@ -23,23 +23,23 @@ class ReservationRepository: ReservationRepositoryProtocol {
   }
 
   func save(_ reservation: Reservation) async throws {
-    logger.info("💾 Saving reservation: \(reservation.id)")
+    logger.info("💾 Saving reservation: \(reservation.id).")
 
     let key = "reservation_\(reservation.id.uuidString)"
     try storage.save(reservation, forKey: key)
-    logger.info("✅ Reservation saved successfully")
+    logger.info("✅ Reservation saved successfully.")
   }
 
   func fetch(_ id: String) async throws -> Reservation? {
-    logger.info("📥 Fetching reservation: \(id)")
+    logger.info("📥 Fetching reservation: \(id).")
 
     let key = "reservation_\(id)"
     guard let reservation = try storage.load(Reservation.self, forKey: key) else {
-      logger.info("❌ Reservation not found: \(id)")
+      logger.info("❌ Reservation not found: \(id).")
       return nil
     }
 
-    logger.info("✅ Reservation fetched successfully")
+    logger.info("✅ Reservation fetched successfully.")
     return reservation
   }
 
@@ -50,17 +50,17 @@ class ReservationRepository: ReservationRepositoryProtocol {
     // In a real implementation, you'd need to maintain a list of keys
     let reservations: [Reservation] = []
 
-    logger.info("✅ Fetched \(reservations.count) reservations")
+    logger.info("✅ Fetched \(reservations.count) reservations.")
     return reservations
   }
 
   func delete(_ id: String) async throws {
-    logger.info("🗑️ Deleting reservation: \(id)")
+    logger.info("🗑️ Deleting reservation: \(id).")
 
     let key = "reservation_\(id)"
     storage.delete(forKey: key)
 
-    logger.info("✅ Reservation deleted successfully")
+    logger.info("✅ Reservation deleted successfully.")
   }
 
   func deleteAll() async throws {
@@ -69,28 +69,29 @@ class ReservationRepository: ReservationRepositoryProtocol {
     // Since UserDefaults doesn't provide getAllKeys, we'll just clear all
     storage.clearAll()
 
-    logger.info("✅ All reservations deleted successfully")
+    logger.info("✅ All reservations deleted successfully.")
   }
 
   func fetchByStatus(_ status: ReservationStatus) async throws -> [Reservation] {
-    logger.info("📥 Fetching reservations with status: \(status.rawValue)")
+    logger.info("📥 Fetching reservations with status: \(status.rawValue).")
 
     let allReservations = try await fetchAll()
     let filteredReservations = allReservations.filter { $0.status == status }
 
-    logger.info("✅ Found \(filteredReservations.count) reservations with status \(status.rawValue)")
+    logger.info(
+      "✅ Found \(filteredReservations.count) reservations with status \(status.rawValue).")
     return filteredReservations
   }
 
   func fetchByDateRange(from: Date, to: Date) async throws -> [Reservation] {
-    logger.info("📥 Fetching reservations from \(from) to \(to)")
+    logger.info("📥 Fetching reservations from \(from) to \(to).")
 
     let allReservations = try await fetchAll()
     let filteredReservations = allReservations.filter { reservation in
       reservation.createdAt >= from && reservation.createdAt <= to
     }
 
-    logger.info("✅ Found \(filteredReservations.count) reservations in date range")
+    logger.info("✅ Found \(filteredReservations.count) reservations in date range.")
     return filteredReservations
   }
 }

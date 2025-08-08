@@ -65,12 +65,21 @@ Both versions share the same backend services and automation engine, so contribu
 - **Validation:** Centralized input validation and sanitization.
 - **Constants management:** Centralized constants for maintainability.
 
+### Modular Architecture
+
+ODYSSEY uses a **modular Swift Package Manager** architecture with three main targets:
+
+- **`ODYSSEY` (GUI):** macOS menu bar application built with SwiftUI
+- **`ODYSSEYCLI` (CLI):** Command-line interface for automation
+- **`ODYSSEYBackend` (Library):** Shared backend services and automation engine
+
 ### Architecture Layers
 
-- **Presentation:** User interface and user interaction logic.
-- **Application:** Business logic orchestration and use cases.
-- **Domain:** Core business entities and domain logic.
-- **Infrastructure:** External services, automation, and data persistence.
+- **Presentation:** User interface and user interaction logic (`Views/`, `Controllers/`)
+- **Application:** Business logic orchestration and use cases (`Application/`)
+- **Domain:** Core business entities and domain logic (`Domain/`)
+- **Infrastructure:** External services, automation, and data persistence (`Infrastructure/`, `Services/`)
+- **Shared:** Common utilities and protocols (`SharedUtils/`, `SharedCore/`)
 
 ## 🧪 Code Quality & Testing
 
@@ -88,7 +97,7 @@ The project includes comprehensive automated quality checks:
 # Run all quality checks
 ./Scripts/odyssey.sh lint
 
-# Build the application
+# Build the application (GUI + CLI)
 ./Scripts/odyssey.sh build
 
 # Clean build artifacts
@@ -112,15 +121,20 @@ The project maintains high code quality standards with:
 
 ## 🏗️ Service Architecture
 
-### JavaScript Centralized Library
+### JavaScript Modular Library
 
-ODYSSEY uses a **centralized JavaScript library** for all web automation functionality. This approach provides:
+ODYSSEY uses a **modular JavaScript library** for all web automation functionality, organized across multiple specialized files. This approach provides:
 
 - **Clean Separation:** JavaScript code is completely separated from Swift code.
-- **Maintainability:** All JavaScript functions in one location.
+- **Modular Organization:** JavaScript functions are organized by purpose across multiple files:
+  - `JavaScriptCore.swift`: Core automation functions and element interactions
+  - `JavaScriptForms.swift`: Form handling and field filling functionality
+  - `JavaScriptPages.swift`: Page detection and state checking functions
+  - `JavaScriptLibrary.swift`: Main library that combines all modules
+- **Maintainability:** Related functions are grouped together for easier maintenance.
 - **Reusability:** Reusable functions across all services.
 - **Consistency:** Standardized error handling and logging patterns.
-- **Debugging:** Easier to debug JavaScript issues in one centralized location.
+- **Debugging:** Easier to debug JavaScript issues with organized, modular structure.
 
 ### Modular Design Principles
 
@@ -128,10 +142,18 @@ The codebase follows a modular service-oriented architecture with these key prin
 
 #### Service Categories
 
-- **Email Services:** Handle email integration, authentication, and verification.
-- **Reservation Services:** Manage booking logic, status tracking, and orchestration.
-- **WebKit Services:** Provide browser automation and web interaction capabilities.
-- **Infrastructure Services:** Handle data persistence, configuration, and utilities.
+- **Email Services:** Handle email integration, authentication, and verification (`EmailService`, `EmailKeychainHelper`).
+- **Reservation Services:** Manage booking logic, status tracking, and orchestration (`ReservationOrchestrator`, `ReservationErrorHandler`).
+- **WebKit Services:** Provide browser automation and web interaction capabilities (`WebKitService`, `WebKitAntiDetection`).
+- **Infrastructure Services:** Handle data persistence, configuration, and utilities (`ConfigurationService`, `UserSettingsManager`).
+- **CLI Services:** Command-line interface and export functionality (`CLIExportService`).
+
+#### Build System
+
+- **GUI Application:** Built using Xcode project (generated from `Config/project.yml`) with `xcodebuild`
+- **CLI Application:** Built using Swift Package Manager through the unified script
+- **Shared Library:** `ODYSSEYBackend` provides common services to both GUI and CLI
+- **Unified Build:** Always use `./Scripts/odyssey.sh build` for consistent builds
 
 ### Development Guidelines
 
@@ -169,6 +191,7 @@ The codebase follows a modular service-oriented architecture with these key prin
 - **Manual Testing:** Test all UI interactions and automation flows.
 - **Log Monitoring:** Use `./Scripts/odyssey.sh logs` to monitor real-time logs.
 - **Browser Window:** Optional for development and support. By default, automation runs invisibly. Enable "Show browser window" in God Mode Advanced Settings to monitor automation and diagnose issues.
+- **Build Testing:** The GUI app is built using Xcode project generation and `xcodebuild`.
 
 ### CLI Testing
 
@@ -180,6 +203,7 @@ The codebase follows a modular service-oriented architecture with these key prin
 ### CLI Integration
 
 - **Scheduled Reservations:** See `.github/workflows/scheduled-reservations.yml` for automated reservation booking.
+- **Headless Mode:** CLI always runs without browser windows for server environments.
 
 ## 🚀 Release Process
 
@@ -198,11 +222,19 @@ The release process is fully automated through GitHub Actions and can be initiat
    This command will:
 
    - Validate the version format
-   - Update version in all files (project.yml, Info.plist, AppConstants.swift, CLIExportService.swift)
+   - Update version in all files (`project.yml`, `Info.plist`, `AppConstants.swift`, `CLIExportService.swift`)
    - Build and test both GUI and CLI applications
    - Commit changes with a descriptive message
    - Create and push git tag
    - Push changes to main branch
+
+### Build System Details
+
+- **GUI Application:** Uses Xcode project generation (`xcodegen`) and `xcodebuild`
+- **CLI Application:** Uses Swift Package Manager through the unified script
+- **Shared Library:** `ODYSSEYBackend` provides common services to both targets
+- **Dependencies:** Both GUI and CLI depend on the shared `ODYSSEYBackend` library
+- **Unified Approach:** Always use `./Scripts/odyssey.sh build` for consistent builds
 
 ### 🤖 Automated CI/CD Workflow
 
@@ -210,7 +242,7 @@ The project includes a comprehensive CI/CD workflow:
 
 - ✅ **Unified Script Usage:** GitHub Actions use our existing scripts instead of duplicating commands.
 - ✅ **Version Validation:** Ensures tag version matches `project.yml` and `Info.plist`.
-- ✅ **Dual Build:** Creates both GUI app and CLI binary.
+- ✅ **Dual Build:** Creates both GUI app and CLI binary (via unified script).
 - ✅ **Code Signing:** Automatically signs both applications.
 - ✅ **DMG Creation:** Creates professional installer with app icon.
 - ✅ **Release Notes:** Auto-generates comprehensive release notes with features and troubleshooting.
@@ -225,6 +257,7 @@ The project includes a comprehensive CI/CD workflow:
 - **Quality Assurance:** Run linting and testing scripts before committing.
 - **Release Management:** Use release scripts for version updates and deployment.
 - **Logging:** Monitor application logs for debugging and troubleshooting.
+- **Build Management:** GUI uses Xcode project generation, CLI uses Swift Package Manager through unified script.
 
 ## 📦 Related Documentation
 

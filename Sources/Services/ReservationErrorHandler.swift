@@ -18,14 +18,14 @@ public final class ReservationErrorHandler: @unchecked Sendable {
 
     if let webKitService = try? await getWebKitServiceIfAvailable() {
       if let pageSource = try? await webKitService.getPageSource() {
-        logger.error("📄 DOM Snapshot (first 1000 chars): \(pageSource.prefix(1_000))")
+        logger.error("📄 DOM Snapshot (first 1000 chars): \(pageSource.prefix(1_000)).")
       } else {
         logger.error("⚠️ Failed to capture DOM snapshot for error context.")
       }
 
       // Capture current URL for context
       if let currentURL = webKitService.currentURL {
-        logger.error("🌐 Current URL at error: \(currentURL)")
+        logger.error("🌐 Current URL at error: \(currentURL).")
       }
     }
 
@@ -45,7 +45,7 @@ public final class ReservationErrorHandler: @unchecked Sendable {
       statusManager.currentTask = "Reservation failed: \(userFriendlyMessage)"
 
       // Show user-facing error banner
-      logger.error("❌ Reservation failed: \(userFriendlyMessage)")
+      logger.error("❌ Reservation failed: \(userFriendlyMessage).")
     }
 
     logger.error("❌ Reservation failed for \(config.name): \(error.localizedDescription).")
@@ -62,22 +62,22 @@ public final class ReservationErrorHandler: @unchecked Sendable {
       let filename =
         "failure_\(config.name.replacingOccurrences(of: " ", with: "_"))_\(Date().timeIntervalSince1970).png"
       if let screenshotPath = await webKitService.takeScreenshot(filename: filename) {
-        logger.info("📸 Failure screenshot saved: \(screenshotPath)")
+        logger.info("📸 Failure screenshot saved: \(screenshotPath).")
       } else {
-        logger.error("❌ Failed to capture failure screenshot for \(config.name)")
+        logger.error("❌ Failed to capture failure screenshot for \(config.name).")
       }
     } else {
-      logger.warning("⚠️ WebKit service not available for screenshot capture")
+      logger.warning("⚠️ WebKit service not available for screenshot capture.")
     }
 
     logger.info("🧹 Cleaning up WebKit session after error.")
 
     let shouldClose = UserSettingsManager.shared.userSettings.autoCloseDebugWindowOnFailure
     if shouldClose {
-      logger.info("🪟 Auto-close on failure enabled - closing window")
+      logger.info("🪟 Auto-close on failure enabled - closing window.")
       await webKitService.disconnect(closeWindow: true)
     } else {
-      logger.info("🪟 Auto-close on failure disabled - keeping window open to show error")
+      logger.info("🪟 Auto-close on failure disabled - keeping window open to show error.")
       await webKitService.disconnect(closeWindow: false)
     }
   }

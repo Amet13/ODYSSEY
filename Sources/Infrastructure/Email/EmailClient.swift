@@ -40,30 +40,30 @@ class EmailClient: EmailClientProtocol {
     }
 
     try await connection?.connect()
-    logger.info("✅ Email connection established")
+    logger.info("✅ Email connection established.")
   }
 
   func searchEmails(_ query: String) async throws -> [Email] {
-    logger.info("🔍 Searching emails with query: \(query)")
+    logger.info("🔍 Searching emails with query: \(query).")
 
     guard let connection else {
       throw DomainError.network(.connectionFailed("Not connected to email server"))
     }
 
     let emails = try await connection.searchEmails(query)
-    logger.info("✅ Found \(emails.count) emails")
+    logger.info("✅ Found \(emails.count) emails.")
     return emails
   }
 
   func fetchEmail(_ id: String) async throws -> Email {
-    logger.info("📥 Fetching email: \(id)")
+    logger.info("📥 Fetching email: \(id).")
 
     guard let connection else {
       throw DomainError.network(.connectionFailed("Not connected to email server"))
     }
 
     let email = try await connection.fetchEmail(id)
-    logger.info("✅ Email fetched successfully")
+    logger.info("✅ Email fetched successfully.")
     return email
   }
 
@@ -71,7 +71,7 @@ class EmailClient: EmailClientProtocol {
     logger.info("📧 Disconnecting from email server...")
     try await connection?.disconnect()
     connection = nil
-    logger.info("✅ Email connection closed")
+    logger.info("✅ Email connection closed.")
   }
 
   func isConnected() -> Bool {

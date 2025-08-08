@@ -90,7 +90,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Don't auto-check notification status on startup
     // Let user manually request permission when needed
 
-    logger.info("✅ Services initialized")
+    logger.info("✅ Services initialized.")
   }
 
   private func setupGlobalKeyboardShortcuts() {
@@ -137,7 +137,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       return event  // Pass through other events
     }
 
-    logger.info("✅ Global keyboard shortcuts initialized")
+    logger.info("✅ Global keyboard shortcuts initialized.")
   }
 
   private func setupNotificationObservers() {
@@ -148,7 +148,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       queue: .main,
     ) { [weak self] _ in
       Task { @MainActor in
-        self?.logger.info("🔄 Rescheduling autorun due to settings change")
+        self?.logger.info("🔄 Rescheduling autorun due to settings change.")
         self?.schedulePreciseAutorun()
       }
     }
@@ -324,7 +324,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       let currentMinute = currentTime.minute,
       let currentSecond = currentTime.second
     else {
-      logger.warning("Could not extract time components from date")
+      logger.warning("⚠️ Could not extract time components from date.")
       return false
     }
 

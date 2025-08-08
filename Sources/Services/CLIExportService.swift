@@ -72,13 +72,13 @@ public final class CLIExportService: ObservableObject {
 
     for (index, config) in selectedConfigs.enumerated() {
       logger.info("🔍 Config \(index + 1): \(config.name).")
-      logger.info("   - Day time slots count: \(config.dayTimeSlots.count)")
+      logger.info("   - Day time slots count: \(config.dayTimeSlots.count).")
       for (day, slots) in config.dayTimeSlots {
-        logger.info("   - \(day.rawValue): \(slots.count) slots")
+        logger.info("   - \(day.rawValue): \(slots.count) slots.")
         for slot in slots {
           let formatter = DateFormatter()
           formatter.timeStyle = .short
-          logger.info("     - \(formatter.string(from: slot.time))")
+          logger.info("     - \(formatter.string(from: slot.time)).")
         }
       }
     }

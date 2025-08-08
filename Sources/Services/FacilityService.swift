@@ -38,7 +38,7 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
     completionHandler = completion
 
     logger.info("🔍 Loading facility page for sports detection...")
-    logger.info("🌐 Loading URL: \(url)")
+    logger.info("🌐 Loading URL: \(url).")
 
     let request = URLRequest(url: url)
     webView.load(request)
