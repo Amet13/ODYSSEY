@@ -1,12 +1,13 @@
 ---
 name: Scheduled Reservation
-permissions:
-  contents: read
 
 on:
   schedule:
     - cron: "53 21 * * *" # 21:53 UTC (5:53pm EST)
   workflow_dispatch: # Allow manual runs
+
+permissions:
+  contents: read
 
 jobs:
   run-reservations:
