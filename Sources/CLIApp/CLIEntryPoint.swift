@@ -217,8 +217,9 @@ struct CLI {
   }
 
   private static func setupScreenshotDirectory() async {
-    // Create screenshots directory in current working directory
-    let screenshotDir = "screenshots"
+    // Create screenshots directory in current working directory with ODYSSEY subdirectory
+    let currentDir = FileManager.default.currentDirectoryPath
+    let screenshotDir = "\(currentDir)/ODYSSEY_Screenshots"
 
     let webKitService = await ServiceRegistry.shared.resolve(WebKitServiceProtocol.self)
     await MainActor.run {
@@ -240,26 +241,46 @@ struct CLI {
     }
 
     print("📸 Screenshots were captured during reservation failures.")
-    print("📸 Check the 'screenshots/' directory for failure screenshots.")
 
-    // List any existing screenshot files
+    // Check both local and system directories
     let fileManager = FileManager.default
-    let screenshotDir = "screenshots"
+    let currentDir = FileManager.default.currentDirectoryPath
+    let localScreenshotDir = "\(currentDir)/ODYSSEY_Screenshots"
+    let systemScreenshotDir = FileManager.odysseyScreenshotsDirectory()
 
-    if fileManager.fileExists(atPath: screenshotDir) {
+    var foundScreenshots: [String] = []
+
+    // Check local directory first
+    if fileManager.fileExists(atPath: localScreenshotDir) {
       do {
-        let files = try fileManager.contentsOfDirectory(atPath: screenshotDir)
-        let screenshotFiles = files.filter { $0.hasSuffix(".png") }
-
-        if !screenshotFiles.isEmpty {
-          print("📸 Found \(screenshotFiles.count) screenshot file(s):")
-          for file in screenshotFiles {
-            print("   📸 \(file)")
-          }
-        }
+        let files = try fileManager.contentsOfDirectory(atPath: localScreenshotDir)
+        let screenshotFiles = files.filter { $0.hasSuffix(".png") || $0.hasSuffix(".jpg") }
+        foundScreenshots.append(contentsOf: screenshotFiles.map { "\(localScreenshotDir)/\($0)" })
       } catch {
-        print("⚠️ Could not list screenshot files: \(error.localizedDescription)")
+        print("⚠️ Could not list local screenshot files: \(error.localizedDescription)")
       }
+    }
+
+    // Check system directory
+    if fileManager.fileExists(atPath: systemScreenshotDir) {
+      do {
+        let files = try fileManager.contentsOfDirectory(atPath: systemScreenshotDir)
+        let screenshotFiles = files.filter { $0.hasSuffix(".png") || $0.hasSuffix(".jpg") }
+        foundScreenshots.append(contentsOf: screenshotFiles.map { "\(systemScreenshotDir)/\($0)" })
+      } catch {
+        print("⚠️ Could not list system screenshot files: \(error.localizedDescription)")
+      }
+    }
+
+    if !foundScreenshots.isEmpty {
+      print("📸 Found \(foundScreenshots.count) screenshot file(s):")
+      for screenshotPath in foundScreenshots {
+        let fileName = URL(fileURLWithPath: screenshotPath).lastPathComponent
+        print("   📸 \(fileName)")
+        print("      🔗 Open: open '\(screenshotPath)'")
+      }
+    } else {
+      print("⚠️ No screenshot files found in local or system directories.")
     }
   }
 
@@ -303,7 +324,7 @@ struct CLI {
     enableScreenshots: Bool = false
   ) async {
     var attempts = 0
-    let maxAttempts = 300  // 5 minutes timeout
+    let maxAttempts = AppConstants.maxPollAttempts  // 5 minutes timeout
     var lastStatus = ReservationRunStatus.idle
     var lastProgressUpdate = 0
     var lastLogCheck = 0
@@ -347,15 +368,10 @@ struct CLI {
       if await areAllConfigsDone(configStatuses: configStatuses) {
         await printDetailedResults(configIds: configIds, finalStatuses: configStatuses)
 
-        // Capture screenshots for failed configurations (only if enabled)
-        if enableScreenshots {
-          await captureFailureScreenshots(configStatuses: configStatuses)
-        }
-
         break
       }
 
-      try? await Task.sleep(nanoseconds: 1_000_000_000)  // 1 second
+      try? await Task.sleep(nanoseconds: AppConstants.humanDelayNanoseconds)  // 1 second
       attempts += 1
     }
 
@@ -366,10 +382,6 @@ struct CLI {
       await printDetailedResults(
         configIds: configIds, finalStatuses: configStatuses, timedOut: true)
 
-      // Capture screenshots for timed out configurations (only if enabled)
-      if enableScreenshots {
-        await captureFailureScreenshots(configStatuses: configStatuses)
-      }
     }
   }
 
@@ -463,7 +475,7 @@ struct CLI {
     }
 
     // Show progress updates every 10 seconds
-    if attempts % 10 == 0, attempts > lastProgressUpdate {
+    if attempts % AppConstants.progressUpdateInterval == 0, attempts > lastProgressUpdate {
       print("⏳ Still running... (\(attempts)s)")
       lastProgressUpdate = attempts
     }
@@ -534,6 +546,14 @@ struct CLI {
       case let .failed(error):
         print("❌ \(configName): Failed - \(error)")
         allSucceeded = false
+
+        // Show screenshot path if available
+        let lastRunInfo = await MainActor.run {
+          ReservationStatusManager.shared.getLastRunInfo(for: configId)
+        }
+        if let lastRunInfo = lastRunInfo, let screenshotPath = lastRunInfo.screenshotPath {
+          print("      🔗 Open: open '\(screenshotPath)'")
+        }
       case .running:
         if timedOut {
           print("⏳ \(configName): Timed out (did not complete)")
@@ -652,13 +672,13 @@ struct CLI {
     torontoCalendar.timeZone = torontoTimeZone
 
     // Create target time: 6:00:01 PM today
-    var components = torontoCalendar.dateComponents([.year, .month, .day], from: now)
-    components.hour = 18
-    components.minute = 0
-    components.second = 1
+    var components = calendar.dateComponents([.year, .month, .day], from: Date())
+    components.hour = AppConstants.cliDefaultAutorunHour
+    components.minute = AppConstants.cliDefaultAutorunMinute
+    components.second = AppConstants.cliDefaultAutorunSecond
     components.timeZone = torontoTimeZone
 
-    return torontoCalendar.date(from: components) ?? now
+    return calendar.date(from: components) ?? now
   }
 
   private static func waitUntilTargetTime(_ targetTime: Date) async {
@@ -683,18 +703,9 @@ struct CLI {
     print("⏰ Waiting \(Int(timeInterval)) seconds...")
 
     // Wait in 10-second intervals to show progress
-    let waitInterval: TimeInterval = AppConstants.waitInterval
-    var remainingTime = timeInterval
-
-    while remainingTime > 0 {
-      let sleepTime = min(waitInterval, remainingTime)
-      try? await Task.sleep(nanoseconds: UInt64(sleepTime * 1_000_000_000))
-      remainingTime -= sleepTime
-
-      if remainingTime > 0 {
-        print("⏰ Still waiting... \(Int(remainingTime)) seconds remaining")
-      }
-    }
+    let sleepTime = min(timeInterval, 10.0)
+    try? await Task.sleep(
+      nanoseconds: UInt64(sleepTime * Double(AppConstants.humanDelayNanoseconds)))
 
     print("⏰ Target time reached! Starting reservations...")
   }
@@ -825,7 +836,7 @@ struct CLI {
       let exportConfig = try decodeExportToken(exportToken)
 
       print("📋 Available Configurations:")
-      print(String(repeating: "=", count: 50))
+      print(String(repeating: "=", count: AppConstants.cliSeparatorLength))
 
       for (index, config) in exportConfig.selectedConfigurations.enumerated() {
         let status = config.isEnabled ? "✅" : "❌"
@@ -882,7 +893,7 @@ struct CLI {
       let exportConfig = try decodeExportToken(exportToken)
 
       print("📋 User Settings:")
-      print(String(repeating: "=", count: 30))
+      print(String(repeating: "=", count: AppConstants.cliSeparatorLength))
       print("\(bold("Name")): \(exportConfig.userSettings.name)")
 
       if unmask {

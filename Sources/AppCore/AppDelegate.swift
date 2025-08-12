@@ -60,6 +60,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Initialize services
     initializeServices()
 
+    // Perform startup maintenance (cleanup old screenshots, etc.)
+    performStartupMaintenance()
+
     // Initialize complete
   }
 
@@ -91,6 +94,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Let user manually request permission when needed
 
     logger.info("✅ Services initialized.")
+  }
+
+  private func performStartupMaintenance() {
+    logger.info("🧹 Performing startup maintenance...")
+
+    // Clean up old screenshots (older than 30 days)
+    Task {
+      let deletedCount = FileManager.cleanupOldScreenshots(maxAge: 30)
+      if deletedCount > 0 {
+        logger.info("🧹 Startup cleanup: \(deletedCount) old screenshots removed.")
+      }
+    }
   }
 
   private func setupGlobalKeyboardShortcuts() {
@@ -263,7 +278,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Schedule the precise timer
     DispatchQueue.main.asyncAfter(deadline: .now() + timeUntilAutorun) { [self] in
       Task { @MainActor in
-        logger.info("🕕 PRECISE \(timeString) autorun triggered!")
+        logger.info("🕕 PRECISE \(timeString) autorun triggered.")
         self.checkScheduledReservations()
 
         // Schedule the next day's autorun

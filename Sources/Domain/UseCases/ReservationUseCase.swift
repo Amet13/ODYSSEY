@@ -329,7 +329,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
     }
 
     // Wait for submission to complete
-    try await Task.sleep(nanoseconds: 2_000_000_000)  // 2 seconds
+    try await Task.sleep(nanoseconds: AppConstants.longDelayNanoseconds)
 
     logger.info("✅ Reservation submitted.")
   }

@@ -30,6 +30,7 @@ public final class ReservationStatusManager: ObservableObject, @unchecked Sendab
           status: $0.status,
           date: $0.date,
           runType: $0.runType,
+          screenshotPath: $0.screenshotPath,
         ))
     }
     if let data = try? JSONEncoder().encode(codableDict) {
@@ -46,7 +47,9 @@ public final class ReservationStatusManager: ObservableObject, @unchecked Sendab
 
   public func getLastRunInfo(for configId: UUID) -> LastRunInfo? {
     guard let tuple = lastRunInfo[configId] else { return nil }
-    return LastRunInfo(status: tuple.status, date: tuple.date, runType: tuple.runType)
+    return LastRunInfo(
+      status: tuple.status, date: tuple.date, runType: tuple.runType,
+      screenshotPath: tuple.screenshotPath)
   }
 
   public func setLastRunInfo(
@@ -54,6 +57,7 @@ public final class ReservationStatusManager: ObservableObject, @unchecked Sendab
     status: ReservationRunStatus,
     date: Date?,
     runType: ReservationRunType,
+    screenshotPath: String? = nil,
   ) {
     if let existing = lastRunInfo[configId] {
       // Prevent overwriting .success with .failed for the same runType and date (within 5 minutes window).
@@ -70,27 +74,31 @@ public final class ReservationStatusManager: ObservableObject, @unchecked Sendab
         }
       }
     }
-    lastRunInfo[configId] = LastRunInfo(status: status, date: date, runType: runType)
+    lastRunInfo[configId] = LastRunInfo(
+      status: status, date: date, runType: runType, screenshotPath: screenshotPath)
   }
 
   public struct LastRunInfo: Equatable, Codable, Sendable {
     public let status: ReservationRunStatus
     public let date: Date?
     public let runType: ReservationRunType
+    public let screenshotPath: String?
   }
 
   struct LastRunInfoCodable: Codable {
     let status: ReservationRunStatus
     let date: Date?
     let runType: ReservationRunType
+    let screenshotPath: String?
     init(from info: LastRunInfo) {
       self.status = info.status
       self.date = info.date
       self.runType = info.runType
+      self.screenshotPath = info.screenshotPath
     }
 
     func toLastRunInfo() -> LastRunInfo {
-      .init(status: status, date: date, runType: runType)
+      .init(status: status, date: date, runType: runType, screenshotPath: screenshotPath)
     }
   }
 }

@@ -100,11 +100,16 @@ public struct LastRunInfo: Codable, Equatable {
   public let status: ReservationRunStatus
   public let date: Date
   public let runType: ReservationRunType
+  public let screenshotPath: String?
 
-  public init(status: ReservationRunStatus, date: Date, runType: ReservationRunType) {
+  public init(
+    status: ReservationRunStatus, date: Date, runType: ReservationRunType,
+    screenshotPath: String? = nil
+  ) {
     self.status = status
     self.date = date
     self.runType = runType
+    self.screenshotPath = screenshotPath
   }
 }
 

@@ -883,6 +883,11 @@ struct ConfigurationRowView: View {
               .font(.system(size: AppConstants.tertiaryFont))
               .foregroundColor(statusInfo.statusColor)
           }
+
+          // Show screenshot button for failed runs
+          if case .failed = lastRun.status {
+            ScreenshotButton(configName: config.name, screenshotPath: lastRun.screenshotPath)
+          }
         },
       )
     } else {
@@ -901,6 +906,32 @@ struct ConfigurationRowView: View {
         },
       )
     }
+  }
+}
+
+struct ScreenshotButton: View {
+  let configName: String
+  let screenshotPath: String?
+
+  var body: some View {
+    Button(action: {
+      if let path = screenshotPath {
+        // Use stored screenshot path if available
+        _ = FileManager.openScreenshot(path)
+      } else {
+        // Try to find the most recent screenshot
+        if let foundPath = FileManager.findMostRecentScreenshot(for: configName) {
+          _ = FileManager.openScreenshot(foundPath)
+        }
+      }
+    }) {
+      Image(systemName: "camera.viewfinder")
+        .font(.system(size: AppConstants.tertiaryFont))
+        .foregroundColor(.odysseyAccent)
+    }
+    .buttonStyle(PlainButtonStyle())
+    .help("View failure screenshot")
+    .disabled(screenshotPath == nil && FileManager.findMostRecentScreenshot(for: configName) == nil)
   }
 }
 

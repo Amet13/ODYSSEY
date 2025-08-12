@@ -128,7 +128,7 @@ temp/
 .env.production.local
 
 # Screenshots (generated during CLI runs)
-screenshots/
+# Note: Screenshots are saved to system directory: ~/Library/Application Support/ODYSSEY/Screenshots/
 
 # Build artifacts
 *.app

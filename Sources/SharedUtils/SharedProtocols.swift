@@ -224,10 +224,16 @@ public protocol WebKitServiceProtocol: AnyObject, Sendable {
 
   /**
    Takes a screenshot of the current web page and saves it to the configured directory.
-   - Parameter filename: Optional filename for the screenshot.
+   - Parameters:
+   - filename: Optional filename for the screenshot.
+   - quality: JPEG quality from 0.0 (lowest) to 1.0 (highest), default 0.7
+   - maxWidth: Maximum width in pixels, maintains aspect ratio if specified
+   - format: Image format (.png or .jpg), default .jpg for better compression
    - Returns: The path to the saved screenshot, or nil if failed.
    */
-  func takeScreenshot(filename: String?) async -> String?
+  func takeScreenshot(
+    filename: String?, quality: Float, maxWidth: CGFloat?, format: ScreenshotFormat
+  ) async -> String?
 }
 
 // MARK: - EmailService Protocol
