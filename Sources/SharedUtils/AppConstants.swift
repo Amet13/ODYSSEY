@@ -12,7 +12,7 @@ public enum AppConstants {
 
   public static let defaultTimeout: TimeInterval = 30.0
 
-  public static let imapConnectionTimeout: TimeInterval = 30.0
+  public static let imapConnectionTimeout: TimeInterval = defaultTimeout
   public static let verificationCodeTimeout: TimeInterval = 300.0
   public static let minHumanDelay: TimeInterval = 0.5
   public static let maxHumanDelay: TimeInterval = 0.9
@@ -72,6 +72,46 @@ public enum AppConstants {
   public static let webKitDebugWindowY: CGFloat = 200
   public static let windowSizes = [(width: 1_440, height: 900), (width: 1_680, height: 1_050)]
 
+  // MARK: - Screenshot Configuration
+
+  public static let defaultScreenshotQuality: Float = 0.7
+  public static let defaultScreenshotMaxWidth: CGFloat = 1920
+  public static let defaultScreenshotFormat: ScreenshotFormat = .jpg
+
+  // MARK: - Time and Delay Constants
+
+  // Human behavior delays
+  public static let humanDelayNanoseconds: UInt64 = 1_000_000_000  // 1 second in nanoseconds
+  public static let shortDelayNanoseconds: UInt64 = 100_000_000  // 0.1 seconds in nanoseconds
+  public static let mediumDelayNanoseconds: UInt64 = 500_000_000  // 0.5 seconds in nanoseconds
+  public static let longDelayNanoseconds: UInt64 = 2_000_000_000  // 2 seconds in nanoseconds
+  public static let extraLongDelayNanoseconds: UInt64 = 3_000_000_000  // 3 seconds in nanoseconds
+  public static let veryLongDelayNanoseconds: UInt64 = 5_000_000_000  // 5 seconds in nanoseconds
+
+  // Timeout constants
+  public static let connectionTimeoutSeconds: TimeInterval = 30.0
+  public static let fallbackTimeoutSeconds: TimeInterval = 35.0
+  public static let emailSearchWindowMinutes: TimeInterval = 10.0
+  public static let emailSearchWindowSeconds: TimeInterval = 600.0  // 10 minutes
+  public static let emailSearchWindowShortSeconds: TimeInterval = 900.0  // 15 minutes
+  public static let reservationTimeout: TimeInterval = 300.0  // 5 minutes for reservation completion
+
+  // Polling and retry constants
+  public static let maxPollAttempts: Int = 300  // 5 minutes timeout
+  public static let progressUpdateInterval: Int = 10  // Show progress every 10 seconds
+  public static let groupSizePollInterval: TimeInterval = 0.5
+  public static let groupSizeMaxWaitTime: TimeInterval = 60.0
+
+  // Retry and attempt limits
+  public static let maxRetryAttempts: Int = 6
+  public static let maxRetryAttemptsContactInfo: Int = 6
+
+  // MARK: - Network and Port Constants
+
+  public static let defaultImapPort: UInt16 = 993
+  public static let fallbackImapPort: UInt16 = 143
+  public static let defaultSmtpPort: UInt16 = 587
+
   // MARK: - URLs
 
   public static let ottawaFacilitiesURL = "https://ottawa.ca/en/recreation-and-parks/facilities"
@@ -99,12 +139,15 @@ public enum AppConstants {
     "phoneNumber": "^\\+?[1-9]\\d{1,14}$",
     "email": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
     "facilityURL": "^https://reservation\\.frontdesksuite\\.ca/rcfs/[^/]+/?$",
+    "emailRegex": "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}",
   ]
+
+  // Direct constants for common patterns
+  public static let emailRegexPattern = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
 
   // MARK: - Magic Numbers and Limits
 
   // Time-related constants (consolidated)
-  public static let emailSearchWindowMinutes: TimeInterval = 10.0
   public static let codePoolRefreshIntervalSeconds: TimeInterval = verificationCodeTimeout
   public static let maxWaitTimeForGodModeSeconds: TimeInterval = verificationCodeTimeout
   public static let additionalWaitTimeForUIUpdatesSeconds: TimeInterval = 2.0
@@ -130,8 +173,49 @@ public enum AppConstants {
   public static let defaultNumberOfPeople: Int = 1
   public static let defaultAutorunHour: Int = 18
   public static let defaultAutorunMinute: Int = 0
-  public static let defaultGmailPort: UInt16 = 993
-  public static let defaultImapPort: UInt16 = 993
+
+  // MARK: - CLI Constants
+
+  // CLI display constants
+  public static let cliSeparatorLength: Int = 50
+  public static let cliShortSeparatorLength: Int = 30
+  public static let cliDefaultAutorunHour: Int = 18
+  public static let cliDefaultAutorunMinute: Int = 0
+  public static let cliDefaultAutorunSecond: Int = 1
+
+  // MARK: - File Management Constants
+
+  // Screenshot cleanup
+  public static let defaultScreenshotRetentionDays: Int = 30
+  public static let screenshotRetentionSeconds: TimeInterval = 30 * 24 * 60 * 60  // 30 days
+
+  // MARK: - WebKit Constants
+
+  // User agent strings
+  public static let chromeUserAgentV119 =
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+  public static let chromeUserAgentV118 =
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
+  public static let safariUserAgentV171 =
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15"
+  public static let safariUserAgentV170 =
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
+
+  // WebKit configuration
+  public static let webKitModifiedSinceEpoch: TimeInterval = 0
+  public static let webKitMaxReceiveLength: Int = 65_536
+
+  // Window positioning
+  public static let windowOffsetRange: Int = 200
+  public static let windowOffsetBase: Int = 50
+
+  // MARK: - Text and Content Limits
+
+  // Text and content limits
+  public static let pageSourcePreviewLength: Int = 500
+  public static let pageSourceErrorLength: Int = 1000
+  public static let serverResponsePreviewLength: Int = 200
+  public static let emailBodyPreviewLength: Int = 500
 }
 
 // MARK: - UI Constants

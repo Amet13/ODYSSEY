@@ -21,6 +21,27 @@ import Foundation
 import WebKit
 import os.log
 
+// MARK: - Screenshot Format Enum
+
+/// Defines the format for screenshot files
+public enum ScreenshotFormat: String, CaseIterable, Sendable {
+  case png = "png"
+  case jpg = "jpg"
+
+  var fileExtension: String {
+    return self.rawValue
+  }
+
+  var mimeType: String {
+    switch self {
+    case .png:
+      return "image/png"
+    case .jpg:
+      return "image/jpeg"
+    }
+  }
+}
+
 // Wrapper to make JavaScript evaluation results sendable
 struct JavaScriptResult: @unchecked Sendable {
   let value: Any?
@@ -101,6 +122,12 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
   // Screenshot functionality
   private var screenshotDirectory: String?
+
+  // Public getter for screenshot directory
+  public var currentScreenshotDirectory: String? {
+    return screenshotDirectory
+  }
+
   private var elementCompletions: [String: @Sendable (String?) -> Void] = [:]
 
   @MainActor private static var liveInstanceCount = 0
@@ -256,8 +283,10 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     // Generate unique window position based on instance ID
     let hash = abs(instanceId.hashValue)
-    let xOffset = (hash % 200) + 50
-    let yOffset = ((hash / 200) % 200) + 50
+    let xOffset = (hash % AppConstants.windowOffsetRange) + AppConstants.windowOffsetBase
+    let yOffset =
+      ((hash / AppConstants.windowOffsetRange) % AppConstants.windowOffsetRange)
+      + AppConstants.windowOffsetBase
     webView?.frame = CGRect(
       x: xOffset, y: yOffset, width: selectedSize.width, height: selectedSize.height)
 
@@ -338,10 +367,17 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
   /**
    Takes a screenshot of the current web page and saves it to the configured directory.
-   - Parameter filename: Optional filename for the screenshot.
+   - Parameters:
+   - filename: Optional filename for the screenshot.
+   - quality: JPEG quality from 0.0 (lowest) to 1.0 (highest), default 0.7
+   - maxWidth: Maximum width in pixels, maintains aspect ratio if specified
+   - format: Image format (.png or .jpg), default .jpg for better compression
    - Returns: The path to the saved screenshot, or nil if failed.
    */
-  public func takeScreenshot(filename: String? = nil) async -> String? {
+  public func takeScreenshot(
+    filename: String? = nil, quality: Float = 0.7, maxWidth: CGFloat? = nil,
+    format: ScreenshotFormat = .jpg
+  ) async -> String? {
     guard let webView = webView else {
       logger.error("📸 Cannot take screenshot: WebView is nil.")
       return nil
@@ -364,13 +400,18 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       }
 
       // Generate filename if not provided
-      let finalFilename = filename ?? "screenshot_\(Date().timeIntervalSince1970).png"
+      let finalFilename =
+        filename ?? "screenshot_\(Date().timeIntervalSince1970).\(format.fileExtension)"
       let screenshotPath = "\(screenshotDirectory)/\(finalFilename)"
 
       logger.info("📸 Taking screenshot with WebView: \(webView).")
+      logger.info("📸 Screenshot will be saved to: \(screenshotPath).")
+      logger.info(
+        "📸 Format: \(format.rawValue.uppercased()), Quality: \(quality), Max Width: \(maxWidth?.description ?? "none")"
+      )
 
-      // Take screenshot using WKWebView's takeSnapshot method and convert to PNG data immediately
-      let pngData = try await withCheckedThrowingContinuation {
+      // Take screenshot using WKWebView's takeSnapshot method
+      let imageData = try await withCheckedThrowingContinuation {
         (continuation: CheckedContinuation<Data, Error>) in
         // Ensure we're on the main actor for WebKit operations
         Task { @MainActor in
@@ -378,21 +419,20 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             if let error = error {
               continuation.resume(throwing: error)
             } else if let image = image {
-              // Convert NSImage to PNG data immediately on MainActor
-              guard let tiffData = image.tiffRepresentation,
-                let bitmapRep = NSBitmapImageRep(data: tiffData),
-                let pngData = bitmapRep.representation(
-                  using: NSBitmapImageRep.FileType.png, properties: [:])
+              // Use compression utilities for better file size
+              guard
+                let compressedData = FileManager.compressImage(
+                  image, quality: quality, maxWidth: maxWidth)
               else {
                 continuation.resume(
                   throwing: NSError(
                     domain: "WebKitService", code: -1,
                     userInfo: [
-                      NSLocalizedDescriptionKey: "Failed to convert screenshot to PNG format"
+                      NSLocalizedDescriptionKey: "Failed to compress screenshot"
                     ]))
                 return
               }
-              continuation.resume(returning: pngData)
+              continuation.resume(returning: compressedData)
             } else {
               continuation.resume(
                 throwing: NSError(
@@ -403,15 +443,37 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
       }
 
-      // Write PNG data to file
-      try pngData.write(to: URL(fileURLWithPath: screenshotPath))
+      // Write compressed image data to file
+      try imageData.write(to: URL(fileURLWithPath: screenshotPath))
 
-      logger.info("📸 Actual screenshot saved successfully: \(screenshotPath).")
+      // Log file size information
+      let fileSize = FileManager.getFileSizeString(screenshotPath)
+      logger.info("📸 Screenshot saved successfully: \(screenshotPath).")
+      logger.info("📸 File size: \(fileSize).")
       return screenshotPath
 
     } catch {
       logger.error("📸 Failed to take screenshot: \(error.localizedDescription).")
       logger.error("📸 Error details: \(error).")
+
+      // Log additional context for debugging
+      logger.error("📸 Screenshot directory: \(screenshotDirectory).")
+
+      // Check if directory exists and is writable
+      let fileManager = FileManager.default
+      if fileManager.fileExists(atPath: screenshotDirectory) {
+        logger.info("📁 Screenshot directory exists.")
+
+        // Check if directory is writable
+        if fileManager.isWritableFile(atPath: screenshotDirectory) {
+          logger.info("📁 Screenshot directory is writable.")
+        } else {
+          logger.error("📁 Screenshot directory is NOT writable.")
+        }
+      } else {
+        logger.error("📁 Screenshot directory does NOT exist.")
+      }
+
       return nil
     }
   }
@@ -491,7 +553,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     await disconnect(closeWindow: false)
 
     // Wait a bit for cleanup
-    try? await Task.sleep(nanoseconds: 500_000_000)  // 0.5 seconds
+    try? await Task.sleep(nanoseconds: AppConstants.mediumDelayNanoseconds)
 
     // Setup new WebView
     await MainActor.run {
@@ -527,7 +589,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     }
 
     // Wait for cleanup
-    try? await Task.sleep(nanoseconds: 1_000_000_000)  // 1 second
+    try? await Task.sleep(nanoseconds: AppConstants.humanDelayNanoseconds)  // 1 second
 
     // Setup fresh WebView
     await MainActor.run {
@@ -589,7 +651,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                   .info("📄 document.readyState after navigation: \(String(describing: readyState))")
                 let pageSource = try await self.getPageSource()
                 self.logger
-                  .info("Page source after navigation (first 500 chars): \(pageSource.prefix(500))")
+                  .info(
+                    "Page source after navigation (first \(AppConstants.pageSourcePreviewLength) chars): \(pageSource.prefix(AppConstants.pageSourcePreviewLength))"
+                  )
               } catch {
                 self.logger
                   .error("❌ Error logging readyState/page source: \(error.localizedDescription)")
@@ -694,7 +758,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     }
 
     _ = try await executeScriptInternal(
-      "window.odyssey.waitForElement('\(selector)', \(timeout * 1_000));")
+      "window.odyssey.waitForElement('\(selector)', \(Int(timeout * 1_000)));")
     return try await findElement(by: selector)
   }
 
@@ -706,7 +770,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
     _ =
       try await executeScriptInternal(
-        "window.odyssey.waitForElementToDisappear('\(selector)', \(timeout * 1_000));",
+        "window.odyssey.waitForElementToDisappear('\(selector)', \(Int(timeout * 1_000)));",
       )
   }
 
@@ -753,7 +817,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
           }
 
           // Add a small delay to allow any pending operations to complete
-          try? await Task.sleep(nanoseconds: 100_000_000)  // 0.1 seconds
+          try? await Task.sleep(nanoseconds: AppConstants.shortDelayNanoseconds)  // 0.1 seconds
 
           // Check again after the delay
           guard self.isConnected else {
@@ -958,7 +1022,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       logger.info("🔘 [ConfirmClick] JS result: \(String(describing: result), privacy: .public).")
       if let str = result?.value as? String, str == "clicked" {
         // Wait a moment for the page to settle
-        try? await Task.sleep(nanoseconds: 1_000_000_000)  // 1 second
+        try? await Task.sleep(nanoseconds: AppConstants.humanDelayNanoseconds)  // 1 second
 
         // Also check for any error messages or loading states
         let checkResult = try await executeScriptInternal("window.odyssey.checkPageState();")
@@ -999,9 +1063,11 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
           return true
         }
       } catch {
-        logger.error("[GroupSizePoll][poll \(pollCount)] JS error: \(error.localizedDescription).")
+        logger.error(
+          "❌ [GroupSizePoll][poll \(pollCount)] JS error: \(error.localizedDescription).")
       }
-      try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
+      try? await Task.sleep(
+        nanoseconds: UInt64(pollInterval * Double(AppConstants.humanDelayNanoseconds)))
     }
     logger.error("❌ Group size page load timeout after \(Int(timeout))s and \(pollCount) polls.")
     return false
@@ -1051,7 +1117,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     }
 
     // Wait a moment for the day section to fully expand
-    try? await Task.sleep(nanoseconds: 1_000_000_000)  // Wait 1 second
+    try? await Task.sleep(nanoseconds: AppConstants.mediumDelayNanoseconds)  // 0.5 seconds
 
     // Then click the time button
     let timeClicked = await clickTimeButton(timeString: timeString, dayName: dayName)
@@ -1083,7 +1149,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         injectAutomationScripts()
         injectAntiDetectionScripts()
         // Wait a moment for scripts to load
-        try await Task.sleep(nanoseconds: 500_000_000)  // 0.5 seconds
+        try await Task.sleep(nanoseconds: AppConstants.mediumDelayNanoseconds)  // 0.5 seconds
       }
     } catch {
       logger.error(
@@ -1131,7 +1197,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         injectAutomationScripts()
         injectAntiDetectionScripts()
         // Wait a moment for scripts to load
-        try await Task.sleep(nanoseconds: 500_000_000)  // 0.5 seconds
+        try await Task.sleep(nanoseconds: AppConstants.mediumDelayNanoseconds)  // 0.5 seconds
       }
     } catch {
       logger.error(
@@ -1152,7 +1218,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         return false
       }
     } catch {
-      logger.error("[TimeButton] JS error: \(error.localizedDescription, privacy: .private).")
+      logger.error("❌ [TimeButton] JS error: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
@@ -1231,9 +1297,10 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
       } catch {
         logger.error(
-          "[ContactPagePoll][poll \(pollCount)] JS error: \(error.localizedDescription).")
+          "❌ [ContactPagePoll][poll \(pollCount)] JS error: \(error.localizedDescription).")
       }
-      try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
+      try? await Task.sleep(
+        nanoseconds: UInt64(pollInterval * Double(AppConstants.humanDelayNanoseconds)))
     }
 
     logger.error("❌ Contact info page load timeout after \(Int(timeout))s and \(pollCount) polls.")
@@ -1382,7 +1449,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     }
 
     // Wait a bit for the page to load after clicking confirm
-    try? await Task.sleep(nanoseconds: 3_000_000_000)  // Wait 3 seconds
+    try? await Task.sleep(nanoseconds: AppConstants.extraLongDelayNanoseconds)  // Wait 3 seconds
 
     let script = "window.odyssey.isEmailVerificationRequired();"
 
@@ -1473,7 +1540,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         logger.error("❌ Error checking verification page: \(error.localizedDescription).")
       }
 
-      try? await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
+      try? await Task.sleep(
+        nanoseconds: UInt64(pollInterval * Double(AppConstants.humanDelayNanoseconds)))
     }
 
     logger.error("❌ Verification page load timeout after \(timeout) seconds.")
@@ -1492,8 +1560,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     let emailService = EmailService.shared
 
     // Wait for the initial period
-    logger.info("Waiting \(initialWait)s before starting email verification checks...")
-    try? await Task.sleep(nanoseconds: UInt64(initialWait * 1_000_000_000))
+    logger.info("⏳ Waiting \(initialWait)s before starting email verification checks...")
+    try? await Task.sleep(
+      nanoseconds: UInt64(initialWait * Double(AppConstants.humanDelayNanoseconds)))
 
     while Date() < deadline {
       // Fetch verification codes using the correct method
@@ -1503,7 +1572,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         return code
       }
       logger.info("⏳ Verification code not found yet, retrying in \(retryDelay)s...")
-      try? await Task.sleep(nanoseconds: UInt64(retryDelay * 1_000_000_000))
+      try? await Task.sleep(
+        nanoseconds: UInt64(retryDelay * Double(AppConstants.humanDelayNanoseconds)))
     }
     logger.error("❌ Timed out waiting for verification code after \(maxTotalWait)s.")
     return ""
@@ -1563,7 +1633,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       .info(
         "Waiting \(initialWait)s before starting email verification checks for instance: \(self.instanceId)...",
       )
-    try? await Task.sleep(nanoseconds: UInt64(initialWait * 1_000_000_000))
+    try? await Task.sleep(
+      nanoseconds: UInt64(initialWait * Double(AppConstants.humanDelayNanoseconds)))
 
     while Date() < deadline {
       // Try both shared code pool and direct email fetching as fallback
@@ -1589,7 +1660,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       if codes.isEmpty {
         logger.info(
           "📧 Instance \(self.instanceId): Still no codes, trying with broader time window...")
-        let broaderStart = verificationStart.addingTimeInterval(-300)  // 5 minutes earlier
+        let broaderStart = verificationStart.addingTimeInterval(
+          -AppConstants.emailSearchWindowMinutes * 60)  // 5 minutes earlier
         codes = await emailService.fetchVerificationCodesForToday(since: broaderStart)
 
         if !codes.isEmpty {
@@ -1608,7 +1680,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         .info(
           "Instance \(self.instanceId): No verification codes available yet, retrying in \(retryDelay)s..."
         )
-      try? await Task.sleep(nanoseconds: UInt64(retryDelay * 1_000_000_000))
+      try? await Task.sleep(
+        nanoseconds: UInt64(retryDelay * Double(AppConstants.humanDelayNanoseconds)))
     }
     logger.error(
       "❌ Instance \(self.instanceId): Timed out waiting for verification codes after \(maxTotalWait)s"
@@ -1654,7 +1727,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         continue
       }
       await updateTask("Waiting for form to process verification code...")
-      try? await Task.sleep(nanoseconds: 2_000_000_000)
+      try? await Task.sleep(nanoseconds: AppConstants.longDelayNanoseconds)
       logger.info(
         "Instance \(self.instanceId): Finished waiting for form to process verification code")
       let clickSuccess = await clickVerificationSubmitButton()
@@ -1667,7 +1740,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         continue
       }
       await updateTask("Waiting for verification response...")
-      try? await Task.sleep(nanoseconds: 5_000_000_000)
+      try? await Task.sleep(nanoseconds: AppConstants.veryLongDelayNanoseconds)
       logger.info("⏳ Instance \(self.instanceId): Finished waiting for verification response.")
       logger.info(
         "🔍 Instance \(self.instanceId): Checking verification result for code \(index + 1)...")
@@ -1745,8 +1818,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
           "Instance \(self.instanceId): No verification codes found in attempt \(retryCount + 1)")
         retryCount += 1
         if retryCount < maxRetryAttempts {
-          logger.info("Instance \(self.instanceId): Waiting 3 seconds before retry...")
-          try? await Task.sleep(nanoseconds: 3_000_000_000)
+          logger.info("⏳ Instance \(self.instanceId): Waiting 3 seconds before retry...")
+          try? await Task.sleep(nanoseconds: AppConstants.extraLongDelayNanoseconds)
         }
         continue
       }
@@ -1774,8 +1847,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
         retryCount += 1
         if retryCount < maxRetryAttempts {
-          logger.info("Instance \(self.instanceId): Waiting 3 seconds before next retry...")
-          try? await Task.sleep(nanoseconds: 3_000_000_000)
+          logger.info("⏳ Instance \(self.instanceId): Waiting 3 seconds before next retry...")
+          try? await Task.sleep(nanoseconds: AppConstants.extraLongDelayNanoseconds)
         }
       }
     }
@@ -1794,7 +1867,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         )
       let verificationSuccess = await tryVerificationCodes(directCodes)
       if verificationSuccess {
-        logger.info("Instance \(self.instanceId): ✅ Verification successful on final direct fetch.")
+        logger.info("✅ Instance \(self.instanceId): Verification successful on final direct fetch.")
         return true
       }
       // After final direct fetch, check if still on verification page
@@ -1964,7 +2037,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
           )
       }
 
-      try? await Task.sleep(nanoseconds: 500_000_000)
+      try? await Task.sleep(nanoseconds: AppConstants.mediumDelayNanoseconds)
     }
     logger.error(
       "❌ [ConfirmClick] Failed to click Final Confirmation button after \(maxAttempts) attempts")
@@ -2212,13 +2285,13 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         let pageText = result["pageText"] as? String ?? "No page text"
         let title = result["title"] as? String ?? "No title"
 
-        logger.info("🔍 Reservation completion check results:")
+        logger.info("🔍 Reservation completion check results.")
         logger.info("📄 Page title: \(title).")
         logger.info("📝 Page text preview: \(pageText).")
         logger.info("✅ Is complete: \(isComplete).")
 
         if isComplete {
-          logger.info("✅ Reservation completion detected!")
+          logger.info("✅ Reservation completion detected.")
           logger.info("📋 Completion details: \(result).")
           return true
         } else {

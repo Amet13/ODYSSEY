@@ -172,3 +172,21 @@ public struct HeaderFooterDivider: View {
     Divider().padding(.horizontal, AppConstants.contentPadding)
   }
 }
+
+// MARK: - NSImage Extensions
+
+/// Extension for NSImage utilities.
+extension NSImage {
+  /// Converts the image to JPEG data with specified quality
+  /// - Parameter quality: JPEG quality from 0.0 (lowest) to 1.0 (highest)
+  /// - Returns: JPEG data representation of the image
+  func jpegRepresentation(quality: Float) -> Data? {
+    guard let tiffData = self.tiffRepresentation,
+      let bitmapRep = NSBitmapImageRep(data: tiffData)
+    else {
+      return nil
+    }
+
+    return bitmapRep.representation(using: .jpeg, properties: [.compressionFactor: quality])
+  }
+}

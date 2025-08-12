@@ -54,15 +54,35 @@ public final class ReservationErrorHandler: @unchecked Sendable {
     if webKitService.isConnected, webKitService.webView != nil {
       logger.info("📸 Taking failure screenshot for \(config.name)...")
 
-      // Set screenshot directory on the WebKit service
+      // Set screenshot directory on the WebKit service only if not already set
       await MainActor.run {
-        webKitService.setScreenshotDirectory("screenshots")
+        if webKitService.currentScreenshotDirectory == nil {
+          webKitService.setScreenshotDirectory(FileManager.odysseyScreenshotsDirectory())
+        }
       }
 
+      let dateFormatter = DateFormatter()
+      dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm"
+      let timestamp = dateFormatter.string(from: Date())
       let filename =
-        "failure_\(config.name.replacingOccurrences(of: " ", with: "_"))_\(Date().timeIntervalSince1970).png"
-      if let screenshotPath = await webKitService.takeScreenshot(filename: filename) {
+        "\(config.name.replacingOccurrences(of: " ", with: "_"))_\(timestamp).jpg"
+      if let screenshotPath = await webKitService.takeScreenshot(
+        filename: filename, quality: AppConstants.defaultScreenshotQuality,
+        maxWidth: AppConstants.defaultScreenshotMaxWidth,
+        format: AppConstants.defaultScreenshotFormat)
+      {
         logger.info("📸 Failure screenshot saved: \(screenshotPath).")
+
+        // Update the last run info with the screenshot path
+        await MainActor.run {
+          statusManager.setLastRunInfo(
+            for: config.id,
+            status: .failed(userFriendlyMessage),
+            date: Date(),
+            runType: runType,
+            screenshotPath: screenshotPath
+          )
+        }
       } else {
         logger.error("❌ Failed to capture failure screenshot for \(config.name).")
       }

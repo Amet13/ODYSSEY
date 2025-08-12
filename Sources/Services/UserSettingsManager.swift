@@ -134,13 +134,13 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
     let email = userSettings.imapEmail
     let password = userSettings.imapPassword
     let server = userSettings.imapServer
-    let port = 993  // Default IMAP port; adjust if needed
+    let port = Int(AppConstants.defaultImapPort)
     guard !email.isEmpty, !password.isEmpty, !server.isEmpty else { return }
     let result = KeychainService.shared.storeEmailCredentials(
       email: email,
       password: password,
       server: server,
-      port: port,
+      port: port
     )
     if case let .failure(error) = result {
       logger.error("❌ Keychain storage error: \(error.localizedDescription).")
@@ -151,7 +151,7 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
   public func clearCredentialsFromKeychain() {
     let email = userSettings.imapEmail
     let server = userSettings.imapServer
-    let port = 993
+    let port = Int(AppConstants.defaultImapPort)
     guard !email.isEmpty, !server.isEmpty else { return }
     let result = KeychainService.shared.deleteEmailCredentials(
       email: email, server: server, port: port)

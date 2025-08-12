@@ -54,7 +54,9 @@ public protocol WebAutomationServiceProtocol: ObservableObject, Sendable {
 
   // Screenshot functionality
   func setScreenshotDirectory(_ directory: String)
-  func takeScreenshot(filename: String?) async -> String?
+  func takeScreenshot(
+    filename: String?, quality: Float, maxWidth: CGFloat?, format: ScreenshotFormat
+  ) async -> String?
 }
 
 // MARK: - Web Element Protocol.

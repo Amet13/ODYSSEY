@@ -892,7 +892,7 @@ show_logs() {
     echo ""
 
     # Monitor Console.app logs for ODYSSEY
-    log stream --predicate 'process == "ODYSSEY"' --info --debug | grep debug
+    log stream --predicate 'process == "ODYSSEY"' --info --debug | grep "com.odyssey.app:"
 }
 
 # Main script logic

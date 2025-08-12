@@ -17,7 +17,7 @@ public final class ErrorHandlingService: ObservableObject {
   ///   - userFacing: Whether to show a user-facing error message.
   public nonisolated func handleError(_ error: Error, context: String, userFacing: Bool = false) {
     let errorMessage = "❌ \(context): \(error.localizedDescription)"
-    logger.error("\(errorMessage).")
+    logger.error("❌ \(errorMessage).")
 
     if userFacing {
       // Update user-facing error state
@@ -39,7 +39,7 @@ public final class ErrorHandlingService: ObservableObject {
     userFacing: Bool = false,
   ) {
     let errorMessage = "\(error.errorCategory.emoji) \(context): \(error.userFriendlyMessage)"
-    logger.error("\(errorMessage).")
+    logger.error("❌ \(errorMessage).")
 
     if userFacing {
       DispatchQueue.main.async {

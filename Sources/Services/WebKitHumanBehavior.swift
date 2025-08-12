@@ -33,7 +33,7 @@ public final class WebKitHumanBehavior: ObservableObject {
   public func addHumanDelay() async {
     let delay = Double.random(in: minDelay...maxDelay)
 
-    try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+    try? await Task.sleep(nanoseconds: UInt64(delay * Double(AppConstants.humanDelayNanoseconds)))
   }
 }
 

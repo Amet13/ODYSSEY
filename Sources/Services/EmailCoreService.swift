@@ -209,7 +209,7 @@ public final class EmailCore: ObservableObject, @unchecked Sendable, EmailServic
         password: "",
         provider: .gmail,
         imapServer: "imap.gmail.com",
-        imapPort: 993,
+        imapPort: Int(AppConstants.defaultImapPort),
         useSSL: true,
       )
     case .imap:
@@ -218,7 +218,7 @@ public final class EmailCore: ObservableObject, @unchecked Sendable, EmailServic
         password: "",
         provider: .imap,
         imapServer: "",
-        imapPort: 993,
+        imapPort: Int(AppConstants.defaultImapPort),
         useSSL: true,
       )
     }
@@ -238,7 +238,7 @@ public final class EmailCore: ObservableObject, @unchecked Sendable, EmailServic
 
     // This would contain the actual IMAP connection logic
     // For now, we'll simulate a successful connection
-    try await Task.sleep(nanoseconds: 2_000_000_000)  // 2 seconds
+    try await Task.sleep(nanoseconds: AppConstants.longDelayNanoseconds)  // 2 seconds
 
     logger.info("✅ IMAP connection test successful.")
     return .success("IMAP connection successful")
@@ -249,14 +249,14 @@ public final class EmailCore: ObservableObject, @unchecked Sendable, EmailServic
 
     // This would contain the actual Gmail connection logic
     // For now, we'll simulate a successful connection
-    try await Task.sleep(nanoseconds: 2_000_000_000)  // 2 seconds
+    try await Task.sleep(nanoseconds: AppConstants.longDelayNanoseconds)  // 2 seconds
 
     logger.info("✅ Gmail connection test successful.")
     return .success("Gmail connection successful")
   }
 
   private func isValidEmailFormat(_ email: String) -> Bool {
-    let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+    let emailRegex = AppConstants.emailRegexPattern
     let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
     return emailPredicate.evaluate(with: email)
   }

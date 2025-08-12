@@ -44,7 +44,7 @@ class WebKitNavigation: WebKitNavigationProtocol {
     let startTime = Date()
     while Date().timeIntervalSince(startTime) < timeout {
       if webView.isLoading {
-        try await Task.sleep(nanoseconds: 100_000_000)  // 0.1 seconds
+        try await Task.sleep(nanoseconds: AppConstants.shortDelayNanoseconds)
       } else {
         logger.info("✅ Page load completed.")
         return
@@ -102,7 +102,7 @@ class WebKitNavigation: WebKitNavigationProtocol {
         logger.error("❌ JavaScript evaluation failed: \(error.localizedDescription).")
       }
 
-      try await Task.sleep(nanoseconds: 100_000_000)  // 0.1 seconds
+      try await Task.sleep(nanoseconds: AppConstants.shortDelayNanoseconds)
     }
 
     logger.error("❌ Element not found: \(selector).")

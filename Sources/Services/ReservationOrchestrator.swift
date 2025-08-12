@@ -90,7 +90,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
     statusManager.setLastRunInfo(for: config.id, status: .running, date: Date(), runType: runType)
     Task {
       do {
-        try await withTimeout(seconds: 300) {
+        try await withTimeout(seconds: AppConstants.reservationTimeout) {
           try await self.performReservation(for: config, runType: runType)
         }
       } catch {
@@ -397,7 +397,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         }
 
         // Wait for time buttons to load
-        try await Task.sleep(nanoseconds: 1_000_000_000)  // Wait 1 second
+        try await Task.sleep(nanoseconds: AppConstants.humanDelayNanoseconds)
 
         let timeSlotClicked = await webKitService.clickTimeButton(
           timeString: timeString, dayName: dayName)
@@ -503,7 +503,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       let verificationStart = Date()
       var contactConfirmClicked = false
       var retryCount = 0
-      let maxRetries = 6
+      let maxRetries = AppConstants.maxRetryAttemptsContactInfo
       while !contactConfirmClicked, retryCount < maxRetries {
         if retryCount > 0 {
           logger.info("🔄 Retry attempt \(retryCount) for confirm button click.")
@@ -522,7 +522,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
 
         // Add delay before checking for retry text to allow form filling click to complete
         if retryCount == 0 {
-          try? await Task.sleep(nanoseconds: 1_000_000_000)  // Wait 1 second for form filling to complete
+          try? await Task.sleep(nanoseconds: AppConstants.humanDelayNanoseconds)
         }
 
         let retryTextDetected = await webKitService.detectRetryText()
@@ -540,7 +540,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
           if captchaRetryHandled {
             logger.info("✅ Captcha retry handled with human behavior simulation.")
             // Wait for the retry to complete
-            try? await Task.sleep(nanoseconds: 2_000_000_000)  // Wait 2 seconds
+            try? await Task.sleep(nanoseconds: AppConstants.longDelayNanoseconds)
 
             // Check if retry text is still present after the retry
             let retryTextStillPresent = await webKitService.detectRetryText()
@@ -565,7 +565,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         // If no retry text, try normal confirm button click
         contactConfirmClicked = await webKitService.clickContactInfoConfirmButtonWithRetry()
         if contactConfirmClicked {
-          try? await Task.sleep(nanoseconds: 300_000_000)
+          try? await Task.sleep(nanoseconds: AppConstants.shortDelayNanoseconds)
           let retryTextAfterClick = await webKitService.detectRetryText()
           if retryTextAfterClick {
             logger.warning("⚠️ Retry text detected after confirm button click.")
@@ -611,7 +611,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       )
 
       await updateTask("Checking for email verification...")
-      try? await Task.sleep(nanoseconds: 2_000_000_000)
+      try? await Task.sleep(nanoseconds: AppConstants.longDelayNanoseconds)
       let verificationRequired = await webKitService.isEmailVerificationRequired()
       if verificationRequired {
         logger.info("📧 Email verification required, starting verification process.")
@@ -644,7 +644,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         )
         await updateTask("Waiting for confirmation page to load...")
         logger.info("⏳ Waiting for page navigation to complete after email verification.")
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
+        try? await Task.sleep(nanoseconds: AppConstants.humanDelayNanoseconds)
         let domReady = await webKitService.waitForDOMReady()
         if domReady {
           LoggingService.shared.log(
@@ -767,12 +767,12 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       if !jsAvailable {
         logger.warning("⚠️ JavaScript library not available for \(config.name), re-injecting...")
         separateWebKitService.reinjectScripts()
-        try await Task.sleep(nanoseconds: 1_000_000_000)  // Wait 1 second for scripts to load
+        try await Task.sleep(nanoseconds: AppConstants.humanDelayNanoseconds)
       }
 
       // Add additional wait to ensure page is fully loaded
       logger.info("⏳ Waiting for page to fully stabilize for \(config.name)...")
-      try await Task.sleep(nanoseconds: 2_000_000_000)  // Wait 2 seconds
+      try await Task.sleep(nanoseconds: AppConstants.longDelayNanoseconds)
       let buttonClicked = await separateWebKitService.findAndClickElement(
         withText: config.sportName)
       if buttonClicked {
@@ -842,7 +842,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         }
         logger.info("📧 Waiting for contact information page for \(config.name).")
         let contactInfoPageReady =
-          await withTimeout(seconds: 10) {
+          await withTimeout(seconds: AppConstants.shortTimeout) {
             await separateWebKitService.waitForContactInfoPage()
           } ?? false
         if !contactInfoPageReady {
@@ -869,7 +869,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         let verificationStart = Date()
         var contactConfirmClicked = false
         var retryCount = 0
-        let maxRetries = 6
+        let maxRetries = AppConstants.maxRetryAttemptsContactInfo
         while !contactConfirmClicked, retryCount < maxRetries {
           if retryCount > 0 {
             logger.info(
@@ -884,7 +884,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
           contactConfirmClicked =
             await separateWebKitService.clickContactInfoConfirmButtonWithRetry()
           if contactConfirmClicked {
-            try? await Task.sleep(nanoseconds: 300_000_000)
+            try? await Task.sleep(nanoseconds: AppConstants.shortDelayNanoseconds)
             let retryTextDetected = await separateWebKitService.detectRetryText()
             if retryTextDetected {
               logger
@@ -919,7 +919,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         }
         logger.info("✅ Successfully clicked contact confirm button for \(config.name).")
         logger.info("📧 Checking for email verification for \(config.name).")
-        try? await Task.sleep(nanoseconds: 2_000_000_000)
+        try? await Task.sleep(nanoseconds: AppConstants.longDelayNanoseconds)
         let verificationRequired = await separateWebKitService.isEmailVerificationRequired()
         if verificationRequired {
           logger.info(
@@ -953,7 +953,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
           }
           logger.info("✅ Email verification completed successfully for \(config.name).")
           logger.info("⏳ Waiting for confirmation page to load for \(config.name).")
-          try? await Task.sleep(nanoseconds: 1_000_000_000)
+          try? await Task.sleep(nanoseconds: AppConstants.humanDelayNanoseconds)
           let domReady = await separateWebKitService.waitForDOMReady()
           if domReady {
           } else {
@@ -983,18 +983,26 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       logger.error("❌ Reservation failed for \(config.name): \(error.localizedDescription).")
 
       // Take screenshot before disconnecting if WebKit service is available
+      var screenshotPath: String? = nil
       if separateWebKitService.isConnected, separateWebKitService.webView != nil {
         logger.info("📸 Taking failure screenshot for \(config.name)...")
 
         // Set screenshot directory on the WebKit service
         await MainActor.run {
-          separateWebKitService.setScreenshotDirectory("screenshots")
+          separateWebKitService.setScreenshotDirectory(FileManager.odysseyScreenshotsDirectory())
         }
 
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm"
+        let timestamp = dateFormatter.string(from: Date())
         let filename =
-          "failure_\(config.name.replacingOccurrences(of: " ", with: "_"))_\(Date().timeIntervalSince1970).png"
-        if let screenshotPath = await separateWebKitService.takeScreenshot(filename: filename) {
-          logger.info("📸 Failure screenshot saved: \(screenshotPath).")
+          "\(config.name.replacingOccurrences(of: " ", with: "_"))_\(timestamp).jpg"
+        screenshotPath = await separateWebKitService.takeScreenshot(
+          filename: filename, quality: AppConstants.defaultScreenshotQuality,
+          maxWidth: AppConstants.defaultScreenshotMaxWidth,
+          format: AppConstants.defaultScreenshotFormat)
+        if let path = screenshotPath {
+          logger.info("📸 Failure screenshot saved: \(path).")
         } else {
           logger.error("❌ Failed to capture failure screenshot for \(config.name).")
         }
@@ -1008,6 +1016,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
           status: .failed(error.localizedDescription),
           date: Date(),
           runType: runType,
+          screenshotPath: screenshotPath
         )
         if runType == .manual {
           statusManager.isRunning = false

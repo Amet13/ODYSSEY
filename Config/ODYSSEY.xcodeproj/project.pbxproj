@@ -10,6 +10,7 @@
 		08A04D385F475CABF0871BCC /* EmailGmailSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2867DB82C075495C71B2AB0 /* EmailGmailSupport.swift */; };
 		0E70C434A5115D2792406E89 /* WebKitScriptManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92BBD57449782EDCECED3713 /* WebKitScriptManager.swift */; };
 		0F10AD925EBDA121A09052DB /* ConfigurationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8285134011E8E82AD237B58 /* ConfigurationService.swift */; };
+		148E2EC3001705F307D41557 /* FileManagerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EBC14EBEA87B793DC15F8F8 /* FileManagerExtensions.swift */; };
 		26CAB5888030308D9F697FFD /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7328D80C8C951B9EAA9CE17 /* Extensions.swift */; };
 		28755EA49FD31DFF91497043 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBDB0490C4EDFE8E4C23D5C0 /* AboutView.swift */; };
 		2A0E233EB2385F5C72B3DE21 /* ReservationRunStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C7C81C4DA4C0834B7AD1E2B /* ReservationRunStatus.swift */; };
@@ -88,6 +89,7 @@
 		9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebDriverProtocols.swift; sourceTree = "<group>"; };
 		92BBD57449782EDCECED3713 /* WebKitScriptManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitScriptManager.swift; sourceTree = "<group>"; };
 		9A1C6C9981119BECB6D153F4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		9EBC14EBEA87B793DC15F8F8 /* FileManagerExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManagerExtensions.swift; sourceTree = "<group>"; };
 		9F32A0A5C6C800FBB7769711 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		A24793F2A98C565ED5F83A84 /* CLIExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIExportService.swift; sourceTree = "<group>"; };
 		A5826B323326A302ABB246BD /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
@@ -191,6 +193,7 @@
 			children = (
 				0912B3878339C5694E3C0AF7 /* AppConstants.swift */,
 				B7328D80C8C951B9EAA9CE17 /* Extensions.swift */,
+				9EBC14EBEA87B793DC15F8F8 /* FileManagerExtensions.swift */,
 				0B7DE380B7A5E1B12B2B0B2D /* JavaScriptCore.swift */,
 				241663D21042A5F1983CA116 /* JavaScriptForms.swift */,
 				7C92A59EFD10172814D635FA /* JavaScriptLibrary.swift */,
@@ -364,6 +367,7 @@
 				F05B25DDE894D852395A3F67 /* ExportView.swift in Sources */,
 				26CAB5888030308D9F697FFD /* Extensions.swift in Sources */,
 				AF9C5201A1EA357818523371 /* FacilityService.swift in Sources */,
+				148E2EC3001705F307D41557 /* FileManagerExtensions.swift in Sources */,
 				DD43208043CCB4AFD742447C /* GodModeStateManager.swift in Sources */,
 				6A7C41D21799B1EA7CCBA92C /* JavaScriptCore.swift in Sources */,
 				55EEC831FAD5B61655D9EE17 /* JavaScriptForms.swift in Sources */,
