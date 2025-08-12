@@ -5,7 +5,7 @@ public enum AppConstants {
   // MARK: - App Information
 
   public static let appName = "ODYSSEY"
-  public static let appVersion = "1.2.2"
+  public static let appVersion = "1.3.0"
   public static let appBundleId = "com.odyssey.app"
 
   // MARK: - Timeouts and Delays

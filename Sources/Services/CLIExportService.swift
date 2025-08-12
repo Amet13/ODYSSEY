@@ -46,7 +46,7 @@ public final class CLIExportService: ObservableObject {
     public init(
       userSettings: UserSettings,
       selectedConfigurations: [ReservationConfig],
-      version: String = "1.2.2"
+      version: String = "1.3.0"
     ) {
       self.userSettings = CLIUserSettings(from: userSettings)
       self.selectedConfigurations = selectedConfigurations
