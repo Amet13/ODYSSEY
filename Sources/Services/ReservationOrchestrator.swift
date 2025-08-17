@@ -238,7 +238,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
     statusManager.currentTask = "Starting reservation for \(config.name)"
     currentConfig = config
 
-    // Log to direct logging service for CLI access
+    // Log to direct logging service
     LoggingService.shared.log(
       "Starting reservation for \(config.name)",
       level: .info,
@@ -1087,7 +1087,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
   private func trackGodModeCompletion(configs: [ReservationConfig], runType: ReservationRunType)
     async
   {
-    let completionRunType = runType  // capture for closure
     logger.info("📊 Starting God Mode completion tracking for \(configs.count) configurations.")
     let maxWaitTime: TimeInterval = AppConstants.verificationCodeTimeout
     let checkInterval: TimeInterval = AppConstants.retryDelay
@@ -1178,14 +1177,9 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
 
             await MainActor.run {
               self.statusManager.isRunning = false
-              logger
-                .info(
-                  "🔄 ReservationOrchestrator: Final multiple reservation status - isRunning: \(self.statusManager.isRunning), status: \(self.statusManager.lastRunStatus.description)",
-                )
-              // Allow sleep after autorun (automatic) reservations are done
-              if completionRunType == .automatic {
-                SleepManager.allowSleep()
-              }
+              logger.info(
+                "🔄 ReservationOrchestrator: Final multiple reservation status - isRunning: \(self.statusManager.isRunning), status: \(self.statusManager.lastRunStatus.description)",
+              )
             }
           }
         }

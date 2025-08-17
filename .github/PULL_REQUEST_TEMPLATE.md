@@ -14,4 +14,3 @@ Brief description of the changes made in this pull request.
 - [ ] I have run `./Scripts/odyssey.sh lint` and all checks pass
 - [ ] I have run `./Scripts/odyssey.sh build` and the build succeeds
 - [ ] I have updated relevant documentation
-- [ ] I have tested the CLI version if applicable

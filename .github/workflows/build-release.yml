@@ -72,7 +72,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            release_files/odyssey-cli
             ODYSSEY.dmg
           name: ${{ github.ref_name }}
           body: |
@@ -85,13 +84,6 @@ jobs:
             2. Open the DMG file and drag `ODYSSEY.app` to your Applications folder
             3. Add to the quarantine: `sudo xattr -rd com.apple.quarantine /Applications/ODYSSEY.app`
             4. Right-click and select "Open" on first launch
-
-            ### 💻 CLI Tool
-            1. Download `odyssey-cli` below
-            2. Make executable: `chmod +x odyssey-cli`
-            3. Add to the quarantine: `sudo xattr -rd com.apple.quarantine ./odyssey-cli`
-            4. Export token from GUI: `export ODYSSEY_EXPORT_TOKEN="<token>"`
-            5. Run: `./odyssey-cli run`
 
             ## ⚙️ Requirements
             - macOS 15 or later

@@ -334,6 +334,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
   @MainActor
   private func logAllButtonsAndLinks() async {
+    guard GodModeStateManager.shared.isGodModeUIEnabled else { return }
     guard let webView else {
       logger.error("❌ [ButtonScan] webView is nil.")
       return
@@ -645,18 +646,18 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
             Task { @MainActor in
               do {
                 let readyState = try await self.executeScriptInternal(
-                  "return document.readyState;")?
-                  .value
-                self.logger
-                  .info("📄 document.readyState after navigation: \(String(describing: readyState))")
-                let pageSource = try await self.getPageSource()
-                self.logger
-                  .info(
+                  "return document && document.readyState;")?.value
+                self.logger.info(
+                  "📄 document.readyState after navigation: \(String(describing: readyState))")
+                let pageSource = try? await self.getPageSource()
+                if let pageSource {
+                  self.logger.info(
                     "Page source after navigation (first \(AppConstants.pageSourcePreviewLength) chars): \(pageSource.prefix(AppConstants.pageSourcePreviewLength))"
                   )
+                }
               } catch {
-                self.logger
-                  .error("❌ Error logging readyState/page source: \(error.localizedDescription)")
+                self.logger.warning(
+                  "⚠️ Skipping readyState/page source log: \(error.localizedDescription)")
               }
             }
             // After navigation completes, log page source and all buttons/links
@@ -2131,9 +2132,12 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     let script = "window.odyssey.simulateQuickMouseMovement();"
 
     do {
-      _ = try await webView.evaluateJavaScript(script)
+      if let ok = try await webView.evaluateJavaScript(script) as? Bool, ok == false {
+        logger.warning("⚠️ simulateQuickMouseMovement returned false (ignored).")
+      }
     } catch {
-      logger.error("❌ Error simulating mouse movement: \(error.localizedDescription).")
+      logger.warning(
+        "⚠️ Error simulating mouse movement (non-fatal): \(error.localizedDescription).")
     }
   }
 
@@ -2147,9 +2151,11 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     let script = "window.odyssey.simulateQuickScrolling();"
 
     do {
-      _ = try await webView.evaluateJavaScript(script)
+      if let ok = try await webView.evaluateJavaScript(script) as? Bool, ok == false {
+        logger.warning("⚠️ simulateQuickScrolling returned false (ignored).")
+      }
     } catch {
-      logger.error("❌ Error simulating scrolling: \(error.localizedDescription).")
+      logger.warning("⚠️ Error simulating scrolling (non-fatal): \(error.localizedDescription).")
     }
   }
 

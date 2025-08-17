@@ -34,7 +34,6 @@ public struct UserSettings: Codable, Equatable, Sendable {
     return Locale(identifier: "en")
   }
 
-  public var preventSleepForAutorun = true  // Default to true for safety
   public var autoCloseDebugWindowOnFailure = false  // Default to false to show errors by default
   public var showBrowserWindow = false  // Default to false (invisible automation)
 
@@ -51,6 +50,10 @@ public struct UserSettings: Codable, Equatable, Sendable {
     ) ?? now
   }()
 
+  // Custom prior days before reservation (God Mode / debugging)
+  public var useCustomPriorDays = false  // Default to false (use 2 days prior)
+  public var customPriorDays: Int = 2  // Default matches app behavior
+
   // MARK: - Equatable
 
   public static func == (lhs: UserSettings, rhs: UserSettings) -> Bool {
@@ -58,11 +61,13 @@ public struct UserSettings: Codable, Equatable, Sendable {
       && lhs.emailProvider == rhs.emailProvider && lhs.imapEmail == rhs.imapEmail
       && lhs.imapPassword == rhs.imapPassword && lhs.imapServer == rhs.imapServer
       && lhs.language == rhs.language
-      && lhs.preventSleepForAutorun == rhs.preventSleepForAutorun
+
       && lhs.autoCloseDebugWindowOnFailure == rhs.autoCloseDebugWindowOnFailure
       && lhs.showBrowserWindow == rhs.showBrowserWindow
       && lhs.useCustomAutorunTime == rhs.useCustomAutorunTime
       && lhs.customAutorunTime == rhs.customAutorunTime
+      && lhs.useCustomPriorDays == rhs.useCustomPriorDays
+      && lhs.customPriorDays == rhs.customPriorDays
   }
 
   // MARK: - Validation

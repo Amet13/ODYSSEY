@@ -52,13 +52,10 @@
 		E2CDCC931C7C13AD6F4D8DD4 /* UserSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88087B5FF17E55461F2F9181 /* UserSettingsManager.swift */; };
 		ECA1E0EFE58010D0AFB031E4 /* ConflictDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6753FCAC1521C4E3F3955E3 /* ConflictDetectionService.swift */; };
 		EFCBFA6AA385CA867DC23B4D /* LoggingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0C40DA95D0B392AED1463FA /* LoggingService.swift */; };
-		F05B25DDE894D852395A3F67 /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5826B323326A302ABB246BD /* ExportView.swift */; };
 		F1CEB7325AA2088A085FC265 /* ReservationError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A77B82AE735F19633841541D /* ReservationError.swift */; };
-		F72194EE82FA468C2800282D /* SleepManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F1DB4EC7DD77E2195E6AEE0 /* SleepManager.swift */; };
 		FA8FDED3BB6BF7B43C24F5B5 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 9F32A0A5C6C800FBB7769711 /* AppIcon.icns */; };
 		FC7237263C7BCE4BAD6045C0 /* SharedProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = F119C41DFEFC10EA4FE7C583 /* SharedProtocols.swift */; };
 		FDB4E4B45EF27FAEDEAA1CA6 /* ConfigurationValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D919BE144ACD180810E16915 /* ConfigurationValidator.swift */; };
-		FF3FF53944D45D340D70FD1C /* CLIExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24793F2A98C565ED5F83A84 /* CLIExportService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,7 +65,6 @@
 		1408CA62AA2B81C39FCA33DC /* WebKitHumanBehavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitHumanBehavior.swift; sourceTree = "<group>"; };
 		1ACFC5968B19393D62775EC3 /* EmailKeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailKeychainHelper.swift; sourceTree = "<group>"; };
 		1CA820C244D658473331FE59 /* ODYSSEY.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ODYSSEY.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		1F1DB4EC7DD77E2195E6AEE0 /* SleepManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepManager.swift; sourceTree = "<group>"; };
 		241663D21042A5F1983CA116 /* JavaScriptForms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JavaScriptForms.swift; sourceTree = "<group>"; };
 		2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationErrorHandler.swift; sourceTree = "<group>"; };
 		2D4A3E2796AC58ABB58A6817 /* WebKitDebugWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitDebugWindowManager.swift; sourceTree = "<group>"; };
@@ -91,8 +87,6 @@
 		9A1C6C9981119BECB6D153F4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		9EBC14EBEA87B793DC15F8F8 /* FileManagerExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManagerExtensions.swift; sourceTree = "<group>"; };
 		9F32A0A5C6C800FBB7769711 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
-		A24793F2A98C565ED5F83A84 /* CLIExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIExportService.swift; sourceTree = "<group>"; };
-		A5826B323326A302ABB246BD /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
 		A77B82AE735F19633841541D /* ReservationError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationError.swift; sourceTree = "<group>"; };
 		A8E1937BD9E4E24570A0B78A /* EmailCoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailCoreService.swift; sourceTree = "<group>"; };
 		A9F58FED014BDF2E62DA6C95 /* ValidationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationService.swift; sourceTree = "<group>"; };
@@ -133,6 +127,7 @@
 			isa = PBXGroup;
 			children = (
 				9F8070BCC9B259E7B9CD2335 /* AppCore */,
+				C112B23BB20CDEAB7264D581 /* CLIApp */,
 				AC5CF14DE9283248E45F9108 /* Controllers */,
 				217A0C03643C525820D6AE4E /* Models */,
 				B269953CE8ABAE06B30FD525 /* Resources */,
@@ -157,7 +152,6 @@
 		27D349A2FFC390DE40F1B02D /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				A24793F2A98C565ED5F83A84 /* CLIExportService.swift */,
 				E8285134011E8E82AD237B58 /* ConfigurationService.swift */,
 				F6753FCAC1521C4E3F3955E3 /* ConflictDetectionService.swift */,
 				E01F649A84C769D3AFDC525D /* EmailConfigurationDiagnostics.swift */,
@@ -200,7 +194,6 @@
 				81E05DDA80BAC0BD3FBAECE8 /* JavaScriptPages.swift */,
 				E9E6BB3252BDFCB53E394023 /* LoggingUtils.swift */,
 				F119C41DFEFC10EA4FE7C583 /* SharedProtocols.swift */,
-				1F1DB4EC7DD77E2195E6AEE0 /* SleepManager.swift */,
 				C5568B1B9995B862B5D83137 /* SportIconMapper.swift */,
 				A9F58FED014BDF2E62DA6C95 /* ValidationService.swift */,
 			);
@@ -235,7 +228,6 @@
 		9BB7032CC6F9E5FC7669E145 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
-				A5826B323326A302ABB246BD /* ExportView.swift */,
 				F23E39878914FA1362DBDFB3 /* SettingsView.swift */,
 			);
 			path = Settings;
@@ -274,6 +266,13 @@
 				34C024E102B748548377EE51 /* Localizable.strings */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		C112B23BB20CDEAB7264D581 /* CLIApp */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = CLIApp;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -351,7 +350,6 @@
 				28755EA49FD31DFF91497043 /* AboutView.swift in Sources */,
 				BF17A76CFF97EC760E79EA42 /* AppConstants.swift in Sources */,
 				DFAC8C258D42D26AAB4E3C39 /* AppDelegate.swift in Sources */,
-				FF3FF53944D45D340D70FD1C /* CLIExportService.swift in Sources */,
 				C31CF17307DDA59BA42606BC /* ConfigurationDetailView.swift in Sources */,
 				0F10AD925EBDA121A09052DB /* ConfigurationService.swift in Sources */,
 				FDB4E4B45EF27FAEDEAA1CA6 /* ConfigurationValidator.swift in Sources */,
@@ -364,7 +362,6 @@
 				4038A5FA80910EFF1E46AA10 /* EmailKeychainHelper.swift in Sources */,
 				87BEA07219CB32EABEA725D0 /* EmailService.swift in Sources */,
 				92E3FC6001B69E443EEA803C /* ErrorHandlingService.swift in Sources */,
-				F05B25DDE894D852395A3F67 /* ExportView.swift in Sources */,
 				26CAB5888030308D9F697FFD /* Extensions.swift in Sources */,
 				AF9C5201A1EA357818523371 /* FacilityService.swift in Sources */,
 				148E2EC3001705F307D41557 /* FileManagerExtensions.swift in Sources */,
@@ -385,7 +382,6 @@
 				CD28D84649639DDF5D9281B7 /* SettingsView.swift in Sources */,
 				FC7237263C7BCE4BAD6045C0 /* SharedProtocols.swift in Sources */,
 				CB670603EEF4CD42B8688306 /* SharedVerificationCodePool.swift in Sources */,
-				F72194EE82FA468C2800282D /* SleepManager.swift in Sources */,
 				99E54AF4CF3ED6C9B978CD25 /* SportIconMapper.swift in Sources */,
 				682EF0598BC17A8022F81E5B /* StatusBarController.swift in Sources */,
 				7AB843B692B99A297F71AFA2 /* UserSettings.swift in Sources */,

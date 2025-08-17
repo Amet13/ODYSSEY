@@ -12,8 +12,6 @@
 
 - **Launch:** Open the app. You'll see a new icon in your menu bar.
 
-For CLI installation and setup, see the complete **[CLI documentation](CLI.md)**.
-
 ## ⚙️ Configuration
 
 <div align="center">
@@ -64,6 +62,11 @@ Gmail does not support using your regular password for IMAP. You need to generat
 
 - **Toggle:** Use the toggle switch to enable or disable automatic runs (2 days prior at 6 p.m.).
 - **Disabled:** Disabled configurations won't run automatically.
+
+### 💤 Sleep and Autorun Reliability
+
+- ODYSSEY schedules automatic runs two days prior at 6:00 p.m. If your Mac is sleeping at that time, the run may be missed.
+- To ensure reliability, keep your Mac awake around 6:00 p.m. on autorun days. You can use third-party utilities such as [Caffeine](https://www.caffeine-app.net) to temporarily prevent sleep.
 
 #### ✏️ Edit Configuration
 

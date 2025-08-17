@@ -182,7 +182,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let currentMinute = calendar.component(.minute, from: now)
         let currentSecond = calendar.component(.second, from: now)
 
-        // Check if we're 5 minutes before the autorun time and prevent sleep if enabled
+        // Check if we're 5 minutes before the autorun time
         let userSettingsManager = UserSettingsManager.shared
         let useCustomTime = userSettingsManager.userSettings.useCustomAutorunTime
         let autorunTime: Date =
@@ -205,18 +205,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         if currentHour == sleepPreventionHour, currentMinute == sleepPreventionMinute {
           let configManager = ConfigurationManager.shared
-          let userSettings = userSettingsManager.userSettings
-          if userSettings.preventSleepForAutorun {
-            // Check if any configs are scheduled for autorun today
-            let hasAutorun = configManager.settings.configurations.contains { config in
-              self.shouldRunReservation(config: config, at: autorunTime)
-            }
-            if hasAutorun {
-              let timeString = String(format: "%02d:%02d", autorunHour, autorunMinute)
-              SleepManager
-                .preventSleep(reason: "ODYSSEY: Preparing for \(timeString) autorun reservations")
-            }
-          }
+          _ = configManager
         }
 
         // Backup check: if we're at exactly the autorun time and haven't run yet
@@ -378,7 +367,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       )
     }
 
-    // For each enabled day, check if today is 2 days before that day
+    // For each enabled day, check if today is N days before that day
     let today = calendar.startOfDay(for: date)
     for (day, timeSlots) in config.dayTimeSlots {
       guard !timeSlots.isEmpty else { continue }
@@ -388,9 +377,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       var daysUntilTarget = targetWeekday - currentWeekday
       if daysUntilTarget <= 0 { daysUntilTarget += 7 }
       let reservationDay = calendar.date(byAdding: .day, value: daysUntilTarget, to: today) ?? today
-      // Autorun should be 2 days before reservation day
+      // Autorun should be priorDays before reservation day
+      let priorDays: Int = {
+        let settings = UserSettingsManager.shared.userSettings
+        if settings.useCustomPriorDays { return max(0, min(7, settings.customPriorDays)) }
+        return 2
+      }()
       let autorunDay =
-        calendar.date(byAdding: .day, value: -2, to: reservationDay) ?? reservationDay
+        calendar.date(byAdding: .day, value: -priorDays, to: reservationDay) ?? reservationDay
 
       logger
         .info(

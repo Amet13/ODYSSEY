@@ -2,12 +2,7 @@
 
 ## 🎯 Overview
 
-ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
-
-- **🖥️ GUI Version:** Native macOS menu bar app with SwiftUI interface.
-- **💻 CLI Version:** Command-line interface for remote automation.
-
-Both versions share the same backend services and automation engine, so contributions can affect both interfaces.
+ODYSSEY is a macOS menu bar application built with SwiftUI.
 
 ## 🖥️ System Requirements
 
@@ -20,36 +15,36 @@ Both versions share the same backend services and automation engine, so contribu
 
 > **Note:** This guide is for contributors and developers. For user setup, see **[USER_GUIDE.md](USER_GUIDE.md)**.
 
-1. **Clone the repository**:
+- **Clone the repository**:
 
-   ```bash
-   git clone https://github.com/Amet13/ODYSSEY.git
-   cd ODYSSEY
-   ```
+```bash
+git clone https://github.com/Amet13/ODYSSEY.git
+cd ODYSSEY
+```
 
-2. **Setup development environment**:
+- **Setup development environment**:
 
-   ```bash
-   ./Scripts/odyssey.sh setup
-   ```
+```bash
+./Scripts/odyssey.sh setup
+```
 
-3. **Build the project**:
+- **Build the project**:
 
-   ```bash
-   ./Scripts/odyssey.sh build
-   ```
+```bash
+./Scripts/odyssey.sh build
+```
 
-4. **Monitor logs** (in another terminal):
+- **Monitor logs** (in another terminal):
 
-   ```bash
-   ./Scripts/odyssey.sh logs
-   ```
+```bash
+./Scripts/odyssey.sh logs
+```
 
-5. **Run quality checks**:
+- **Run quality checks**:
 
-   ```bash
-   ./Scripts/odyssey.sh lint
-   ```
+```bash
+./Scripts/odyssey.sh lint
+```
 
 ## 🏗️ Architecture Principles
 
@@ -67,10 +62,9 @@ Both versions share the same backend services and automation engine, so contribu
 
 ### Modular Architecture
 
-ODYSSEY uses a **modular Swift Package Manager** architecture with three main targets:
+ODYSSEY uses a **modular Swift Package Manager** architecture with two main targets:
 
 - **`ODYSSEY` (GUI):** macOS menu bar application built with SwiftUI
-- **`ODYSSEYCLI` (CLI):** Command-line interface for automation
 - **`ODYSSEYBackend` (Library):** Shared backend services and automation engine
 
 ### Architecture Layers
@@ -89,7 +83,6 @@ The project includes comprehensive automated quality checks:
 
 - ✅ Project structure validation.
 - ✅ Comprehensive linting with `./Scripts/odyssey.sh lint`.
-- ✅ CLI build and testing.
 
 ### Example: Running All Checks
 
@@ -97,7 +90,7 @@ The project includes comprehensive automated quality checks:
 # Run all quality checks
 ./Scripts/odyssey.sh lint
 
-# Build the application (GUI + CLI)
+# Build the application
 ./Scripts/odyssey.sh build
 
 # Clean build artifacts
@@ -146,13 +139,11 @@ The codebase follows a modular service-oriented architecture with these key prin
 - **Reservation Services:** Manage booking logic, status tracking, and orchestration (`ReservationOrchestrator`, `ReservationErrorHandler`).
 - **WebKit Services:** Provide browser automation and web interaction capabilities (`WebKitService`, `WebKitAntiDetection`).
 - **Infrastructure Services:** Handle data persistence, configuration, and utilities (`ConfigurationService`, `UserSettingsManager`).
-- **CLI Services:** Command-line interface and export functionality (`CLIExportService`).
 
 #### Build System
 
 - **GUI Application:** Built using Xcode project (generated from `Config/project.yml`) with `xcodebuild`
-- **CLI Application:** Built using Swift Package Manager through the unified script
-- **Shared Library:** `ODYSSEYBackend` provides common services to both GUI and CLI
+- **Shared Library:** `ODYSSEYBackend` provides common services to the GUI
 - **Unified Build:** Always use `./Scripts/odyssey.sh build` for consistent builds
 
 ### Development Guidelines
@@ -177,8 +168,7 @@ The codebase follows a modular service-oriented architecture with these key prin
 - ✅ **Unified Script Usage:** GitHub Actions now use our existing scripts instead of duplicating commands.
 - ✅ **Version consistency validation** (tag vs project.yml vs Info.plist).
 - ✅ **DMG installer creation** with app icon.
-- ✅ **CLI binary packaging** with version naming.
-- ✅ **Code signing** for both applications.
+- ✅ **Code signing** for the application.
 - ✅ **GitHub Releases publication** with comprehensive notes.
 - ✅ **File size tracking** and reporting.
 - ✅ **Professional release notes** with installation instructions.
@@ -193,17 +183,18 @@ The codebase follows a modular service-oriented architecture with these key prin
 - **Browser Window:** Optional for development and support. By default, automation runs invisibly. Enable "Show browser window" in God Mode Advanced Settings to monitor automation and diagnose issues.
 - **Build Testing:** The GUI app is built using Xcode project generation and `xcodebuild`.
 
-### CLI Testing
+### 📸 Screenshots and Retention
 
-1. **Build CLI:** `./Scripts/odyssey.sh build`.
-2. **Test Commands:** `./.build/arm64-apple-macosx/debug/odyssey-cli`.
-3. **Export Token:** Generate token from GUI for testing.
-4. **Test GitHub Actions:** Verify `.github/workflows/build-release.yml` works correctly.
+- Failure screenshots are saved under `~/Library/Application Support/ODYSSEY/Screenshots`.
+- Retention policy: 30 days. Old screenshots are cleaned on app startup via `FileManager.cleanupOldScreenshots(maxAge:)` using `AppConstants.defaultScreenshotRetentionDays`.
 
-### CLI Integration
+### 🛠️ God Mode Features
 
-- **Scheduled Reservations:** See `.github/workflows/scheduled-reservations.yml` for automated reservation booking.
-- **Headless Mode:** CLI always runs without browser windows for server environments.
+- Toggle "GOD MODE" via Command+G to reveal advanced controls.
+- Advanced Settings include:
+  - Show browser window (optional) and auto-close on failure.
+  - Use custom autorun time (override default 6:00 p.m.).
+  - Use custom prior days (override default 2) for scheduling calculations to facilitate debugging/testing.
 
 ## 🚀 Release Process
 
@@ -215,25 +206,23 @@ The release process is fully automated through GitHub Actions and can be initiat
 
 1. **Create a new release** using the unified script:
 
-   ```bash
-   ./Scripts/odyssey.sh release 1.1.1
-   ```
+```bash
+./Scripts/odyssey.sh release 1.1.1
+```
 
-   This command will:
+This command will:
 
-   - Validate the version format
-   - Update version in all files (`project.yml`, `Info.plist`, `AppConstants.swift`, `CLIExportService.swift`)
-   - Build and test both GUI and CLI applications
-   - Commit changes with a descriptive message
-   - Create and push git tag
-   - Push changes to main branch
+- Validate the version format
+- Update version in all files (`project.yml`, `Info.plist`, `AppConstants.swift`)
+- Build and test the application
+- Commit changes with a descriptive message
+- Create and push git tag
+- Push changes to main branch
 
 ### Build System Details
 
 - **GUI Application:** Uses Xcode project generation (`xcodegen`) and `xcodebuild`
-- **CLI Application:** Uses Swift Package Manager through the unified script
-- **Shared Library:** `ODYSSEYBackend` provides common services to both targets
-- **Dependencies:** Both GUI and CLI depend on the shared `ODYSSEYBackend` library
+- **Shared Library:** `ODYSSEYBackend` provides common services to the GUI target
 - **Unified Approach:** Always use `./Scripts/odyssey.sh build` for consistent builds
 
 ### 🤖 Automated CI/CD Workflow
@@ -242,11 +231,9 @@ The project includes a comprehensive CI/CD workflow:
 
 - ✅ **Unified Script Usage:** GitHub Actions use our existing scripts instead of duplicating commands.
 - ✅ **Version Validation:** Ensures tag version matches `project.yml` and `Info.plist`.
-- ✅ **Dual Build:** Creates both GUI app and CLI binary (via unified script).
-- ✅ **Code Signing:** Automatically signs both applications.
+- ✅ **Code Signing:** Automatically signs the application.
 - ✅ **DMG Creation:** Creates professional installer with app icon.
 - ✅ **Release Notes:** Auto-generates comprehensive release notes with features and troubleshooting.
-- ✅ **File Size Tracking:** Displays app, DMG, and CLI sizes.
 - ✅ **Changelog Generation:** Creates changelog from git commits since last tag.
 - ✅ **GitHub Integration:** Automatically publishes to GitHub Releases.
 - ✅ **Comprehensive Linting:** Uses configuration files to ignore acceptable warnings while catching critical issues.
@@ -257,13 +244,12 @@ The project includes a comprehensive CI/CD workflow:
 - **Quality Assurance:** Run linting and testing scripts before committing.
 - **Release Management:** Use release scripts for version updates and deployment.
 - **Logging:** Monitor application logs for debugging and troubleshooting.
-- **Build Management:** GUI uses Xcode project generation, CLI uses Swift Package Manager through unified script.
+- **Build Management:** GUI uses Xcode project generation.
 
 ## 📦 Related Documentation
 
 - [README.md](../README.md) - User installation and setup.
 - [USER_GUIDE.md](USER_GUIDE.md) - GUI app user guide.
-- [CLI.md](CLI.md) - Command-line interface documentation.
 
 ## 🛡️ Security & Compliance
 

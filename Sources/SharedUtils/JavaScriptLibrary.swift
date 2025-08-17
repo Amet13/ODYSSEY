@@ -46,25 +46,63 @@ public final class JavaScriptLibrary {
 
       // Simulate quick mouse movement
       simulateQuickMouseMovement: function() {
-          const randomX = Math.random() * window.innerWidth;
-          const randomY = Math.random() * window.innerHeight;
+          try {
+              const randomX = Math.random() * window.innerWidth;
+              const randomY = Math.random() * window.innerHeight;
 
-          document.dispatchEvent(new MouseEvent('mousemove', {
-              bubbles: true,
-              cancelable: true,
-              view: window,
-              clientX: randomX,
-              clientY: randomY
-          }));
+              document.dispatchEvent(new MouseEvent('mousemove', {
+                  bubbles: true,
+                  cancelable: true,
+                  view: window,
+                  clientX: randomX,
+                  clientY: randomY
+              }));
 
-          return true;
+              return true;
+          } catch (error) {
+              return false;
+          }
       },
 
       // Simulate quick scrolling
       simulateQuickScrolling: function() {
-          const scrollAmount = Math.random() * 100 + 50;
-          window.scrollBy(0, scrollAmount);
-          return true;
+          try {
+              const scrollAmount = Math.random() * 100 + 50;
+              window.scrollBy(0, scrollAmount);
+              return true;
+          } catch (error) {
+              return false;
+          }
+      },
+
+      // Log all buttons and links on the page for diagnostics
+      logAllButtonsAndLinks: function() {
+          try {
+              const lines = [];
+              const buttons = Array.from(document.querySelectorAll('button'));
+              const links = Array.from(document.querySelectorAll('a'));
+
+              buttons.forEach((btn, idx) => {
+                  const text = (btn.textContent || btn.innerText || '').trim();
+                  const id = btn.id ? `#${btn.id}` : '';
+                  const cls = btn.className ? `.${btn.className.toString().replace(/\\s+/g, '.')}` : '';
+                  const visible = !!(btn.offsetWidth || btn.offsetHeight || btn.getClientRects().length);
+                  lines.push(`Button[${idx}] ${visible ? 'visible' : 'hidden'} ${id}${cls} text="${text}"`);
+              });
+
+              links.forEach((a, idx) => {
+                  const text = (a.textContent || a.innerText || '').trim();
+                  const href = a.href || '';
+                  const id = a.id ? `#${a.id}` : '';
+                  const cls = a.className ? `.${a.className.toString().replace(/\\s+/g, '.')}` : '';
+                  const visible = !!(a.offsetWidth || a.offsetHeight || a.getClientRects().length);
+                  lines.push(`Link[${idx}] ${visible ? 'visible' : 'hidden'} ${id}${cls} text="${text}" href=${href}`);
+              });
+
+              return lines;
+          } catch (error) {
+              return [];
+          }
       },
 
       // Apply comprehensive anti-detection measures

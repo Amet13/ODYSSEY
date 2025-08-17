@@ -81,13 +81,7 @@ struct AboutView: View {
                   comment: "Multiple configuration support",
                 ),
               )
-              FeatureRow(
-                icon: "terminal",
-                text: NSLocalizedString(
-                  "about_feature_cli",
-                  comment: "CLI for remote automation",
-                ),
-              )
+
             }
           }
         }
