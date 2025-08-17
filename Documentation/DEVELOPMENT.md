@@ -15,32 +15,32 @@ ODYSSEY is a macOS menu bar application built with SwiftUI.
 
 > **Note:** This guide is for contributors and developers. For user setup, see **[USER_GUIDE.md](USER_GUIDE.md)**.
 
-1. **Clone the repository**:
+- **Clone the repository**:
 
 ```bash
 git clone https://github.com/Amet13/ODYSSEY.git
 cd ODYSSEY
 ```
 
-2. **Setup development environment**:
+- **Setup development environment**:
 
 ```bash
 ./Scripts/odyssey.sh setup
 ```
 
-3. **Build the project**:
+- **Build the project**:
 
 ```bash
 ./Scripts/odyssey.sh build
 ```
 
-4. **Monitor logs** (in another terminal):
+- **Monitor logs** (in another terminal):
 
 ```bash
 ./Scripts/odyssey.sh logs
 ```
 
-5. **Run quality checks**:
+- **Run quality checks**:
 
 ```bash
 ./Scripts/odyssey.sh lint
