@@ -23,7 +23,7 @@ struct ContentView: View {
   @State private var showingSettings = false
   @State private var showingAbout = false
   @State private var showingGodModeConfig = false
-  @State private var showingExport = false
+
   // God mode and error/help UI
   @StateObject private var godModeStateManager = GodModeStateManager.shared
   @State private var showingUserError = false
@@ -44,7 +44,7 @@ struct ContentView: View {
       showingSettings: $showingSettings,
       showingAbout: $showingAbout,
       showingGodModeConfig: $showingGodModeConfig,
-      showingExport: $showingExport,
+
       godModeStateManager: godModeStateManager,
       showingUserError: $showingUserError,
       showingHelp: $showingHelp,
@@ -114,7 +114,6 @@ private struct MainBody: View {
   @Binding var showingSettings: Bool
   @Binding var showingAbout: Bool
   @Binding var showingGodModeConfig: Bool
-  @Binding var showingExport: Bool
 
   @ObservedObject var godModeStateManager: GodModeStateManager
   @Binding var showingUserError: Bool
@@ -150,7 +149,6 @@ private struct MainBody: View {
         FooterView(
           showingSettings: $showingSettings,
           showingAbout: $showingAbout,
-          showingExport: $showingExport,
           hasConfigurations: !configManager.settings.configurations.isEmpty,
         )
         .accessibilityElement()
@@ -182,9 +180,7 @@ private struct MainBody: View {
           .presentationDragIndicator(.hidden)
           .presentationBackground(.clear)
       }
-      .sheet(isPresented: $showingExport) {
-        ExportView(configurationManager: configManager)
-      }
+
       .sheet(isPresented: $showingGodModeConfig) {
         ConfigurationDetailView(
           config: nil,
@@ -236,8 +232,13 @@ private struct MainBody: View {
         for weekOffset in 0...4 {
           let baseDate = calendar.date(byAdding: .weekOfYear, value: weekOffset, to: now) ?? now
           let reservationDay = getNextWeekday(weekday, from: baseDate)
+          let priorDays: Int = {
+            let settings = UserSettingsManager.shared.userSettings
+            if settings.useCustomPriorDays { return max(0, min(7, settings.customPriorDays)) }
+            return 2
+          }()
           let cronTime =
-            calendar.date(byAdding: .day, value: -2, to: reservationDay) ?? reservationDay
+            calendar.date(byAdding: .day, value: -priorDays, to: reservationDay) ?? reservationDay
           let finalCronTime =
             calendar.date(
               bySettingHour: autorunHour,
@@ -518,7 +519,6 @@ private struct ConfigurationListView: View {
 private struct FooterView: View {
   @Binding var showingSettings: Bool
   @Binding var showingAbout: Bool
-  @Binding var showingExport: Bool
   let hasConfigurations: Bool
 
   var body: some View {
@@ -543,20 +543,6 @@ private struct FooterView: View {
           .accessibilityLabel(NSLocalizedString("settings", comment: "Settings"))
           .keyboardShortcut(",", modifiers: .command)
 
-          if hasConfigurations {
-            Button(action: { showingExport = true }) {
-              HStack(spacing: AppConstants.spacingSmall) {
-                Image(systemName: "square.and.arrow.up")
-                  .font(.system(size: AppConstants.fontBody))
-                Text("Export")
-                  .font(.system(size: AppConstants.fontBody))
-              }
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.regular)
-            .help("Export configurations for remote automation")
-            .accessibilityLabel("Export")
-          }
         }
 
         Spacer()

@@ -92,7 +92,6 @@ targets:
           - "**/*.xcuserdata"
           - "**/*.xcworkspace"
           - "**/*.xcodeproj"
-          - "CLIApp/**"
           - "Application/**"
           - "Domain/**"
           - "Infrastructure/**"

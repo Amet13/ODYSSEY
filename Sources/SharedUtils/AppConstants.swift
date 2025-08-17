@@ -174,15 +174,6 @@ public enum AppConstants {
   public static let defaultAutorunHour: Int = 18
   public static let defaultAutorunMinute: Int = 0
 
-  // MARK: - CLI Constants
-
-  // CLI display constants
-  public static let cliSeparatorLength: Int = 50
-  public static let cliShortSeparatorLength: Int = 30
-  public static let cliDefaultAutorunHour: Int = 18
-  public static let cliDefaultAutorunMinute: Int = 0
-  public static let cliDefaultAutorunSecond: Int = 1
-
   // MARK: - File Management Constants
 
   // Screenshot cleanup
@@ -423,11 +414,10 @@ public enum LoggerCategory: String, CaseIterable {
   case facilityService = "FacilityService"
   case godModeStateManager = "GodModeStateManager"
   case sharedVerificationCodePool = "SharedVerificationCodePool"
-  case cliExportService = "CLIExportService"
+
   case appDelegate = "AppDelegate"
   case statusBarController = "StatusBarController"
   case configurationValidator = "ConfigurationValidator"
-  case cli = "CLI"
 
   /// Returns the category name for use in logging
   public var categoryName: String {
@@ -453,11 +443,11 @@ public enum LoggerCategory: String, CaseIterable {
     case .facilityService: return "🏟️"
     case .godModeStateManager: return "⌨️"
     case .sharedVerificationCodePool: return "📦"
-    case .cliExportService: return "📤"
+
     case .appDelegate: return "📱"
     case .statusBarController: return "🍎"
     case .configurationValidator: return "🔍"
-    case .cli: return "💻"
+
     }
   }
 }

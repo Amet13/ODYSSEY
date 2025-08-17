@@ -2,7 +2,7 @@
   <img src="Sources/Resources/Assets.xcassets/AppIcon.appiconset/icon_512x512.png" alt="ODYSSEY Logo" width="200" style="border-radius: 20px;">
   <h1>ODYSSEY</h1>
   <p><strong>Ottawa Drop-in Your Sports & Schedule Easily Yourself</strong></p>
-  <p><em>macOS Menu Bar App + Command Line Interface for Sports Reservation Automation</em></p>
+  <p><em>macOS Menu Bar App for Sports Reservation Automation</em></p>
   <p>
     <a href="https://github.com/Amet13/ODYSSEY/actions/workflows/build-release.yml">
 <img src="https://github.com/Amet13/ODYSSEY/actions/workflows/build-release.yml/badge.svg" alt="CI/CD Status">
@@ -32,7 +32,7 @@
 
 ## ✨ Key Features
 
-- 🖥️ **GUI & CLI versions** – Menu bar app + command-line automation.
+- 🖥️ **GUI version** – Menu bar app for automation.
 - 🛡️ **Native WebKit automation** – Robust, human-like browser automation.
 - ⏰ **Smart scheduling** – Automated runs based on your time slots.
 - 🔒 **Secure & private** – Local processing, Keychain storage, no external data.
@@ -42,7 +42,6 @@
 ## 📚 Documentation
 
 - **[USER_GUIDE.md](Documentation/USER_GUIDE.md)** – Complete app setup and usage guide.
-- **[CLI.md](Documentation/CLI.md)** – Command-line interface for CI/CD and remote automation.
 - **[DEVELOPMENT.md](Documentation/DEVELOPMENT.md)** – Development workflow and contribution guidelines.
 
 ## ⚖️ Ethical Considerations & Legal Notice

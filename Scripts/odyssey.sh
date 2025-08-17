@@ -156,19 +156,7 @@ find_built_app() {
     echo "$app_path"
 }
 
-# Function to find CLI path
-find_cli_path() {
-    local config=${1:-debug}
-    local cli_path
-    cli_path=$(swift build --product odyssey-cli --configuration "$config" --show-bin-path)/odyssey-cli
-
-    if [ ! -f "$cli_path" ]; then
-        print_status "error" "Could not find CLI. Run build first."
-        exit 1
-    fi
-
-    echo "$cli_path"
-}
+find_cli_path() { return 1; }
 
 # Function to validate app structure
 validate_app_structure() {
@@ -194,7 +182,6 @@ validate_app_structure() {
 # Function to perform code signing
 perform_code_signing() {
     local app_path=$1
-    local cli_path=$2
 
     print_status "info" "Code signing status:"
 
@@ -205,10 +192,6 @@ perform_code_signing() {
         # Sign the app
         codesign --force --verify --verbose --sign "$identity" "$app_path"
         print_status "success" "App code signed"
-
-        # Sign the CLI
-        codesign --force --verify --verbose --sign "$identity" "$cli_path"
-        print_status "success" "CLI code signed"
 
         print_status "success" "Code signing completed"
     else
@@ -283,7 +266,7 @@ show_usage() {
     echo ""
     echo "Development Commands:"
     echo "  setup       Setup development environment"
-    echo "  build       Build application and CLI"
+    echo "  build       Build application"
     echo "  lint        Run comprehensive linting"
     echo "  clean       Clean build artifacts"
     echo ""
@@ -371,43 +354,7 @@ run_swift_format() {
     fi
 }
 
-# Function to build CLI
-build_cli() {
-    local config=${1:-debug}
-    print_status "step" "Building CLI tool..."
-    print_status "info" "Building CLI in $config configuration..."
-
-    # Suppress warnings in release builds
-    if [ "$config" = "release" ]; then
-        # Redirect stderr to suppress warnings in release builds
-        local start_time=$SECONDS
-        swift build --product odyssey-cli --configuration "$config" 2>/dev/null || true
-        local end_time=$SECONDS
-        local duration=$((end_time - start_time))
-        print_status "success" "Completed in ${duration}s."
-    else
-        measure_time swift build --product odyssey-cli --configuration "$config"
-    fi
-
-    # Check CLI build success
-    CLI_PATH=$(find_cli_path "$config")
-    chmod +x "$CLI_PATH"
-    print_status "success" "CLI built successfully at: $CLI_PATH"
-
-    # Test CLI
-    print_status "info" "Testing CLI..."
-    if "$CLI_PATH" version >/dev/null 2>&1; then
-        print_status "success" "CLI test passed"
-    else
-        print_status "warning" "CLI test failed"
-    fi
-
-    # Code sign CLI
-    print_status "info" "Code signing CLI..."
-    codesign --remove-signature "$CLI_PATH" 2>/dev/null || true
-    codesign --force --deep --sign - "$CLI_PATH"
-    print_status "success" "CLI code signing completed"
-}
+build_cli() { return 0; }
 
 # Function to manage existing ODYSSEY instances
 manage_existing_instances() {
@@ -462,14 +409,12 @@ launch_odyssey() {
 # Function to show build summary
 show_build_summary() {
     local app_path=$1
-    local cli_path=$2
     echo ""
     print_status "step" "Build Summary"
     echo -e "${CYAN}================================${NC}"
     print_status "info" "Project: $PROJECT_NAME"
     print_status "info" "Configuration: $BUILD_CONFIG"
     print_status "info" "App Location: $app_path"
-    print_status "info" "CLI Location: $cli_path"
     print_status "info" "Status: Running in menu bar"
 
     echo ""
@@ -479,7 +424,7 @@ show_build_summary() {
     echo "1. Open $XCODEPROJ_PATH in Xcode for development"
     echo "2. Run the app to configure your reservations"
     echo "3. The app will appear in your menu bar"
-    echo "4. Use CLI: $cli_path <command> for remote automation"
+
     echo ""
     print_status "info" "For more information, see Documentation/USER_GUIDE.md"
     echo ""
@@ -527,8 +472,7 @@ build_application() {
         -quiet \
         -showBuildTimingSummary
 
-    # Build CLI
-    build_cli debug
+
 
     # Find the built app
     print_status "step" "Locating built application..."
@@ -559,7 +503,7 @@ build_application() {
     launch_odyssey "$APP_PATH"
 
     # Show build summary
-    show_build_summary "$APP_PATH" "$CLI_PATH"
+    show_build_summary "$APP_PATH"
 }
 
 # Function to run comprehensive linting
@@ -690,9 +634,7 @@ update_version_files() {
     sed -i '' "s/appVersion = \".*\"/appVersion = \"$version\"/" "Sources/SharedUtils/AppConstants.swift"
     print_status "success" "Updated AppConstants.swift"
 
-    # Update CLIExportService.swift
-    sed -i '' "s/version: String = \".*\"/version: String = \"$version\"/" "Sources/Services/CLIExportService.swift"
-    print_status "success" "Updated CLIExportService.swift"
+
 }
 
 # Function to create release
@@ -729,15 +671,7 @@ create_release() {
     print_status "step" "Building applications to validate changes..."
     build_application
 
-    # Test CLI to ensure it works with new version
-    print_status "step" "Testing CLI with new version..."
-    CLI_PATH=$(find_cli_path debug)
-    if "$CLI_PATH" version >/dev/null 2>&1; then
-        print_status "success" "CLI test passed"
-    else
-        print_status "error" "CLI test failed"
-        exit 1
-    fi
+
 
     # Commit changes
     print_status "step" "Committing version changes..."
@@ -745,8 +679,7 @@ create_release() {
     git commit -m "🔖 Release v$version
 
 - Updated version to $version in all files
-- Built and tested applications
-- Validated CLI functionality"
+- Built and tested application"
 
     # Create and push tag
     print_status "step" "Creating git tag v$version..."
@@ -785,8 +718,7 @@ deploy_release() {
     APP_PATH=$(find_built_app Release)
     print_status "success" "Application built at: $APP_PATH"
 
-    # Build CLI in release mode
-    build_cli release
+
 
     # Create release_files directory and copy artifacts
     print_status "step" "Preparing release artifacts..."
@@ -796,13 +728,11 @@ deploy_release() {
     cp -R "$APP_PATH" release_files/
     print_status "success" "App copied to release_files/"
 
-    # Copy CLI to release_files
-    cp "$CLI_PATH" release_files/
-    print_status "success" "CLI copied to release_files/"
+
 
     # Code sign
     print_status "step" "Code signing applications..."
-    perform_code_signing "$APP_PATH" "$CLI_PATH"
+    perform_code_signing "$APP_PATH"
 
     # Create DMG
     print_status "step" "Creating DMG installer..."

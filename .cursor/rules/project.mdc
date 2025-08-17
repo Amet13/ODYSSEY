@@ -1,7 +1,7 @@
 ---
 description: ODYSSEY
 globs: *
-alwaysApply: true
+alwaysApply: false
 ---
 
 You are an expert assistant working on the **ODYSSEY - Ottawa Drop-in Your Sports & Schedule Easily Yourself**, a sophisticated dual-interface application that automates sports reservation bookings for Ottawa Recreation facilities.
@@ -11,22 +11,13 @@ This rule applies to all interactions and tasks unless overridden by a more spec
 
 ## 🎯 Project Overview
 
-ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
-
-### 🖥️ GUI Version (macOS Menu Bar App)
+ODYSSEY is a GUI application:
 
 - Requires **macOS 15 or later** for users (see README for details)
 - For development: requires **Xcode 16+**, Homebrew
 - Runs quietly in the menu bar (not dock) using `LSUIElement = true`
 - Provides a modern SwiftUI interface for configuration management
 - Features anti-detection (human-like automation), secure Keychain storage, and automated email verification (IMAP/Gmail)
-
-### 💻 CLI Version (Command Line Interface)
-
-- Same macOS requirements as GUI version
-- Command-line interface for remote automation
-- Perfect for CI/CD pipelines and server environments
-- Uses the same WebKit automation engine as the GUI
 
 ### 🔄 Shared Core
 
@@ -51,10 +42,9 @@ ODYSSEY is a **dual-interface application** with both GUI and CLI versions:
 
 ### Modular Architecture
 
-ODYSSEY uses a **modular Swift Package Manager** architecture with three main targets:
+ODYSSEY uses a **modular Swift Package Manager** architecture with two main targets:
 
 - **`ODYSSEY` (GUI):** macOS menu bar application built with SwiftUI
-- **`ODYSSEYCLI` (CLI):** Command-line interface for automation
 - **`ODYSSEYBackend` (Library):** Shared backend services and automation engine
 
 ### Architecture Layers
@@ -72,11 +62,6 @@ ODYSSEY uses a **modular Swift Package Manager** architecture with three main ta
 1. **AppDelegate** - Application lifecycle and scheduling management
 2. **StatusBarController** - Menu bar integration and UI management
 3. **Views** - SwiftUI interface components for configuration management
-
-#### CLI Components
-
-4. **CLIEntryPoint.swift** - Command-line interface entry point and argument parsing
-5. **CLIExportService** - Configuration export/import for CLI usage
 
 #### Shared Core Components
 
@@ -125,16 +110,6 @@ ODYSSEY uses a **modular Swift Package Manager** architecture with three main ta
 - **Better Performance**: Native macOS integration
 - **Smaller Footprint**: No additional browser dependencies
 - **No Permission Issues**: Standard app sandbox permissions only
-
-### CLI Development Guidelines
-
-- **Shared Services**: CLI uses the same backend services as the GUI
-- **Environment Variables**: All CLI configuration should be environment-based
-- **Error Handling**: Provide clear error messages for CLI users
-- **Documentation**: Update CLI documentation when adding new commands
-- **Testing**: Test CLI commands with real export tokens
-- **Headless Mode**: CLI always runs without browser windows
-- **Token-Based**: Uses export tokens from GUI for configuration
 
 ### Error Handling
 

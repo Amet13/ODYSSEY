@@ -289,21 +289,6 @@ private struct AdvancedSettingsSection: View {
   var body: some View {
     settingsSection(title: "Advanced Settings (God Mode)", icon: "gearshape") {
       VStack(alignment: .leading, spacing: AppConstants.spacingLarge) {
-        HStack {
-          Toggle(
-            "",
-            isOn: Binding(
-              get: { tempSettings.preventSleepForAutorun },
-              set: { newValue in
-                tempSettings.preventSleepForAutorun = newValue
-              },
-            ))
-          Text("Prevent sleep before autorun (5 minutes prior)")
-          Spacer()
-        }
-        .help(
-          "If enabled, ODYSSEY will prevent your Mac from sleeping 5 minutes before autorun and allow sleep after reservations are done.",
-        )
 
         // Browser Window Controls
         VStack(alignment: .leading, spacing: AppConstants.spacingMedium) {
@@ -405,6 +390,41 @@ private struct AdvancedSettingsSection: View {
             .help(
               "Set a custom time for autorun scheduling. This time will be used for all automatic reservation runs.",
             )
+          }
+        }
+
+        // Custom Prior Days (God Mode)
+        VStack(alignment: .leading, spacing: AppConstants.spacingMedium) {
+          HStack {
+            Toggle(
+              "",
+              isOn: Binding(
+                get: { tempSettings.useCustomPriorDays },
+                set: { newValue in
+                  tempSettings.useCustomPriorDays = newValue
+                },
+              ))
+            Text("Use custom prior days")
+            Spacer()
+          }
+          .help(
+            "If enabled, choose how many days before the reservation to run (default: 2).",
+          )
+
+          if tempSettings.useCustomPriorDays {
+            HStack(spacing: AppConstants.spacingMedium) {
+              Stepper(
+                value: Binding(
+                  get: { tempSettings.customPriorDays },
+                  set: { newValue in tempSettings.customPriorDays = max(0, min(7, newValue)) }
+                ), in: 0...7
+              ) {
+                Text("Prior days: \(tempSettings.customPriorDays)")
+              }
+              .frame(maxWidth: 220, alignment: .leading)
+              Spacer()
+            }
+            .help("Number of days before reservation date to run. Useful for debugging/testing.")
           }
         }
       }
