@@ -11,7 +11,7 @@ This rule applies to all interactions and tasks unless overridden by a more spec
 
 ## 🎯 Project Overview
 
-ODYSSEY is a GUI application:
+ODYSSEY is a macOS app:
 
 - Requires **macOS 15 or later** for users (see README for details)
 - For development: requires **Xcode 16+**, Homebrew
@@ -44,7 +44,7 @@ ODYSSEY is a GUI application:
 
 ODYSSEY uses a **modular Swift Package Manager** architecture with two main targets:
 
-- **`ODYSSEY` (GUI):** macOS menu bar application built with SwiftUI
+- **`ODYSSEY`:** macOS menu bar application built with SwiftUI
 - **`ODYSSEYBackend` (Library):** Shared backend services and automation engine
 
 ### Architecture Layers

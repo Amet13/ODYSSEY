@@ -648,16 +648,16 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 let readyState = try await self.executeScriptInternal(
                   "return document && document.readyState;")?.value
                 self.logger.info(
-                  "📄 document.readyState after navigation: \(String(describing: readyState))")
+                  "📄 document.readyState after navigation: \(String(describing: readyState)).")
                 let pageSource = try? await self.getPageSource()
                 if let pageSource {
                   self.logger.info(
-                    "Page source after navigation (first \(AppConstants.pageSourcePreviewLength) chars): \(pageSource.prefix(AppConstants.pageSourcePreviewLength))"
+                    "Page source after navigation (first \(AppConstants.pageSourcePreviewLength) chars): \(pageSource.prefix(AppConstants.pageSourcePreviewLength))."
                   )
                 }
               } catch {
                 self.logger.warning(
-                  "⚠️ Skipping readyState/page source log: \(error.localizedDescription)")
+                  "⚠️ Skipping readyState/page source log: \(error.localizedDescription).")
               }
             }
             // After navigation completes, log page source and all buttons/links

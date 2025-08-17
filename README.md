@@ -32,7 +32,7 @@
 
 ## ✨ Key Features
 
-- 🖥️ **GUI version** – Menu bar app for automation.
+- 🖥️ **macOS Application** – Menu bar app for automation.
 - 🛡️ **Native WebKit automation** – Robust, human-like browser automation.
 - ⏰ **Smart scheduling** – Automated runs based on your time slots.
 - 🔒 **Secure & private** – Local processing, Keychain storage, no external data.

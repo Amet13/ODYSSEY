@@ -79,7 +79,6 @@ jobs:
 
             ## 📦 Installation
 
-            ### 🖥️ GUI Application
             1. Download `ODYSSEY.dmg` below
             2. Open the DMG file and drag `ODYSSEY.app` to your Applications folder
             3. Add to the quarantine: `sudo xattr -rd com.apple.quarantine /Applications/ODYSSEY.app`

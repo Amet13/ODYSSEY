@@ -127,7 +127,6 @@
 			isa = PBXGroup;
 			children = (
 				9F8070BCC9B259E7B9CD2335 /* AppCore */,
-				C112B23BB20CDEAB7264D581 /* CLIApp */,
 				AC5CF14DE9283248E45F9108 /* Controllers */,
 				217A0C03643C525820D6AE4E /* Models */,
 				B269953CE8ABAE06B30FD525 /* Resources */,
@@ -266,13 +265,6 @@
 				34C024E102B748548377EE51 /* Localizable.strings */,
 			);
 			path = Resources;
-			sourceTree = "<group>";
-		};
-		C112B23BB20CDEAB7264D581 /* CLIApp */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = CLIApp;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

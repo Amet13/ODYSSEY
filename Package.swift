@@ -7,7 +7,7 @@ let package = Package(
         .macOS(.v15)
     ],
     products: [
-        // GUI Version: macOS Menu Bar App
+        // macOS Menu Bar Application
         .executable(name: "ODYSSEY", targets: ["ODYSSEY"]),
         // Shared Backend Library
         .library(name: "ODYSSEYBackend", targets: ["ODYSSEYBackend"])

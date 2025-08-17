@@ -6,9 +6,9 @@ ODYSSEY is a macOS menu bar application built with SwiftUI.
 
 ## 🖥️ System Requirements
 
-- **macOS 15.0 or later**
-- **Xcode 16.0 or later**
-- **Swift 6.1 or later**
+- **macOS 15.0 or later.**
+- **Xcode 16.0 or later.**
+- **Swift 6.1 or later.**
 - **Homebrew** (_for installing development dependencies_)
 
 ## 🚀 Quick Start (for Developers)
@@ -64,8 +64,8 @@ cd ODYSSEY
 
 ODYSSEY uses a **modular Swift Package Manager** architecture with two main targets:
 
-- **`ODYSSEY` (GUI):** macOS menu bar application built with SwiftUI
-- **`ODYSSEYBackend` (Library):** Shared backend services and automation engine
+- **`ODYSSEY`:** macOS menu bar application built with SwiftUI.
+- **`ODYSSEYBackend` (Library):** Shared backend services and automation engine.
 
 ### Architecture Layers
 
@@ -120,10 +120,10 @@ ODYSSEY uses a **modular JavaScript library** for all web automation functionali
 
 - **Clean Separation:** JavaScript code is completely separated from Swift code.
 - **Modular Organization:** JavaScript functions are organized by purpose across multiple files:
-  - `JavaScriptCore.swift`: Core automation functions and element interactions
-  - `JavaScriptForms.swift`: Form handling and field filling functionality
-  - `JavaScriptPages.swift`: Page detection and state checking functions
-  - `JavaScriptLibrary.swift`: Main library that combines all modules
+  - `JavaScriptCore.swift`: Core automation functions and element interactions.
+  - `JavaScriptForms.swift`: Form handling and field filling functionality.
+  - `JavaScriptPages.swift`: Page detection and state checking functions.
+  - `JavaScriptLibrary.swift`: Main library that combines all modules.
 - **Maintainability:** Related functions are grouped together for easier maintenance.
 - **Reusability:** Reusable functions across all services.
 - **Consistency:** Standardized error handling and logging patterns.
@@ -142,9 +142,9 @@ The codebase follows a modular service-oriented architecture with these key prin
 
 #### Build System
 
-- **GUI Application:** Built using Xcode project (generated from `Config/project.yml`) with `xcodebuild`
-- **Shared Library:** `ODYSSEYBackend` provides common services to the GUI
-- **Unified Build:** Always use `./Scripts/odyssey.sh build` for consistent builds
+- **Application:** Built using Xcode project (generated from `Config/project.yml`) with `xcodebuild`.
+- **Shared Library:** `ODYSSEYBackend` provides common services to the app.
+- **Unified Build:** Always use `./Scripts/odyssey.sh build` for consistent builds.
 
 ### Development Guidelines
 
@@ -175,13 +175,13 @@ The codebase follows a modular service-oriented architecture with these key prin
 
 ## 🧪 Testing
 
-### GUI Testing
+### App Testing
 
 - **God Mode:** Activate it by pressing `Command+G` in the app to show **GOD MODE** button and **Advanced Settings**.
 - **Manual Testing:** Test all UI interactions and automation flows.
 - **Log Monitoring:** Use `./Scripts/odyssey.sh logs` to monitor real-time logs.
 - **Browser Window:** Optional for development and support. By default, automation runs invisibly. Enable "Show browser window" in God Mode Advanced Settings to monitor automation and diagnose issues.
-- **Build Testing:** The GUI app is built using Xcode project generation and `xcodebuild`.
+- **Build Testing:** The app is built using Xcode project generation and `xcodebuild`.
 
 ### 📸 Screenshots and Retention
 
@@ -212,18 +212,18 @@ The release process is fully automated through GitHub Actions and can be initiat
 
 This command will:
 
-- Validate the version format
-- Update version in all files (`project.yml`, `Info.plist`, `AppConstants.swift`)
-- Build and test the application
-- Commit changes with a descriptive message
-- Create and push git tag
-- Push changes to main branch
+- Validate the version format.
+- Update version in all files (`project.yml`, `Info.plist`, `AppConstants.swift`).
+- Build and test the application.
+- Commit changes with a descriptive message.
+- Create and push git tag.
+- Push changes to main branch.
 
 ### Build System Details
 
-- **GUI Application:** Uses Xcode project generation (`xcodegen`) and `xcodebuild`
-- **Shared Library:** `ODYSSEYBackend` provides common services to the GUI target
-- **Unified Approach:** Always use `./Scripts/odyssey.sh build` for consistent builds
+- **Application:** Uses Xcode project generation (`xcodegen`) and `xcodebuild`.
+- **Shared Library:** `ODYSSEYBackend` provides common services to the app target.
+- **Unified Approach:** Always use `./Scripts/odyssey.sh build` for consistent builds.
 
 ### 🤖 Automated CI/CD Workflow
 
@@ -244,12 +244,12 @@ The project includes a comprehensive CI/CD workflow:
 - **Quality Assurance:** Run linting and testing scripts before committing.
 - **Release Management:** Use release scripts for version updates and deployment.
 - **Logging:** Monitor application logs for debugging and troubleshooting.
-- **Build Management:** GUI uses Xcode project generation.
+- **Build Management:** The app uses Xcode project generation.
 
 ## 📦 Related Documentation
 
 - [README.md](../README.md) - User installation and setup.
-- [USER_GUIDE.md](USER_GUIDE.md) - GUI app user guide.
+- [USER_GUIDE.md](USER_GUIDE.md) - User guide.
 
 ## 🛡️ Security & Compliance
 
