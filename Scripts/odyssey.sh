@@ -99,9 +99,9 @@ install_tools() {
     # Check if all tools are already installed first
     local missing_tools=()
     for tool in "${tools[@]}"; do
-        # Special case for markdownlint-cli - check for markdownlint binary
+        # markdownlint-cli installs the binary as 'markdownlint'
         if [ "$tool" = "markdownlint-cli" ]; then
-            if ! command -v "markdownlint" &> /dev/null; then
+            if ! command -v markdownlint &> /dev/null; then
                 missing_tools+=("$tool")
             fi
         else
@@ -156,7 +156,6 @@ find_built_app() {
     echo "$app_path"
 }
 
-find_cli_path() { return 1; }
 
 # Function to validate app structure
 validate_app_structure() {
@@ -354,7 +353,6 @@ run_swift_format() {
     fi
 }
 
-build_cli() { return 0; }
 
 # Function to manage existing ODYSSEY instances
 manage_existing_instances() {
