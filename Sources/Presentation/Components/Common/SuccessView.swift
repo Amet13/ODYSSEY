@@ -5,19 +5,19 @@ struct SuccessView: View {
   let action: () -> Void
 
   var body: some View {
-    VStack(spacing: 16) {
+    VStack(spacing: AppConstants.spacingXLarge) {
       Image(systemName: "checkmark.circle")
-        .font(.largeTitle)
+        .font(.system(size: AppConstants.fontMassive))
         .foregroundColor(.green)
 
       Text(message)
-        .font(.body)
+        .font(.system(size: AppConstants.fontBody))
         .multilineTextAlignment(.center)
 
       Button("Continue", action: action)
         .buttonStyle(.borderedProminent)
     }
-    .padding()
+    .padding(AppConstants.contentPadding)
   }
 }
 

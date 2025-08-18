@@ -4,14 +4,14 @@ struct LoadingView: View {
   let message: String
 
   var body: some View {
-    VStack(spacing: 16) {
+    VStack(spacing: AppConstants.spacingXLarge) {
       ProgressView()
-        .scaleEffect(1.5)
+        .scaleEffect(AppConstants.scaleEffectLarge)
       Text(message)
-        .font(.caption)
+        .font(.system(size: AppConstants.fontCaption))
         .foregroundColor(.secondary)
     }
-    .padding()
+    .padding(AppConstants.contentPadding)
   }
 }
 

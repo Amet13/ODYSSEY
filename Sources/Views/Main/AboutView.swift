@@ -85,8 +85,8 @@ struct AboutView: View {
             }
           }
         }
-        .padding(.horizontal, AppConstants.sectionPadding)
-        .padding(.vertical, AppConstants.contentPadding)
+        .padding(.horizontal, AppConstants.screenPadding)
+        .padding(.vertical, AppConstants.sectionDividerSpacing)
         .onTapGesture {
           // Prevent tap from propagating to background when clicking on content
         }

@@ -381,9 +381,9 @@ private struct HeaderView: View {
         .keyboardShortcut("n", modifiers: .command)
       }
     }
-    .padding(.horizontal, AppConstants.contentPadding)
-    .padding(.top, AppConstants.contentPadding)
-    .padding(.bottom, AppConstants.contentPadding)
+    .padding(.horizontal, AppConstants.screenPadding)
+    .padding(.top, AppConstants.screenPadding)
+    .padding(.bottom, AppConstants.screenPadding)
   }
 
   private func formatCustomTime() -> String {
@@ -506,12 +506,12 @@ private struct ConfigurationListView: View {
           .accessibilityAddTraits(.allowsDirectInteraction)
           .id("\(config.id)-\(countdownRefreshTrigger)")  // Force refresh when countdown trigger changes
           if index < configManager.settings.configurations.count - 1 {
-            Divider()
+            SectionDivider()
           }
         }
       }
-      .padding(.horizontal, AppConstants.contentPadding)
-      .padding(.trailing, AppConstants.paddingMedium)  // Add space for scrollbar
+      .padding(.horizontal, AppConstants.screenPadding)
+      // Keep horizontal margins symmetric and rely on unified screen padding
     }
   }
 }
@@ -576,9 +576,9 @@ private struct FooterView: View {
           .accessibilityLabel(NSLocalizedString("quit", comment: "Quit"))
         }
       }
-      .padding(.horizontal, AppConstants.contentPadding)
-      .padding(.bottom, AppConstants.contentPadding)
-      .padding(.top, AppConstants.contentPadding)
+      .padding(.horizontal, AppConstants.screenPadding)
+      .padding(.bottom, AppConstants.screenPadding)
+      .padding(.top, AppConstants.screenPadding)
     }
   }
 }

@@ -214,12 +214,12 @@ public enum AppConstants {
 extension AppConstants {
   // MARK: - Window Sizes
 
-  public static let windowMainWidth: CGFloat = 440
+  public static let windowMainWidth: CGFloat = 450
   public static let windowMainHeight: CGFloat = 600
   public static let windowAboutWidth: CGFloat = 300
   public static let windowAboutHeight: CGFloat = 300
   public static let windowDayPickerWidth: CGFloat = 300
-  public static let windowDayPickerHeight: CGFloat = 370
+  public static let windowDayPickerHeight: CGFloat = 350
   public static let windowDeleteModalWidth: CGFloat = 300
 
   // MARK: - Icon Sizes
@@ -238,7 +238,6 @@ extension AppConstants {
   public static let spacingLarge: CGFloat = 12
   public static let spacingXLarge: CGFloat = 16
   public static let spacingXXLarge: CGFloat = 20
-  public static let spacingHuge: CGFloat = 32
 
   // MARK: - Padding System
 
@@ -286,12 +285,6 @@ extension AppConstants {
   public static let cornerRadiusXXLarge: CGFloat = 16
 
   // MARK: - Border Width
-
-  public static let borderWidthNone: CGFloat = 0
-  public static let borderWidthThin: CGFloat = 0.5
-  public static let borderWidthSmall: CGFloat = 1
-  public static let borderWidthMedium: CGFloat = 2
-  public static let borderWidthLarge: CGFloat = 3
 
   // MARK: - Shadow
 
@@ -347,10 +340,6 @@ extension AppConstants {
   public static let minContentHeight: CGFloat = 400
 
   // MARK: - Grid System
-
-  public static let gridColumns: Int = 12
-  public static let gridGutter: CGFloat = spacingMedium
-  public static let gridMargin: CGFloat = paddingLarge
 }
 
 // MARK: - UI Helper Extensions
@@ -362,11 +351,15 @@ extension AppConstants {
   public static let sectionSpacing: CGFloat = spacingXXLarge
   public static let groupSpacing: CGFloat = spacingMedium
   public static let itemSpacing: CGFloat = spacingSmall
+  // Standard vertical spacing around dividers separating sections
+  public static let sectionDividerSpacing: CGFloat = screenPadding
 
   // MARK: - Common Padding Combinations
 
   public static let contentPadding: CGFloat = paddingLarge
   public static let sectionPadding: CGFloat = paddingXXLarge
+  // Unified outer screen padding for consistent margins across views
+  public static let screenPadding: CGFloat = contentPadding
   public static let cardPadding: CGFloat = paddingLarge
   public static let buttonPadding: CGFloat = paddingMedium
 

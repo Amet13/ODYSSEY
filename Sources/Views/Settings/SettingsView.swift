@@ -142,8 +142,8 @@ private struct SettingsHeader: View {
         .fontWeight(.semibold)
       Spacer()
     }
-    .padding(.horizontal, AppConstants.contentPadding)
-    .padding(.vertical, AppConstants.contentPadding)
+    .padding(.horizontal, AppConstants.screenPadding)
+    .padding(.vertical, AppConstants.screenPadding)
   }
 }
 
@@ -162,7 +162,7 @@ private struct SettingsContent: View {
           userSettingsManager: userSettingsManager,
           emailService: emailService,
         )
-        Divider().padding(.horizontal, AppConstants.contentPadding)
+        SectionDivider()
         EmailSettingsSection(
           tempSettings: $tempSettings,
           userSettingsManager: userSettingsManager,
@@ -171,7 +171,7 @@ private struct SettingsContent: View {
         )
         // Advanced Settings Section (God Mode Only)
         if godModeEnabled {
-          Divider().padding(.horizontal, AppConstants.contentPadding)
+          SectionDivider()
           AdvancedSettingsSection(tempSettings: $tempSettings, godModeEnabled: godModeEnabled)
         }
       }
@@ -181,7 +181,7 @@ private struct SettingsContent: View {
           emailService.lastTestResult = nil
         }
       }
-      .padding(.horizontal, AppConstants.contentPadding)
+      .padding(.horizontal, AppConstants.screenPadding)
     }
   }
 }
@@ -382,7 +382,7 @@ private struct AdvancedSettingsSection: View {
               .frame(width: AppConstants.buttonHeightXLarge * 3)
 
               Text("(Default: 6:00 PM)")
-                .font(.caption)
+                .font(.system(size: AppConstants.fontCaption))
                 .foregroundColor(.secondary)
 
               Spacer()
@@ -421,7 +421,7 @@ private struct AdvancedSettingsSection: View {
               ) {
                 Text("Prior days: \(tempSettings.customPriorDays)")
               }
-              .frame(maxWidth: 220, alignment: .leading)
+              .frame(maxWidth: AppConstants.maxContentWidth * 0.366, alignment: .leading)
               Spacer()
             }
             .help("Number of days before reservation date to run. Useful for debugging/testing.")
@@ -464,7 +464,8 @@ private struct SettingsFooter: View {
         .keyboardShortcut("s", modifiers: .command)
         .disabled(!tempSettings.isValid)
       }
-      .padding(AppConstants.contentPadding)
+      .padding(.horizontal, AppConstants.screenPadding)
+      .padding(.vertical, AppConstants.contentPadding)
       .frame(maxWidth: .infinity, alignment: .trailing)
     }
   }
@@ -502,7 +503,7 @@ private struct EmailAddressField: View {
           Image(systemName: "exclamationmark.triangle.fill")
             .foregroundColor(.orange)
           Text("Please enter a valid email address")
-            .font(.caption)
+            .font(.system(size: AppConstants.fontCaption))
             .foregroundColor(.orange)
           Spacer()
         }
@@ -573,7 +574,7 @@ private struct PasswordField: View {
               "How to create Gmail app password?",
               destination: gmailHelpURL,
             )
-            .font(.caption)
+            .font(.system(size: AppConstants.fontCaption))
             .foregroundColor(.blue)
           }
         }
@@ -684,8 +685,8 @@ private func settingsSection(title: String, icon: String, @ViewBuilder content: 
 
     content()
   }
-  .padding(.horizontal, AppConstants.contentPadding)
-  .padding(.vertical, AppConstants.sectionPadding)
+  // Vertical padding within section content; horizontal handled by outer container
+  .padding(.vertical, AppConstants.sectionDividerSpacing)
   .cornerRadius(AppConstants.inputCornerRadius)
 }
 

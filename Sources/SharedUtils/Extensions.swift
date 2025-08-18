@@ -169,7 +169,16 @@ extension Logger {
 public struct HeaderFooterDivider: View {
   public init() {}
   public var body: some View {
-    Divider().padding(.horizontal, AppConstants.contentPadding)
+    Divider()
+      .padding(.horizontal, AppConstants.screenPadding)
+  }
+}
+
+/// A standardized divider for separating content sections with symmetric vertical spacing
+public struct SectionDivider: View {
+  public init() {}
+  public var body: some View {
+    Divider()
   }
 }
 

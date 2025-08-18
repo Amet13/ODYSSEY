@@ -48,7 +48,7 @@ struct ConfigurationDetailView: View {
             .fontWeight(.semibold)
           Spacer()
         }
-        .padding(.horizontal, AppConstants.contentPadding)
+        .padding(.horizontal, AppConstants.screenPadding)
         .padding(.vertical, AppConstants.contentPadding)
         .onAppear {
           os_log(
@@ -73,24 +73,32 @@ struct ConfigurationDetailView: View {
               .font(.system(size: AppConstants.secondaryFont))
             Spacer()
           }
-          .padding(.horizontal, AppConstants.sectionPadding)
+          .padding(.horizontal, AppConstants.contentPadding)
           .padding(.top, AppConstants.paddingTiny)
         }
         ScrollView {
           VStack(alignment: .leading, spacing: AppConstants.spacingNone) {
             basicSettingsSection
+              .padding(.vertical, AppConstants.sectionDividerSpacing)
+            SectionDivider()
             sportPickerSection
+              .padding(.vertical, AppConstants.sectionDividerSpacing)
+            SectionDivider()
             numberOfPeopleSection
+              .padding(.vertical, AppConstants.sectionDividerSpacing)
+            SectionDivider()
             configNameSection
-            Divider().padding(.vertical, AppConstants.paddingSmall)
+              .padding(.vertical, AppConstants.sectionDividerSpacing)
+            SectionDivider()
             schedulingSection
+              .padding(.vertical, AppConstants.sectionDividerSpacing)
             if !detectedConflicts.isEmpty {
-              Divider().padding(.vertical, AppConstants.paddingSmall)
+              SectionDivider()
               conflictDetectionSection
+                .padding(.vertical, AppConstants.sectionDividerSpacing)
             }
           }
-          .padding(.horizontal, AppConstants.sectionPadding)
-          .padding(.vertical, AppConstants.sectionPadding)
+          .padding(.horizontal, AppConstants.screenPadding)
         }
         HeaderFooterDivider()
         footerButtonsSection
@@ -198,7 +206,7 @@ struct ConfigurationDetailView: View {
         .padding(.top, AppConstants.paddingTiny)
       }
     }
-    .padding(.bottom, AppConstants.contentPadding)
+
   }
 
   private var sportPickerSection: some View {
@@ -282,7 +290,7 @@ struct ConfigurationDetailView: View {
         .padding(.top, AppConstants.paddingTiny)
       }
     }
-    .padding(.bottom, AppConstants.contentPadding)
+
   }
 
   private var numberOfPeopleSection: some View {
@@ -316,7 +324,7 @@ struct ConfigurationDetailView: View {
           .controlSize(.regular)
       }
     }
-    .padding(.bottom, AppConstants.contentPadding)
+
   }
 
   private var configNameSection: some View {
@@ -333,7 +341,7 @@ struct ConfigurationDetailView: View {
           }
         }
     }
-    .padding(.bottom, AppConstants.contentPadding)
+
   }
 
   private var schedulingSection: some View {
@@ -394,7 +402,7 @@ struct ConfigurationDetailView: View {
         }
       }
     }
-    .padding(.bottom, AppConstants.contentPadding)
+
   }
 
   private var footerButtonsSection: some View {
@@ -412,7 +420,7 @@ struct ConfigurationDetailView: View {
       .buttonStyle(.borderedProminent)
       .disabled(!isValidConfiguration)
     }
-    .padding(.horizontal, AppConstants.sectionPadding)
+    .padding(.horizontal, AppConstants.screenPadding)
     .padding(.vertical, AppConstants.buttonPadding)
   }
 
@@ -844,14 +852,14 @@ struct DayPickerView: View {
   var body: some View {
     VStack {
       Text("Add Day")
-        .font(.headline)
-        .padding(AppConstants.sectionPadding)
+        .font(.system(size: AppConstants.secondaryFont))
+        .padding(AppConstants.contentPadding)
 
       if availableDays.isEmpty {
         Text("A day is already selected. Remove the current day to select a different one.")
           .font(.system(size: AppConstants.fontCaption))
           .foregroundColor(.odysseySecondaryText)
-          .padding(AppConstants.sectionPadding)
+          .padding(AppConstants.contentPadding)
       } else {
         List(availableDays, id: \.self) { day in
           Button(action: {
@@ -878,7 +886,7 @@ struct DayPickerView: View {
         }
         .buttonStyle(.bordered)
         .controlSize(.regular)
-        .padding(AppConstants.sectionPadding)
+        .padding(AppConstants.contentPadding)
       }
     }
     .frame(width: AppConstants.windowDayPickerWidth, height: AppConstants.windowDayPickerHeight)

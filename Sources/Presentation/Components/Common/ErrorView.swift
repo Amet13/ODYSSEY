@@ -5,20 +5,20 @@ struct ErrorView: View {
   let retryAction: () -> Void
 
   var body: some View {
-    VStack(spacing: 16) {
+    VStack(spacing: AppConstants.spacingXLarge) {
       Image(systemName: "exclamationmark.triangle")
-        .font(.largeTitle)
+        .font(.system(size: AppConstants.fontMassive))
         .foregroundColor(.red)
 
       Text(error.localizedDescription)
-        .font(.body)
+        .font(.system(size: AppConstants.fontBody))
         .multilineTextAlignment(.center)
         .foregroundColor(.secondary)
 
       Button("Retry", action: retryAction)
         .buttonStyle(.borderedProminent)
     }
-    .padding()
+    .padding(AppConstants.contentPadding)
   }
 }
 
