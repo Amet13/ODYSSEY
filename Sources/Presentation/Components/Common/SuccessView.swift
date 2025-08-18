@@ -8,7 +8,7 @@ struct SuccessView: View {
     VStack(spacing: AppConstants.spacingXLarge) {
       Image(systemName: "checkmark.circle")
         .font(.system(size: AppConstants.fontMassive))
-        .foregroundColor(.green)
+        .foregroundColor(.odysseySuccess)
 
       Text(message)
         .font(.system(size: AppConstants.fontBody))
@@ -18,6 +18,7 @@ struct SuccessView: View {
         .buttonStyle(.borderedProminent)
     }
     .padding(AppConstants.contentPadding)
+    .clipShape(RoundedRectangle(cornerRadius: AppConstants.cardCornerRadius))
   }
 }
 

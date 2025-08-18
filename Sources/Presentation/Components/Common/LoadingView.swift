@@ -12,6 +12,7 @@ struct LoadingView: View {
         .foregroundColor(.secondary)
     }
     .padding(AppConstants.contentPadding)
+    .clipShape(RoundedRectangle(cornerRadius: AppConstants.cardCornerRadius))
   }
 }
 

@@ -11,7 +11,6 @@ struct SettingsView: View {
 
   var body: some View {
     ZStack {
-      Color.odysseyBackground.ignoresSafeArea()
       SettingsFormView(
         configurationManager: configurationManager,
         userSettingsManager: userSettingsManager,
@@ -19,6 +18,7 @@ struct SettingsView: View {
         godModeEnabled: godModeEnabled,
       )
     }
+    .odysseyWindowBackground()
     .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
   }
 }
@@ -229,10 +229,10 @@ private struct ContactInformationSection: View {
         {
           HStack {
             Image(systemName: "exclamationmark.triangle.fill")
-              .foregroundColor(.orange)
+              .foregroundColor(.odysseyWarning)
             Text("Phone number must be exactly 10 digits")
               .font(.system(size: AppConstants.fontBody))
-              .foregroundColor(.orange)
+              .foregroundColor(.odysseyWarning)
             Spacer()
           }
         }
@@ -501,10 +501,10 @@ private struct EmailAddressField: View {
       {
         HStack {
           Image(systemName: "exclamationmark.triangle.fill")
-            .foregroundColor(.orange)
+            .foregroundColor(.odysseyWarning)
           Text("Please enter a valid email address")
             .font(.system(size: AppConstants.fontCaption))
-            .foregroundColor(.orange)
+            .foregroundColor(.odysseyWarning)
           Spacer()
         }
       }
@@ -575,7 +575,7 @@ private struct PasswordField: View {
               destination: gmailHelpURL,
             )
             .font(.system(size: AppConstants.fontCaption))
-            .foregroundColor(.blue)
+            .foregroundColor(.odysseyPrimary)
           }
         }
       }
@@ -688,6 +688,7 @@ private func settingsSection(title: String, icon: String, @ViewBuilder content: 
   // Vertical padding within section content; horizontal handled by outer container
   .padding(.vertical, AppConstants.sectionDividerSpacing)
   .cornerRadius(AppConstants.inputCornerRadius)
+  // No background to avoid double-layer gray; window already provides material
 }
 
 @MainActor

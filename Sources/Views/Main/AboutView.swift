@@ -13,12 +13,9 @@ struct AboutView: View {
 
   var body: some View {
     ZStack {
-      Color.odysseyBackground.ignoresSafeArea()
-      Color.white
+      Color.clear
         .contentShape(Rectangle())
-        .onTapGesture {
-          dismiss()
-        }
+        .onTapGesture { dismiss() }
 
       VStack(spacing: AppConstants.spacingNone) {
         VStack(spacing: AppConstants.spacingLarge) {
@@ -87,6 +84,8 @@ struct AboutView: View {
         }
         .padding(.horizontal, AppConstants.screenPadding)
         .padding(.vertical, AppConstants.sectionDividerSpacing)
+        // Remove stroke to avoid any visible border halos on material
+        .clipShape(RoundedRectangle(cornerRadius: AppConstants.modalCornerRadius))
         .onTapGesture {
           // Prevent tap from propagating to background when clicking on content
         }

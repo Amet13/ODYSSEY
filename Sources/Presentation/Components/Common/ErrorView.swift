@@ -8,7 +8,7 @@ struct ErrorView: View {
     VStack(spacing: AppConstants.spacingXLarge) {
       Image(systemName: "exclamationmark.triangle")
         .font(.system(size: AppConstants.fontMassive))
-        .foregroundColor(.red)
+        .foregroundColor(.odysseyError)
 
       Text(error.localizedDescription)
         .font(.system(size: AppConstants.fontBody))
@@ -19,6 +19,7 @@ struct ErrorView: View {
         .buttonStyle(.borderedProminent)
     }
     .padding(AppConstants.contentPadding)
+    .clipShape(RoundedRectangle(cornerRadius: AppConstants.cardCornerRadius))
   }
 }
 

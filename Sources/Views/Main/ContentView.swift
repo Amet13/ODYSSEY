@@ -155,7 +155,7 @@ private struct MainBody: View {
         .accessibilityLabel("ODYSSEY footer with settings and about buttons")
       }
       .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
-      .background(Color(NSColor.windowBackgroundColor))
+      .background(Color.odysseyBackground)
       // Sheet modals for configuration, settings, about, and god mode
       .sheet(isPresented: $showingAddConfig) {
         ConfigurationDetailView(
@@ -534,7 +534,7 @@ private struct FooterView: View {
             }
           }
           .buttonStyle(.borderedProminent)
-          .tint(.blue)
+          .tint(.odysseyPrimary)
           .controlSize(.regular)
           .help(
             NSLocalizedString(
@@ -570,7 +570,7 @@ private struct FooterView: View {
             }
           }
           .buttonStyle(.borderedProminent)
-          .tint(.red)
+          .tint(.odysseyError)
           .controlSize(.regular)
           .help(NSLocalizedString("quit_tooltip", comment: "Quit ODYSSEY"))
           .accessibilityLabel(NSLocalizedString("quit", comment: "Quit"))
@@ -719,10 +719,8 @@ struct ConfigurationRowView: View {
       }
     }
     .padding(.vertical, AppConstants.paddingSmall)
-    .background(
-      RoundedRectangle(cornerRadius: AppConstants.cardCornerRadius)
-        .fill(Color(NSColor.controlBackgroundColor).opacity(AppConstants.opacitySubtle)),
-    )
+    // Remove stroke to align with system row look
+    .clipShape(RoundedRectangle(cornerRadius: AppConstants.cardCornerRadius))
     .padding(.vertical, AppConstants.paddingTiny)
     .alert(
       "Delete Configuration",
@@ -956,11 +954,7 @@ struct DeleteConfirmationModal: View {
       .padding(.bottom, AppConstants.sectionPadding)
     }
     .frame(width: AppConstants.windowDeleteModalWidth)
-    .background(
-      RoundedRectangle(cornerRadius: AppConstants.modalCornerRadius)
-        .fill(Color(NSColor.windowBackgroundColor))
-        .shadow(radius: AppConstants.shadowRadiusXXLarge),
-    )
+    .odysseyCardBackground(cornerRadius: AppConstants.modalCornerRadius)
     .padding(AppConstants.sectionPadding)
   }
 }

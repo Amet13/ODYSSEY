@@ -36,7 +36,6 @@ struct ConfigurationDetailView: View {
 
   var body: some View {
     ZStack {
-      Color.odysseyBackground.ignoresSafeArea()
       VStack(spacing: AppConstants.spacingNone) {
         // Add header for Add/Edit Configuration page, styled like SettingsHeader.
         HStack(spacing: AppConstants.spacingLarge) {
@@ -80,22 +79,28 @@ struct ConfigurationDetailView: View {
           VStack(alignment: .leading, spacing: AppConstants.spacingNone) {
             basicSettingsSection
               .padding(.vertical, AppConstants.sectionDividerSpacing)
+            // No background to avoid double-layer gray; window already provides material
             SectionDivider()
             sportPickerSection
               .padding(.vertical, AppConstants.sectionDividerSpacing)
+            // No background to avoid double-layer gray; window already provides material
             SectionDivider()
             numberOfPeopleSection
               .padding(.vertical, AppConstants.sectionDividerSpacing)
+            // No background to avoid double-layer gray; window already provides material
             SectionDivider()
             configNameSection
               .padding(.vertical, AppConstants.sectionDividerSpacing)
+            // No background to avoid double-layer gray; window already provides material
             SectionDivider()
             schedulingSection
               .padding(.vertical, AppConstants.sectionDividerSpacing)
+            // No background to avoid double-layer gray; window already provides material
             if !detectedConflicts.isEmpty {
               SectionDivider()
               conflictDetectionSection
                 .padding(.vertical, AppConstants.sectionDividerSpacing)
+              // No background to avoid double-layer gray; window already provides material
             }
           }
           .padding(.horizontal, AppConstants.screenPadding)
@@ -104,6 +109,7 @@ struct ConfigurationDetailView: View {
         footerButtonsSection
       }
     }
+    .odysseyWindowBackground()
     .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
     .navigationTitle(
       config == nil ? "Add Reservation Configuration" : "Edit Reservation Configuration",
@@ -744,7 +750,7 @@ struct ConfigurationDetailView: View {
     VStack(alignment: .leading, spacing: AppConstants.spacingMedium) {
       HStack {
         Image(systemName: "exclamationmark.triangle.fill")
-          .foregroundColor(.orange)
+          .foregroundColor(.odysseyWarning)
         Text("Potential Conflicts")
           .font(.system(size: AppConstants.primaryFont))
           .fontWeight(.semibold)
@@ -776,9 +782,12 @@ struct ConfigurationDetailView: View {
           }
         }
         .padding(AppConstants.paddingSmall)
-        .background(
+        .overlay(
           RoundedRectangle(cornerRadius: AppConstants.cornerRadiusSmall)
-            .fill(severityColor(for: conflict.severity).opacity(0.1)),
+            .stroke(
+              severityColor(for: conflict.severity).opacity(0.2),
+              lineWidth: AppConstants.strokeWidthThin
+            )
         )
       }
     }

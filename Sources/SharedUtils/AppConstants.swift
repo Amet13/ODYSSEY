@@ -376,6 +376,7 @@ extension AppConstants {
   public static let buttonCornerRadius: CGFloat = cornerRadiusSmall
   public static let modalCornerRadius: CGFloat = cornerRadiusXXLarge
   public static let inputCornerRadius: CGFloat = cornerRadiusSmall
+  public static let strokeWidthThin: CGFloat = 1
 }
 
 // MARK: - Logger Categories

@@ -98,6 +98,40 @@ extension View {
       },
     )
   }
+
+  /// Applies a modern window background that adapts to newer macOS visual styles
+  @ViewBuilder
+  func odysseyWindowBackground() -> some View {
+    #if compiler(>=6.0)
+      if #available(macOS 14.0, *) {
+        self.containerBackground(.thinMaterial, for: .window)
+      } else {
+        self.background(.thinMaterial)
+      }
+    #else
+      if #available(macOS 12.0, *) {
+        self.background(.thinMaterial)
+      } else {
+        self.background(Color(NSColor.windowBackgroundColor))
+      }
+    #endif
+  }
+
+  /// Applies a card background that uses materials on newer macOS for a "glass" look
+  @ViewBuilder
+  func odysseyCardBackground(cornerRadius: CGFloat = AppConstants.cardCornerRadius) -> some View {
+    if #available(macOS 12.0, *) {
+      self.background(
+        RoundedRectangle(cornerRadius: cornerRadius)
+          .fill(.regularMaterial)
+      )
+    } else {
+      self.background(
+        RoundedRectangle(cornerRadius: cornerRadius)
+          .fill(Color(NSColor.controlBackgroundColor).opacity(AppConstants.opacitySubtle))
+      )
+    }
+  }
 }
 
 // MARK: - Color Extensions
