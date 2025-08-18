@@ -67,8 +67,8 @@ This application demonstrates modern macOS development techniques including Swif
 
 ### 🔒 Privacy & Security
 
-- All automation runs locally on your machine (except CI).
-- No user data transmitted to external servers (except CI).
+- All automation runs locally on your machine.
+- No user data transmitted to external servers.
 - Credentials stored securely in macOS Keychain.
 - No tracking or analytics collected.
 
