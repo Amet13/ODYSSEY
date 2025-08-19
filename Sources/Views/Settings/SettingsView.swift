@@ -169,11 +169,9 @@ private struct SettingsContent: View {
           emailService: emailService,
           isGmailAccount: isGmailAccount,
         )
-        // Advanced Settings Section (God Mode Only)
-        if godModeEnabled {
-          SectionDivider()
-          AdvancedSettingsSection(tempSettings: $tempSettings, godModeEnabled: godModeEnabled)
-        }
+        // Advanced Settings Section
+        SectionDivider()
+        AdvancedSettingsSection(tempSettings: $tempSettings)
       }
       .contentShape(Rectangle())
       .onTapGesture {
@@ -284,10 +282,9 @@ private struct EmailSettingsSection: View {
 
 private struct AdvancedSettingsSection: View {
   @Binding var tempSettings: UserSettings
-  let godModeEnabled: Bool
 
   var body: some View {
-    settingsSection(title: "Advanced Settings (God Mode)", icon: "gearshape") {
+    settingsSection(title: "Advanced Settings", icon: "gearshape") {
       VStack(alignment: .leading, spacing: AppConstants.spacingLarge) {
 
         // Browser Window Controls

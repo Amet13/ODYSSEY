@@ -177,24 +177,16 @@ The codebase follows a modular service-oriented architecture with these key prin
 
 ### App Testing
 
-- **God Mode:** Activate it by pressing `Command+G` in the app to show **GOD MODE** button and **Advanced Settings**.
+- **God Mode:** Activate it by pressing `Command+G` in the app to show **GOD MODE** button to run all enabled reservations immediately.
+- **Advanced Settings:** Always available to all users for customizing browser window behavior, autorun timing, and prior days configuration.
 - **Manual Testing:** Test all UI interactions and automation flows.
 - **Log Monitoring:** Use `./Scripts/odyssey.sh logs` to monitor real-time logs.
-- **Browser Window:** Optional for development and support. By default, automation runs invisibly. Enable "Show browser window" in God Mode Advanced Settings to monitor automation and diagnose issues.
 - **Build Testing:** The app is built using Xcode project generation and `xcodebuild`.
 
 ### 📸 Screenshots and Retention
 
 - Failure screenshots are saved under `~/Library/Application Support/ODYSSEY/Screenshots`.
 - Retention policy: 30 days. Old screenshots are cleaned on app startup via `FileManager.cleanupOldScreenshots(maxAge:)` using `AppConstants.defaultScreenshotRetentionDays`.
-
-### 🛠️ God Mode Features
-
-- Toggle "GOD MODE" via Command+G to reveal advanced controls.
-- Advanced Settings include:
-  - Show browser window (optional) and auto-close on failure.
-  - Use custom autorun time (override default 6:00 p.m.).
-  - Use custom prior days (override default 2) for scheduling calculations to facilitate debugging/testing.
 
 ## 🚀 Release Process
 
