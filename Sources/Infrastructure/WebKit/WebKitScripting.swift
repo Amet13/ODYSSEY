@@ -24,13 +24,13 @@ class WebKitScripting: WebKitScriptingProtocol {
   }
 
   func evaluateJavaScript(_ script: String) async throws -> Any? {
-    logger.info("📜 Evaluating JavaScript...")
+    logger.info("📜 Evaluating JavaScript.")
 
     return try await webView.evaluateJavaScript(script)
   }
 
   func injectScript(_ script: String) async throws {
-    logger.info("💉 Injecting script...")
+    logger.info("💉 Injecting script.")
 
     // Use the centralized library for script injection
     _ = try await evaluateJavaScript(script)

@@ -90,7 +90,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   // MARK: - Private Methods
 
   private func initializeServices() {
-    logger.info("🔧 Initializing services...")
+    logger.info("🔧 Initializing services.")
 
     // Initialize notification service and request permissions
     Task {
@@ -101,7 +101,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   private func performStartupMaintenance() {
-    logger.info("🧹 Performing startup maintenance...")
+    logger.info("🧹 Performing startup maintenance.")
 
     // Clean up old screenshots (older than 30 days)
     Task {
@@ -113,7 +113,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   private func setupGlobalKeyboardShortcuts() {
-    logger.info("⌨️ Setting up global keyboard shortcuts...")
+    logger.info("⌨️ Setting up global keyboard shortcuts.")
 
     // Set up global keyboard monitor for various shortcuts
     globalKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in

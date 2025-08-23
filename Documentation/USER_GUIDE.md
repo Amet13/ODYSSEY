@@ -87,6 +87,12 @@ Gmail does not support using your regular password for IMAP. You need to generat
 
 ODYSSEY provides advanced configuration options that are always available to help you customize your automation experience.
 
+### 🔔 Notifications
+
+In the **Settings** → **Advanced Settings** section, you can configure:
+
+- **Enable Notifications:** Turn all notifications on/off.
+
 ### 🔍 Browser Window Controls
 
 - **Show browser window:** Enable this option to make the browser window visible during automation. This can increase changes to bypass captcha and allows you to monitor the automation process.
@@ -98,54 +104,6 @@ ODYSSEY provides advanced configuration options that are always available to hel
 - **Autorun Time picker:** Select your preferred time using the time picker. The time will be used for all automatic reservation runs.
 
 ### 📅 Custom Prior Days
-
-### 🔔 Notifications
-
-ODYSSEY provides reliable, crash-safe notifications to keep you informed about the automation process. These notifications work without requiring system permissions and use multiple methods to ensure delivery.
-
-#### ⚙️ Notification Settings
-
-In the **Settings** → **Advanced Settings** section, you can configure:
-
-- **Enable Notifications:** Turn all notifications on/off
-
-#### 🔔 Notification Types
-
-**Reservation Status:**
-
-- **Success:** Confirmation when a reservation is successfully booked
-- **Failure:** Alerts when reservations fail with error details
-- **Automation Start:** Notification when the automated booking process begins
-- **Automation Complete:** Summary of results after all configurations are processed
-
-**Scheduled Reminders:**
-
-- **Autorun Reminder:** Notification 1 hour before the scheduled automatic run (6:00 PM by default)
-
-#### 🧪 Testing Notifications
-
-Notifications are automatically tested when they occur during reservation automation. You can verify they're working by:
-
-1. **Running a reservation configuration** - Success/failure notifications will appear
-2. **Checking the menu bar** - Notification info appears in the title for 10 seconds
-
-#### 🔧 How Notifications Work
-
-ODYSSEY uses a multi-layered approach to ensure notifications are delivered:
-
-- **Status Bar Updates:** Menu bar title shows notification info for 10 seconds
-- **Alert Dialogs:** Simple macOS alerts that appear immediately
-- **No Permissions Required:** Works without system notification permissions
-- **Only Important Events:** Shows notifications only for reservation success, failure, and automation completion
-
-#### ⚠️ Troubleshooting
-
-If notifications aren't working:
-
-1. Check that "Enable Notifications" is turned on in Advanced Settings
-2. Run a reservation configuration to trigger notifications
-3. Ensure the app has focus (notifications may be less visible if app is in background)
-4. Notifications use safe methods that won't crash the app
 
 - **Use custom prior days:** Enable this to customize how many days before the reservation date the automation should run (default is 2 days).
 - **Prior days stepper:** Use the stepper to select between 0-7 days. This is useful for debugging, testing, or adjusting your reservation strategy.

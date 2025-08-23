@@ -39,7 +39,7 @@ class WebKitNavigation: WebKitNavigationProtocol {
   }
 
   func waitForPageLoad() async throws {
-    logger.info("⏳ Waiting for page load...")
+    logger.info("⏳ Waiting for page load.")
 
     let startTime = Date()
     while Date().timeIntervalSince(startTime) < timeout {
@@ -55,7 +55,7 @@ class WebKitNavigation: WebKitNavigationProtocol {
   }
 
   func goBack() async throws {
-    logger.info("⬅️ Going back...")
+    logger.info("⬅️ Going back.")
 
     guard webView.canGoBack else {
       throw DomainError.automation(.elementNotFound("Back button"))
@@ -67,7 +67,7 @@ class WebKitNavigation: WebKitNavigationProtocol {
   }
 
   func goForward() async throws {
-    logger.info("➡️ Going forward...")
+    logger.info("➡️ Going forward.")
 
     guard webView.canGoForward else {
       throw DomainError.automation(.elementNotFound("Forward button"))
@@ -79,7 +79,7 @@ class WebKitNavigation: WebKitNavigationProtocol {
   }
 
   func refresh() async throws {
-    logger.info("🔄 Refreshing page...")
+    logger.info("🔄 Refreshing page.")
     webView.reload()
     try await waitForPageLoad()
     logger.info("✅ Page refresh completed.")

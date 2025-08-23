@@ -30,7 +30,7 @@ public final class WebKitAntiDetection: ObservableObject {
 
   /// Injects anti-detection scripts into the WebView
   public func injectAntiDetectionScripts(into webView: WKWebView) async {
-    logger.info("🛡️ Injecting anti-detection scripts...")
+    logger.info("🛡️ Injecting anti-detection scripts.")
 
     let antiDetectionScript = JavaScriptLibrary.getAntiDetectionLibrary()
     let script = WKUserScript(
@@ -42,7 +42,7 @@ public final class WebKitAntiDetection: ObservableObject {
 
   /// Injects human behavior scripts into the WebView
   public func injectHumanBehaviorScripts(into webView: WKWebView) async {
-    logger.info("🤖 Injecting human behavior scripts...")
+    logger.info("🤖 Injecting human behavior scripts.")
 
     // Use the mouse movement library as the human behavior script
     let humanBehaviorScript = JavaScriptLibrary.getMouseMovementLibrary()
@@ -55,7 +55,7 @@ public final class WebKitAntiDetection: ObservableObject {
 
   /// Simulates realistic mouse movements to avoid detection
   public func simulateMouseMovements(in webView: WKWebView) async {
-    logger.info("🖱️ Simulating realistic mouse movements...")
+    logger.info("🖱️ Simulating realistic mouse movements.")
 
     let mouseMovementScript = JavaScriptLibrary.getMouseMovementLibrary()
 

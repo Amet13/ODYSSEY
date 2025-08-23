@@ -33,7 +33,7 @@ class EmailParser: EmailParserProtocol {
   }
 
   func parseEmailBody(_ email: Email) -> String {
-    logger.info("📄 Parsing email body...")
+    logger.info("📄 Parsing email body.")
 
     // Clean up HTML tags if present
     let cleanBody = removeHTMLTags(from: email.body)
@@ -43,7 +43,7 @@ class EmailParser: EmailParserProtocol {
   }
 
   func extractVerificationCodes(_ emails: [Email]) -> [String] {
-    logger.info("🔍 Extracting verification codes from \(emails.count) emails...")
+    logger.info("🔍 Extracting verification codes from \(emails.count) emails.")
 
     let codes = emails.compactMap { email in
       parseVerificationCode(email)

@@ -21,7 +21,7 @@ class EmailClient: EmailClientProtocol {
   }
 
   func connect() async throws {
-    logger.info("📧 Connecting to email server...")
+    logger.info("📧 Connecting to email server.")
 
     guard !settings.emailAddress.isEmpty else {
       throw DomainError.validation(.requiredFieldMissing("Email"))
@@ -68,7 +68,7 @@ class EmailClient: EmailClientProtocol {
   }
 
   func disconnect() async throws {
-    logger.info("📧 Disconnecting from email server...")
+    logger.info("📧 Disconnecting from email server.")
     try await connection?.disconnect()
     connection = nil
     logger.info("✅ Email connection closed.")

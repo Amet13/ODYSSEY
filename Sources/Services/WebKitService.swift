@@ -965,7 +965,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
     let script = "window.odyssey.checkDOMReadyWithButton('\(configSport)');"
 
     do {
-      logger.info("🔧 Executing enhanced DOM ready/button check script...")
+      logger.info("🔧 Executing enhanced DOM ready/button check script.")
       let result = try await executeScriptInternal(script)?.value
       logger.info("📊 DOM/button check result: \(String(describing: result)).")
       if let dict = result as? [String: Any] {
@@ -1080,7 +1080,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       return false
     }
 
-    logger.info("⏳ [TimeSelection] Starting time selection page detection...")
+    logger.info("⏳ [TimeSelection] Starting time selection page detection.")
 
     let script = "window.odyssey.checkTimeSelectionPage();"
 
@@ -1474,7 +1474,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       return false
     }
 
-    logger.info("🛡️ Instance \(self.instanceId): Handling email verification...")
+    logger.info("🛡️ Instance \(self.instanceId): Handling email verification.")
 
     // Step 1: Wait for verification page to load
     await updateTask("Waiting for verification page...")
@@ -1534,7 +1534,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
           }
 
           if isLoading {
-            logger.info("⏳ Page is still loading, waiting...")
+            logger.info("⏳ Page is still loading, waiting.")
           }
         }
       } catch {
@@ -1551,7 +1551,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
 
   /// Fetches verification code from email using IMAP
   private func fetchVerificationCodeFromEmail(verificationStart: Date) async -> String {
-    logger.info("📧 Fetching verification code from email...")
+    logger.info("📧 Fetching verification code from email.")
 
     // Initial wait before checking for the email
     let initialWait: TimeInterval = AppConstants.initialWait  // 10 seconds

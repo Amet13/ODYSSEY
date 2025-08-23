@@ -44,7 +44,7 @@ class ReservationRepository: ReservationRepositoryProtocol {
   }
 
   func fetchAll() async throws -> [Reservation] {
-    logger.info("📥 Fetching all reservations...")
+    logger.info("📥 Fetching all reservations.")
 
     // Since UserDefaults doesn't provide getAllKeys, we'll return empty array for now
     // In a real implementation, you'd need to maintain a list of keys
@@ -64,7 +64,7 @@ class ReservationRepository: ReservationRepositoryProtocol {
   }
 
   func deleteAll() async throws {
-    logger.info("🗑️ Deleting all reservations...")
+    logger.info("🗑️ Deleting all reservations.")
 
     // Since UserDefaults doesn't provide getAllKeys, we'll just clear all
     storage.clearAll()

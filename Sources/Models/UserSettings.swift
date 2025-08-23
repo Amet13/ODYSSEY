@@ -73,7 +73,6 @@ public struct UserSettings: Codable, Equatable, Sendable {
       && lhs.customAutorunTime == rhs.customAutorunTime
       && lhs.useCustomPriorDays == rhs.useCustomPriorDays
       && lhs.customPriorDays == rhs.customPriorDays
-
       && lhs.showNotifications == rhs.showNotifications
   }
 

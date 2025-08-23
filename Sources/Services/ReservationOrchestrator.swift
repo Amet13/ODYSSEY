@@ -119,7 +119,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
   }
 
   public func stopReservation() async {
-    logger.info("🛑 Stopping reservation...")
+    logger.info("🛑 Stopping reservation.")
     statusManager.lastRunStatus = .stopped
     statusManager.isRunning = false
     // Additional cleanup logic can be added here
@@ -676,7 +676,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       await updateTask("Finishing reservation...")
 
       // Check if reservation is actually complete
-      logger.info("🔍 Checking if reservation is complete...")
+      logger.info("🔍 Checking if reservation is complete.")
       let reservationComplete = await webKitService.checkReservationComplete()
       if reservationComplete {
         LoggingService.shared.log(
@@ -686,7 +686,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
           configName: config.name,
         )
       } else {
-        logger.info("⏳ Reservation completion not yet detected, but proceeding with cleanup...")
+        logger.info("⏳ Reservation completion not yet detected, but proceeding with cleanup.")
         LoggingService.shared.log(
           "Reservation completion not yet detected, but proceeding with cleanup",
           level: .info,
@@ -777,16 +777,16 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       }
 
       // Ensure JavaScript library is available after navigation
-      logger.info("🔧 Verifying JavaScript library availability for \(config.name)...")
+      logger.info("🔧 Verifying JavaScript library availability for \(config.name).")
       let jsAvailable = await separateWebKitService.verifyJavaScriptLibrary()
       if !jsAvailable {
-        logger.warning("⚠️ JavaScript library not available for \(config.name), re-injecting...")
+        logger.warning("⚠️ JavaScript library not available for \(config.name), re-injecting.")
         separateWebKitService.reinjectScripts()
         try await Task.sleep(nanoseconds: AppConstants.humanDelayNanoseconds)
       }
 
       // Add additional wait to ensure page is fully loaded
-      logger.info("⏳ Waiting for page to fully stabilize for \(config.name)...")
+      logger.info("⏳ Waiting for page to fully stabilize for \(config.name).")
       try await Task.sleep(nanoseconds: AppConstants.longDelayNanoseconds)
       let buttonClicked = await separateWebKitService.findAndClickElement(
         withText: config.sportName)
@@ -827,7 +827,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
               "Attempting to select for \(config.name): \(dayName) at \(timeString, privacy: .private)"
             )
 
-          logger.info("🔍 [\(config.name)] Starting time slot selection process...")
+          logger.info("🔍 [\(config.name)] Starting time slot selection process.")
           logger.info("🔍 [\(config.name)] Day: \(dayName), Time: \(timeString).")
 
           // Verify JavaScript again before time slot selection
@@ -1000,7 +1000,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       // Take screenshot before disconnecting if WebKit service is available
       var screenshotPath: String? = nil
       if separateWebKitService.isConnected, separateWebKitService.webView != nil {
-        logger.info("📸 Taking failure screenshot for \(config.name)...")
+        logger.info("📸 Taking failure screenshot for \(config.name).")
 
         // Set screenshot directory on the WebKit service
         await MainActor.run {

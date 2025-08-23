@@ -199,7 +199,7 @@ class ReservationUseCase: ReservationUseCaseProtocol {
   }
 
   private func handleEmailVerification() async throws {
-    logger.info("📧 Handling email verification...")
+    logger.info("📧 Handling email verification.")
 
     // Search for verification emails
     let emails = try await emailService.searchForVerificationEmails()

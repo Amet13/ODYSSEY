@@ -25,25 +25,10 @@ public final class NotificationService: ObservableObject {
 
   @MainActor
   private init() {
-    logger.info("🔔 NotificationService initializing...")
+    logger.info("🔔 NotificationService initializing.")
   }
 
   // MARK: - Simple Notification Methods
-
-  /// Show a simple alert notification
-  @MainActor
-  public func showAlertNotification(title: String, body: String) {
-    let alert = NSAlert()
-    alert.messageText = title
-    alert.informativeText = body
-    alert.alertStyle = .informational
-    alert.addButton(withTitle: "OK")
-
-    // Show alert on main thread
-    DispatchQueue.main.async {
-      alert.runModal()
-    }
-  }
 
   // MARK: - Alternative Native Notification Methods
 
@@ -56,11 +41,11 @@ public final class NotificationService: ObservableObject {
   ) {
     // Check if notifications are enabled
     guard UserSettingsManager.shared.userSettings.showNotifications else {
-      logger.info("🔇 Notifications disabled, skipping: \(title)")
+      logger.info("🔇 Notifications disabled, skipping: \(title).")
       return
     }
 
-    logger.info("🔔 Showing safe notification: \(title)")
+    logger.info("🔔 Showing safe notification: \(title).")
 
     // Use safe notification method
     _ = showSafeNotification(title: title, body: body, type: type)
@@ -88,7 +73,7 @@ public final class NotificationService: ObservableObject {
       )
     }
 
-    // 3. Show simple alert (safe)
+    // 2. Show simple alert (safe)
     let alert = NSAlert()
     alert.messageText = title
     alert.informativeText = body
@@ -112,7 +97,7 @@ public final class NotificationService: ObservableObject {
       alert.runModal()
     }
 
-    logger.info("🛡️ Safe notification shown (status bar + alert): \(title)")
+    logger.info("🛡️ Safe notification shown (status bar + alert): \(title).")
     return true
   }
 
