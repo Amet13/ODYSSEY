@@ -92,8 +92,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   private func initializeServices() {
     logger.info("🔧 Initializing services...")
 
-    // Don't auto-check notification status on startup
-    // Let user manually request permission when needed
+    // Initialize notification service and request permissions
+    Task {
+
+    }
 
     logger.info("✅ Services initialized.")
   }
@@ -240,6 +242,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       .info(
         "🕕 Scheduling precise autorun for \(nextAutorun) (custom time: \(timeString), in \(timeUntilAutorun) seconds)",
       )
+
+    // Schedule autorun reminder notification (1 hour before)
 
     // No need to cancel anything since we're using simple Timer.scheduledTimer
 

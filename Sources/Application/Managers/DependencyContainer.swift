@@ -78,6 +78,11 @@ class DependencyContainer {
     return EmailService.shared
   }()
 
+  lazy var notificationService: NotificationService = {
+    logger.info("🔔 Creating notification service...")
+    return NotificationService.shared
+  }()
+
   // MARK: - Application Orchestrators
 
   lazy var reservationOrchestrator: ReservationOrchestratorProtocol = {

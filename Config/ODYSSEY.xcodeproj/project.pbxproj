@@ -33,6 +33,7 @@
 		905062F2527E06FEDA546FA1 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB48B132242AD260155FF55 /* KeychainService.swift */; };
 		92E3FC6001B69E443EEA803C /* ErrorHandlingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80BD3B7A653E455C9E5675B0 /* ErrorHandlingService.swift */; };
 		930217F31DAA51EAEEFF647D /* WebKitHumanBehavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1408CA62AA2B81C39FCA33DC /* WebKitHumanBehavior.swift */; };
+		9469FD36CAFA7DF38793AEC2 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E22A7B78066D8BC90818E37 /* NotificationService.swift */; };
 		99E54AF4CF3ED6C9B978CD25 /* SportIconMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5568B1B9995B862B5D83137 /* SportIconMapper.swift */; };
 		A1335E6664D5449F09663909 /* ReservationErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */; };
 		A9A2F3FB377649F3A070A9A4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 34C024E102B748548377EE51 /* Localizable.strings */; };
@@ -76,6 +77,7 @@
 		504F310E3FF9BD25280A3106 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		62F190E02376A14DB518390F /* EmailIMAPStreamDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailIMAPStreamDelegate.swift; sourceTree = "<group>"; };
 		6D876275C546C2EDF4733D3E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		6E22A7B78066D8BC90818E37 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		6ED502E37F16EC8776288AD0 /* ReservationOrchestrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationOrchestrator.swift; sourceTree = "<group>"; };
 		765EF4545604C40CC9FBC07E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7C92A59EFD10172814D635FA /* JavaScriptLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JavaScriptLibrary.swift; sourceTree = "<group>"; };
@@ -164,6 +166,7 @@
 				AE2D953F23B3F12AD69F00F1 /* GodModeStateManager.swift */,
 				DFB48B132242AD260155FF55 /* KeychainService.swift */,
 				C0C40DA95D0B392AED1463FA /* LoggingService.swift */,
+				6E22A7B78066D8BC90818E37 /* NotificationService.swift */,
 				A77B82AE735F19633841541D /* ReservationError.swift */,
 				2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */,
 				6ED502E37F16EC8776288AD0 /* ReservationOrchestrator.swift */,
@@ -365,6 +368,7 @@
 				905062F2527E06FEDA546FA1 /* KeychainService.swift in Sources */,
 				EFCBFA6AA385CA867DC23B4D /* LoggingService.swift in Sources */,
 				63884D12F4F49556D0C53BF1 /* LoggingUtils.swift in Sources */,
+				9469FD36CAFA7DF38793AEC2 /* NotificationService.swift in Sources */,
 				8B1ED020B66221020312C147 /* ReservationConfig.swift in Sources */,
 				F1CEB7325AA2088A085FC265 /* ReservationError.swift in Sources */,
 				A1335E6664D5449F09663909 /* ReservationErrorHandler.swift in Sources */,

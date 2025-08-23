@@ -75,6 +75,56 @@ ODYSSEY uses a **modular Swift Package Manager** architecture with two main targ
 - **Infrastructure:** External services, automation, and data persistence (`Infrastructure/`, `Services/`)
 - **Shared:** Common utilities and protocols (`SharedUtils/`, `SharedCore/`)
 
+## Notification System
+
+ODYSSEY implements a simple, reliable notification system that works without requiring system permissions. The system focuses on essential notifications only and uses safe delivery methods.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    NotificationService                      │
+├─────────────────────────────────────────────────────────────┤
+│  • Settings Integration                                    │
+│  • Safe Notification Methods                               │
+│  • Multi-Layer Delivery                                    │
+│  • Essential Events Only                                   │
+│  • Crash Prevention                                        │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                Safe Notification Methods                    │
+├─────────────────────────────────────────────────────────────┤
+│  • Status Bar Updates                                      │
+│  • Alert Dialogs                                           │
+│  • No Permissions Required                                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Components
+
+- **`NotificationService`**: Central service managing all notification operations
+- **Settings Integration**: Single toggle in Advanced Settings
+- **Safe Methods**: Uses only crash-safe AppKit features
+- **Multi-Layer Delivery**: Status bar and alerts for reliability
+- **Essential Events Only**: Only reservation success, failure, and automation completion
+- **Crash Prevention**: No complex UI objects or weak reference issues
+
+### Notification Types
+
+- **Success**: Informational alerts (reservation successful)
+- **Failure**: Critical alerts (reservation failed)
+- **Warning**: Warning alerts (automation completed with no success)
+
+### Benefits
+
+- **Simplicity**: Single setting to enable/disable all notifications
+- **Reliability**: Works without system permissions
+- **Stability**: No crashes from memory management issues
+- **Focus**: Only shows notifications for important events
+- **Immediate Delivery**: No delays or scheduling issues
+
 ## 🧪 Code Quality & Testing
 
 ### Automated Quality Checks

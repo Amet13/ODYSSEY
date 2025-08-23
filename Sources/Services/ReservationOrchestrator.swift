@@ -88,6 +88,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
     statusManager.isRunning = true
     statusManager.lastRunStatus = .running
     statusManager.setLastRunInfo(for: config.id, status: .running, date: Date(), runType: runType)
+
     Task {
       do {
         try await withTimeout(seconds: AppConstants.reservationTimeout) {
@@ -99,6 +100,13 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         logger.error("❌ Reservation failed with error: \(error.localizedDescription).")
         logger.error("🔍 Error type: \(type(of: error)).")
         logger.error("📋 Error details: \(error).")
+
+        // Show failure notification
+        NotificationService.shared.showReservationFailure(
+          facilityName: config.name,
+          error: error.localizedDescription
+        )
+
         await errorHandler.handleReservationError(error, config: config, runType: runType)
       }
     }
@@ -695,6 +703,13 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         configName: config.name,
       )
 
+      // Show success notification
+      NotificationService.shared.showReservationSuccess(
+        facilityName: config.name,
+        date: "today",
+        time: "successfully booked"
+      )
+
       await MainActor.run {
         if runType == .manual {
           statusManager.isRunning = false
@@ -1123,10 +1138,22 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             self.statusManager
               .currentTask = "God Mode: All \(configs.count) configurations completed successfully"
             logger.info("🎉 God Mode completed - All successful.")
+
+            // Show success notification for all successful
+            NotificationService.shared.showAutomationComplete(
+              successCount: successfulConfigs.count,
+              totalAttempts: configs.count
+            )
           } else if successfulConfigs.isEmpty {
             self.statusManager.lastRunStatus = .failed("All \(configs.count) configurations failed")
             self.statusManager.currentTask = "God Mode: All configurations failed"
             logger.info("❌ God Mode completed - All failed.")
+
+            // Show failure notification for all failed
+            NotificationService.shared.showAutomationComplete(
+              successCount: 0,
+              totalAttempts: configs.count
+            )
           } else {
             self.statusManager.lastRunStatus = .success
             self.statusManager
@@ -1136,6 +1163,12 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
               .info(
                 "🔄 ReservationOrchestrator: God Mode completed - Mixed results: \(successfulConfigs.count) success, \(failedConfigs.count) failed",
               )
+
+            // Show mixed results notification
+            NotificationService.shared.showAutomationComplete(
+              successCount: successfulConfigs.count,
+              totalAttempts: configs.count
+            )
           }
           self.statusManager.lastRunDate = Date()
           logger.info(
