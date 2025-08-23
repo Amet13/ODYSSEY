@@ -87,6 +87,12 @@ Gmail does not support using your regular password for IMAP. You need to generat
 
 ODYSSEY provides advanced configuration options that are always available to help you customize your automation experience.
 
+### 🔔 Notifications
+
+In the **Settings** → **Advanced Settings** section, you can configure:
+
+- **Enable Notifications:** Turn all notifications on/off.
+
 ### 🔍 Browser Window Controls
 
 - **Show browser window:** Enable this option to make the browser window visible during automation. This can increase changes to bypass captcha and allows you to monitor the automation process.

@@ -54,6 +54,11 @@ public struct UserSettings: Codable, Equatable, Sendable {
   public var useCustomPriorDays = false  // Default to false (use 2 days prior)
   public var customPriorDays: Int = 2  // Default matches app behavior
 
+  // MARK: - Notification Settings
+
+  /// Whether to show notifications for reservation events
+  public var showNotifications: Bool = true
+
   // MARK: - Equatable
 
   public static func == (lhs: UserSettings, rhs: UserSettings) -> Bool {
@@ -68,6 +73,7 @@ public struct UserSettings: Codable, Equatable, Sendable {
       && lhs.customAutorunTime == rhs.customAutorunTime
       && lhs.useCustomPriorDays == rhs.useCustomPriorDays
       && lhs.customPriorDays == rhs.customPriorDays
+      && lhs.showNotifications == rhs.showNotifications
   }
 
   // MARK: - Validation

@@ -24,7 +24,7 @@ class WebKitEngine: NSObject, WebKitEngineProtocol {
   }
 
   func createWebView() -> WKWebView {
-    logger.info("🔧 Creating WebView...")
+    logger.info("🔧 Creating WebView.")
     let webView = WKWebView(frame: .zero, configuration: configuration)
     self.webView = webView
     logger.info("✅ WebView created successfully.")
@@ -32,7 +32,7 @@ class WebKitEngine: NSObject, WebKitEngineProtocol {
   }
 
   func configureWebView(_ webView: WKWebView) throws {
-    logger.info("⚙️ Configuring WebView...")
+    logger.info("⚙️ Configuring WebView.")
 
     // Configure WebView settings
     webView.navigationDelegate = self
@@ -49,7 +49,7 @@ class WebKitEngine: NSObject, WebKitEngineProtocol {
   }
 
   func cleanup() {
-    logger.info("🧹 Cleaning up WebKit engine...")
+    logger.info("🧹 Cleaning up WebKit engine.")
     webView?.stopLoading()
     webView = nil
     logger.info("✅ WebKit engine cleanup completed.")

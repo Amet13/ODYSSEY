@@ -88,6 +88,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
     statusManager.isRunning = true
     statusManager.lastRunStatus = .running
     statusManager.setLastRunInfo(for: config.id, status: .running, date: Date(), runType: runType)
+
     Task {
       do {
         try await withTimeout(seconds: AppConstants.reservationTimeout) {
@@ -99,6 +100,13 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         logger.error("❌ Reservation failed with error: \(error.localizedDescription).")
         logger.error("🔍 Error type: \(type(of: error)).")
         logger.error("📋 Error details: \(error).")
+
+        // Show failure notification
+        NotificationService.shared.showReservationFailure(
+          facilityName: config.name,
+          error: error.localizedDescription
+        )
+
         await errorHandler.handleReservationError(error, config: config, runType: runType)
       }
     }
@@ -111,7 +119,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
   }
 
   public func stopReservation() async {
-    logger.info("🛑 Stopping reservation...")
+    logger.info("🛑 Stopping reservation.")
     statusManager.lastRunStatus = .stopped
     statusManager.isRunning = false
     // Additional cleanup logic can be added here
@@ -668,7 +676,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       await updateTask("Finishing reservation...")
 
       // Check if reservation is actually complete
-      logger.info("🔍 Checking if reservation is complete...")
+      logger.info("🔍 Checking if reservation is complete.")
       let reservationComplete = await webKitService.checkReservationComplete()
       if reservationComplete {
         LoggingService.shared.log(
@@ -678,7 +686,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
           configName: config.name,
         )
       } else {
-        logger.info("⏳ Reservation completion not yet detected, but proceeding with cleanup...")
+        logger.info("⏳ Reservation completion not yet detected, but proceeding with cleanup.")
         LoggingService.shared.log(
           "Reservation completion not yet detected, but proceeding with cleanup",
           level: .info,
@@ -693,6 +701,13 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         level: .success,
         configId: config.id,
         configName: config.name,
+      )
+
+      // Show success notification
+      NotificationService.shared.showReservationSuccess(
+        facilityName: config.name,
+        date: "today",
+        time: "successfully booked"
       )
 
       await MainActor.run {
@@ -762,16 +777,16 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       }
 
       // Ensure JavaScript library is available after navigation
-      logger.info("🔧 Verifying JavaScript library availability for \(config.name)...")
+      logger.info("🔧 Verifying JavaScript library availability for \(config.name).")
       let jsAvailable = await separateWebKitService.verifyJavaScriptLibrary()
       if !jsAvailable {
-        logger.warning("⚠️ JavaScript library not available for \(config.name), re-injecting...")
+        logger.warning("⚠️ JavaScript library not available for \(config.name), re-injecting.")
         separateWebKitService.reinjectScripts()
         try await Task.sleep(nanoseconds: AppConstants.humanDelayNanoseconds)
       }
 
       // Add additional wait to ensure page is fully loaded
-      logger.info("⏳ Waiting for page to fully stabilize for \(config.name)...")
+      logger.info("⏳ Waiting for page to fully stabilize for \(config.name).")
       try await Task.sleep(nanoseconds: AppConstants.longDelayNanoseconds)
       let buttonClicked = await separateWebKitService.findAndClickElement(
         withText: config.sportName)
@@ -812,7 +827,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
               "Attempting to select for \(config.name): \(dayName) at \(timeString, privacy: .private)"
             )
 
-          logger.info("🔍 [\(config.name)] Starting time slot selection process...")
+          logger.info("🔍 [\(config.name)] Starting time slot selection process.")
           logger.info("🔍 [\(config.name)] Day: \(dayName), Time: \(timeString).")
 
           // Verify JavaScript again before time slot selection
@@ -985,7 +1000,7 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       // Take screenshot before disconnecting if WebKit service is available
       var screenshotPath: String? = nil
       if separateWebKitService.isConnected, separateWebKitService.webView != nil {
-        logger.info("📸 Taking failure screenshot for \(config.name)...")
+        logger.info("📸 Taking failure screenshot for \(config.name).")
 
         // Set screenshot directory on the WebKit service
         await MainActor.run {
@@ -1123,10 +1138,22 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             self.statusManager
               .currentTask = "God Mode: All \(configs.count) configurations completed successfully"
             logger.info("🎉 God Mode completed - All successful.")
+
+            // Show success notification for all successful
+            NotificationService.shared.showAutomationComplete(
+              successCount: successfulConfigs.count,
+              totalAttempts: configs.count
+            )
           } else if successfulConfigs.isEmpty {
             self.statusManager.lastRunStatus = .failed("All \(configs.count) configurations failed")
             self.statusManager.currentTask = "God Mode: All configurations failed"
             logger.info("❌ God Mode completed - All failed.")
+
+            // Show failure notification for all failed
+            NotificationService.shared.showAutomationComplete(
+              successCount: 0,
+              totalAttempts: configs.count
+            )
           } else {
             self.statusManager.lastRunStatus = .success
             self.statusManager
@@ -1136,6 +1163,12 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
               .info(
                 "🔄 ReservationOrchestrator: God Mode completed - Mixed results: \(successfulConfigs.count) success, \(failedConfigs.count) failed",
               )
+
+            // Show mixed results notification
+            NotificationService.shared.showAutomationComplete(
+              successCount: successfulConfigs.count,
+              totalAttempts: configs.count
+            )
           }
           self.statusManager.lastRunDate = Date()
           logger.info(

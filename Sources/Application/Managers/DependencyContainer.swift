@@ -11,22 +11,22 @@ class DependencyContainer {
   // MARK: - Infrastructure Services
 
   lazy var webKitEngine: WebKitEngineProtocol = {
-    logger.info("🔧 Creating WebKit engine...")
+    logger.info("🔧 Creating WebKit engine.")
     return WebKitEngine()
   }()
 
   lazy var webKitNavigation: WebKitNavigationProtocol = {
-    logger.info("🧭 Creating WebKit navigation...")
+    logger.info("🧭 Creating WebKit navigation.")
     return WebKitNavigation(webView: webKitEngine.createWebView())
   }()
 
   lazy var webKitScripting: WebKitScriptingProtocol = {
-    logger.info("📜 Creating WebKit scripting...")
+    logger.info("📜 Creating WebKit scripting.")
     return WebKitScripting(webView: webKitEngine.createWebView())
   }()
 
   lazy var emailClient: EmailClientProtocol = {
-    logger.info("📧 Creating email client...")
+    logger.info("📧 Creating email client.")
     let settings = EmailSettings(
       emailAddress: UserDefaults.standard.string(forKey: "email") ?? "",
       password: UserDefaults.standard.string(forKey: "password") ?? "",
@@ -44,21 +44,21 @@ class DependencyContainer {
   }()
 
   lazy var storageService: StorageServiceProtocol = {
-    logger.info("💾 Creating storage service...")
+    logger.info("💾 Creating storage service.")
     return UserDefaultsStorageService()
   }()
 
   // MARK: - Domain Repositories
 
   lazy var reservationRepository: any ReservationRepositoryProtocol = {
-    logger.info("📝 Creating reservation repository...")
+    logger.info("📝 Creating reservation repository.")
     return ReservationRepository(storage: storageService)
   }()
 
   // MARK: - Domain Use Cases
 
   lazy var reservationUseCase: ReservationUseCaseProtocol = {
-    logger.info("🚀 Creating reservation use case...")
+    logger.info("🚀 Creating reservation use case.")
     return ReservationUseCase(
       repository: reservationRepository,
       webKitService: webKitService,
@@ -69,42 +69,47 @@ class DependencyContainer {
   // MARK: - Application Services
 
   lazy var webKitService: WebKitServiceProtocol = {
-    logger.info("🌐 Creating WebKit service...")
+    logger.info("🌐 Creating WebKit service.")
     return WebKitService.shared
   }()
 
   lazy var emailService: EmailServiceProtocol = {
-    logger.info("📧 Creating email service...")
+    logger.info("📧 Creating email service.")
     return EmailService.shared
+  }()
+
+  lazy var notificationService: NotificationService = {
+    logger.info("🔔 Creating notification service.")
+    return NotificationService.shared
   }()
 
   // MARK: - Application Orchestrators
 
   lazy var reservationOrchestrator: ReservationOrchestratorProtocol = {
-    logger.info("🎼 Creating reservation orchestrator...")
+    logger.info("🎼 Creating reservation orchestrator.")
     return ReservationOrchestrator.shared
   }()
 
   // MARK: - Application Managers
 
   lazy var stateManager: StateManagerProtocol = {
-    logger.info("📊 Creating state manager...")
+    logger.info("📊 Creating state manager.")
     return StateManager()
   }()
 
   lazy var errorManager: ErrorManagerProtocol = {
-    logger.info("⚠️ Creating error manager...")
+    logger.info("⚠️ Creating error manager.")
     return ErrorManager()
   }()
 
   // MARK: - Initialization
 
   private init() {
-    logger.info("🏗️ Initializing dependency container...")
+    logger.info("🏗️ Initializing dependency container.")
   }
 
   func initialize() async throws {
-    logger.info("🚀 Initializing all services...")
+    logger.info("🚀 Initializing all services.")
 
     // Initialize core services
     let webView = webKitEngine.createWebView()
@@ -114,7 +119,7 @@ class DependencyContainer {
   }
 
   func cleanup() async throws {
-    logger.info("🧹 Cleaning up all services...")
+    logger.info("🧹 Cleaning up all services.")
 
     // Cleanup services
     webKitEngine.cleanup()

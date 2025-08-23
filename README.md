@@ -38,6 +38,7 @@
 - 🔒 **Secure & private** – Local processing, Keychain storage, no external data.
 - 📧 **Email integration** – Automated verification and confirmations.
 - 🎨 **Modern interface** – Beautiful SwiftUI with dark mode support.
+- 🔔 **Smart notifications** – Simple, reliable notifications for reservation success, failure, and automation completion.
 
 ## 📚 Documentation
 

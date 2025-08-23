@@ -26,7 +26,7 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
 
   /// Fetches available sports from the facility page
   public func fetchSports(from url: URL, completion: @escaping ([String]) -> Void) {
-    logger.info("🏀 Starting sports fetch process...")
+    logger.info("🏀 Starting sports fetch process.")
 
     guard let webView else {
       logger.error("❌ WebView not initialized for sports fetch.")
@@ -37,7 +37,7 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
     isLoading = true
     completionHandler = completion
 
-    logger.info("🔍 Loading facility page for sports detection...")
+    logger.info("🔍 Loading facility page for sports detection.")
     logger.info("🌐 Loading URL: \(url).")
 
     let request = URLRequest(url: url)
@@ -77,7 +77,7 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
   }
 
   private func executeSportsDetectionScript() {
-    logger.info("🔍 Starting sports detection script execution...")
+    logger.info("🔍 Starting sports detection script execution.")
 
     guard let webView else {
       logger.error("❌ WebView is nil in executeSportsDetectionScript.")
@@ -87,7 +87,7 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
     // Use the centralized JavaScript library
     let script = "window.odyssey.detectSports();"
 
-    logger.info("🔍 Executing sports detection using centralized library...")
+    logger.info("🔍 Executing sports detection using centralized library.")
 
     webView.evaluateJavaScript(script) { [weak self] result, error in
       if let error {
@@ -142,7 +142,7 @@ extension FacilityService: WKNavigationDelegate {
 
     // Wait a moment for the page to fully render
     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-      self?.logger.info("🔍 Starting sports detection after page render...")
+      self?.logger.info("🔍 Starting sports detection after page render.")
       self?.executeSportsDetectionScript()
     }
   }

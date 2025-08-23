@@ -287,6 +287,25 @@ private struct AdvancedSettingsSection: View {
     settingsSection(title: "Advanced Settings", icon: "gearshape") {
       VStack(alignment: .leading, spacing: AppConstants.spacingLarge) {
 
+        // Notification Settings
+        VStack(alignment: .leading, spacing: AppConstants.spacingMedium) {
+          HStack {
+            Toggle(
+              "",
+              isOn: Binding(
+                get: { tempSettings.showNotifications },
+                set: { newValue in
+                  tempSettings.showNotifications = newValue
+                },
+              ))
+            Text("Enable notifications")
+            Spacer()
+          }
+          .help(
+            "If enabled, ODYSSEY will show notifications for reservation success, failure, and automation completion."
+          )
+        }
+
         // Browser Window Controls
         VStack(alignment: .leading, spacing: AppConstants.spacingMedium) {
           HStack {
@@ -424,6 +443,7 @@ private struct AdvancedSettingsSection: View {
             .help("Number of days before reservation date to run. Useful for debugging/testing.")
           }
         }
+
       }
     }
   }

@@ -75,6 +75,10 @@ ODYSSEY uses a **modular Swift Package Manager** architecture with two main targ
 - **Infrastructure:** External services, automation, and data persistence (`Infrastructure/`, `Services/`)
 - **Shared:** Common utilities and protocols (`SharedUtils/`, `SharedCore/`)
 
+## Notification System
+
+ODYSSEY implements a simple, reliable notification system that works without requiring system permissions. The system focuses on essential notifications only and uses safe delivery methods.
+
 ## 🧪 Code Quality & Testing
 
 ### Automated Quality Checks

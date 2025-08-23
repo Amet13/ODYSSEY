@@ -630,7 +630,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
   /// Runs email configuration diagnostic and returns detailed report
   /// - Returns: Diagnostic report string
   func runEmailDiagnostic() async -> String {
-    logger.info("🔍 Running email configuration diagnostic...")
+    logger.info("🔍 Running email configuration diagnostic.")
     return await diagnoseEmailConfiguration()
   }
 
@@ -1411,7 +1411,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
   /// - Parameter body: The email body text
   /// - Returns: Array of 4-digit verification codes found
   private func extractVerificationCodes(from body: String) async -> [String] {
-    logger.info("🔍 Extracting verification codes from email body...")
+    logger.info("🔍 Extracting verification codes from email body.")
 
     // Contextual patterns (case-insensitive, allow line breaks)
     let contextualPatterns: [(String, String)] = [
@@ -1638,14 +1638,14 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
       // For Gmail, try CAPABILITY first to see what's supported
       if settings.isGmailAccount(email) {
-        logger.info("🔍 Checking Gmail IMAP capabilities...")
+        logger.info("🔍 Checking Gmail IMAP capabilities.")
         sendCommand("a0 CAPABILITY")
         let capabilityResp = await expect("a0")
         logger.info("📋 Gmail capabilities: \(capabilityResp.prefix(200)).")
       }
 
       // LOGIN
-      logger.info("🔐 Attempting IMAP login...")
+      logger.info("🔐 Attempting IMAP login.")
       sendCommand("a1 LOGIN \"\(email)\" \"\(password)\"")
       let loginResp = await expect("a1")
 
@@ -1995,7 +1995,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
   }
 
   public func searchForVerificationEmails() async throws -> [Email] {
-    logger.info("🔍 Searching for verification emails...")
+    logger.info("🔍 Searching for verification emails.")
 
     let settings = userSettingsManager.userSettings
     guard settings.hasEmailConfigured else {
