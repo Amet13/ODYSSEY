@@ -22,7 +22,7 @@
 
 1. **Launch ODYSSEY:** Click the menu bar icon.
 2. **Add configuration:** Click the **+** or **Add Configuration** button.
-3. **Configure settings:** Set up your contact info and email.
+3. **Configure settings:** Set up your contact info and email (see how to use advanced settings below).
 4. **Test email:** Verify your email connection works.
 5. **Save the settings.**
 
@@ -35,6 +35,18 @@ Gmail does not support using your regular password for IMAP. You need to generat
 <div align="center">
   <img src="Images/settings-screen.png" width="400" alt="Settings screen">
 </div>
+
+#### ⚙️ Advanced Settings
+
+In the **Settings** → **Advanced Settings** section, you can configure:
+
+- **Enable Notifications:** Turn all notifications on/off.
+- **Show browser window:** Enable this option to make the browser window visible during automation. This can increase changes to bypass captcha and allows you to monitor the automation process.
+  - **Automatically close browser window on failure:** When enabled, the browser window will close automatically after a reservation failure. When disabled, the window remains open so you can inspect any errors.
+- **Use custom autorun time:** Enable this to set a custom time for automatic reservation runs instead of the default 6:00 PM.
+  - **Autorun Time picker:** Select your preferred time using the time picker. The time will be used for all automatic reservation runs.
+- **Use custom prior days:** Enable this to customize how many days before the reservation date the automation should run (default is 2 days).
+  - **Prior days stepper:** Use the stepper to select between 0-7 days. This is useful for debugging, testing, or adjusting your reservation strategy.
 
 ### ➕ Adding a Reservation Configuration
 
@@ -77,31 +89,6 @@ Gmail does not support using your regular password for IMAP. You need to generat
 <div align="center">
   <img src="Images/main-screen-with-configs.png" width="400" alt="Main screen with configurations">
 </div>
-
-## ⚙️ Advanced Settings
-
-ODYSSEY provides advanced configuration options that are always available to help you customize your automation experience.
-
-### 🔔 Notifications
-
-In the **Settings** → **Advanced Settings** section, you can configure:
-
-- **Enable Notifications:** Turn all notifications on/off.
-
-### 🔍 Browser Window Controls
-
-- **Show browser window:** Enable this option to make the browser window visible during automation. This can increase changes to bypass captcha and allows you to monitor the automation process.
-- **Automatically close browser window on failure:** When enabled, the browser window will close automatically after a reservation failure. When disabled, the window remains open so you can inspect any errors.
-
-### ⏰ Custom Autorun Time
-
-- **Use custom autorun time:** Enable this to set a custom time for automatic reservation runs instead of the default 6:00 PM.
-- **Autorun Time picker:** Select your preferred time using the time picker. The time will be used for all automatic reservation runs.
-
-### 📅 Custom Prior Days
-
-- **Use custom prior days:** Enable this to customize how many days before the reservation date the automation should run (default is 2 days).
-- **Prior days stepper:** Use the stepper to select between 0-7 days. This is useful for debugging, testing, or adjusting your reservation strategy.
 
 ## 💤 Sleep and Autorun Reliability
 
