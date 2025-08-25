@@ -63,11 +63,6 @@ Gmail does not support using your regular password for IMAP. You need to generat
 - **Toggle:** Use the toggle switch to enable or disable automatic runs (2 days prior at 6 p.m.).
 - **Disabled:** Disabled configurations won't run automatically.
 
-### 💤 Sleep and Autorun Reliability
-
-- ODYSSEY schedules automatic runs two days prior at 6:00 p.m. If your Mac is sleeping at that time, the run may be missed.
-- To ensure reliability, keep your Mac awake around 6:00 p.m. on autorun days. You can use third-party utilities such as [Caffeine](https://www.caffeine-app.net) to temporarily prevent sleep.
-
 #### ✏️ Edit Configuration
 
 - **Edit:** Click the pencil icon to edit a configuration.
@@ -107,3 +102,8 @@ In the **Settings** → **Advanced Settings** section, you can configure:
 
 - **Use custom prior days:** Enable this to customize how many days before the reservation date the automation should run (default is 2 days).
 - **Prior days stepper:** Use the stepper to select between 0-7 days. This is useful for debugging, testing, or adjusting your reservation strategy.
+
+## 💤 Sleep and Autorun Reliability
+
+- ODYSSEY schedules automatic runs two days prior at 6:00 p.m. If your Mac is sleeping at that time, the run may be missed.
+- To ensure reliability, keep your Mac awake around 6:00 p.m. on autorun days. You can use third-party utilities such as [Caffeine](https://www.caffeine-app.net) to temporarily prevent sleep.
