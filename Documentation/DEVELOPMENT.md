@@ -69,11 +69,11 @@ ODYSSEY uses a **modular Swift Package Manager** architecture with two main targ
 
 ### Architecture Layers
 
-- **Presentation:** User interface and user interaction logic (`Views/`, `Controllers/`)
-- **Application:** Business logic orchestration and use cases (`Application/`)
-- **Domain:** Core business entities and domain logic (`Domain/`)
-- **Infrastructure:** External services, automation, and data persistence (`Infrastructure/`, `Services/`)
-- **Shared:** Common utilities and protocols (`SharedUtils/`, `SharedCore/`)
+- **Presentation:** User interface and user interaction logic (`Views/`, `Controllers/`).
+- **Application:** Business logic orchestration and use cases (`Application/`).
+- **Domain:** Core business entities and domain logic (`Domain/`).
+- **Infrastructure:** External services, automation, and data persistence (`Infrastructure/`, `Services/`).
+- **Shared:** Common utilities and protocols (`SharedUtils/`, `SharedCore/`).
 
 ## Notification System
 
@@ -85,8 +85,8 @@ ODYSSEY implements a simple, reliable notification system that works without req
 
 The project includes comprehensive automated quality checks:
 
-- ✅ Project structure validation.
-- ✅ Comprehensive linting with `./Scripts/odyssey.sh lint`.
+- Project structure validation.
+- Comprehensive linting with `./Scripts/odyssey.sh lint`.
 
 ### Example: Running All Checks
 
@@ -167,16 +167,6 @@ The codebase follows a modular service-oriented architecture with these key prin
 - **Error Handling:** Implement comprehensive error handling.
 - **Performance:** Optimize for memory usage and responsiveness.
 
-#### Automated Workflows
-
-- ✅ **Unified Script Usage:** GitHub Actions now use our existing scripts instead of duplicating commands.
-- ✅ **Version consistency validation** (tag vs project.yml vs Info.plist).
-- ✅ **DMG installer creation** with app icon.
-- ✅ **Code signing** for the application.
-- ✅ **GitHub Releases publication** with comprehensive notes.
-- ✅ **File size tracking** and reporting.
-- ✅ **Professional release notes** with installation instructions.
-
 ## 🧪 Testing
 
 ### App Testing
@@ -225,14 +215,14 @@ This command will:
 
 The project includes a comprehensive CI/CD workflow:
 
-- ✅ **Unified Script Usage:** GitHub Actions use our existing scripts instead of duplicating commands.
-- ✅ **Version Validation:** Ensures tag version matches `project.yml` and `Info.plist`.
-- ✅ **Code Signing:** Automatically signs the application.
-- ✅ **DMG Creation:** Creates professional installer with app icon.
-- ✅ **Release Notes:** Auto-generates comprehensive release notes with features and troubleshooting.
-- ✅ **Changelog Generation:** Creates changelog from git commits since last tag.
-- ✅ **GitHub Integration:** Automatically publishes to GitHub Releases.
-- ✅ **Comprehensive Linting:** Uses configuration files to ignore acceptable warnings while catching critical issues.
+- **Unified Script Usage:** GitHub Actions use our existing scripts instead of duplicating commands.
+- **Version Validation:** Ensures tag version matches `project.yml` and `Info.plist`.
+- **Code Signing:** Automatically signs the application.
+- **DMG Creation:** Creates professional installer with app icon.
+- **Release Notes:** Auto-generates comprehensive release notes with features and troubleshooting.
+- **Changelog Generation:** Creates changelog from git commits since last tag.
+- **GitHub Integration:** Automatically publishes to GitHub Releases.
+- **Comprehensive Linting:** Uses configuration files to ignore acceptable warnings while catching critical issues.
 
 **Key Workflows:**
 
