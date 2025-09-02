@@ -174,29 +174,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   private func setupSchedulingTimer() {
-    // Schedule precise autorun at exactly 6:00:00 PM
+    logger.info("🔧 Setting up precise autorun scheduling...")
+
+    // Schedule precise autorun at exactly the configured time
     schedulePreciseAutorun()
 
-    // Simple backup timer that checks every minute to ensure autorun is scheduled
-    // This is just a safety net, not a replacement for the precise timer
-    timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-      guard let self = self else { return }
-
-      // Use main queue for UI operations and logging
-      DispatchQueue.main.async {
-        // Only log once per minute to avoid spam
-        let now = Date()
-        let calendar = Calendar.current
-        let currentMinute = calendar.component(.minute, from: now)
-
-        // Log every 10 minutes to show the timer is working
-        if currentMinute % 10 == 0 {
-          self.logger.info("⏰ Backup timer check - ensuring autorun is properly scheduled.")
-        }
-
-        // The backup timer is just for logging, precise scheduling is handled by Timer.scheduledTimer
-      }
-    }
+    logger.info("✅ Precise autorun scheduling setup completed.")
   }
 
   private func schedulePreciseAutorun() {
@@ -281,6 +264,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     guard configManager.settings.globalEnabled else {
       logger.info("❌ Global automation is disabled, skipping autorun.")
       return
+    }
+
+    // Log all configurations for debugging
+    logger.info(
+      "🔍 DEBUG: Checking \(configManager.settings.configurations.count) total configurations:")
+    for (index, config) in configManager.settings.configurations.enumerated() {
+      let enabledStatus = config.isEnabled ? "✅ enabled" : "❌ disabled"
+      let daySlots = config.dayTimeSlots.compactMap { day, slots in
+        slots.isEmpty ? nil : "\(day.rawValue): \(slots.count) slots"
+      }.joined(separator: ", ")
+      logger.info(
+        "🔍 DEBUG: Config \(index + 1): '\(config.name)' - \(enabledStatus) - Days: [\(daySlots)]")
     }
 
     // Collect all configurations that should run at the custom autorun time today
@@ -393,18 +388,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // For each enabled day, check if today is N days before that day
     for (day, timeSlots) in config.dayTimeSlots {
       guard !timeSlots.isEmpty else { continue }
-      // Find the next occurrence of the reservation day
+
       let targetWeekday = day.calendarWeekday
       let currentWeekday = calendar.component(.weekday, from: today)
-      var daysUntilTarget = targetWeekday - currentWeekday
-      if daysUntilTarget <= 0 { daysUntilTarget += 7 }
-      let reservationDay = calendar.date(byAdding: .day, value: daysUntilTarget, to: today) ?? today
+
       // Autorun should be priorDays before reservation day
       let priorDays: Int = {
         let settings = UserSettingsManager.shared.userSettings
         if settings.useCustomPriorDays { return max(0, min(7, settings.customPriorDays)) }
         return 2
       }()
+
+      // Calculate the reservation day and autorun day
+      let reservationDay: Date
+      if targetWeekday == currentWeekday {
+        // Today IS the reservation day - this is a special case for same-day reservations
+        reservationDay = today
+      } else {
+        // Find the next occurrence of the reservation day
+        var daysUntilTarget = targetWeekday - currentWeekday
+        if daysUntilTarget <= 0 { daysUntilTarget += 7 }
+        reservationDay = calendar.date(byAdding: .day, value: daysUntilTarget, to: today) ?? today
+      }
+
       let autorunDay =
         calendar.date(byAdding: .day, value: -priorDays, to: reservationDay) ?? reservationDay
 
@@ -414,7 +420,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
       logger
         .info(
-          "🔍 DEBUG: daysUntilTarget: \(daysUntilTarget), reservationDay: \(reservationDay), autorunDay: \(autorunDay), today: \(today)",
+          "🔍 DEBUG: daysUntilTarget: \(targetWeekday == currentWeekday ? "0 (same day)" : "\(targetWeekday - currentWeekday)"), reservationDay: \(reservationDay), autorunDay: \(autorunDay), today: \(today)",
         )
 
       if calendar.isDate(today, inSameDayAs: autorunDay) {
