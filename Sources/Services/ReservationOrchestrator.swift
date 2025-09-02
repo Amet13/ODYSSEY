@@ -138,10 +138,17 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       logger.warning("⚠️ No configurations provided for multiple reservation run.")
       return
     }
-    logger.info("🚀 Starting God Mode: Running \(configs.count) configurations simultaneously.")
+
+    let modeName = runType == .automatic ? "Auto Mode" : "God Mode"
+    let taskDescription =
+      runType == .automatic
+      ? "Auto Mode: Running \(configs.count) configurations"
+      : "God Mode: Running \(configs.count) configurations"
+
+    logger.info("🚀 Starting \(modeName): Running \(configs.count) configurations simultaneously.")
     statusManager.isRunning = true
     statusManager.lastRunStatus = .running
-    statusManager.currentTask = "God Mode: Running \(configs.count) configurations"
+    statusManager.currentTask = taskDescription
     statusManager.lastRunDate = Date()
     Task {
       await self.trackGodModeCompletion(configs: configs, runType: runType)
@@ -1102,7 +1109,8 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
   private func trackGodModeCompletion(configs: [ReservationConfig], runType: ReservationRunType)
     async
   {
-    logger.info("📊 Starting God Mode completion tracking for \(configs.count) configurations.")
+    let modeName = runType == .automatic ? "Auto Mode" : "God Mode"
+    logger.info("📊 Starting \(modeName) completion tracking for \(configs.count) configurations.")
     let maxWaitTime: TimeInterval = AppConstants.verificationCodeTimeout
     let checkInterval: TimeInterval = AppConstants.retryDelay
     let startTime = Date()
@@ -1117,7 +1125,8 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         return false
       }
       logger.info(
-        "📈 God Mode progress: \(completedConfigs.count)/\(configs.count) configurations completed.")
+        "📈 \(modeName) progress: \(completedConfigs.count)/\(configs.count) configurations completed."
+      )
       if completedConfigs.count == configs.count {
         let successfulConfigs = configs.filter { config in
           if let lastRunInfo = self.statusManager.lastRunInfo[config.id] {
@@ -1132,12 +1141,13 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
           return false
         }
         await MainActor.run {
-          logger.info("🔄 ReservationOrchestrator: Updating God Mode completion status.")
+          logger.info("🔄 ReservationOrchestrator: Updating \(modeName) completion status.")
           if failedConfigs.isEmpty {
             self.statusManager.lastRunStatus = .success
             self.statusManager
-              .currentTask = "God Mode: All \(configs.count) configurations completed successfully"
-            logger.info("🎉 God Mode completed - All successful.")
+              .currentTask =
+              "\(modeName): All \(configs.count) configurations completed successfully"
+            logger.info("🎉 \(modeName) completed - All successful.")
 
             // Show success notification for all successful
             NotificationService.shared.showAutomationComplete(
@@ -1146,8 +1156,8 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             )
           } else if successfulConfigs.isEmpty {
             self.statusManager.lastRunStatus = .failed("All \(configs.count) configurations failed")
-            self.statusManager.currentTask = "God Mode: All configurations failed"
-            logger.info("❌ God Mode completed - All failed.")
+            self.statusManager.currentTask = "\(modeName): All configurations failed"
+            logger.info("❌ \(modeName) completed - All failed.")
 
             // Show failure notification for all failed
             NotificationService.shared.showAutomationComplete(
@@ -1158,10 +1168,10 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
             self.statusManager.lastRunStatus = .success
             self.statusManager
               .currentTask =
-              "God Mode: \(successfulConfigs.count) successful, \(failedConfigs.count) failed"
+              "\(modeName): \(successfulConfigs.count) successful, \(failedConfigs.count) failed"
             logger
               .info(
-                "🔄 ReservationOrchestrator: God Mode completed - Mixed results: \(successfulConfigs.count) success, \(failedConfigs.count) failed",
+                "🔄 ReservationOrchestrator: \(modeName) completed - Mixed results: \(successfulConfigs.count) success, \(failedConfigs.count) failed",
               )
 
             // Show mixed results notification
@@ -1218,23 +1228,23 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         }
         logger
           .info(
-            "📊 God Mode completed: \(successfulConfigs.count) successful, \(failedConfigs.count) failed."
+            "📊 \(modeName) completed: \(successfulConfigs.count) successful, \(failedConfigs.count) failed."
           )
         WebKitService.printLiveInstanceCount()
         return
       }
       try? await Task.sleep(nanoseconds: UInt64(checkInterval * 1_000_000_000))
     }
-    logger.warning("⏰ God Mode completion tracking timed out after \(maxWaitTime) seconds.")
+    logger.warning("⏰ \(modeName) completion tracking timed out after \(maxWaitTime) seconds.")
     await MainActor.run {
-      logger.info("🔄 ReservationOrchestrator: God Mode timeout - updating status.")
-      self.statusManager.lastRunStatus = .failed("God Mode timed out")
-      self.statusManager.currentTask = "God Mode: Operation timed out"
+      logger.info("🔄 ReservationOrchestrator: \(modeName) timeout - updating status.")
+      self.statusManager.lastRunStatus = .failed("\(modeName) timed out")
+      self.statusManager.currentTask = "\(modeName): Operation timed out"
       self.statusManager.lastRunDate = Date()
       self.statusManager.isRunning = false
       logger
         .info(
-          "🔄 ReservationOrchestrator: God Mode timeout status - isRunning: \(self.statusManager.isRunning), status: \(self.statusManager.lastRunStatus.description)",
+          "🔄 ReservationOrchestrator: \(modeName) timeout status - isRunning: \(self.statusManager.isRunning), status: \(self.statusManager.lastRunStatus.description)",
         )
     }
   }
