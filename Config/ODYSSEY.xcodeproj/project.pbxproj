@@ -27,6 +27,7 @@
 		6CE722921ABA9CF63AF4D2AE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34B7DED97B75C8D92AE1A31 /* ContentView.swift */; };
 		6E696B9F782E9B8979C22BD0 /* EmailConfigurationDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = E01F649A84C769D3AFDC525D /* EmailConfigurationDiagnostics.swift */; };
 		7A893D2888B4F0510D2042A7 /* WebKitAntiDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15BB9045C1DD2BAC3F1E8E6 /* WebKitAntiDetection.swift */; };
+		7A8CA30F063C7F9CF1CF72D2 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60DCA21334B1A24896D628DF /* UpdateChecker.swift */; };
 		7AB843B692B99A297F71AFA2 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34D958E5CB6EBC1B6F06E168 /* UserSettings.swift */; };
 		87BEA07219CB32EABEA725D0 /* EmailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3419A41E593FC7E578492598 /* EmailService.swift */; };
 		8B1ED020B66221020312C147 /* ReservationConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0EBA9D765D3068E55BA51C /* ReservationConfig.swift */; };
@@ -75,6 +76,7 @@
 		4032FBD046C7A84D2AB708F7 /* ConfigurationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationDetailView.swift; sourceTree = "<group>"; };
 		48D6507655544E5D9BC6CABF /* WebKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitService.swift; sourceTree = "<group>"; };
 		504F310E3FF9BD25280A3106 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
+		60DCA21334B1A24896D628DF /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 		62F190E02376A14DB518390F /* EmailIMAPStreamDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailIMAPStreamDelegate.swift; sourceTree = "<group>"; };
 		6D876275C546C2EDF4733D3E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		6E22A7B78066D8BC90818E37 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
@@ -173,6 +175,7 @@
 				0C7C81C4DA4C0834B7AD1E2B /* ReservationRunStatus.swift */,
 				D816DD0E16D5EE6F9F3CD84A /* ReservationStatusManager.swift */,
 				E4C0A077490B2B2685EBD99A /* SharedVerificationCodePool.swift */,
+				60DCA21334B1A24896D628DF /* UpdateChecker.swift */,
 				88087B5FF17E55461F2F9181 /* UserSettingsManager.swift */,
 				9257D769B1B84B9801B9ED8E /* WebDriverProtocols.swift */,
 				B15BB9045C1DD2BAC3F1E8E6 /* WebKitAntiDetection.swift */,
@@ -380,6 +383,7 @@
 				CB670603EEF4CD42B8688306 /* SharedVerificationCodePool.swift in Sources */,
 				99E54AF4CF3ED6C9B978CD25 /* SportIconMapper.swift in Sources */,
 				682EF0598BC17A8022F81E5B /* StatusBarController.swift in Sources */,
+				7A8CA30F063C7F9CF1CF72D2 /* UpdateChecker.swift in Sources */,
 				7AB843B692B99A297F71AFA2 /* UserSettings.swift in Sources */,
 				E2CDCC931C7C13AD6F4D8DD4 /* UserSettingsManager.swift in Sources */,
 				3200DDF9DB68CAE5FD9A1593 /* ValidationService.swift in Sources */,

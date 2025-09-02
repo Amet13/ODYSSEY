@@ -2,6 +2,9 @@ import SwiftUI
 
 struct AboutView: View {
   @Environment(\.dismiss) private var dismiss
+  @StateObject private var updateChecker = UpdateChecker.shared
+  @State private var showingUpdateAlert = false
+  @State private var showingUpToDateAlert = false
 
   private var appVersion: String {
     Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
@@ -34,14 +37,39 @@ struct AboutView: View {
               .multilineTextAlignment(.center)
               .fixedSize(horizontal: false, vertical: true)
 
-            if let githubURL = URL(string: "https://github.com/Amet13/ODYSSEY") {
-              Link("Version \(appVersion)", destination: githubURL)
-                .font(.system(size: AppConstants.tertiaryFont))
-                .foregroundColor(.odysseyPrimary)
-            } else {
-              Text("Version \(appVersion)")
-                .font(.system(size: AppConstants.tertiaryFont))
-                .foregroundColor(.odysseySecondaryText)
+            HStack(spacing: AppConstants.spacingSmall) {
+              if let githubURL = URL(string: "https://github.com/Amet13/ODYSSEY") {
+                Link("Version \(appVersion)", destination: githubURL)
+                  .font(.system(size: AppConstants.tertiaryFont))
+                  .foregroundColor(.odysseyPrimary)
+              } else {
+                Text("Version \(appVersion)")
+                  .font(.system(size: AppConstants.tertiaryFont))
+                  .foregroundColor(.odysseySecondaryText)
+              }
+
+              // Check for Updates Icon
+              Button(action: {
+                Task {
+                  await updateChecker.checkForUpdates()
+                  if updateChecker.updateAvailable {
+                    showingUpdateAlert = true
+                  } else {
+                    showingUpToDateAlert = true
+                  }
+                }
+              }) {
+                if updateChecker.isCheckingForUpdates {
+                  ProgressView()
+                    .scaleEffect(0.6)
+                } else {
+                  Image(systemName: "arrow.clockwise")
+                    .font(.system(size: AppConstants.fontMicro))
+                }
+              }
+              .buttonStyle(.plain)
+              .disabled(updateChecker.isCheckingForUpdates)
+              .help("Check for updates")
             }
           }
 
@@ -92,6 +120,23 @@ struct AboutView: View {
       }
     }
     .frame(width: AppConstants.windowAboutWidth, height: AppConstants.windowAboutHeight)
+    .alert("Update Available", isPresented: $showingUpdateAlert) {
+      Button("Download Update") {
+        updateChecker.openReleasesPage()
+      }
+      Button("Later", role: .cancel) {}
+    } message: {
+      if let latestVersion = updateChecker.latestVersion {
+        Text("A new version (\(latestVersion)) is available. Would you like to download it?")
+      } else {
+        Text("A new version is available. Would you like to download it?")
+      }
+    }
+    .alert("Up to Date", isPresented: $showingUpToDateAlert) {
+      Button("OK") {}
+    } message: {
+      Text("You're running the latest version of ODYSSEY!")
+    }
     .onKeyPress(.escape) {
       dismiss()
       return .handled

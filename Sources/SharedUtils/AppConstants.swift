@@ -252,6 +252,7 @@ extension AppConstants {
   // MARK: - Typography System
 
   public static let fontTiny: CGFloat = 9
+  public static let fontMicro: CGFloat = 7
   public static let fontSmall: CGFloat = 10
   public static let fontMedium: CGFloat = 11
   public static let fontLarge: CGFloat = 12
