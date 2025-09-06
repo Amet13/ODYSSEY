@@ -1148,22 +1148,10 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
               .currentTask =
               "\(modeName): All \(configs.count) configurations completed successfully"
             logger.info("🎉 \(modeName) completed - All successful.")
-
-            // Show success notification for all successful
-            NotificationService.shared.showAutomationComplete(
-              successCount: successfulConfigs.count,
-              totalAttempts: configs.count
-            )
           } else if successfulConfigs.isEmpty {
             self.statusManager.lastRunStatus = .failed("All \(configs.count) configurations failed")
             self.statusManager.currentTask = "\(modeName): All configurations failed"
             logger.info("❌ \(modeName) completed - All failed.")
-
-            // Show failure notification for all failed
-            NotificationService.shared.showAutomationComplete(
-              successCount: 0,
-              totalAttempts: configs.count
-            )
           } else {
             self.statusManager.lastRunStatus = .success
             self.statusManager
@@ -1173,12 +1161,6 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
               .info(
                 "🔄 ReservationOrchestrator: \(modeName) completed - Mixed results: \(successfulConfigs.count) success, \(failedConfigs.count) failed",
               )
-
-            // Show mixed results notification
-            NotificationService.shared.showAutomationComplete(
-              successCount: successfulConfigs.count,
-              totalAttempts: configs.count
-            )
           }
           self.statusManager.lastRunDate = Date()
           logger.info(
@@ -1223,6 +1205,44 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
               logger.info(
                 "🔄 ReservationOrchestrator: Final multiple reservation status - isRunning: \(self.statusManager.isRunning), status: \(self.statusManager.lastRunStatus.description)",
               )
+
+              // Now send the notification with accurate final results
+              let finalSuccessfulConfigs = configs.filter { config in
+                if let lastRunInfo = self.statusManager.lastRunInfo[config.id] {
+                  return lastRunInfo.status == .success
+                }
+                return false
+              }
+              let finalFailedConfigs = configs.filter { config in
+                if let lastRunInfo = self.statusManager.lastRunInfo[config.id] {
+                  if case .failed = lastRunInfo.status { return true }
+                }
+                return false
+              }
+
+              logger.info(
+                "📊 Final results - \(modeName): \(finalSuccessfulConfigs.count) successful, \(finalFailedConfigs.count) failed"
+              )
+
+              if finalFailedConfigs.isEmpty {
+                // All successful
+                NotificationService.shared.showAutomationComplete(
+                  successCount: finalSuccessfulConfigs.count,
+                  totalAttempts: configs.count
+                )
+              } else if finalSuccessfulConfigs.isEmpty {
+                // All failed
+                NotificationService.shared.showAutomationComplete(
+                  successCount: 0,
+                  totalAttempts: configs.count
+                )
+              } else {
+                // Mixed results
+                NotificationService.shared.showAutomationComplete(
+                  successCount: finalSuccessfulConfigs.count,
+                  totalAttempts: configs.count
+                )
+              }
             }
           }
         }
@@ -1246,6 +1266,12 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         .info(
           "🔄 ReservationOrchestrator: \(modeName) timeout status - isRunning: \(self.statusManager.isRunning), status: \(self.statusManager.lastRunStatus.description)",
         )
+
+      // Send timeout notification
+      NotificationService.shared.showAutomationComplete(
+        successCount: 0,
+        totalAttempts: configs.count
+      )
     }
   }
 }

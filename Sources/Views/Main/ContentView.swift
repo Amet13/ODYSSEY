@@ -321,11 +321,11 @@ private struct MainBody: View {
     let enabledConfigs = configManager.getEnabledConfigurations()
 
     if enabledConfigs.isEmpty {
-      print("ℹ️ No enabled configurations found.")
+      // No enabled configurations found - handled by UI state
       return
     } else {
       // Run all enabled configurations immediately
-      print("⚡ God Mode: Running \(enabledConfigs.count) enabled configurations.")
+      // Running God Mode with enabled configurations
       orchestrator.runMultipleReservations(for: enabledConfigs, runType: .godmode)
     }
   }

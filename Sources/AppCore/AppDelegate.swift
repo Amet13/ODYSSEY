@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 import SwiftUI
 import os.log
 
@@ -32,7 +33,6 @@ struct ODYSSEYApp: App {
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
   private var statusBarController: StatusBarController?
-  private var timer: Timer?
   private var globalKeyMonitor: Any?
   private var isAutorunExecuting = false  // Prevent duplicate executions
   private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "AppDelegate")
@@ -43,6 +43,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationDidFinishLaunching(_: Notification) {
+    // Check for scheduled execution command line argument
+    let arguments = CommandLine.arguments
+    let isScheduledExecution = arguments.contains("--scheduled")
+
+    if isScheduledExecution {
+      // Handle scheduled execution from Launch Agent
+      handleScheduledExecution()
+      return
+    }
+
+    // Normal app startup
     // Hide dock icon since this is a status bar app
     NSApp.setActivationPolicy(.accessory)
 
@@ -69,8 +80,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
   func applicationWillTerminate(_: Notification) {
     // Clean up
-    timer?.invalidate()
-    timer = nil
     isAutorunExecuting = false
 
     // Remove global keyboard monitor
@@ -171,6 +180,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         self?.schedulePreciseAutorun()
       }
     }
+
+    // Observe distributed notifications from Launch Agent trigger instances
+    DistributedNotificationCenter.default().addObserver(
+      forName: NSNotification.Name("com.odyssey.triggerScheduledReservations"),
+      object: nil,
+      queue: .main,
+      using: { [weak self] notification in
+        Task { @MainActor in
+          let receivedTime = Date()
+          self?.logger.info(
+            "📨 RECEIVED: Scheduled reservations trigger from Launch Agent at \(receivedTime)")
+          self?.checkScheduledReservations()
+        }
+      }
+    )
   }
 
   private func setupSchedulingTimer() {
@@ -205,7 +229,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let timeType = useCustomTime ? "custom" : "default"
     logger
       .info(
-        "🔍 DEBUG: Current autorun time is set to \(autorunHour):\(autorunMinute):\(autorunSecond) (\(timeType))",
+        "🕐 Autorun scheduled for \(autorunHour):\(autorunMinute):\(autorunSecond) (\(timeType))",
       )
 
     // Calculate the next autorun time using the determined time
@@ -228,30 +252,223 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     // Schedule autorun reminder notification (1 hour before)
 
-    // No need to cancel anything since we're using simple Timer.scheduledTimer
+    // Use Launch Agent for precise system-level scheduling
+    scheduleLaunchAgent(for: nextAutorun)
+  }
 
-    // Use DispatchQueue.main.asyncAfter for precise timing without actor isolation issues
-    DispatchQueue.main.asyncAfter(deadline: .now() + timeUntilAutorun) { [weak self] in
-      guard let self = self else { return }
+  private func handleScheduledExecution() {
+    let startTime = Date()
+    logger.info("🕐 SCHEDULED EXECUTION - Triggered by Launch Agent at \(startTime)")
 
-      let currentTime = Date()
-      let cal = Calendar.current
-      let hour = cal.component(.hour, from: currentTime)
-      let minute = cal.component(.minute, from: currentTime)
-      let second = cal.component(.second, from: currentTime)
-      let timeStr = "\(hour):\(String(format: "%02d", minute)):\(String(format: "%02d", second))"
+    // Check if another instance of the app is already running
+    let runningApps = NSWorkspace.shared.runningApplications
+    let odysseyApps = runningApps.filter { app in
+      app.bundleIdentifier == Bundle.main.bundleIdentifier && app != NSRunningApplication.current
+    }
 
-      self.logger.info("🕕 PRECISE \(timeStr) autorun triggered.")
-      self.checkScheduledReservations()
+    if !odysseyApps.isEmpty {
+      // Another instance is running - this means the main app is open
+      // We should notify the main app to trigger scheduled reservations
+      logger.info(
+        "📱 Main app instance detected - sending notification to trigger scheduled reservations")
 
-      // Schedule the next day's autorun after a short delay
-      DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { [weak self] in
-        self?.schedulePreciseAutorun()
+      // Send distributed notification to the main app instance
+      let notificationTime = Date()
+      let timeSinceStart = notificationTime.timeIntervalSince(startTime)
+      logger.info(
+        "📤 Sending notification to main app (\(String(format: "%.2f", timeSinceStart))s since trigger)"
+      )
+
+      let notificationCenter = DistributedNotificationCenter.default()
+      notificationCenter.postNotificationName(
+        NSNotification.Name("com.odyssey.triggerScheduledReservations"),
+        object: nil,
+        userInfo: nil,
+        deliverImmediately: true
+      )
+
+      let exitTime = Date()
+      let totalTime = exitTime.timeIntervalSince(startTime)
+      logger.info(
+        "📤 Notification sent to main app - exiting trigger instance (\(String(format: "%.2f", totalTime))s total)"
+      )
+      NSApplication.shared.terminate(nil)
+    } else {
+      // No other instance running - main app is closed
+      // We should start the main app normally
+      logger.info("📱 No main app instance found - starting ODYSSEY normally")
+
+      // Continue with normal app startup but in accessory mode
+      NSApp.setActivationPolicy(.accessory)
+
+      // Initialize status bar controller
+      statusBarController = StatusBarController()
+
+      // Set up global keyboard shortcuts
+      setupGlobalKeyboardShortcuts()
+
+      // Set up scheduling timer (since this will become the main instance)
+      setupSchedulingTimer()
+
+      // Set up notification observers
+      setupNotificationObservers()
+
+      // Initialize services
+      initializeServices()
+
+      // Perform startup maintenance
+      performStartupMaintenance()
+
+      logger.info("✅ Scheduled execution became main app instance")
+    }
+  }
+
+  private func scheduleLaunchAgent(for targetTime: Date) {
+    let calendar = Calendar.current
+    let components = calendar.dateComponents([.hour, .minute], from: targetTime)
+
+    guard let hour = components.hour, let minute = components.minute else {
+      logger.error("❌ Failed to extract time components from target time")
+      return
+    }
+
+    // Find the exact path to the ODYSSEY app dynamically
+    var appPath = ""
+
+    // Method 1: Use the currently running app's path (most reliable)
+    let currentAppPath = Bundle.main.bundlePath + "/Contents/MacOS/ODYSSEY"
+    if FileManager.default.fileExists(atPath: currentAppPath) {
+      appPath = currentAppPath
+      logger.info("✅ Using current app path: \(appPath)")
+    }
+
+    // Method 2: Check standard installation locations (for production builds)
+    if appPath.isEmpty {
+      let standardLocations = [
+        "/Applications/ODYSSEY.app/Contents/MacOS/ODYSSEY",  // System Applications
+        "\(FileManager.default.homeDirectoryForCurrentUser.path)/Applications/ODYSSEY.app/Contents/MacOS/ODYSSEY",  // User Applications
+      ]
+
+      for location in standardLocations {
+        if FileManager.default.fileExists(atPath: location) {
+          appPath = location
+          logger.info("✅ Found app in standard location: \(appPath)")
+          break
+        }
       }
+    }
+
+    // Method 3: Search Xcode DerivedData (for development builds)
+    if appPath.isEmpty {
+      let homeDir = FileManager.default.homeDirectoryForCurrentUser.path
+      let derivedDataPath = "\(homeDir)/Library/Developer/Xcode/DerivedData"
+
+      if let enumerator = FileManager.default.enumerator(atPath: derivedDataPath) {
+        for case let path as String in enumerator {
+          if path.hasSuffix("ODYSSEY.app/Contents/MacOS/ODYSSEY") {
+            appPath = "\(derivedDataPath)/\(path)"
+            logger.info("✅ Found app in Xcode DerivedData: \(appPath)")
+            break
+          }
+        }
+      }
+    }
+
+    // Final fallback: Try to construct path from current bundle (should work in most cases)
+    if appPath.isEmpty {
+      appPath = Bundle.main.bundlePath + "/Contents/MacOS/ODYSSEY"
+      logger.info("⚠️ Using bundle path fallback: \(appPath)")
+    }
+
+    // Create Launch Agent plist that directly triggers the app
+    let plistContent = """
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+          <key>Label</key>
+          <string>com.odyssey.scheduled</string>
+          <key>ProgramArguments</key>
+          <array>
+              <string>\(appPath)</string>
+              <string>--scheduled</string>
+          </array>
+          <key>StartCalendarInterval</key>
+          <dict>
+              <key>Hour</key>
+              <integer>\(hour)</integer>
+              <key>Minute</key>
+              <integer>\(minute)</integer>
+          </dict>
+          <key>RunAtLoad</key>
+          <false/>
+          <key>StandardOutPath</key>
+          <string>/Users/\(NSUserName())/Library/Logs/ODYSSEY/scheduled.log</string>
+          <key>StandardErrorPath</key>
+          <string>/Users/\(NSUserName())/Library/Logs/ODYSSEY/scheduled_error.log</string>
+      </dict>
+      </plist>
+      """
+
+    // Create Launch Agent directory
+    let launchAgentDir = FileManager.default.homeDirectoryForCurrentUser
+      .appendingPathComponent("Library/LaunchAgents")
+
+    let logsDir = FileManager.default.homeDirectoryForCurrentUser
+      .appendingPathComponent("Library/Logs/ODYSSEY")
+
+    do {
+      try FileManager.default.createDirectory(at: launchAgentDir, withIntermediateDirectories: true)
+      try FileManager.default.createDirectory(at: logsDir, withIntermediateDirectories: true)
+    } catch {
+      logger.error("❌ Failed to create directories: \(error)")
+      return
+    }
+
+    // Write Launch Agent plist
+    let plistPath = launchAgentDir.appendingPathComponent("com.odyssey.scheduled.plist")
+    do {
+      try plistContent.write(to: plistPath, atomically: true, encoding: .utf8)
+      logger.info("✅ Launch Agent plist created: \(plistPath.path)")
+    } catch {
+      logger.error("❌ Failed to write Launch Agent plist: \(error)")
+      return
+    }
+
+    // Unload existing Launch Agent if it exists
+    let unloadProcess = Process()
+    unloadProcess.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+    unloadProcess.arguments = ["unload", plistPath.path]
+    try? unloadProcess.run()
+    unloadProcess.waitUntilExit()
+
+    // Load the new Launch Agent
+    let loadProcess = Process()
+    loadProcess.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+    loadProcess.arguments = ["load", plistPath.path]
+
+    do {
+      try loadProcess.run()
+      loadProcess.waitUntilExit()
+
+      if loadProcess.terminationStatus == 0 {
+        logger.info(
+          "🚀 Launch Agent loaded successfully for \(hour):\(String(format: "%02d", minute))")
+        logger.info(
+          "⏰ SYSTEM-LEVEL SCHEDULING ACTIVE - Direct app trigger at \(hour):\(String(format: "%02d", minute)):00"
+        )
+      } else {
+        logger.error("❌ Failed to load Launch Agent")
+      }
+    } catch {
+      logger.error("❌ Failed to execute launchctl: \(error)")
     }
   }
 
   private func checkScheduledReservations() {
+    let executionStartTime = Date()
+    logger.info("🚀 Starting scheduled reservations execution at \(executionStartTime)")
+
     // Prevent duplicate executions
     guard !isAutorunExecuting else {
       logger.info("🔄 Autorun already executing, skipping duplicate call.")
@@ -268,14 +485,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     // Log all configurations for debugging
     logger.info(
-      "🔍 DEBUG: Checking \(configManager.settings.configurations.count) total configurations:")
+      "🔍 Checking \(configManager.settings.configurations.count) configurations for scheduled execution:"
+    )
     for (index, config) in configManager.settings.configurations.enumerated() {
       let enabledStatus = config.isEnabled ? "✅ enabled" : "❌ disabled"
       let daySlots = config.dayTimeSlots.compactMap { day, slots in
         slots.isEmpty ? nil : "\(day.rawValue): \(slots.count) slots"
       }.joined(separator: ", ")
       logger.info(
-        "🔍 DEBUG: Config \(index + 1): '\(config.name)' - \(enabledStatus) - Days: [\(daySlots)]")
+        "🔍 Config \(index + 1): '\(config.name)' - \(enabledStatus) - Days: [\(daySlots)]")
     }
 
     // Collect all configurations that should run at the custom autorun time today
@@ -376,12 +594,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     if timeDifference > 5 {
       logger.info(
-        "🔍 DEBUG: Time mismatch - current: \(currentTimeStr), autorun: \(autorunTimeStr), difference: \(timeDifference)s (outside 5s window)",
+        "⏰ Time check: current \(currentTimeStr), scheduled \(autorunTimeStr) (\(timeDifference)s difference - outside tolerance window)",
       )
       return false
     } else {
       logger.info(
-        "✅ DEBUG: Time match found - current: \(currentTimeStr), autorun: \(autorunTimeStr), difference: \(timeDifference)s (within 5s window)",
+        "✅ Time match: current \(currentTimeStr), scheduled \(autorunTimeStr) (\(timeDifference)s difference - within tolerance window)",
       )
     }
 
@@ -416,11 +634,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
       logger
         .info(
-          "🔍 DEBUG: Config '\(config.name)' - Day: \(day.rawValue), targetWeekday: \(targetWeekday), currentWeekday: \(currentWeekday)",
+          "📅 Config '\(config.name)' - Day: \(day.rawValue), target: \(targetWeekday), current: \(currentWeekday)",
         )
       logger
         .info(
-          "🔍 DEBUG: daysUntilTarget: \(targetWeekday == currentWeekday ? "0 (same day)" : "\(targetWeekday - currentWeekday)"), reservationDay: \(reservationDay), autorunDay: \(autorunDay), today: \(today)",
+          "📅 Days until target: \(targetWeekday == currentWeekday ? "0 (same day)" : "\(targetWeekday - currentWeekday)"), reservation: \(reservationDay), autorun: \(autorunDay), today: \(today)",
         )
 
       if calendar.isDate(today, inSameDayAs: autorunDay) {
