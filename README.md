@@ -28,17 +28,16 @@
 
 - **Launch:** Open the app. You'll see a new icon in your menu bar.
 - **Configure:** Click the icon to add your settings and create your first configuration(s).
-- **Automate!** Enable autorun, or run it manually, and let ODYSSEY book your sports for you! 🎉
+- **Automate!** Enable autorun, or run it manually, and let ODYSSEY book your sports for you!
 
 ## ✨ Key Features
 
-- 🖥️ **macOS Application** – Menu bar app for automation.
-- 🛡️ **Native WebKit automation** – Robust, human-like browser automation.
-- ⏰ **Smart scheduling** – Automated runs based on your time slots.
-- 🔒 **Secure & private** – Local processing, Keychain storage, no external data.
-- 📧 **Email integration** – Automated verification and confirmations.
-- 🎨 **Modern interface** – Beautiful SwiftUI with dark mode support.
-- 🔔 **Smart notifications** – Simple, reliable notifications for reservation success, failure, and automation completion.
+- 🖥️ **Menu Bar App** – Runs quietly in your menu bar, out of the way of your work.
+- 🛡️ **Smart Automation** – Automatically books your sports reservations just like a person would.
+- ⏰ **Flexible Scheduling** – Set up automatic booking times that work with your schedule.
+- 🔒 **Secure & Private** – Everything happens on your Mac, with secure password storage.
+- 📧 **Email Integration** – Automatically reads verification codes from your email for confirmations.
+- 🔔 **Smart Alerts** – Get notified when bookings succeed or need attention.
 
 ## 📚 Documentation
 
@@ -49,7 +48,7 @@
 
 ### 🎓 Educational Purpose
 
-This application demonstrates modern macOS development techniques including SwiftUI & AppKit integration, WebKit automation, menu bar applications, and secure credential management.
+This application shows how modern Mac apps can automate everyday tasks while staying secure and user-friendly.
 
 ### 🛡️ Responsible Usage
 

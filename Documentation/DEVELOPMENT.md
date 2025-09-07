@@ -62,10 +62,10 @@ cd ODYSSEY
 
 ### Modular Architecture
 
-ODYSSEY uses a **modular Swift Package Manager** architecture with two main targets:
+ODYSSEY uses a **modular Swift Package Manager** architecture with a single main target:
 
-- **`ODYSSEY`:** macOS menu bar application built with SwiftUI.
-- **`ODYSSEYBackend` (Library):** Shared backend services and automation engine.
+- **`ODYSSEY`:** macOS menu bar application built with SwiftUI that includes both UI and backend services.
+- **Backend Services:** Integrated backend services and automation engine within the main application target.
 
 ### Architecture Layers
 
@@ -77,7 +77,14 @@ ODYSSEY uses a **modular Swift Package Manager** architecture with two main targ
 
 ## Notification System
 
-ODYSSEY implements a simple, reliable notification system that works without requiring system permissions. The system focuses on essential notifications only and uses safe delivery methods.
+ODYSSEY implements a built-in notification system that works without requiring macOS system notification permissions. The system provides:
+
+- **Success Notifications:** Alerts when reservations are successfully booked
+- **Failure Notifications:** Critical alerts when reservation attempts fail
+- **Completion Notifications:** Summary alerts when automation runs complete
+- **Delivery Methods:** Uses NSAlert modal dialogs and temporary menu bar title updates
+- **User Control:** Can be enabled/disabled in Advanced Settings
+- **No System Permissions:** Works entirely within app sandbox without external notification permissions
 
 ## 🧪 Code Quality & Testing
 
@@ -146,9 +153,9 @@ The codebase follows a modular service-oriented architecture with these key prin
 
 #### Build System
 
-- **Application:** Built using Xcode project (generated from `Config/project.yml`) with `xcodebuild`.
-- **Shared Library:** `ODYSSEYBackend` provides common services to the app.
-- **Unified Build:** Always use `./Scripts/odyssey.sh build` for consistent builds.
+- **Application:** Built using Xcode project generated from `Config/project.yml` using `xcodegen` and `xcodebuild`.
+- **All-in-One Target:** Single `ODYSSEY` target contains both UI and backend services.
+- **Unified Build:** Always use `./Scripts/odyssey.sh build` for consistent builds across development and CI/CD.
 
 ### Development Guidelines
 
@@ -171,11 +178,20 @@ The codebase follows a modular service-oriented architecture with these key prin
 
 ### App Testing
 
-- **God Mode:** Activate it by pressing `Command+G` in the app to show **GOD MODE** button to run all enabled reservations immediately.
-- **Advanced Settings:** Always available to all users for customizing browser window behavior, autorun timing, and prior days configuration.
-- **Manual Testing:** Test all UI interactions and automation flows.
-- **Log Monitoring:** Use `./Scripts/odyssey.sh logs` to monitor real-time logs.
-- **Build Testing:** The app is built using Xcode project generation and `xcodebuild`.
+- **God Mode:** Activate it by pressing `Command+G` in the main app window to toggle the **GOD MODE** UI. When enabled, a "GOD MODE" button appears in the header that allows running all enabled reservations immediately, bypassing the normal scheduling system.
+- **Advanced Settings:** Available to all users for customizing:
+  - Browser window visibility during automation
+  - Custom autorun timing (default: 6:00 PM)
+  - Custom prior days before reservation (default: 2 days)
+  - Notification preferences
+  - Browser window behavior on failures
+- **Manual Testing:** Test all UI interactions and automation flows:
+  - Configuration creation and editing
+  - Manual reservation runs
+  - Email testing and verification
+  - Settings validation
+- **Log Monitoring:** Use `./Scripts/odyssey.sh logs` to monitor real-time logs with emoji-prefixed messages.
+- **Build Testing:** The app is built using Xcode project generation via `xcodegen` and `xcodebuild`.
 
 ### 📸 Screenshots and Retention
 
@@ -198,31 +214,34 @@ The release process is fully automated through GitHub Actions and can be initiat
 
 This command will:
 
-- Validate the version format.
-- Update version in all files (`project.yml`, `Info.plist`, `AppConstants.swift`).
-- Build and test the application.
+- Validate the version format and check for existing tags.
+- Update version numbers in `Config/project.yml`, `Sources/AppCore/Info.plist`, and `Sources/SharedUtils/AppConstants.swift`.
+- Build and test the application using the unified build script.
 - Commit changes with a descriptive message.
-- Create and push git tag.
+- Create and push git tag to trigger automated release.
 - Push changes to main branch.
+- Trigger GitHub Actions workflow for DMG creation and release publishing.
 
 ### Build System Details
 
-- **Application:** Uses Xcode project generation (`xcodegen`) and `xcodebuild`.
-- **Shared Library:** `ODYSSEYBackend` provides common services to the app target.
-- **Unified Approach:** Always use `./Scripts/odyssey.sh build` for consistent builds.
+- **Application:** Uses Xcode project generation via `xcodegen` from `Config/project.yml` and `xcodebuild` for compilation.
+- **Single Target:** All functionality is contained within the main `ODYSSEY` target (no separate backend library).
+- **Unified Approach:** Always use `./Scripts/odyssey.sh build` for consistent builds across development and CI/CD.
+- **Code Signing:** Automatic code signing for distribution (not notarized by Apple).
 
 ### 🤖 Automated CI/CD Workflow
 
-The project includes a comprehensive CI/CD workflow:
+The project includes a comprehensive CI/CD workflow (`.github/workflows/build-release.yml`):
 
-- **Unified Script Usage:** GitHub Actions use our existing scripts instead of duplicating commands.
-- **Version Validation:** Ensures tag version matches `project.yml` and `Info.plist`.
-- **Code Signing:** Automatically signs the application.
-- **DMG Creation:** Creates professional installer with app icon.
+- **Unified Script Usage:** GitHub Actions use existing scripts instead of duplicating commands.
+- **Version Validation:** Ensures tag version matches `Config/project.yml` and `Sources/AppCore/Info.plist`.
+- **Code Signing:** Automatically signs the application for distribution.
+- **DMG Creation:** Creates professional installer DMG with app icon using `create-dmg`.
 - **Release Notes:** Auto-generates comprehensive release notes with features and troubleshooting.
 - **Changelog Generation:** Creates changelog from git commits since last tag.
 - **GitHub Integration:** Automatically publishes to GitHub Releases.
-- **Comprehensive Linting:** Uses configuration files to ignore acceptable warnings while catching critical issues.
+- **Quality Checks:** Runs linting and build validation before releases.
+- **Cross-Platform:** Works on both Intel and Apple Silicon Macs.
 
 **Key Workflows:**
 

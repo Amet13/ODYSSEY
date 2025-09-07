@@ -92,5 +92,5 @@ In the **Settings** → **Advanced Settings** section, you can configure:
 
 ## 💤 Sleep and Autorun Reliability
 
-- ODYSSEY schedules automatic runs two days prior at 6:00 p.m. If your Mac is sleeping at that time, the run may be missed.
-- To ensure reliability, keep your Mac awake around 6:00 p.m. on autorun days. You can use third-party utilities such as [Caffeine](https://www.caffeine-app.net) to temporarily prevent sleep.
+- ODYSSEY schedules automatic runs based on your configured settings (default: two days prior at 6:00 p.m.). If your Mac is sleeping at the scheduled time, the run may be missed.
+- To ensure reliability, keep your Mac awake around your configured autorun time. You can use third-party utilities such as [Caffeine](https://www.caffeine-app.net) to temporarily prevent sleep.
