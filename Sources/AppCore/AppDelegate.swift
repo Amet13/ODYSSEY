@@ -267,10 +267,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     if !odysseyApps.isEmpty {
-      // Another instance is running - this means the main app is open
-      // We should notify the main app to trigger scheduled reservations
+      // Another instance is running - this means the main app is open in tray
+      // User expects autoruns to happen by schedule, so trigger reservations
       logger.info(
-        "📱 Main app instance detected - sending notification to trigger scheduled reservations")
+        "📱 Main app instance detected (running in tray) - triggering scheduled reservations")
 
       // Send distributed notification to the main app instance
       let notificationTime = Date()
@@ -295,31 +295,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       NSApplication.shared.terminate(nil)
     } else {
       // No other instance running - main app is closed
-      // We should start the main app normally
-      logger.info("📱 No main app instance found - starting ODYSSEY normally")
+      // User doesn't want reservations to run if app is not in tray
+      logger.info(
+        "📱 No main app instance found - skipping scheduled reservations (app not running in tray)")
 
-      // Continue with normal app startup but in accessory mode
-      NSApp.setActivationPolicy(.accessory)
+      let exitTime = Date()
+      let totalTime = exitTime.timeIntervalSince(startTime)
+      logger.info(
+        "⏭️ Scheduled execution skipped - exiting trigger instance (\(String(format: "%.2f", totalTime))s total)"
+      )
 
-      // Initialize status bar controller
-      statusBarController = StatusBarController()
-
-      // Set up global keyboard shortcuts
-      setupGlobalKeyboardShortcuts()
-
-      // Set up scheduling timer (since this will become the main instance)
-      setupSchedulingTimer()
-
-      // Set up notification observers
-      setupNotificationObservers()
-
-      // Initialize services
-      initializeServices()
-
-      // Perform startup maintenance
-      performStartupMaintenance()
-
-      logger.info("✅ Scheduled execution became main app instance")
+      // Exit without running any reservations
+      NSApplication.shared.terminate(nil)
     }
   }
 
@@ -438,14 +425,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Unload existing Launch Agent if it exists
     let unloadProcess = Process()
     unloadProcess.executableURL = URL(fileURLWithPath: "/bin/launchctl")
-    unloadProcess.arguments = ["unload", plistPath.path]
+    unloadProcess.arguments = ["bootout", "gui/\(getuid())", plistPath.path]
     try? unloadProcess.run()
     unloadProcess.waitUntilExit()
 
-    // Load the new Launch Agent
+    // Load the new Launch Agent using bootstrap (preferred method for macOS 15+)
     let loadProcess = Process()
     loadProcess.executableURL = URL(fileURLWithPath: "/bin/launchctl")
-    loadProcess.arguments = ["load", plistPath.path]
+    loadProcess.arguments = ["bootstrap", "gui/\(getuid())", plistPath.path]
 
     do {
       try loadProcess.run()
@@ -457,8 +444,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         logger.info(
           "⏰ SYSTEM-LEVEL SCHEDULING ACTIVE - Direct app trigger at \(hour):\(String(format: "%02d", minute)):00"
         )
+
+        // Verify the agent is actually loaded
+        let verifyProcess = Process()
+        verifyProcess.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+        verifyProcess.arguments = ["list", "com.odyssey.scheduled"]
+        try? verifyProcess.run()
+        verifyProcess.waitUntilExit()
+
+        if verifyProcess.terminationStatus != 0 {
+          logger.warning("⚠️ Launch Agent may not be properly loaded - verification failed")
+        }
       } else {
-        logger.error("❌ Failed to load Launch Agent")
+        logger.error("❌ Failed to load Launch Agent (exit code: \(loadProcess.terminationStatus))")
       }
     } catch {
       logger.error("❌ Failed to execute launchctl: \(error)")
@@ -564,46 +562,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     // Calculate autorun time based on TODAY's date, not the current time
     let today = calendar.startOfDay(for: date)
-    let autorunTime: Date
-    if useCustomTime {
-      // Use the custom time set by the user, but for today
-      let customTime = userSettingsManager.userSettings.customAutorunTime
-      let customHour = calendar.component(.hour, from: customTime)
-      let customMinute = calendar.component(.minute, from: customTime)
-      let customSecond = calendar.component(.second, from: customTime)
-      autorunTime =
-        calendar.date(
-          bySettingHour: customHour, minute: customMinute, second: customSecond, of: today) ?? today
-    } else {
-      // Use default 6:00 PM time for today
-      autorunTime = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: today) ?? today
-    }
 
-    // Extract time components from the calculated autorun time for today
-    let autorunHour = calendar.component(.hour, from: autorunTime)
-    let autorunMinute = calendar.component(.minute, from: autorunTime)
-    let autorunSecond = calendar.component(.second, from: autorunTime)
+    // FIRST: Check if today is a valid autorun day for ANY of the configuration's enabled days
+    var isValidAutorunDay = false
+    var validAutorunTime: Date?
 
-    // Allow a 5-second window for autorun triggering (reliable tolerance for system timing)
-    let currentTimeInSeconds = currentHour * 3_600 + currentMinute * 60 + currentSecond
-    let autorunTimeInSeconds = autorunHour * 3_600 + autorunMinute * 60 + autorunSecond
-    let timeDifference = abs(currentTimeInSeconds - autorunTimeInSeconds)
-
-    let currentTimeStr = "\(currentHour):\(currentMinute):\(currentSecond)"
-    let autorunTimeStr = "\(autorunHour):\(autorunMinute):\(autorunSecond)"
-
-    if timeDifference > 5 {
-      logger.info(
-        "⏰ Time check: current \(currentTimeStr), scheduled \(autorunTimeStr) (\(timeDifference)s difference - outside tolerance window)",
-      )
-      return false
-    } else {
-      logger.info(
-        "✅ Time match: current \(currentTimeStr), scheduled \(autorunTimeStr) (\(timeDifference)s difference - within tolerance window)",
-      )
-    }
-
-    // For each enabled day, check if today is N days before that day
     for (day, timeSlots) in config.dayTimeSlots {
       guard !timeSlots.isEmpty else { continue }
 
@@ -642,9 +605,58 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
 
       if calendar.isDate(today, inSameDayAs: autorunDay) {
-        return true
+        // Today IS a valid autorun day for this configuration
+        isValidAutorunDay = true
+
+        // Calculate the autorun time for this valid day
+        if useCustomTime {
+          let customTime = userSettingsManager.userSettings.customAutorunTime
+          let customHour = calendar.component(.hour, from: customTime)
+          let customMinute = calendar.component(.minute, from: customTime)
+          let customSecond = calendar.component(.second, from: customTime)
+          validAutorunTime =
+            calendar.date(
+              bySettingHour: customHour, minute: customMinute, second: customSecond, of: today)
+            ?? today
+        } else {
+          // Use default 6:00 PM time for today
+          validAutorunTime =
+            calendar.date(bySettingHour: 18, minute: 0, second: 0, of: today) ?? today
+        }
+        break  // Found a match, no need to check other days
       }
     }
-    return false
+
+    // If today is NOT a valid autorun day for this configuration, don't run it
+    guard isValidAutorunDay, let autorunTime = validAutorunTime else {
+      logger.info("📅 Today is not a valid autorun day for configuration '\(config.name)'")
+      return false
+    }
+
+    // SECOND: Now that we know today IS a valid autorun day, check the time
+    let autorunHour = calendar.component(.hour, from: autorunTime)
+    let autorunMinute = calendar.component(.minute, from: autorunTime)
+    let autorunSecond = calendar.component(.second, from: autorunTime)
+
+    // Allow a 5-second window for autorun triggering (reliable tolerance for system timing)
+    let currentTimeInSeconds = currentHour * 3_600 + currentMinute * 60 + currentSecond
+    let autorunTimeInSeconds = autorunHour * 3_600 + autorunMinute * 60 + autorunSecond
+    let timeDifference = abs(currentTimeInSeconds - autorunTimeInSeconds)
+
+    let currentTimeStr = "\(currentHour):\(currentMinute):\(currentSecond)"
+    let autorunTimeStr = "\(autorunHour):\(autorunMinute):\(autorunSecond)"
+
+    if timeDifference > 5 {
+      logger.info(
+        "⏰ Time check: current \(currentTimeStr), scheduled \(autorunTimeStr) (\(timeDifference)s difference - outside tolerance window)",
+      )
+      return false
+    } else {
+      logger.info(
+        "✅ Time match: current \(currentTimeStr), scheduled \(autorunTimeStr) (\(timeDifference)s difference - within tolerance window)",
+      )
+    }
+
+    return true
   }
 }

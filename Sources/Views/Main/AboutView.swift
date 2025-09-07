@@ -7,7 +7,13 @@ struct AboutView: View {
   @State private var showingUpToDateAlert = false
 
   private var appVersion: String {
-    Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+    let baseVersion =
+      Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+    #if DEBUG
+      return "\(baseVersion)-debug"
+    #else
+      return baseVersion
+    #endif
   }
 
   private var buildNumber: String {

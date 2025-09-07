@@ -225,6 +225,29 @@ clean_builds() {
     # Remove previous DMG files
     rm -f ODYSSEY-*.dmg 2>/dev/null || true
 
+    # Clean launch agents
+    print_status "step" "Cleaning launch agents..."
+    LAUNCH_AGENT_PLIST="$HOME/Library/LaunchAgents/com.odyssey.scheduled.plist"
+
+    # Unload launch agent if it exists
+    if launchctl list com.odyssey.scheduled >/dev/null 2>&1; then
+        print_status "info" "Unloading existing launch agent..."
+        launchctl bootout "gui/$(id -u)" "$LAUNCH_AGENT_PLIST" 2>/dev/null || true
+    fi
+
+    # Remove launch agent plist file
+    if [ -f "$LAUNCH_AGENT_PLIST" ]; then
+        print_status "info" "Removing launch agent plist file..."
+        rm -f "$LAUNCH_AGENT_PLIST" 2>/dev/null || true
+    fi
+
+    # Clean ODYSSEY log files
+    ODYSSEY_LOG_DIR="$HOME/Library/Logs/ODYSSEY"
+    if [ -d "$ODYSSEY_LOG_DIR" ]; then
+        print_status "info" "Removing ODYSSEY log files..."
+        rm -rf "$ODYSSEY_LOG_DIR" 2>/dev/null || true
+    fi
+
     print_status "success" "Build cleaned"
 }
 
