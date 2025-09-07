@@ -108,7 +108,7 @@ targets:
       properties:
         CFBundleName: ODYSSEY
         CFBundleIdentifier: com.odyssey.app
-        CFBundleShortVersionString: 2.5.0
+        CFBundleShortVersionString: 2.5.1
         CFBundleVersion: 1
         CFBundleDisplayName: ODYSSEY
         CFBundlePackageType: APPL
