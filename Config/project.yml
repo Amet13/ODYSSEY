@@ -13,7 +13,8 @@ options:
 settings:
   base:
     DEVELOPMENT_TEAM: ""
-    CODE_SIGN_IDENTITY: ""
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_ENTITLEMENTS: ODYSSEY.entitlements
     SWIFT_VERSION: 6.1
     ENABLE_PREVIEWS: YES
     MACOSX_DEPLOYMENT_TARGET: 15
@@ -33,7 +34,7 @@ settings:
     INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_recreation.ottawa.ca_NSExceptionAllowsInsecureHTTPLoads: true
     INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_recreation.ottawa.ca_NSExceptionMinimumTLSVersion: TLSv1.2
     INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_recreation.ottawa.ca_NSIncludesSubdomains: true
-    ENABLE_HARDENED_RUNTIME: YES
+    ENABLE_HARDENED_RUNTIME: NO
     ENABLE_APP_SANDBOX: YES
     SWIFT_OPTIMIZATION_LEVEL: -Onone
     GCC_OPTIMIZATION_LEVEL: 0
@@ -142,8 +143,9 @@ targets:
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
         INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2025 Amet13. All rights reserved."
         INFOPLIST_KEY_LSUIElement: true
-        ENABLE_HARDENED_RUNTIME: YES
+        ENABLE_HARDENED_RUNTIME: NO
         ENABLE_APP_SANDBOX: YES
+        CODE_SIGN_ENTITLEMENTS: ODYSSEY.entitlements
         SWIFT_VERSION: 6.1
         MACOSX_DEPLOYMENT_TARGET: 15
         ENABLE_PREVIEWS: YES
