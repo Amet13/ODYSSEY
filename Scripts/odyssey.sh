@@ -156,7 +156,6 @@ find_built_app() {
     echo "$app_path"
 }
 
-
 # Function to validate app structure
 validate_app_structure() {
     local app_path=$1
@@ -376,7 +375,6 @@ run_swift_format() {
     fi
 }
 
-
 # Function to manage existing ODYSSEY instances
 manage_existing_instances() {
     print_status "step" "Managing existing ODYSSEY instances..."
@@ -492,8 +490,6 @@ build_application() {
         -destination 'platform=macOS,arch=arm64' \
         -quiet \
         -showBuildTimingSummary
-
-
 
     # Find the built app
     print_status "step" "Locating built application..."
@@ -654,8 +650,6 @@ update_version_files() {
     # Update AppConstants.swift
     sed -i '' "s/appVersion = \".*\"/appVersion = \"$version\"/" "Sources/SharedUtils/AppConstants.swift"
     print_status "success" "Updated AppConstants.swift"
-
-
 }
 
 # Function to create release
@@ -692,8 +686,6 @@ create_release() {
     print_status "step" "Building applications to validate changes..."
     build_application
 
-
-
     # Commit changes
     print_status "step" "Committing version changes..."
     git add .
@@ -716,8 +708,6 @@ create_release() {
     print_status "info" "Monitor the release at: https://github.com/Amet13/ODYSSEY/releases"
 }
 
-
-
 # Function to deploy and create release artifacts
 deploy_release() {
     print_status "step" "Deploying release artifacts..."
@@ -739,8 +729,6 @@ deploy_release() {
     APP_PATH=$(find_built_app Release)
     print_status "success" "Application built at: $APP_PATH"
 
-
-
     # Create release_files directory and copy artifacts
     print_status "step" "Preparing release artifacts..."
     mkdir -p release_files
@@ -748,8 +736,6 @@ deploy_release() {
     # Copy app to release_files
     cp -R "$APP_PATH" release_files/
     print_status "success" "App copied to release_files/"
-
-
 
     # Code sign
     print_status "step" "Code signing applications..."
@@ -882,7 +868,6 @@ main() {
             validate_project_root
             run_linting
             ;;
-
         "clean")
             validate_project_root
             clean_builds
@@ -899,7 +884,6 @@ main() {
             validate_project_root
             deploy_release
             ;;
-
         "changelog")
             validate_project_root
             generate_changelog
