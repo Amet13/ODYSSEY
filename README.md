@@ -10,9 +10,6 @@
     <a href="https://github.com/Amet13/ODYSSEY/releases">
       <img src="https://img.shields.io/github/v/release/Amet13/ODYSSEY?label=version" alt="Latest Release">
     </a>
-    <a href="https://github.com/Amet13/ODYSSEY/blob/main/LICENSE">
-      <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License">
-    </a>
   </p>
 </div>
 
