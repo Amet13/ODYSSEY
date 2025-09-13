@@ -10,7 +10,7 @@ struct AboutView: View {
     let baseVersion =
       Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
     #if DEBUG
-      return "\(baseVersion)-debug"
+      return "\(baseVersion)-dev"
     #else
       return baseVersion
     #endif

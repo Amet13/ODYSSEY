@@ -88,6 +88,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       globalKeyMonitor = nil
     }
 
+    // Clean up Launch Agent to prevent orphaned plist files
+    cleanupLaunchAgent()
+
     // Emergency cleanup for any running automation
     Task {
       await orchestrator.emergencyCleanup(runType: .manual)
@@ -292,6 +295,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       logger.info(
         "📤 Notification sent to main app - exiting trigger instance (\(String(format: "%.2f", totalTime))s total)"
       )
+
+      // Clean up Launch Agent after successful execution
+      cleanupLaunchAgent()
+
       NSApplication.shared.terminate(nil)
     } else {
       // No other instance running - main app is closed
@@ -304,6 +311,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       logger.info(
         "⏭️ Scheduled execution skipped - exiting trigger instance (\(String(format: "%.2f", totalTime))s total)"
       )
+
+      // Clean up Launch Agent since execution was skipped
+      cleanupLaunchAgent()
 
       // Exit without running any reservations
       NSApplication.shared.terminate(nil)
@@ -535,6 +545,44 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       }
     } else {
       logger.info("ℹ️ No configurations eligible for autorun at this time.")
+    }
+  }
+
+  /// Cleans up the Launch Agent plist file and unloads it from launchd
+  private func cleanupLaunchAgent() {
+    let launchAgentPlistPath = FileManager.default.homeDirectoryForCurrentUser
+      .appendingPathComponent("Library/LaunchAgents/com.odyssey.scheduled.plist")
+
+    logger.info("🧹 Cleaning up Launch Agent...")
+
+    // Unload the agent from launchd if it's loaded
+    let unloadProcess = Process()
+    unloadProcess.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+    unloadProcess.arguments = ["bootout", "gui/\(getuid())", launchAgentPlistPath.path]
+    do {
+      try unloadProcess.run()
+      unloadProcess.waitUntilExit()
+      if unloadProcess.terminationStatus == 0 {
+        logger.info("✅ Launch Agent unloaded successfully")
+      } else {
+        logger.warning(
+          "⚠️ Launch Agent unload returned non-zero exit code: \(unloadProcess.terminationStatus)")
+      }
+    } catch {
+      logger.warning("⚠️ Failed to unload Launch Agent: \(error.localizedDescription)")
+    }
+
+    // Remove the plist file
+    do {
+      try FileManager.default.removeItem(at: launchAgentPlistPath)
+      logger.info("✅ Launch Agent plist file removed: \(launchAgentPlistPath.path)")
+    } catch {
+      // It's okay if the file doesn't exist
+      if (error as NSError).code != NSFileNoSuchFileError {
+        logger.warning("⚠️ Failed to remove Launch Agent plist file: \(error.localizedDescription)")
+      } else {
+        logger.info("ℹ️ Launch Agent plist file was already removed")
+      }
     }
   }
 
