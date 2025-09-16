@@ -15,7 +15,7 @@
 	<key>CFBundleIdentifier</key>
 	<string>com.odyssey.app</string>
 	<key>CFBundleInfoDictionaryVersion</key>
-	<real>6</real>
+	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>ODYSSEY</string>
 	<key>CFBundlePackageType</key>
@@ -25,7 +25,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<integer>1</integer>
+	<string>1</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSUIElement</key>

@@ -105,17 +105,17 @@ targets:
     info:
       path: ../Sources/AppCore/Info.plist
       properties:
-        CFBundleName: ODYSSEY
-        CFBundleIdentifier: com.odyssey.app
-        CFBundleShortVersionString: 2.6.1
-        CFBundleVersion: 1
-        CFBundleDisplayName: ODYSSEY
-        CFBundlePackageType: APPL
-        CFBundleSignature: ????
-        CFBundleExecutable: ODYSSEY
-        CFBundleIconFile: AppIcon.icns
-        CFBundleInfoDictionaryVersion: 6.0
-        CFBundleDevelopmentRegion: en
+        CFBundleName: "ODYSSEY"
+        CFBundleIdentifier: "com.odyssey.app"
+        CFBundleShortVersionString: "2.6.1"
+        CFBundleVersion: "1"
+        CFBundleDisplayName: "ODYSSEY"
+        CFBundlePackageType: "APPL"
+        CFBundleSignature: "????"
+        CFBundleExecutable: "ODYSSEY"
+        CFBundleIconFile: "AppIcon.icns"
+        CFBundleInfoDictionaryVersion: "6.0"
+        CFBundleDevelopmentRegion: "en"
         LSApplicationCategoryType: public.app-category.utilities
         LSUIElement: true
         NSHumanReadableCopyright: "Copyright © 2025 Amet13. All rights reserved."
@@ -124,21 +124,21 @@ targets:
           NSExceptionDomains:
             ottawa.ca:
               NSExceptionAllowsInsecureHTTPLoads: true
-              NSExceptionMinimumTLSVersion: TLSv1.2
+              NSExceptionMinimumTLSVersion: "TLSv1.2"
               NSIncludesSubdomains: true
             recreation.ottawa.ca:
               NSExceptionAllowsInsecureHTTPLoads: true
-              NSExceptionMinimumTLSVersion: TLSv1.2
+              NSExceptionMinimumTLSVersion: "TLSv1.2"
               NSIncludesSubdomains: true
-        CFBundleIconName: AppIcon
+        CFBundleIconName: "AppIcon"
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.odyssey.app
-        PRODUCT_NAME: ODYSSEY
+        PRODUCT_BUNDLE_IDENTIFIER: "com.odyssey.app"
+        PRODUCT_NAME: "ODYSSEY"
         MARKETING_VERSION: ${MARKETING_VERSION}
         CURRENT_PROJECT_VERSION: 11
         INFOPLIST_FILE: ../Sources/AppCore/Info.plist
-        INFOPLIST_KEY_CFBundleDisplayName: ODYSSEY
+        INFOPLIST_KEY_CFBundleDisplayName: "ODYSSEY"
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
         INFOPLIST_KEY_NSHumanReadableCopyright: "Copyright © 2025 Amet13. All rights reserved."
         INFOPLIST_KEY_LSUIElement: true
