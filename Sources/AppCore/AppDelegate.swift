@@ -191,7 +191,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         Task { @MainActor in
           let receivedTime = Date()
           self?.logger.info(
-            "📨 RECEIVED: Scheduled reservations trigger from Launch Agent at \(receivedTime)")
+            "📨 RECEIVED: Scheduled reservations trigger from Launch Agent at \(receivedTime).")
           self?.checkScheduledReservations()
         }
       }
@@ -228,16 +228,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let autorunSecond = calendar.component(.second, from: autorunTime)
 
     let timeType = useCustomTime ? "custom" : "default"
-    logger
-      .info(
-        "🕐 Autorun scheduled for \(autorunHour):\(autorunMinute):\(autorunSecond) (\(timeType))",
-      )
+    logger.info(
+      "🕐 Autorun scheduled for \(autorunHour):\(autorunMinute):\(autorunSecond) (\(timeType)).")
 
     // Calculate the next autorun time using the determined time
     var nextAutorun =
       calendar
-      .date(bySettingHour: autorunHour, minute: autorunMinute, second: autorunSecond, of: now)
-      ?? now
+      .date(
+        bySettingHour: autorunHour,
+        minute: autorunMinute,
+        second: AppConstants.defaultAutorunSecond,
+        of: now
+      ) ?? now
 
     if nextAutorun <= now {
       nextAutorun = calendar.date(byAdding: .day, value: 1, to: nextAutorun) ?? nextAutorun
@@ -246,20 +248,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let timeUntilAutorun = nextAutorun.timeIntervalSince(now)
     let timeString = String(format: "%02d:%02d:%02d", autorunHour, autorunMinute, autorunSecond)
 
-    logger
-      .info(
-        "🕕 Scheduling precise autorun for \(nextAutorun) (custom time: \(timeString), in \(timeUntilAutorun) seconds)",
-      )
+    logger.info(
+      "🕕 Scheduling precise autorun for \(nextAutorun) (custom time: \(timeString), in \(timeUntilAutorun) seconds)."
+    )
 
     // Schedule autorun reminder notification (1 hour before)
 
-    // Use Launch Agent for precise system-level scheduling
+    // Write LaunchAgent so the system triggers the app precisely at the configured time
     scheduleLaunchAgent(for: nextAutorun)
   }
 
   private func handleScheduledExecution() {
     let startTime = Date()
-    logger.info("🕐 SCHEDULED EXECUTION - Triggered by Launch Agent at \(startTime)")
+    logger.info("🕐 SCHEDULED EXECUTION - Triggered by Launch Agent at \(startTime).")
 
     // Check if another instance of the app is already running
     let runningApps = NSWorkspace.shared.runningApplications
@@ -271,13 +272,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       // Another instance is running - this means the main app is open in tray
       // User expects autoruns to happen by schedule, so trigger reservations
       logger.info(
-        "📱 Main app instance detected (running in tray) - triggering scheduled reservations")
+        "📱 Main app instance detected (running in tray) - triggering scheduled reservations.")
 
       // Send distributed notification to the main app instance
       let notificationTime = Date()
       let timeSinceStart = notificationTime.timeIntervalSince(startTime)
       logger.info(
-        "📤 Sending notification to main app (\(String(format: "%.2f", timeSinceStart))s since trigger)"
+        "📤 Sending notification to main app (\(String(format: "%.2f", timeSinceStart))s since trigger)."
       )
 
       let notificationCenter = DistributedNotificationCenter.default()
@@ -291,7 +292,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       let exitTime = Date()
       let totalTime = exitTime.timeIntervalSince(startTime)
       logger.info(
-        "📤 Notification sent to main app - exiting trigger instance (\(String(format: "%.2f", totalTime))s total)"
+        "📤 Notification sent to main app - exiting trigger instance (\(String(format: "%.2f", totalTime))s total)."
       )
 
       // Clean up Launch Agent after successful execution
@@ -302,12 +303,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       // No other instance running - main app is closed
       // User doesn't want reservations to run if app is not in tray
       logger.info(
-        "📱 No main app instance found - skipping scheduled reservations (app not running in tray)")
+        "📱 No main app instance found - skipping scheduled reservations (app not running in tray).")
 
       let exitTime = Date()
       let totalTime = exitTime.timeIntervalSince(startTime)
       logger.info(
-        "⏭️ Scheduled execution skipped - exiting trigger instance (\(String(format: "%.2f", totalTime))s total)"
+        "⏭️ Scheduled execution skipped - exiting trigger instance (\(String(format: "%.2f", totalTime))s total)."
       )
 
       // Clean up Launch Agent since execution was skipped
@@ -327,37 +328,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       return
     }
 
-    // Find the exact path to the ODYSSEY app dynamically
+    // Resolve ODYSSEY binary path
     var appPath = ""
 
-    // Method 1: Use the currently running app's path (most reliable)
+    // 1) Running bundle
     let currentAppPath = Bundle.main.bundlePath + "/Contents/MacOS/ODYSSEY"
     if FileManager.default.fileExists(atPath: currentAppPath) {
       appPath = currentAppPath
       logger.info("✅ Using current app path: \(appPath)")
     }
 
-    // Method 2: Check standard installation locations (for production builds)
+    // 2) Standard install locations
     if appPath.isEmpty {
       let standardLocations = [
-        "/Applications/ODYSSEY.app/Contents/MacOS/ODYSSEY",  // System Applications
-        "\(FileManager.default.homeDirectoryForCurrentUser.path)/Applications/ODYSSEY.app/Contents/MacOS/ODYSSEY",  // User Applications
+        "/Applications/ODYSSEY.app/Contents/MacOS/ODYSSEY",
+        "\(FileManager.default.homeDirectoryForCurrentUser.path)/Applications/ODYSSEY.app/Contents/MacOS/ODYSSEY",
       ]
-
-      for location in standardLocations {
-        if FileManager.default.fileExists(atPath: location) {
-          appPath = location
-          logger.info("✅ Found app in standard location: \(appPath)")
-          break
-        }
+      for location in standardLocations where FileManager.default.fileExists(atPath: location) {
+        appPath = location
+        logger.info("✅ Found app in standard location: \(appPath)")
+        break
       }
     }
 
-    // Method 3: Search Xcode DerivedData (for development builds)
+    // 3) Xcode DerivedData (dev builds)
     if appPath.isEmpty {
       let homeDir = FileManager.default.homeDirectoryForCurrentUser.path
       let derivedDataPath = "\(homeDir)/Library/Developer/Xcode/DerivedData"
-
       if let enumerator = FileManager.default.enumerator(atPath: derivedDataPath) {
         for case let path as String in enumerator {
           if path.hasSuffix("ODYSSEY.app/Contents/MacOS/ODYSSEY") {
@@ -369,20 +366,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       }
     }
 
-    // Final fallback: Try to construct path from current bundle (should work in most cases)
+    // Fallback to bundle
     if appPath.isEmpty {
       appPath = Bundle.main.bundlePath + "/Contents/MacOS/ODYSSEY"
       logger.info("⚠️ Using bundle path fallback: \(appPath)")
     }
 
-    // Create Launch Agent plist that directly triggers the app
+    // Directories
+    let launchAgentDir = FileManager.default.homeDirectoryForCurrentUser
+      .appendingPathComponent("Library/LaunchAgents")
+    let logsDir = FileManager.default.homeDirectoryForCurrentUser
+      .appendingPathComponent("Library/Logs/ODYSSEY")
+    do {
+      try FileManager.default.createDirectory(at: launchAgentDir, withIntermediateDirectories: true)
+      try FileManager.default.createDirectory(at: logsDir, withIntermediateDirectories: true)
+    } catch {
+      logger.error("❌ Failed to create directories: \(error.localizedDescription)")
+      return
+    }
+
+    let plistPath = launchAgentDir.appendingPathComponent(AppConstants.launchAgentLabel + ".plist")
     let plistContent = """
-      <?xml version="1.0" encoding="UTF-8"?>
-      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-      <plist version="1.0">
+      <?xml version=\"1.0\" encoding=\"UTF-8\"?>
+      <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n
+      <plist version=\"1.0\">
       <dict>
           <key>Label</key>
-          <string>com.odyssey.scheduled</string>
+          <string>\(AppConstants.launchAgentLabel)</string>
           <key>ProgramArguments</key>
           <array>
               <string>\(appPath)</string>
@@ -398,76 +408,44 @@ class AppDelegate: NSObject, NSApplicationDelegate {
           <key>RunAtLoad</key>
           <false/>
           <key>StandardOutPath</key>
-          <string>/Users/\(NSUserName())/Library/Logs/ODYSSEY/scheduled.log</string>
+          <string>\(logsDir.path)/\(AppConstants.launchAgentScheduledLogFilename)</string>
           <key>StandardErrorPath</key>
-          <string>/Users/\(NSUserName())/Library/Logs/ODYSSEY/scheduled_error.log</string>
+          <string>\(logsDir.path)/\(AppConstants.launchAgentScheduledErrorLogFilename)</string>
       </dict>
       </plist>
       """
 
-    // Create Launch Agent directory
-    let launchAgentDir = FileManager.default.homeDirectoryForCurrentUser
-      .appendingPathComponent("Library/LaunchAgents")
-
-    let logsDir = FileManager.default.homeDirectoryForCurrentUser
-      .appendingPathComponent("Library/Logs/ODYSSEY")
-
-    do {
-      try FileManager.default.createDirectory(at: launchAgentDir, withIntermediateDirectories: true)
-      try FileManager.default.createDirectory(at: logsDir, withIntermediateDirectories: true)
-    } catch {
-      logger.error("❌ Failed to create directories: \(error)")
-      return
-    }
-
-    // Write Launch Agent plist
-    let plistPath = launchAgentDir.appendingPathComponent("com.odyssey.scheduled.plist")
     do {
       try plistContent.write(to: plistPath, atomically: true, encoding: .utf8)
       logger.info("✅ Launch Agent plist created: \(plistPath.path)")
     } catch {
-      logger.error("❌ Failed to write Launch Agent plist: \(error)")
+      logger.error("❌ Failed to write Launch Agent plist: \(error.localizedDescription)")
       return
     }
 
-    // Unload existing Launch Agent if it exists
-    let unloadProcess = Process()
-    unloadProcess.executableURL = URL(fileURLWithPath: "/bin/launchctl")
-    unloadProcess.arguments = ["bootout", "gui/\(getuid())", plistPath.path]
-    try? unloadProcess.run()
-    unloadProcess.waitUntilExit()
+    // Unload existing
+    let unload = Process()
+    unload.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+    unload.arguments = ["bootout", "gui/\(getuid())", plistPath.path]
+    try? unload.run()
+    unload.waitUntilExit()
 
-    // Load the new Launch Agent using bootstrap (preferred method for macOS 26+)
-    let loadProcess = Process()
-    loadProcess.executableURL = URL(fileURLWithPath: "/bin/launchctl")
-    loadProcess.arguments = ["bootstrap", "gui/\(getuid())", plistPath.path]
-
+    // Load new
+    let load = Process()
+    load.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+    load.arguments = ["bootstrap", "gui/\(getuid())", plistPath.path]
     do {
-      try loadProcess.run()
-      loadProcess.waitUntilExit()
-
-      if loadProcess.terminationStatus == 0 {
+      try load.run()
+      load.waitUntilExit()
+      if load.terminationStatus == 0 {
         logger.info(
-          "🚀 Launch Agent loaded successfully for \(hour):\(String(format: "%02d", minute))")
-        logger.info(
-          "⏰ SYSTEM-LEVEL SCHEDULING ACTIVE - Direct app trigger at \(hour):\(String(format: "%02d", minute)):00"
+          "🚀 Launch Agent loaded for \(String(format: "%02d", hour)):\(String(format: "%02d", minute))"
         )
-
-        // Verify the agent is actually loaded
-        let verifyProcess = Process()
-        verifyProcess.executableURL = URL(fileURLWithPath: "/bin/launchctl")
-        verifyProcess.arguments = ["list", "com.odyssey.scheduled"]
-        try? verifyProcess.run()
-        verifyProcess.waitUntilExit()
-
-        if verifyProcess.terminationStatus != 0 {
-          logger.warning("⚠️ Launch Agent may not be properly loaded - verification failed")
-        }
       } else {
-        logger.error("❌ Failed to load Launch Agent (exit code: \(loadProcess.terminationStatus))")
+        logger.error("❌ Failed to load Launch Agent (exit code: \(load.terminationStatus))")
       }
     } catch {
-      logger.error("❌ Failed to execute launchctl: \(error)")
+      logger.error("❌ Failed to execute launchctl: \(error.localizedDescription)")
     }
   }
 
@@ -519,11 +497,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       let useCustomTime = userSettingsManager.userSettings.useCustomAutorunTime
       let autorunTime: Date =
         if useCustomTime {
-          // Use the custom time set by the user
           userSettingsManager.userSettings.customAutorunTime
         } else {
-          // Use default 6:00 PM time
-          calendar.date(bySettingHour: 18, minute: 0, second: 0, of: Date()) ?? Date()
+          calendar.date(
+            bySettingHour: AppConstants.defaultAutorunHour,
+            minute: AppConstants.defaultAutorunMinute,
+            second: AppConstants.defaultAutorunSecond,
+            of: Date()
+          ) ?? Date()
         }
 
       let autorunHour = calendar.component(.hour, from: autorunTime)
@@ -692,7 +673,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let currentTimeStr = "\(currentHour):\(currentMinute):\(currentSecond)"
     let autorunTimeStr = "\(autorunHour):\(autorunMinute):\(autorunSecond)"
 
-    if timeDifference > 5 {
+    if timeDifference > AppConstants.autorunTimeToleranceSeconds {
       logger.info(
         "⏰ Time check: current \(currentTimeStr), scheduled \(autorunTimeStr) (\(timeDifference)s difference - outside tolerance window)",
       )

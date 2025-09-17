@@ -45,15 +45,15 @@ public enum KeychainError: Error, LocalizedError, UnifiedErrorProtocol {
     switch self {
     case .encodingFailed:
       return "Failed to encode value for Keychain."
-    case let .itemAddFailed(status):
+    case .itemAddFailed(let status):
       return "Failed to add item to Keychain: \(status)"
-    case let .itemDeleteFailed(status):
+    case .itemDeleteFailed(let status):
       return "Failed to delete item from Keychain: \(status)"
     case .itemNotFound:
       return "Item not found in Keychain."
-    case let .itemRetrieveFailed(status):
+    case .itemRetrieveFailed(let status):
       return "Failed to retrieve item from Keychain: \(status)"
-    case let .unknown(status):
+    case .unknown(let status):
       return "Unknown Keychain error: \(status)"
     }
   }
@@ -62,13 +62,13 @@ public enum KeychainError: Error, LocalizedError, UnifiedErrorProtocol {
   public var technicalDetails: String? {
     switch self {
     case .encodingFailed: return "Data encoding failed for Keychain storage"
-    case let .itemAddFailed(status): return "Keychain SecItemAdd failed with status: \(status)"
-    case let .itemDeleteFailed(status):
+    case .itemAddFailed(let status): return "Keychain SecItemAdd failed with status: \(status)"
+    case .itemDeleteFailed(let status):
       return "Keychain SecItemDelete failed with status: \(status)"
     case .itemNotFound: return "Keychain SecItemCopyMatching returned errSecItemNotFound"
-    case let .itemRetrieveFailed(status):
+    case .itemRetrieveFailed(let status):
       return "Keychain SecItemCopyMatching failed with status: \(status)"
-    case let .unknown(status): return "Unexpected Keychain operation failed with status: \(status)"
+    case .unknown(let status): return "Unexpected Keychain operation failed with status: \(status)"
     }
   }
 }

@@ -156,23 +156,23 @@ public enum WebDriverError: Error, LocalizedError, UnifiedErrorProtocol {
   /// User-friendly error message for UI display
   public var userFriendlyMessage: String {
     switch self {
-    case let .navigationFailed(message):
+    case .navigationFailed(let message):
       return "Navigation failed: \(message)"
-    case let .elementNotFound(message):
+    case .elementNotFound(let message):
       return "Element not found: \(message)"
-    case let .clickFailed(message):
+    case .clickFailed(let message):
       return "Click failed: \(message)"
-    case let .typeFailed(message):
+    case .typeFailed(let message):
       return "Type failed: \(message)"
-    case let .scriptExecutionFailed(message):
+    case .scriptExecutionFailed(let message):
       return "Script execution failed: \(message)"
-    case let .timeout(message):
+    case .timeout(let message):
       return "Timeout: \(message)"
-    case let .connectionFailed(message):
+    case .connectionFailed(let message):
       return "Connection failed: \(message)"
-    case let .invalidSelector(message):
+    case .invalidSelector(let message):
       return "Invalid selector: \(message)"
-    case let .staleElement(message):
+    case .staleElement(let message):
       return "Stale element: \(message)"
     }
   }
@@ -180,15 +180,15 @@ public enum WebDriverError: Error, LocalizedError, UnifiedErrorProtocol {
   /// Technical details for debugging (optional)
   public var technicalDetails: String? {
     switch self {
-    case let .navigationFailed(message): return "WebKit navigation failed: \(message)"
-    case let .elementNotFound(message): return "DOM element not found: \(message)"
-    case let .clickFailed(message): return "Element click operation failed: \(message)"
-    case let .typeFailed(message): return "Text input operation failed: \(message)"
-    case let .scriptExecutionFailed(message): return "JavaScript execution failed: \(message)"
-    case let .timeout(message): return "Operation exceeded timeout: \(message)"
-    case let .connectionFailed(message): return "WebKit connection failed: \(message)"
-    case let .invalidSelector(message): return "CSS selector validation failed: \(message)"
-    case let .staleElement(message): return "Element became stale: \(message)"
+    case .navigationFailed(let message): return "WebKit navigation failed: \(message)"
+    case .elementNotFound(let message): return "DOM element not found: \(message)"
+    case .clickFailed(let message): return "Element click operation failed: \(message)"
+    case .typeFailed(let message): return "Text input operation failed: \(message)"
+    case .scriptExecutionFailed(let message): return "JavaScript execution failed: \(message)"
+    case .timeout(let message): return "Operation exceeded timeout: \(message)"
+    case .connectionFailed(let message): return "WebKit connection failed: \(message)"
+    case .invalidSelector(let message): return "CSS selector validation failed: \(message)"
+    case .staleElement(let message): return "Element became stale: \(message)"
     }
   }
 }

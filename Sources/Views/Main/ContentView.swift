@@ -244,10 +244,16 @@ private struct MainBody: View {
       autorunMinute = calendar.component(.minute, from: autorunTime)
       autorunSecond = calendar.component(.second, from: autorunTime)
     } else {
-      autorunTime = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now
-      autorunHour = 18
-      autorunMinute = 0
-      autorunSecond = 0
+      autorunTime =
+        calendar.date(
+          bySettingHour: AppConstants.defaultAutorunHour,
+          minute: AppConstants.defaultAutorunMinute,
+          second: AppConstants.defaultAutorunSecond,
+          of: now
+        ) ?? now
+      autorunHour = AppConstants.defaultAutorunHour
+      autorunMinute = AppConstants.defaultAutorunMinute
+      autorunSecond = AppConstants.defaultAutorunSecond
     }
     // Find the next scheduled autorun for this config
     var nextCronTime: Date?
@@ -428,8 +434,8 @@ private struct HeaderView: View {
       minute = calendar.component(.minute, from: customTime)
     } else {
       // Use default 6:00 PM time
-      hour = 18
-      minute = 0
+      hour = AppConstants.defaultAutorunHour
+      minute = AppConstants.defaultAutorunMinute
     }
 
     let formatter = DateFormatter()

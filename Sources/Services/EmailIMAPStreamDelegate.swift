@@ -16,11 +16,11 @@ public final class EmailIMAPStreamDelegate: NSObject, StreamDelegate {
     switch state {
     case .ready:
       logger.info("✅ IMAP connection ready.")
-    case let .failed(error):
+    case .failed(let error):
       logger.error("❌ IMAP connection failed: \(error).")
     case .cancelled:
       logger.info("🛑 IMAP connection cancelled.")
-    case let .waiting(error):
+    case .waiting(let error):
       logger.warning("⏳ IMAP connection waiting: \(error).")
     case .preparing:
       logger.info("🔧 IMAP connection preparing.")

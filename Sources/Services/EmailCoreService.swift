@@ -60,29 +60,29 @@ public final class EmailCore: ObservableObject, @unchecked Sendable, EmailServic
     /// User-friendly error message for UI display
     var userFriendlyMessage: String {
       switch self {
-      case let .connectionFailed(message): return "Connection failed: \(message)"
-      case let .authenticationFailed(message): return "Authentication failed: \(message)"
-      case let .commandFailed(message): return "Command failed: \(message)"
-      case let .invalidResponse(message): return "Invalid response: \(message)"
-      case let .timeout(message): return "Connection timeout: \(message)"
-      case let .unsupportedServer(message): return "Unsupported server: \(message)"
-      case let .gmailAppPasswordRequired(message): return "Gmail App Password required: \(message)"
+      case .connectionFailed(let message): return "Connection failed: \(message)"
+      case .authenticationFailed(let message): return "Authentication failed: \(message)"
+      case .commandFailed(let message): return "Command failed: \(message)"
+      case .invalidResponse(let message): return "Invalid response: \(message)"
+      case .timeout(let message): return "Connection timeout: \(message)"
+      case .unsupportedServer(let message): return "Unsupported server: \(message)"
+      case .gmailAppPasswordRequired(let message): return "Gmail App Password required: \(message)"
       }
     }
 
     /// Technical details for debugging (optional)
     var technicalDetails: String? {
       switch self {
-      case let .connectionFailed(message):
+      case .connectionFailed(let message):
         return "Email connection establishment failed: \(message)"
-      case let .authenticationFailed(message):
+      case .authenticationFailed(let message):
         return "Email authentication process failed: \(message)"
-      case let .commandFailed(message): return "Email command execution failed: \(message)"
-      case let .invalidResponse(message):
+      case .commandFailed(let message): return "Email command execution failed: \(message)"
+      case .invalidResponse(let message):
         return "Email server returned invalid response: \(message)"
-      case let .timeout(message): return "Email operation exceeded timeout: \(message)"
-      case let .unsupportedServer(message): return "Email server configuration issue: \(message)"
-      case let .gmailAppPasswordRequired(message):
+      case .timeout(let message): return "Email operation exceeded timeout: \(message)"
+      case .unsupportedServer(let message): return "Email server configuration issue: \(message)"
+      case .gmailAppPasswordRequired(let message):
         return "Gmail App Password validation failed: \(message)"
       }
     }
@@ -101,8 +101,8 @@ public final class EmailCore: ObservableObject, @unchecked Sendable, EmailServic
 
     public var description: String {
       switch self {
-      case let .success(message): return message
-      case let .failure(message, _): return message
+      case .success(let message): return message
+      case .failure(let message, _): return message
       }
     }
   }

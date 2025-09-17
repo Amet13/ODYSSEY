@@ -30,14 +30,14 @@ public enum ReservationRunStatus: Error, Codable, LocalizedError, Equatable {
     case .idle: return "Idle"
     case .running: return "Running"
     case .success: return "Successful"
-    case let .failed(error): return "Failed: \(error)"
+    case .failed(let error): return "Failed: \(error)"
     case .stopped: return "Stopped"
     }
   }
 
   public var errorDescription: String? {
     switch self {
-    case let .failed(error): return error
+    case .failed(let error): return error
     default: return nil
     }
   }
@@ -77,7 +77,7 @@ public enum ReservationRunStatus: Error, Codable, LocalizedError, Equatable {
     case .idle: try container.encode(true, forKey: .idle)
     case .running: try container.encode(true, forKey: .running)
     case .success: try container.encode(true, forKey: .success)
-    case let .failed(error): try container.encode(error, forKey: .failed)
+    case .failed(let error): try container.encode(error, forKey: .failed)
     case .stopped: try container.encode(true, forKey: .stopped)
     }
   }
@@ -88,7 +88,7 @@ public enum ReservationRunStatus: Error, Codable, LocalizedError, Equatable {
     case (.idle, .idle): return true
     case (.running, .running): return true
     case (.success, .success): return true
-    case let (.failed(lhsError), .failed(rhsError)): return lhsError == rhsError
+    case (.failed(let lhsError), .failed(let rhsError)): return lhsError == rhsError
     case (.stopped, .stopped): return true
     default: return false
     }

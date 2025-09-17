@@ -36,23 +36,14 @@
 		<false/>
 		<key>NSExceptionDomains</key>
 		<dict>
-			<key>ottawa.ca</key>
+			<key>reservation.frontdesksuite.ca</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-				<key>NSExceptionMinimumTLSVersion</key>
-				<string>TLSv1.2</string>
+				<false/>
 				<key>NSIncludesSubdomains</key>
 				<true/>
-			</dict>
-			<key>recreation.ottawa.ca</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-				<key>NSExceptionMinimumTLSVersion</key>
-				<string>TLSv1.2</string>
-				<key>NSIncludesSubdomains</key>
-				<true/>
+				<key>NSRequiresCertificateTransparency</key>
+				<false/>
 			</dict>
 		</dict>
 	</dict>

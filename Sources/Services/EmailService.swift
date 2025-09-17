@@ -56,27 +56,27 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     /// User-friendly error message for UI display
     var userFriendlyMessage: String {
       switch self {
-      case let .connectionFailed(message): return "Connection failed: \(message)"
-      case let .authenticationFailed(message): return "Authentication failed: \(message)"
-      case let .commandFailed(message): return "Command failed: \(message)"
-      case let .invalidResponse(message): return "Invalid response: \(message)"
-      case let .timeout(message): return "Connection timeout: \(message)"
-      case let .unsupportedServer(message): return "Unsupported server: \(message)"
-      case let .gmailAppPasswordRequired(message): return "Gmail App Password required: \(message)"
+      case .connectionFailed(let message): return "Connection failed: \(message)"
+      case .authenticationFailed(let message): return "Authentication failed: \(message)"
+      case .commandFailed(let message): return "Command failed: \(message)"
+      case .invalidResponse(let message): return "Invalid response: \(message)"
+      case .timeout(let message): return "Connection timeout: \(message)"
+      case .unsupportedServer(let message): return "Unsupported server: \(message)"
+      case .gmailAppPasswordRequired(let message): return "Gmail App Password required: \(message)"
       }
     }
 
     /// Technical details for debugging (optional)
     var technicalDetails: String? {
       switch self {
-      case let .connectionFailed(message): return "IMAP connection establishment failed: \(message)"
-      case let .authenticationFailed(message):
+      case .connectionFailed(let message): return "IMAP connection establishment failed: \(message)"
+      case .authenticationFailed(let message):
         return "IMAP authentication process failed: \(message)"
-      case let .commandFailed(message): return "IMAP command execution failed: \(message)"
-      case let .invalidResponse(message): return "IMAP server returned invalid response: \(message)"
-      case let .timeout(message): return "IMAP operation exceeded timeout: \(message)"
-      case let .unsupportedServer(message): return "IMAP server configuration issue: \(message)"
-      case let .gmailAppPasswordRequired(message):
+      case .commandFailed(let message): return "IMAP command execution failed: \(message)"
+      case .invalidResponse(let message): return "IMAP server returned invalid response: \(message)"
+      case .timeout(let message): return "IMAP operation exceeded timeout: \(message)"
+      case .unsupportedServer(let message): return "IMAP server configuration issue: \(message)"
+      case .gmailAppPasswordRequired(let message):
         return "Gmail App Password validation failed: \(message)"
       }
     }
@@ -95,8 +95,8 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
     public var description: String {
       switch self {
-      case let .success(message): return message
-      case let .failure(message, _): return message
+      case .success(let message): return message
+      case .failure(let message, _): return message
       }
     }
   }
@@ -401,7 +401,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
               continuation: continuation,
             )
           }
-        case let .failed(error):
+        case .failed(let error):
           self.logger.error("❌ EmailService: Connection failed: \(error).")
           continuation.resume(returning: [])
         case .cancelled:
@@ -452,7 +452,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             continuation: continuation,
           )
         }
-      case let .failure(error, _):
+      case .failure(let error, _):
         self.logger.error("❌ EmailService: Authentication failed: \(error).")
         continuation.resume(returning: [])
       }
@@ -489,7 +489,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
       }
 
       switch result {
-      case let .success(searchResponse):
+      case .success(let searchResponse):
         self.logger.info("📧 EmailService: Specific subject search response: \(searchResponse).")
 
         // Parse message IDs from search response
@@ -520,7 +520,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
               }
 
               switch result {
-              case let .success(fallbackResponse):
+              case .success(let fallbackResponse):
                 self.logger.info("📧 EmailService: Fallback search response: \(fallbackResponse).")
 
                 let fallbackLines = fallbackResponse.components(separatedBy: .newlines)
@@ -544,14 +544,14 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                   continuation.resume(returning: [])
                 }
 
-              case let .failure(error):
+              case .failure(let error):
                 self.logger.error("❌ EmailService: Fallback search failed: \(error).")
                 continuation.resume(returning: [])
               }
             }
         }
 
-      case let .failure(error):
+      case .failure(let error):
         self.logger.error("❌ EmailService: Specific subject search failed: \(error).")
         continuation.resume(returning: [])
       }
@@ -586,9 +586,9 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             Task {
               await self.sendIMAPCommand(connection: connection, command: fetchCommand) { result in
                 switch result {
-                case let .success(response):
+                case .success(let response):
                   continuation.resume(returning: response)
-                case let .failure(error):
+                case .failure(let error):
                   continuation.resume(throwing: error)
                 }
               }
@@ -674,7 +674,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
     // Validate Gmail settings if applicable
     let gmailValidation = validateGmailSettings(email: email, password: password, server: server)
-    if case let .failure(error) = gmailValidation {
+    if case .failure(let error) = gmailValidation {
       return .failure(error.localizedDescription, provider: provider)
     }
 
@@ -708,7 +708,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         password: password,
       )
       if case .success = result { return result }
-      if case let .failure(error, _) = result {
+      if case .failure(let error, _) = result {
         logger.warning("⚠️ IMAP connection failed on \(server):\(config.port): \(error).")
       }
     }
@@ -886,7 +886,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
           }
         }
       }
-    case let .failed(error):
+    case .failed(let error):
       let failMsg =
         "[IMAP][\(config.connectionID)] Connection failed for \(config.server):\(config.port) (TLS=\(config.useTLS)): \(error)"
       staticLogger.error("\(failMsg, privacy: .public)")
@@ -942,7 +942,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
       [weak self] (result: Result<String, IMAPError>) in
       guard let self else { return }
       switch result {
-      case let .success(greeting):
+      case .success(let greeting):
         logger.info("👋 [IMAP] Greeting received: \(greeting.prefix(200)).")
 
         // Check for authentication errors in the greeting
@@ -987,7 +987,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                       completion: completion,
                     )
                   }
-                case let .failure(error):
+                case .failure(let error):
                   completion(.failure(error.localizedDescription, provider: provider))
                 }
               }
@@ -1005,7 +1005,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
             )
           }
         }
-      case let .failure(error):
+      case .failure(let error):
         logger.error("❌ [IMAP] Failed to receive greeting: \(error.localizedDescription).")
 
         // Provide more specific error messages
@@ -1050,7 +1050,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
               ) in
               guard let self else { return }
               switch result {
-              case let .success(loginResponse):
+              case .success(let loginResponse):
                 self.logger.info("🔐 [IMAP] LOGIN response: \(loginResponse).")
                 // Parse response lines for the LOGIN tag (a002)
                 let loginLines = loginResponse.components(separatedBy: .newlines)
@@ -1101,7 +1101,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                           ) in
                           guard let self else { return }
                           switch result {
-                          case let .success(selectResponse):
+                          case .success(let selectResponse):
                             self.logger
                               .info("[IMAP] SELECT INBOX response: \(selectResponse)")
                             // After selecting INBOX, search for the latest email
@@ -1117,7 +1117,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                               ) { [weak self] (result: Result<String, IMAPError>) in
                                 guard let self else { return }
                                 switch result {
-                                case let .success(searchResponse):
+                                case .success(let searchResponse):
                                   self.logger
                                     .info(
                                       "[IMAP] SEARCH response: \(searchResponse)",
@@ -1158,7 +1158,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                                         ) in
                                         guard let self else { return }
                                         switch result {
-                                        case let .success(fetchResponse):
+                                        case .success(let fetchResponse):
                                           self.logger
                                             .info(
                                               "[IMAP] FETCH response: \(fetchResponse)",
@@ -1177,7 +1177,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                                             ? baseMessage
                                             : "\(baseMessage) Latest email: \(subject)"
                                           completion(.success(fullMessage))
-                                        case let .failure(error):
+                                        case .failure(let error):
                                           self.logger
                                             .error(
                                               "[IMAP] FETCH failed: \(error.localizedDescription)",
@@ -1198,7 +1198,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                                         "IMAP connection successful!",
                                       ))
                                   }
-                                case let .failure(error):
+                                case .failure(let error):
                                   self.logger
                                     .error(
                                       "[IMAP] SEARCH failed: \(error.localizedDescription)",
@@ -1211,7 +1211,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                                 }
                               }
                             }
-                          case let .failure(error):
+                          case .failure(let error):
                             self.logger
                               .error(
                                 "[IMAP] SELECT INBOX failed: \(error.localizedDescription)",
@@ -1256,7 +1256,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
                       provider: provider,
                     ))
                 }
-              case let .failure(error):
+              case .failure(let error):
                 completion(
                   .failure(
                     "Authentication failed: \(error.localizedDescription)",
@@ -1265,7 +1265,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
               }
             }
         }
-      case let .failure(error):
+      case .failure(let error):
         let errorMessage = "IMAP capability command failed: \(error.localizedDescription)"
         self.logger.error("❌ \(errorMessage).")
         completion(
@@ -1292,7 +1292,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         DispatchQueue.global().asyncAfter(deadline: .now() + AppConstants.animationDurationNormal) {
           completion(.success(()))
         }
-      case let .failure(error):
+      case .failure(let error):
         completion(.failure(error))
       }
     }
@@ -1859,7 +1859,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         server: settings.imapServer,
       )
 
-      if case let .failure(error) = gmailValidation {
+      if case .failure(let error) = gmailValidation {
         diagnostic += "❌ Gmail configuration error: \(error.localizedDescription)\n\n"
       } else {
         diagnostic += "✅ Gmail configuration appears valid\n\n"
@@ -1877,9 +1877,9 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     )
 
     switch testResult {
-    case let .success(message):
+    case .success(let message):
       diagnostic += "✅ IMAP connection successful: \(message)\n\n"
-    case let .failure(error, provider):
+    case .failure(let error, let provider):
       diagnostic += "❌ \(provider == .gmail ? "Gmail" : "IMAP") connection failed: \(error)\n\n"
 
       // Provide specific troubleshooting advice
@@ -1982,10 +1982,10 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     let passwordResult = KeychainService.shared.retrieveEmailPassword(
       email: email, server: server, port: Int(port))
     switch passwordResult {
-    case let .success(password):
+    case .success(let password):
       Task { @MainActor in self.userFacingError = nil }
       return EmailCredentials(email: email, password: password, server: server, port: Int(port))
-    case let .failure(error):
+    case .failure(let error):
       Task { @MainActor in
         self.userFacingError = error.localizedDescription
         logger.error("❌ Email service error: \(error.localizedDescription).")

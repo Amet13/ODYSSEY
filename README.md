@@ -13,6 +13,11 @@
   </p>
 </div>
 
+## 🖥️ System Requirements
+
+- macOS 26.0 or later
+- Apple Silicon or Intel Mac
+
 ## 🚀 Quick Start
 
 - **Download** the `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
