@@ -5,7 +5,7 @@ public enum AppConstants {
   // MARK: - App Information
 
   public static let appName = "ODYSSEY"
-  public static let appVersion = "2.6.1"
+  public static let appVersion = "3.0.0"
   public static let appBundleId = "com.odyssey.app"
 
   // MARK: - Timeouts and Delays
@@ -155,7 +155,7 @@ public enum AppConstants {
   // MARK: - Verification Code Filtering
 
   // Suspicious verification codes that should be filtered out
-  public static let suspiciousVerificationCodes = ["0000", "1234", "1111"]
+  public static let suspiciousVerificationCodes = ["0000"]
 
   // Validation limits
   public static let maxNumberOfPeople: Int = 2
@@ -224,8 +224,8 @@ extension AppConstants {
 
   // MARK: - Icon Sizes
 
-  public static let iconLarge: CGFloat = 32
-  public static let iconMedium: CGFloat = 24
+  public static let iconLarge: CGFloat = 28
+  public static let iconMedium: CGFloat = 20
   public static let iconSmall: CGFloat = 16
   public static let iconTiny: CGFloat = 12
 
@@ -373,11 +373,47 @@ extension AppConstants {
 
   // MARK: - Common Corner Radius Combinations
 
-  public static let cardCornerRadius: CGFloat = cornerRadiusMedium
+  public static let cardCornerRadius: CGFloat = cornerRadiusXLarge
   public static let buttonCornerRadius: CGFloat = cornerRadiusSmall
   public static let modalCornerRadius: CGFloat = cornerRadiusXXLarge
   public static let inputCornerRadius: CGFloat = cornerRadiusSmall
   public static let strokeWidthThin: CGFloat = 1
+}
+
+// MARK: - SF Symbols
+
+extension AppConstants {
+  public struct SFSymbols {
+    public static let app = "sportscourt.fill"
+    public static let appOutline = "sportscourt"
+    public static let boltFill = "bolt.fill"
+    public static let plus = "plus"
+    public static let playFill = "play.fill"
+    public static let pencil = "pencil"
+    public static let trash = "trash"
+    public static let clock = "clock"
+    public static let questionmarkCircle = "questionmark.circle"
+    public static let cameraViewfinder = "camera.viewfinder"
+    public static let settings = "gearshape.fill"
+    public static let refresh = "arrow.clockwise"
+    public static let warningFill = "exclamationmark.triangle.fill"
+    public static let successCircle = "checkmark.circle"
+    public static let successCircleFill = "checkmark.circle.fill"
+    public static let xmarkCircleFill = "xmark.circle.fill"
+    public static let envelopeBadge = "envelope.badge"
+    public static let chevronDown = "chevron.down"
+    public static let checkmark = "checkmark"
+    public static let radioOn = "largecircle.fill.circle"
+    public static let radioOff = "circle"
+    public static let plusCircle = "plus.circle"
+    public static let magnifyingglass = "magnifyingglass"
+  }
+}
+
+// MARK: - Status Bar
+
+extension AppConstants {
+  public static let statusBarIconPointSize: CGFloat = 19
 }
 
 // MARK: - Logger Categories

@@ -196,6 +196,7 @@ private struct MainBody: View {
           .presentationDetents([.medium])
           .presentationDragIndicator(.hidden)
           .presentationBackground(.ultraThinMaterial)
+          .interactiveDismissDisabled(true)
           .if(!NSWorkspace.shared.accessibilityDisplayShouldReduceMotion) { v in
             v.transition(.opacity)
           }
@@ -365,7 +366,7 @@ private struct HeaderView: View {
   var body: some View {
     VStack(spacing: AppConstants.spacingMedium) {
       HStack(spacing: AppConstants.spacingLarge) {
-        Image(systemName: "sportscourt.fill")
+        Image(systemName: AppConstants.SFSymbols.appOutline)
           .symbolRenderingMode(.hierarchical)
           .font(.system(size: AppConstants.iconLarge))
           .foregroundColor(.odysseyAccent)
@@ -376,7 +377,7 @@ private struct HeaderView: View {
         if godModeUIEnabled {
           Button(action: simulateAutorunForToday) {
             HStack(spacing: AppConstants.spacingSmall) {
-              Image(systemName: "bolt.fill")
+              Image(systemName: AppConstants.SFSymbols.boltFill)
                 .symbolRenderingMode(.hierarchical)
                 .foregroundColor(.odysseyWarning)
               Text("GOD MODE")
@@ -394,7 +395,7 @@ private struct HeaderView: View {
         Button(action: {
           showingAddConfig = true
         }) {
-          Image(systemName: "plus")
+          Image(systemName: AppConstants.SFSymbols.plus)
             .symbolRenderingMode(.hierarchical)
             .foregroundColor(Color.odysseyCardBackground)
         }
@@ -473,7 +474,7 @@ private struct EmptyStateView: View {
   var body: some View {
     VStack(spacing: AppConstants.sectionSpacing) {
       Spacer()
-      Image(systemName: "sportscourt")
+      Image(systemName: AppConstants.SFSymbols.appOutline)
         .font(.system(size: AppConstants.iconLarge))
         .foregroundColor(Color.odysseySecondaryText)
         .accessibilityHidden(true)
@@ -556,7 +557,7 @@ private struct FooterView: View {
           Button(action: { showingSettings = true }) {
             Label("Settings", systemImage: "gearshape.fill")
               .labelStyle(.titleAndIcon)
-              .font(.system(size: AppConstants.fontBody))
+              .font(.body)
           }
           .buttonStyle(.borderedProminent)
           .tint(.odysseyPrimary)
@@ -576,7 +577,7 @@ private struct FooterView: View {
           Button(action: { showingAbout = true }) {
             Label("About", systemImage: "info.circle.fill")
               .labelStyle(.titleAndIcon)
-              .font(.system(size: AppConstants.fontBody))
+              .font(.body)
           }
           .buttonStyle(.bordered)
           .controlSize(.regular)
@@ -586,7 +587,7 @@ private struct FooterView: View {
           Button(action: { NSApp.terminate(nil) }) {
             Label("Quit", systemImage: "power")
               .labelStyle(.titleAndIcon)
-              .font(.system(size: AppConstants.fontBody))
+              .font(.body)
           }
           .buttonStyle(.borderedProminent)
           .tint(.odysseyError)
@@ -636,19 +637,21 @@ struct ConfigurationRowView: View {
   @StateObject private var userSettingsManager = UserSettingsManager.shared
 
   private var configurationHeaderRow: some View {
-    HStack(alignment: .top, spacing: AppConstants.spacingMedium) {
+    HStack(alignment: .center, spacing: AppConstants.spacingMedium) {
       Text(config.name)
-        .font(.system(size: AppConstants.primaryFont))
+        .font(.body)
         .foregroundColor(Color.odysseyText)
         .lineLimit(1)
         .truncationMode(.tail)
+        .help(config.name)
       Spacer()
       Button(action: onRun) {
-        Image(systemName: "play.fill")
+        Image(systemName: AppConstants.SFSymbols.playFill)
           .symbolRenderingMode(.hierarchical)
           .foregroundColor(.odysseyAccent)
       }
       .buttonStyle(.bordered)
+      .controlSize(.small)
       .help(NSLocalizedString("run_now_tooltip", comment: "Run this reservation now"))
       .accessibilityLabel("Run \(config.name) reservation now")
       .accessibilityHint("Double tap to run this reservation immediately")
@@ -662,6 +665,7 @@ struct ConfigurationRowView: View {
       )
       .toggleStyle(.switch)
       .labelsHidden()
+      .controlSize(.small)
       .help(
         NSLocalizedString(
           "enable_autorun_tooltip",
@@ -674,11 +678,12 @@ struct ConfigurationRowView: View {
       )
       .accessibilityAddTraits(.allowsDirectInteraction)
       Button(action: onEdit) {
-        Image(systemName: "pencil")
+        Image(systemName: AppConstants.SFSymbols.pencil)
           .symbolRenderingMode(.hierarchical)
           .foregroundColor(.odysseyAccent)
       }
       .buttonStyle(.bordered)
+      .controlSize(.small)
       .help(NSLocalizedString("edit_tooltip", comment: "Edit this configuration"))
       .accessibilityLabel("Edit \(config.name) configuration")
       .accessibilityHint("Double tap to edit this reservation configuration")
@@ -686,11 +691,12 @@ struct ConfigurationRowView: View {
       Button(action: {
         showingDeleteConfirmation = true
       }) {
-        Image(systemName: "trash")
+        Image(systemName: AppConstants.SFSymbols.trash)
           .symbolRenderingMode(.hierarchical)
           .foregroundColor(.odysseyError)
       }
       .buttonStyle(.bordered)
+      .controlSize(.small)
       .help(NSLocalizedString("delete_tooltip", comment: "Delete this configuration"))
       .accessibilityLabel("Delete \(config.name) configuration")
       .accessibilityHint("Double tap to delete this reservation configuration")
@@ -722,11 +728,12 @@ struct ConfigurationRowView: View {
         .font(.subheadline)
         .foregroundColor(Color.odysseySecondaryText)
         .fixedSize(horizontal: false, vertical: true)
+        .frame(minHeight: 16)
       }
       VStack(alignment: .leading, spacing: AppConstants.spacingTiny) {
         if let next = nextAutorunInfo {
           HStack(spacing: AppConstants.spacingTiny) {
-            Image(systemName: "clock")
+            Image(systemName: AppConstants.SFSymbols.clock)
               .symbolRenderingMode(.hierarchical)
               .font(.footnote)
               .foregroundColor(.odysseyAccent)
@@ -741,10 +748,10 @@ struct ConfigurationRowView: View {
         lastRunStatusView(for: lastRunInfo)
       }
     }
-    .padding(.vertical, AppConstants.paddingSmall)
+    .padding(.vertical, 8)
     // Remove stroke to align with system row look
     .clipShape(RoundedRectangle(cornerRadius: AppConstants.cardCornerRadius))
-    .padding(.vertical, AppConstants.paddingTiny)
+    .padding(.vertical, 8)
     .alert(
       "Delete Configuration",
       isPresented: $showingDeleteConfirmation,
@@ -902,7 +909,7 @@ struct ConfigurationRowView: View {
       // Configuration has never been run - show in grey
       return AnyView(
         HStack(spacing: AppConstants.spacingTiny) {
-          Image(systemName: "questionmark.circle")
+          Image(systemName: AppConstants.SFSymbols.questionmarkCircle)
             .symbolRenderingMode(.hierarchical)
             .foregroundColor(Color.odysseyGray)
             .font(.footnote)
@@ -934,8 +941,8 @@ struct ScreenshotButton: View {
         }
       }
     }) {
-      Image(systemName: "camera.viewfinder")
-        .font(.system(size: AppConstants.tertiaryFont))
+      Image(systemName: AppConstants.SFSymbols.cameraViewfinder)
+        .font(.footnote)
         .foregroundColor(.odysseyAccent)
     }
     .buttonStyle(PlainButtonStyle())
@@ -951,18 +958,18 @@ struct DeleteConfirmationModal: View {
   @StateObject private var userSettingsManager = UserSettingsManager.shared
   var body: some View {
     VStack(spacing: AppConstants.sectionSpacing) {
-      Image(systemName: "sportscourt.fill")
+      Image(systemName: AppConstants.SFSymbols.appOutline)
         .font(.system(size: AppConstants.iconLarge))
         .foregroundColor(.odysseyAccent)
         .padding(.top, AppConstants.sectionPadding)
       Text("Delete Configuration")
-        .font(.system(size: AppConstants.primaryFont))
+        .font(.title3)
         .fontWeight(.semibold)
       let deleteMessage = "Are you sure you want to delete '"
       let undoMessage = "'? This action cannot be undone."
       Text(deleteMessage + configName + undoMessage)
         .multilineTextAlignment(.center)
-        .font(.system(size: AppConstants.secondaryFont))
+        .font(.subheadline)
         .foregroundColor(Color.odysseySecondaryText)
         .padding(.horizontal, AppConstants.sectionPadding)
       HStack(spacing: AppConstants.sectionSpacing) {

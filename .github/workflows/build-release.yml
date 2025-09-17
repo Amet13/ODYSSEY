@@ -16,7 +16,7 @@ jobs:
   # For PRs and main branch pushes - just lint and build
   ci:
     if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/v')
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 10
     env:
       TZ: America/Toronto
@@ -27,7 +27,7 @@ jobs:
       - name: Setup Xcode version
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "16.4"
+          xcode-version: "26.0"
 
       - name: Run CI pipeline
         env:
@@ -38,7 +38,7 @@ jobs:
   # For releases - use our deploy script
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 10
     env:
       TZ: America/Toronto
@@ -51,7 +51,7 @@ jobs:
       - name: Setup Xcode version
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "16.4"
+          xcode-version: "26.0"
 
       - name: Run CI pipeline
         env:
@@ -85,7 +85,7 @@ jobs:
             4. Right-click and select "Open" on first launch
 
             ## ⚙️ Requirements
-            - macOS 15 or later
+            - macOS 26 or later
           draft: false
           prerelease: false
         env:

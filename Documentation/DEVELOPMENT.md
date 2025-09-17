@@ -6,9 +6,9 @@ ODYSSEY is a macOS menu bar application built with SwiftUI.
 
 ## 🖥️ System Requirements
 
-- **macOS 15.0 or later.**
-- **Xcode 16.0 or later.**
-- **Swift 6.1 or later.**
+- **macOS 26.0 or later.**
+- **Xcode 26.0 or later.**
+- **Swift 6.2 or later.**
 - **Homebrew** (_for installing development dependencies_)
 
 ## 🚀 Quick Start (for Developers)

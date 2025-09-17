@@ -321,7 +321,7 @@ check_macos_requirements() {
     local macos_version
     macos_version=$(sw_vers -productVersion)
     if [[ $(echo "$macos_version 15.0" | tr " " "\n" | sort -V | head -1) != "15.0" ]]; then
-        log_error "macOS 15.0 or later is required. Current version: $macos_version"
+        log_error "macOS 26.0 or later is required. Current version: $macos_version"
         exit 1
     fi
 
@@ -487,7 +487,8 @@ build_application() {
         -project "$XCODEPROJ_PATH" \
         -scheme "$SCHEME_NAME" \
         -configuration "$BUILD_CONFIG" \
-        -destination 'platform=macOS,arch=arm64' \
+        -destination 'generic/platform=macOS' \
+        -sdk macosx \
         -quiet \
         -showBuildTimingSummary
 
@@ -720,7 +721,8 @@ deploy_release() {
         -project "$XCODEPROJ_PATH" \
         -scheme "$SCHEME_NAME" \
         -configuration Release \
-        -destination 'platform=macOS,arch=arm64' \
+        -destination 'generic/platform=macOS' \
+        -sdk macosx \
         -quiet \
         -showBuildTimingSummary \
         GCC_WARN_INHIBIT_ALL_WARNINGS=YES

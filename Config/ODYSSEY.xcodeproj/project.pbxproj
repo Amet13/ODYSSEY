@@ -301,7 +301,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					E2AD1CEB7FF8CD6BC2006028 = {
 						DevelopmentTeam = "";
@@ -417,12 +417,13 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15;
+				MACOSX_DEPLOYMENT_TARGET = 26;
 				MARKETING_VERSION = "${MARKETING_VERSION}";
 				PRODUCT_BUNDLE_IDENTIFIER = com.odyssey.app;
 				PRODUCT_NAME = ODYSSEY;
 				SDKROOT = macosx;
-				SWIFT_VERSION = 6.1;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_VERSION = 6.2;
 			};
 			name = Release;
 		};
@@ -444,12 +445,13 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15;
+				MACOSX_DEPLOYMENT_TARGET = 26;
 				MARKETING_VERSION = "${MARKETING_VERSION}";
 				PRODUCT_BUNDLE_IDENTIFIER = com.odyssey.app;
 				PRODUCT_NAME = ODYSSEY;
 				SDKROOT = macosx;
-				SWIFT_VERSION = 6.1;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_VERSION = 6.2;
 			};
 			name = Debug;
 		};
@@ -521,7 +523,7 @@
 				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_recreation.ottawa.ca_NSExceptionMinimumTLSVersion = TLSv1.2;
 				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_recreation.ottawa.ca_NSIncludesSubdomains = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Amet13. All rights reserved.";
-				MACOSX_DEPLOYMENT_TARGET = 15;
+				MACOSX_DEPLOYMENT_TARGET = 26;
 				MARKETING_VERSION = "${MARKETING_VERSION}";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -529,11 +531,12 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.odyssey.app;
 				PRODUCT_NAME = ODYSSEY;
 				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_SUPPRESS_WARNINGS = NO;
 				SWIFT_TREAT_WARNINGS_AS_ERRORS = YES;
-				SWIFT_VERSION = 6.1;
+				SWIFT_VERSION = 6.2;
 			};
 			name = Debug;
 		};
@@ -604,18 +607,19 @@
 				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_recreation.ottawa.ca_NSExceptionMinimumTLSVersion = TLSv1.2;
 				INFOPLIST_KEY_NSAppTransportSecurity_NSExceptionDomains_recreation.ottawa.ca_NSIncludesSubdomains = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Amet13. All rights reserved.";
-				MACOSX_DEPLOYMENT_TARGET = 15;
+				MACOSX_DEPLOYMENT_TARGET = 26;
 				MARKETING_VERSION = "${MARKETING_VERSION}";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.odyssey.app;
 				PRODUCT_NAME = ODYSSEY;
 				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_SUPPRESS_WARNINGS = NO;
 				SWIFT_TREAT_WARNINGS_AS_ERRORS = YES;
-				SWIFT_VERSION = 6.1;
+				SWIFT_VERSION = 6.2;
 			};
 			name = Release;
 		};

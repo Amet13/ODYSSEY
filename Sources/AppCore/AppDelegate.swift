@@ -20,9 +20,7 @@ struct ODYSSEYApp: App {
   }
 
   var body: some Scene {
-    Settings {
-      EmptyView()
-    }
+    Settings { EmptyView() }
   }
 }
 
@@ -57,7 +55,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Hide dock icon since this is a status bar app
     NSApp.setActivationPolicy(.accessory)
 
-    // Initialize status bar controller
+    // Initialize status bar controller (custom NSStatusItem for precise sizing)
     statusBarController = StatusBarController()
 
     // Set up global keyboard shortcuts
@@ -439,7 +437,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     try? unloadProcess.run()
     unloadProcess.waitUntilExit()
 
-    // Load the new Launch Agent using bootstrap (preferred method for macOS 15+)
+    // Load the new Launch Agent using bootstrap (preferred method for macOS 26+)
     let loadProcess = Process()
     loadProcess.executableURL = URL(fileURLWithPath: "/bin/launchctl")
     loadProcess.arguments = ["bootstrap", "gui/\(getuid())", plistPath.path]

@@ -134,9 +134,9 @@ struct SettingsFormView: View {
 private struct SettingsHeader: View {
   var body: some View {
     HStack(spacing: AppConstants.spacingLarge) {
-      Image(systemName: "sportscourt.fill")
+      Image(systemName: AppConstants.SFSymbols.app)
         .symbolRenderingMode(.hierarchical)
-        .font(.system(size: AppConstants.primaryFont))
+        .font(.title3)
         .foregroundColor(.accentColor)
       Text("Settings")
         .font(.title3)
@@ -227,10 +227,11 @@ private struct ContactInformationSection: View {
           !tempSettings.isPhoneNumberValid
         {
           HStack {
-            Image(systemName: "exclamationmark.triangle.fill")
+            Image(systemName: AppConstants.SFSymbols.warningFill)
+              .symbolRenderingMode(.hierarchical)
               .foregroundColor(.odysseyWarning)
             Text("Phone number must be exactly 10 digits")
-              .font(.system(size: AppConstants.fontBody))
+              .font(.footnote)
               .foregroundColor(.odysseyWarning)
             Spacer()
           }
@@ -518,7 +519,7 @@ private struct EmailAddressField: View {
         !tempSettings.isEmailValid
       {
         HStack {
-          Image(systemName: "exclamationmark.triangle.fill")
+          Image(systemName: AppConstants.SFSymbols.warningFill)
             .foregroundColor(.odysseyWarning)
           Text("Please enter a valid email address")
             .font(.system(size: AppConstants.fontCaption))
@@ -644,7 +645,7 @@ private struct TestEmailButton: View {
           }
         }) {
           HStack(spacing: AppConstants.spacingSmall) {
-            Image(systemName: "envelope.badge")
+            Image(systemName: AppConstants.SFSymbols.envelopeBadge)
               .font(.system(size: AppConstants.fontBody))
             Text("Test Email")
               .font(.system(size: AppConstants.fontBody))
@@ -669,10 +670,13 @@ private struct TestEmailButton: View {
 
       if let result = emailService.lastTestResult {
         HStack {
-          Image(systemName: result.isSuccess ? "checkmark.circle.fill" : "xmark.circle.fill")
-            .foregroundColor(result.isSuccess ? .green : .red)
+          Image(
+            systemName: result.isSuccess
+              ? AppConstants.SFSymbols.successCircleFill : AppConstants.SFSymbols.xmarkCircleFill
+          )
+          .foregroundColor(result.isSuccess ? .green : .red)
           Text(result.description)
-            .font(.system(size: AppConstants.fontBody))
+            .font(.footnote)
             .foregroundColor(result.isSuccess ? .green : .red)
           Spacer()
         }
@@ -727,7 +731,7 @@ private func settingsField(
         .foregroundColor(.secondary)
         .frame(width: AppConstants.iconSmall)
       Text(title)
-        .font(.system(size: AppConstants.secondaryFont))
+        .font(.subheadline)
         .fontWeight(.medium)
       Spacer()
     }

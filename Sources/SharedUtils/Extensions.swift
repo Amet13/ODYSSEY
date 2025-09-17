@@ -102,19 +102,23 @@ extension View {
   /// Applies a modern window background that adapts to newer macOS visual styles
   @ViewBuilder
   func odysseyWindowBackground() -> some View {
-    #if compiler(>=6.0)
-      if #available(macOS 14.0, *) {
-        self.containerBackground(.ultraThinMaterial, for: .window)
-      } else {
-        self.background(.thinMaterial)
-      }
-    #else
-      if #available(macOS 12.0, *) {
-        self.background(.thinMaterial)
-      } else {
-        self.background(Color(NSColor.windowBackgroundColor))
-      }
-    #endif
+    if NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency {
+      self.background(Color(NSColor.windowBackgroundColor))
+    } else {
+      #if compiler(>=6.0)
+        if #available(macOS 14.0, *) {
+          self.containerBackground(.ultraThinMaterial, for: .window)
+        } else {
+          self.background(.thinMaterial)
+        }
+      #else
+        if #available(macOS 12.0, *) {
+          self.background(.thinMaterial)
+        } else {
+          self.background(Color(NSColor.windowBackgroundColor))
+        }
+      #endif
+    }
   }
 
   /// Applies a card background that uses materials on newer macOS for a "glass" look

@@ -8,7 +8,7 @@ struct LoadingView: View {
       ProgressView()
         .scaleEffect(AppConstants.scaleEffectLarge)
       Text(message)
-        .font(.system(size: AppConstants.fontCaption))
+        .font(.footnote)
         .foregroundColor(.secondary)
     }
     .padding(AppConstants.contentPadding)

@@ -19,6 +19,8 @@ class StatusBarController: NSObject {
   private let logger = Logger(
     subsystem: AppConstants.loggingSubsystem, category: "StatusBarController")
 
+  private let statusIconPointSize: CGFloat = AppConstants.statusBarIconPointSize
+
   override init() {
     statusBar = NSStatusBar.system
     statusItem = statusBar.statusItem(withLength: NSStatusItem.variableLength)
@@ -34,11 +36,13 @@ class StatusBarController: NSObject {
 
   private func setupStatusBar() {
     if let button = statusItem.button {
-      let config = NSImage.SymbolConfiguration(pointSize: 18, weight: .medium)
-      let image = NSImage(systemSymbolName: "sportscourt", accessibilityDescription: "ODYSSEY")?
+      let config = NSImage.SymbolConfiguration(pointSize: statusIconPointSize, weight: .regular)
+      let image = NSImage(
+        systemSymbolName: AppConstants.SFSymbols.appOutline, accessibilityDescription: "ODYSSEY")?
         .withSymbolConfiguration(config)
       image?.isTemplate = true
       button.image = image
+      button.imagePosition = .imageOnly
       button.action = #selector(togglePopover)
       button.target = self
 
@@ -55,9 +59,16 @@ class StatusBarController: NSObject {
 
   private func setupEventMonitor() {
     eventMonitor = EventMonitor(mask: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
-      if let strongSelf = self, strongSelf.popover.isShown {
-        strongSelf.hidePopover(event)
+      guard let self else { return }
+      guard self.popover.isShown else { return }
+      // Only close when clicking outside popover window
+      if let popoverWindow = self.popover.contentViewController?.view.window,
+        let eventWindowNumber = event?.windowNumber,
+        eventWindowNumber == popoverWindow.windowNumber
+      {
+        return
       }
+      self.hidePopover(event)
     }
     eventMonitor?.start()
   }
@@ -95,9 +106,10 @@ class StatusBarController: NSObject {
   func showPopover() {
     if let button = statusItem.button {
       popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
-      // Ensure the popover window becomes active
+      // Ensure the popover window stays key and front to prevent focus loss
       if let popoverWindow = popover.contentViewController?.view.window {
-        popoverWindow.makeKey()
+        popoverWindow.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
       }
     }
   }
@@ -143,8 +155,8 @@ class StatusBarController: NSObject {
   private func updateStatusBarIcon(isRunning: Bool) {
     logger.info("🔄 StatusBarController: Updating icon - isRunning: \(isRunning).")
     if let button = statusItem.button {
-      let symbolName = isRunning ? "sportscourt.fill" : "sportscourt"
-      let config = NSImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+      let symbolName = isRunning ? AppConstants.SFSymbols.app : AppConstants.SFSymbols.appOutline
+      let config = NSImage.SymbolConfiguration(pointSize: statusIconPointSize, weight: .regular)
       let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "ODYSSEY")?
         .withSymbolConfiguration(config)
       image?.isTemplate = true

@@ -29,9 +29,9 @@ struct AboutView: View {
       VStack(spacing: AppConstants.spacingNone) {
         VStack(spacing: AppConstants.spacingLarge) {
           VStack(spacing: AppConstants.spacingMedium) {
-            Image(systemName: "sportscourt.fill")
+            Image(systemName: AppConstants.SFSymbols.app)
               .symbolRenderingMode(.hierarchical)
-              .font(.system(size: AppConstants.fontColossal))
+              .font(.title)
               .foregroundColor(.odysseyPrimary)
 
             Text(NSLocalizedString("ODYSSEY", comment: "App name"))
@@ -47,11 +47,11 @@ struct AboutView: View {
             HStack(spacing: AppConstants.spacingSmall) {
               if let githubURL = URL(string: "https://github.com/Amet13/ODYSSEY") {
                 Link("Version \(appVersion)", destination: githubURL)
-                  .font(.system(size: AppConstants.tertiaryFont))
+                  .font(.footnote)
                   .foregroundColor(.odysseyPrimary)
               } else {
                 Text("Version \(appVersion)")
-                  .font(.system(size: AppConstants.tertiaryFont))
+                  .font(.footnote)
                   .foregroundColor(.odysseySecondaryText)
               }
 
@@ -70,9 +70,9 @@ struct AboutView: View {
                   ProgressView()
                     .scaleEffect(0.6)
                 } else {
-                  Image(systemName: "arrow.clockwise")
+                  Image(systemName: AppConstants.SFSymbols.refresh)
                     .symbolRenderingMode(.hierarchical)
-                    .font(.system(size: AppConstants.fontMicro))
+                    .font(.footnote)
                 }
               }
               .buttonStyle(.plain)
@@ -164,7 +164,7 @@ struct FeatureRow: View {
         .frame(width: AppConstants.iconSmall)
 
       Text(text)
-        .font(.system(size: AppConstants.tertiaryFont))
+        .font(.footnote)
         .foregroundColor(.odysseyText)
 
       Spacer()

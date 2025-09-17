@@ -6,19 +6,23 @@ struct SuccessView: View {
 
   var body: some View {
     VStack(spacing: AppConstants.spacingXLarge) {
-      Image(systemName: "checkmark.circle")
-        .font(.system(size: AppConstants.fontMassive))
+      Image(systemName: AppConstants.SFSymbols.successCircle)
+        .symbolRenderingMode(.hierarchical)
+        .font(.title)
         .foregroundColor(.odysseySuccess)
 
       Text(message)
-        .font(.system(size: AppConstants.fontBody))
+        .font(.body)
         .multilineTextAlignment(.center)
+        .foregroundColor(.primary)
 
       Button("Continue", action: action)
         .buttonStyle(.borderedProminent)
+        .controlSize(.regular)
     }
     .padding(AppConstants.contentPadding)
-    .clipShape(RoundedRectangle(cornerRadius: AppConstants.cardCornerRadius))
+    .odysseyCardBackground(cornerRadius: AppConstants.cardCornerRadius)
+    .if(!NSWorkspace.shared.accessibilityDisplayShouldReduceMotion) { v in v.transition(.opacity) }
   }
 }
 

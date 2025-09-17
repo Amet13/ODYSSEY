@@ -13,8 +13,8 @@ This rule applies to all interactions and tasks unless overridden by a more spec
 
 ODYSSEY is a macOS app:
 
-- Requires **macOS 15 or later** for users (see README for details)
-- For development: requires **Xcode 16+**, Homebrew
+- Requires **macOS 26 or later** for users (see README for details)
+- For development: requires **Xcode 26+**, Homebrew
 - Runs quietly in the menu bar (not dock) using `LSUIElement = true`
 - Provides a modern SwiftUI interface for configuration management
 - Features anti-detection (human-like automation), secure Keychain storage, and automated email verification (IMAP/Gmail)
