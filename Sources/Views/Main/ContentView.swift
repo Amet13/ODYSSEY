@@ -144,6 +144,9 @@ private struct MainBody: View {
         )
         .accessibilityElement()
         .accessibilityLabel("Reservation configurations list")
+        .if(!NSWorkspace.shared.accessibilityDisplayShouldReduceMotion) { view in
+          view.contentTransition(.opacity)
+        }
 
         HeaderFooterDivider()
         FooterView(
@@ -155,30 +158,47 @@ private struct MainBody: View {
         .accessibilityLabel("ODYSSEY footer with settings and about buttons")
       }
       .frame(width: AppConstants.windowMainWidth, height: AppConstants.windowMainHeight)
-      .background(Color.odysseyBackground)
+      .odysseyWindowBackground()
       // Sheet modals for configuration, settings, about, and god mode
       .sheet(isPresented: $showingAddConfig) {
         ConfigurationDetailView(
           config: nil,
           onSave: { config in
             configManager.addConfiguration(config)
-          })
+          }
+        )
+        .presentationBackground(.ultraThinMaterial)
+        .if(!NSWorkspace.shared.accessibilityDisplayShouldReduceMotion) { v in
+          v.transition(.opacity)
+        }
       }
       .sheet(item: $selectedConfig) { config in
         ConfigurationDetailView(
           config: config,
           onSave: { updatedConfig in
             configManager.updateConfiguration(updatedConfig)
-          })
+          }
+        )
+        .presentationBackground(.ultraThinMaterial)
+        .if(!NSWorkspace.shared.accessibilityDisplayShouldReduceMotion) { v in
+          v.transition(.opacity)
+        }
       }
       .sheet(isPresented: $showingSettings) {
         SettingsView(godModeEnabled: godModeStateManager.isGodModeUIEnabled)
+          .presentationBackground(.ultraThinMaterial)
+          .if(!NSWorkspace.shared.accessibilityDisplayShouldReduceMotion) { v in
+            v.transition(.opacity)
+          }
       }
       .sheet(isPresented: $showingAbout) {
         AboutView()
           .presentationDetents([.medium])
           .presentationDragIndicator(.hidden)
-          .presentationBackground(.clear)
+          .presentationBackground(.ultraThinMaterial)
+          .if(!NSWorkspace.shared.accessibilityDisplayShouldReduceMotion) { v in
+            v.transition(.opacity)
+          }
       }
 
       .sheet(isPresented: $showingGodModeConfig) {
@@ -186,7 +206,12 @@ private struct MainBody: View {
           config: nil,
           onSave: { _ in
             // You can define what saving in god mode does here
-          })
+          }
+        )
+        .presentationBackground(.ultraThinMaterial)
+        .if(!NSWorkspace.shared.accessibilityDisplayShouldReduceMotion) { v in
+          v.transition(.opacity)
+        }
       }
       // Keyboard shortcut for toggling god mode UI (local fallback)
       .onKeyPress("g", phases: .down) { press in
@@ -341,20 +366,22 @@ private struct HeaderView: View {
     VStack(spacing: AppConstants.spacingMedium) {
       HStack(spacing: AppConstants.spacingLarge) {
         Image(systemName: "sportscourt.fill")
+          .symbolRenderingMode(.hierarchical)
           .font(.system(size: AppConstants.iconLarge))
           .foregroundColor(.odysseyAccent)
         Text("ODYSSEY")
-          .font(.system(size: AppConstants.primaryFont))
-          .fontWeight(.bold)
+          .font(.title3)
+          .fontWeight(.semibold)
         Spacer()
         if godModeUIEnabled {
           Button(action: simulateAutorunForToday) {
             HStack(spacing: AppConstants.spacingSmall) {
               Image(systemName: "bolt.fill")
+                .symbolRenderingMode(.hierarchical)
                 .foregroundColor(.odysseyWarning)
               Text("GOD MODE")
-                .font(.system(size: AppConstants.fontLarge))
-                .fontWeight(.bold)
+                .font(.subheadline)
+                .fontWeight(.semibold)
                 .foregroundColor(.odysseyWarning)
             }
           }
@@ -368,6 +395,7 @@ private struct HeaderView: View {
           showingAddConfig = true
         }) {
           Image(systemName: "plus")
+            .symbolRenderingMode(.hierarchical)
             .foregroundColor(Color.odysseyCardBackground)
         }
         .buttonStyle(.borderedProminent)
@@ -450,11 +478,11 @@ private struct EmptyStateView: View {
         .foregroundColor(Color.odysseySecondaryText)
         .accessibilityHidden(true)
       Text("No Reservations Configured")
-        .font(.system(size: AppConstants.primaryFont))
-        .fontWeight(.medium)
+        .font(.title3)
+        .fontWeight(.semibold)
         .accessibilityAddTraits(.isHeader)
       Text("Add your first reservation configuration to get started with automated booking.")
-        .font(.system(size: AppConstants.secondaryFont))
+        .font(.subheadline)
         .foregroundColor(Color.odysseySecondaryText)
         .multilineTextAlignment(.center)
         .padding(.horizontal, AppConstants.contentPadding)
@@ -526,12 +554,9 @@ private struct FooterView: View {
       HStack {
         HStack(spacing: AppConstants.spacingSmall) {
           Button(action: { showingSettings = true }) {
-            HStack(spacing: AppConstants.spacingSmall) {
-              Image(systemName: "gearshape.fill")
-                .font(.system(size: AppConstants.fontBody))
-              Text("Settings")
-                .font(.system(size: AppConstants.fontBody))
-            }
+            Label("Settings", systemImage: "gearshape.fill")
+              .labelStyle(.titleAndIcon)
+              .font(.system(size: AppConstants.fontBody))
           }
           .buttonStyle(.borderedProminent)
           .tint(.odysseyPrimary)
@@ -549,12 +574,9 @@ private struct FooterView: View {
 
         HStack(spacing: AppConstants.spacingSmall) {
           Button(action: { showingAbout = true }) {
-            HStack(spacing: AppConstants.spacingSmall) {
-              Image(systemName: "info.circle.fill")
-                .font(.system(size: AppConstants.fontBody))
-              Text("About")
-                .font(.system(size: AppConstants.fontBody))
-            }
+            Label("About", systemImage: "info.circle.fill")
+              .labelStyle(.titleAndIcon)
+              .font(.system(size: AppConstants.fontBody))
           }
           .buttonStyle(.bordered)
           .controlSize(.regular)
@@ -562,12 +584,9 @@ private struct FooterView: View {
           .accessibilityLabel(NSLocalizedString("about", comment: "About"))
 
           Button(action: { NSApp.terminate(nil) }) {
-            HStack(spacing: AppConstants.spacingSmall) {
-              Image(systemName: "power")
-                .font(.system(size: AppConstants.fontBody))
-              Text("Quit")
-                .font(.system(size: AppConstants.fontBody))
-            }
+            Label("Quit", systemImage: "power")
+              .labelStyle(.titleAndIcon)
+              .font(.system(size: AppConstants.fontBody))
           }
           .buttonStyle(.borderedProminent)
           .tint(.odysseyError)
@@ -626,6 +645,7 @@ struct ConfigurationRowView: View {
       Spacer()
       Button(action: onRun) {
         Image(systemName: "play.fill")
+          .symbolRenderingMode(.hierarchical)
           .foregroundColor(.odysseyAccent)
       }
       .buttonStyle(.bordered)
@@ -655,6 +675,7 @@ struct ConfigurationRowView: View {
       .accessibilityAddTraits(.allowsDirectInteraction)
       Button(action: onEdit) {
         Image(systemName: "pencil")
+          .symbolRenderingMode(.hierarchical)
           .foregroundColor(.odysseyAccent)
       }
       .buttonStyle(.bordered)
@@ -666,6 +687,7 @@ struct ConfigurationRowView: View {
         showingDeleteConfirmation = true
       }) {
         Image(systemName: "trash")
+          .symbolRenderingMode(.hierarchical)
           .foregroundColor(.odysseyError)
       }
       .buttonStyle(.bordered)
@@ -697,7 +719,7 @@ struct ConfigurationRowView: View {
         Text(
           "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(formatScheduleInfoInline())",
         )
-        .font(.system(size: AppConstants.secondaryFont))
+        .font(.subheadline)
         .foregroundColor(Color.odysseySecondaryText)
         .fixedSize(horizontal: false, vertical: true)
       }
@@ -705,13 +727,14 @@ struct ConfigurationRowView: View {
         if let next = nextAutorunInfo {
           HStack(spacing: AppConstants.spacingTiny) {
             Image(systemName: "clock")
-              .font(.system(size: AppConstants.tertiaryFont))
+              .symbolRenderingMode(.hierarchical)
+              .font(.footnote)
               .foregroundColor(.odysseyAccent)
             Text("Next autorun in:")
-              .font(.system(size: AppConstants.tertiaryFont))
+              .font(.footnote)
               .foregroundColor(.odysseyAccent)
             Text(formatCountdown(next.date))
-              .font(.system(size: AppConstants.tertiaryFont))
+              .font(.footnote)
               .foregroundColor(.odysseyAccent)
           }
         }
@@ -851,20 +874,21 @@ struct ConfigurationRowView: View {
       return AnyView(
         HStack(spacing: AppConstants.spacingTiny) {
           Image(systemName: statusInfo.iconName)
+            .symbolRenderingMode(.hierarchical)
             .foregroundColor(statusInfo.statusColor)
-            .font(.system(size: AppConstants.tertiaryFont))
+            .font(.footnote)
           Text("Last run:")
-            .font(.system(size: AppConstants.tertiaryFont))
+            .font(.footnote)
             .foregroundColor(statusInfo.statusColor)
           Text(statusInfo.statusKey + runTypeKey)
-            .font(.system(size: AppConstants.tertiaryFont))
+            .font(.footnote)
             .foregroundColor(statusInfo.statusColor)
           if let date = lastRun.date {
             Text(date, style: .date)
-              .font(.system(size: AppConstants.tertiaryFont))
+              .font(.footnote)
               .foregroundColor(statusInfo.statusColor)
             Text(date, style: .time)
-              .font(.system(size: AppConstants.tertiaryFont))
+              .font(.footnote)
               .foregroundColor(statusInfo.statusColor)
           }
 
@@ -879,13 +903,14 @@ struct ConfigurationRowView: View {
       return AnyView(
         HStack(spacing: AppConstants.spacingTiny) {
           Image(systemName: "questionmark.circle")
+            .symbolRenderingMode(.hierarchical)
             .foregroundColor(Color.odysseyGray)
-            .font(.system(size: AppConstants.tertiaryFont))
+            .font(.footnote)
           Text("Last run:")
-            .font(.system(size: AppConstants.tertiaryFont))
+            .font(.footnote)
             .foregroundColor(Color.odysseyGray)
           Text("never")
-            .font(.system(size: AppConstants.tertiaryFont))
+            .font(.footnote)
             .foregroundColor(Color.odysseyGray)
         },
       )

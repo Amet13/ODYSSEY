@@ -30,15 +30,16 @@ struct AboutView: View {
         VStack(spacing: AppConstants.spacingLarge) {
           VStack(spacing: AppConstants.spacingMedium) {
             Image(systemName: "sportscourt.fill")
+              .symbolRenderingMode(.hierarchical)
               .font(.system(size: AppConstants.fontColossal))
               .foregroundColor(.odysseyPrimary)
 
             Text(NSLocalizedString("ODYSSEY", comment: "App name"))
-              .font(.system(size: AppConstants.accentFont))
-              .fontWeight(.bold)
+              .font(.title3)
+              .fontWeight(.semibold)
 
             Text(NSLocalizedString("about_app_subtitle", comment: "App subtitle"))
-              .font(.system(size: AppConstants.tertiaryFont))
+              .font(.subheadline)
               .foregroundColor(.odysseySecondaryText)
               .multilineTextAlignment(.center)
               .fixedSize(horizontal: false, vertical: true)
@@ -70,6 +71,7 @@ struct AboutView: View {
                     .scaleEffect(0.6)
                 } else {
                   Image(systemName: "arrow.clockwise")
+                    .symbolRenderingMode(.hierarchical)
                     .font(.system(size: AppConstants.fontMicro))
                 }
               }
@@ -157,6 +159,7 @@ struct FeatureRow: View {
   var body: some View {
     HStack(spacing: AppConstants.spacingMedium) {
       Image(systemName: icon)
+        .symbolRenderingMode(.hierarchical)
         .foregroundColor(.odysseyPrimary)
         .frame(width: AppConstants.iconSmall)
 

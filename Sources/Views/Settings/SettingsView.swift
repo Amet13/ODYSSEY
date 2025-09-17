@@ -135,10 +135,11 @@ private struct SettingsHeader: View {
   var body: some View {
     HStack(spacing: AppConstants.spacingLarge) {
       Image(systemName: "sportscourt.fill")
+        .symbolRenderingMode(.hierarchical)
         .font(.system(size: AppConstants.primaryFont))
         .foregroundColor(.accentColor)
       Text("Settings")
-        .font(.system(size: AppConstants.primaryFont))
+        .font(.title3)
         .fontWeight(.semibold)
       Spacer()
     }
@@ -693,9 +694,10 @@ private func settingsSection(title: String, icon: String, @ViewBuilder content: 
   VStack(alignment: .leading, spacing: AppConstants.contentSpacing) {
     HStack {
       Image(systemName: icon)
+        .symbolRenderingMode(.hierarchical)
         .foregroundColor(.accentColor)
       Text(title)
-        .font(.system(size: AppConstants.secondaryFont))
+        .font(.subheadline)
         .fontWeight(.semibold)
       Spacer()
     }
@@ -721,6 +723,7 @@ private func settingsField(
   VStack(alignment: .leading, spacing: AppConstants.spacingTiny) {
     HStack {
       Image(systemName: icon)
+        .symbolRenderingMode(.hierarchical)
         .foregroundColor(.secondary)
         .frame(width: AppConstants.iconSmall)
       Text(title)
