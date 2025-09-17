@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "ODYSSEY",
     platforms: [
-        .macOS(.v15)
+        .macOS(.v26)
     ],
     products: [
         // macOS Menu Bar Application

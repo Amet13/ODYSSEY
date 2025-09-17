@@ -173,6 +173,13 @@ public enum AppConstants {
   public static let defaultNumberOfPeople: Int = 1
   public static let defaultAutorunHour: Int = 18
   public static let defaultAutorunMinute: Int = 0
+  public static let defaultAutorunSecond: Int = 0
+  public static let autorunTimeToleranceSeconds: Int = 5
+
+  // Launch Agent
+  public static let launchAgentLabel = "com.odyssey.scheduled"
+  public static let launchAgentScheduledLogFilename = "scheduled.log"
+  public static let launchAgentScheduledErrorLogFilename = "scheduled_error.log"
 
   // MARK: - File Management Constants
 

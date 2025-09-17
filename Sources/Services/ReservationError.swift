@@ -84,11 +84,11 @@ public enum ReservationError: Error, Codable, LocalizedError, UnifiedErrorProtoc
   /// User-friendly error message for UI display
   public var userFriendlyMessage: String {
     switch self {
-    case let .network(msg): return "Network error: \(msg)"
-    case let .facilityNotFound(msg): return "Facility not found: \(msg)"
-    case let .slotUnavailable(msg): return "Slot unavailable: \(msg)"
-    case let .automationFailed(msg): return "Automation failed: \(msg)"
-    case let .unknown(msg): return "Unknown error: \(msg)"
+    case .network(let msg): return "Network error: \(msg)"
+    case .facilityNotFound(let msg): return "Facility not found: \(msg)"
+    case .slotUnavailable(let msg): return "Slot unavailable: \(msg)"
+    case .automationFailed(let msg): return "Automation failed: \(msg)"
+    case .unknown(let msg): return "Unknown error: \(msg)"
     case .pageLoadTimeout: return "Page failed to load in time."
     case .groupSizePageLoadTimeout: return "Group size page failed to load in time."
     case .numberOfPeopleFieldNotFound: return "Number of people field not found."
@@ -106,11 +106,11 @@ public enum ReservationError: Error, Codable, LocalizedError, UnifiedErrorProtoc
   /// Technical details for debugging (optional)
   public var technicalDetails: String? {
     switch self {
-    case let .network(msg): return "Network connectivity issue: \(msg)"
-    case let .facilityNotFound(msg): return "Facility lookup failed: \(msg)"
-    case let .slotUnavailable(msg): return "Time slot availability check failed: \(msg)"
-    case let .automationFailed(msg): return "Web automation process failed: \(msg)"
-    case let .unknown(msg): return "Unexpected error occurred: \(msg)"
+    case .network(let msg): return "Network connectivity issue: \(msg)"
+    case .facilityNotFound(let msg): return "Facility lookup failed: \(msg)"
+    case .slotUnavailable(let msg): return "Time slot availability check failed: \(msg)"
+    case .automationFailed(let msg): return "Web automation process failed: \(msg)"
+    case .unknown(let msg): return "Unexpected error occurred: \(msg)"
     case .pageLoadTimeout: return "Page load exceeded timeout threshold"
     case .groupSizePageLoadTimeout: return "Group size page load exceeded timeout threshold"
     case .numberOfPeopleFieldNotFound: return "Could not locate number of people input field"

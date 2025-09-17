@@ -139,14 +139,14 @@ public final class ReservationErrorHandler: @unchecked Sendable {
   private func getUserFriendlyErrorMessage(_ error: Error) -> String {
     if let reservationError = error as? ReservationError {
       switch reservationError {
-      case let .network(message):
+      case .network(let message):
         return
           "Network connection issue: \(message). Please check your internet connection and try again."
-      case let .facilityNotFound(message):
+      case .facilityNotFound(let message):
         return "Facility not found: \(message). Please verify the facility URL is correct."
-      case let .slotUnavailable(message):
+      case .slotUnavailable(let message):
         return "Time slot unavailable: \(message). Please try a different time or day."
-      case let .automationFailed(message):
+      case .automationFailed(let message):
         return
           "Automation failed: \(message). Please try again or contact support if the issue persists."
       case .pageLoadTimeout:
@@ -172,7 +172,7 @@ public final class ReservationErrorHandler: @unchecked Sendable {
         return "Could not find the sport selection button. The website may have changed."
       case .webKitTimeout:
         return "Operation timed out. Please try again."
-      case let .unknown(message):
+      case .unknown(let message):
         return "An unexpected error occurred: \(message). Please try again."
       }
     }

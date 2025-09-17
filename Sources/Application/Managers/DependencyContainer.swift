@@ -27,13 +27,25 @@ class DependencyContainer {
 
   lazy var emailClient: EmailClientProtocol = {
     logger.info("📧 Creating email client.")
+    let userSettings = UserSettingsManager.shared.userSettings
+    let email = userSettings.imapEmail
+    let server =
+      userSettings.imapServer.isEmpty ? AppConstants.gmailImapServer : userSettings.imapServer
+    let port = Int(AppConstants.gmailImapPort)
+    var password = ""
+    if !email.isEmpty {
+      let result = KeychainService.shared.retrieveEmailPassword(
+        email: email, server: server, port: port)
+      if case .success(let pw) = result { password = pw }
+    }
+    let provider: EmailProvider = ValidationService.shared.isGmailAccount(email) ? .gmail : .imap
     let settings = EmailSettings(
-      emailAddress: UserDefaults.standard.string(forKey: "email") ?? "",
-      password: UserDefaults.standard.string(forKey: "password") ?? "",
-      provider: .gmail,
-      imapServer: AppConstants.gmailImapServer,
-      imapPort: Int(AppConstants.gmailImapPort),
-      useSSL: true,
+      emailAddress: email,
+      password: password,
+      provider: provider,
+      imapServer: server,
+      imapPort: port,
+      useSSL: true
     )
     return EmailClient(settings: settings)
   }()

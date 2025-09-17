@@ -320,7 +320,7 @@ check_macos_requirements() {
     # Check macOS version
     local macos_version
     macos_version=$(sw_vers -productVersion)
-    if [[ $(echo "$macos_version 15.0" | tr " " "\n" | sort -V | head -1) != "15.0" ]]; then
+    if [[ $(echo "$macos_version 26.0" | tr " " "\n" | sort -V | head -1) != "26.0" ]]; then
         log_error "macOS 26.0 or later is required. Current version: $macos_version"
         exit 1
     fi
