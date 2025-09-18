@@ -711,12 +711,24 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
         configName: config.name,
       )
 
-      // Show success notification
-      NotificationService.shared.showReservationSuccess(
-        facilityName: config.name,
-        date: "today",
-        time: "successfully booked"
-      )
+      // Show success notification (try to include chosen day/time if available)
+      if let day = config.dayTimeSlots.first(where: { !$0.value.isEmpty })?.key,
+        let timeSlot = config.dayTimeSlots[day]?.first
+      {
+        let dayName = day.localizedShortName
+        let timeString = timeSlot.formattedTime()
+        NotificationService.shared.showReservationSuccess(
+          facilityName: config.name,
+          date: dayName,
+          time: timeString
+        )
+      } else {
+        NotificationService.shared.showReservationSuccess(
+          facilityName: config.name,
+          date: "today",
+          time: "successfully booked"
+        )
+      }
 
       await MainActor.run {
         if runType == .manual {

@@ -57,31 +57,19 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     var userFriendlyMessage: String {
       switch self {
       case .connectionFailed(let message):
-        return String(
-          format: NSLocalizedString("imap_connection_failed", comment: "IMAP connection failed."),
-          message)
+        return "Connection failed: \(message)"
       case .authenticationFailed(let message):
-        return String(
-          format: NSLocalizedString("imap_auth_failed", comment: "IMAP authentication failed."),
-          message)
+        return "Authentication failed: \(message)"
       case .commandFailed(let message):
-        return String(
-          format: NSLocalizedString("imap_command_failed", comment: "IMAP command failed."), message
-        )
+        return "Command failed: \(message)"
       case .invalidResponse(let message):
-        return String(
-          format: NSLocalizedString("imap_invalid_response", comment: "IMAP invalid response."),
-          message)
+        return "Invalid response: \(message)"
       case .timeout(let message):
-        return String(format: NSLocalizedString("imap_timeout", comment: "IMAP timeout."), message)
+        return "Connection timeout: \(message)"
       case .unsupportedServer(let message):
-        return String(
-          format: NSLocalizedString("imap_unsupported_server", comment: "Unsupported server."),
-          message)
+        return "Unsupported server: \(message)"
       case .gmailAppPasswordRequired(let message):
-        return String(
-          format: NSLocalizedString(
-            "imap_gmail_password_required", comment: "Gmail app password required."), message)
+        return "Gmail App Password required: \(message)"
       }
     }
 
@@ -186,19 +174,14 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     // Check if server is correct for Gmail
     if server.lowercased() != AppConstants.gmailImapServer {
       return .failure(
-        .gmailAppPasswordRequired(
-          NSLocalizedString("imap_gmail_server_required", comment: "Gmail server required.")))
+        .gmailAppPasswordRequired("Gmail accounts must use 'imap.gmail.com' as the server."))
     }
 
     // Use centralized validation for Gmail app password
     let trimmedPassword = password.trimmingCharacters(in: .whitespacesAndNewlines)
     guard ValidationService.shared.validateGmailAppPassword(trimmedPassword) else {
       return .failure(
-        .gmailAppPasswordRequired(
-          NSLocalizedString(
-            "imap_gmail_app_password_format", comment: "Gmail app password format."),
-        )
-      )
+        .gmailAppPasswordRequired("Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx'"))
     }
 
     return .success(())

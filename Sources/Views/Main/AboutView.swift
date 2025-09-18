@@ -34,11 +34,11 @@ struct AboutView: View {
               .font(.system(size: AppConstants.fontMassive))
               .foregroundColor(.odysseyPrimary)
 
-            Text(NSLocalizedString("ODYSSEY", comment: "App name"))
+            Text("ODYSSEY")
               .font(.system(size: AppConstants.fontTitle3))
               .fontWeight(.semibold)
 
-            Text(NSLocalizedString("about_app_subtitle", comment: "App subtitle"))
+            Text("Ottawa Drop-in Your Sports & Schedule Easily Yourself")
               .font(.system(size: AppConstants.fontSubheadline))
               .foregroundColor(.odysseySecondaryText)
               .multilineTextAlignment(.center)

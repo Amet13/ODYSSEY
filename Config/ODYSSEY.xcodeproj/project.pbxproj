@@ -37,7 +37,6 @@
 		9469FD36CAFA7DF38793AEC2 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E22A7B78066D8BC90818E37 /* NotificationService.swift */; };
 		99E54AF4CF3ED6C9B978CD25 /* SportIconMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5568B1B9995B862B5D83137 /* SportIconMapper.swift */; };
 		A1335E6664D5449F09663909 /* ReservationErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */; };
-		A9A2F3FB377649F3A070A9A4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 34C024E102B748548377EE51 /* Localizable.strings */; };
 		AA4730C31D341AD6C3669020 /* WebKitDebugWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D4A3E2796AC58ABB58A6817 /* WebKitDebugWindowManager.swift */; };
 		ADE22653E2C7DA6447574BEA /* JavaScriptPages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81E05DDA80BAC0BD3FBAECE8 /* JavaScriptPages.swift */; };
 		AF9C5201A1EA357818523371 /* FacilityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D69C877E24F28F08FF142CE1 /* FacilityService.swift */; };
@@ -71,7 +70,6 @@
 		2BEB0966F2F19B62CFC15FE2 /* ReservationErrorHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReservationErrorHandler.swift; sourceTree = "<group>"; };
 		2D4A3E2796AC58ABB58A6817 /* WebKitDebugWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitDebugWindowManager.swift; sourceTree = "<group>"; };
 		3419A41E593FC7E578492598 /* EmailService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailService.swift; sourceTree = "<group>"; };
-		34C024E102B748548377EE51 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		34D958E5CB6EBC1B6F06E168 /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		4032FBD046C7A84D2AB708F7 /* ConfigurationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationDetailView.swift; sourceTree = "<group>"; };
 		48D6507655544E5D9BC6CABF /* WebKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitService.swift; sourceTree = "<group>"; };
@@ -268,7 +266,6 @@
 			children = (
 				9F32A0A5C6C800FBB7769711 /* AppIcon.icns */,
 				6D876275C546C2EDF4733D3E /* Assets.xcassets */,
-				34C024E102B748548377EE51 /* Localizable.strings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -334,7 +331,6 @@
 			files = (
 				FA8FDED3BB6BF7B43C24F5B5 /* AppIcon.icns in Resources */,
 				41CB267A86BBFDE6B8D76B14 /* Assets.xcassets in Resources */,
-				A9A2F3FB377649F3A070A9A4 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
