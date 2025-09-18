@@ -406,9 +406,7 @@ private struct HeaderView: View {
         }
         .buttonStyle(.borderedProminent)
         .controlSize(.small)
-        .help(
-          NSLocalizedString("add_config_tooltip", comment: "Add a new reservation configuration")
-        )
+        .help(AppConstants.Strings.addConfigTooltip)
         .accessibilityLabel("Add new reservation configuration")
         .accessibilityHint("Double tap to create a new reservation configuration")
         .accessibilityAddTraits(.isButton)
@@ -567,11 +565,8 @@ private struct FooterView: View {
           .buttonStyle(.borderedProminent)
           .tint(.odysseyPrimary)
           .controlSize(.regular)
-          .help(
-            NSLocalizedString(
-              "settings_tooltip", comment: "Configure user settings and integrations")
-          )
-          .accessibilityLabel(NSLocalizedString("settings", comment: "Settings"))
+          .help(AppConstants.Strings.settingsTooltip)
+          .accessibilityLabel(AppConstants.Strings.settings)
           .keyboardShortcut(",", modifiers: .command)
 
         }
@@ -586,8 +581,8 @@ private struct FooterView: View {
           }
           .buttonStyle(.bordered)
           .controlSize(.regular)
-          .help(NSLocalizedString("about_tooltip", comment: "About ODYSSEY"))
-          .accessibilityLabel(NSLocalizedString("about", comment: "About"))
+          .help(AppConstants.Strings.aboutTooltip)
+          .accessibilityLabel(AppConstants.Strings.about)
 
           Button(action: { NSApp.terminate(nil) }) {
             Label("Quit", systemImage: AppConstants.SFSymbols.power)
@@ -597,8 +592,8 @@ private struct FooterView: View {
           .buttonStyle(.borderedProminent)
           .tint(.odysseyError)
           .controlSize(.regular)
-          .help(NSLocalizedString("quit_tooltip", comment: "Quit ODYSSEY"))
-          .accessibilityLabel(NSLocalizedString("quit", comment: "Quit"))
+          .help(AppConstants.Strings.quitTooltip)
+          .accessibilityLabel(AppConstants.Strings.quit)
         }
       }
       .padding(.horizontal, AppConstants.screenPadding)
@@ -658,7 +653,7 @@ struct ConfigurationRowView: View {
       .buttonStyle(.bordered)
       .buttonBorderShape(.roundedRectangle)
       .controlSize(.small)
-      .help(NSLocalizedString("run_now_tooltip", comment: "Run this reservation now"))
+      .help(AppConstants.Strings.runNowTooltip)
       .accessibilityLabel("Run \(config.name) reservation now")
       .accessibilityHint("Double tap to run this reservation immediately")
       .accessibilityAddTraits(.isButton)
@@ -672,12 +667,7 @@ struct ConfigurationRowView: View {
       .toggleStyle(.switch)
       .labelsHidden()
       .controlSize(.small)
-      .help(
-        NSLocalizedString(
-          "enable_autorun_tooltip",
-          comment: "Enable or disable autorun for this configuration",
-        )
-      )
+      .help(AppConstants.Strings.enableAutorunTooltip)
       .accessibilityLabel("\(config.name) autorun is \(config.isEnabled ? "enabled" : "disabled")")
       .accessibilityHint(
         "Double tap to \(config.isEnabled ? "disable" : "enable") automatic runs for this configuration",
@@ -691,7 +681,7 @@ struct ConfigurationRowView: View {
       .buttonStyle(.bordered)
       .buttonBorderShape(.roundedRectangle)
       .controlSize(.small)
-      .help(NSLocalizedString("edit_tooltip", comment: "Edit this configuration"))
+      .help(AppConstants.Strings.editTooltip)
       .accessibilityLabel("Edit \(config.name) configuration")
       .accessibilityHint("Double tap to edit this reservation configuration")
       .accessibilityAddTraits(.isButton)
@@ -705,7 +695,7 @@ struct ConfigurationRowView: View {
       .buttonStyle(.bordered)
       .buttonBorderShape(.roundedRectangle)
       .controlSize(.small)
-      .help(NSLocalizedString("delete_tooltip", comment: "Delete this configuration"))
+      .help(AppConstants.Strings.deleteTooltip)
       .accessibilityLabel("Delete \(config.name) configuration")
       .accessibilityHint("Double tap to delete this reservation configuration")
       .accessibilityAddTraits(.isButton)

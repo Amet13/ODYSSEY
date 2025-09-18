@@ -89,32 +89,23 @@ struct AboutView: View {
             VStack(alignment: .leading, spacing: AppConstants.spacingSmall) {
               FeatureRow(
                 icon: AppConstants.SFSymbols.appOutline,
-                text: NSLocalizedString(
-                  "about_feature_automated_booking",
-                  comment: "Automated reservation booking",
-                ),
+                text: AppConstants.Strings.aboutFeatureAutomatedBooking,
               )
               FeatureRow(
                 icon: AppConstants.SFSymbols.clock,
-                text: NSLocalizedString(
-                  "about_feature_scheduling", comment: "Smart scheduling system"),
+                text: AppConstants.Strings.aboutFeatureScheduling,
               )
               FeatureRow(
                 icon: AppConstants.SFSymbols.shield,
-                text: NSLocalizedString(
-                  "about_feature_webkit", comment: "Native WebKit automation"),
+                text: AppConstants.Strings.aboutFeatureWebKit,
               )
               FeatureRow(
                 icon: AppConstants.SFSymbols.envelopeBadge,
-                text: NSLocalizedString(
-                  "about_feature_email", comment: "Email verification support"),
+                text: AppConstants.Strings.aboutFeatureEmail,
               )
               FeatureRow(
                 icon: AppConstants.SFSymbols.settings,
-                text: NSLocalizedString(
-                  "about_feature_multi_config",
-                  comment: "Multiple configuration support",
-                ),
+                text: AppConstants.Strings.aboutFeatureMultiConfig,
               )
 
             }

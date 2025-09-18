@@ -429,6 +429,33 @@ extension AppConstants {
   }
 }
 
+// MARK: - Strings (English only)
+
+extension AppConstants {
+  public struct Strings {
+    // About — feature bullets
+    public static let aboutFeatureAutomatedBooking = "Automated reservation booking"
+    public static let aboutFeatureScheduling = "Smart scheduling system"
+    public static let aboutFeatureWebKit = "Native WebKit automation"
+    public static let aboutFeatureEmail = "Email verification support"
+    public static let aboutFeatureMultiConfig = "Multiple configuration support"
+
+    // Tooltips and labels
+    public static let addConfigTooltip = "Add a new reservation configuration"
+    public static let settingsTooltip = "Configure user settings and integrations"
+    public static let settings = "Settings"
+    public static let aboutTooltip = "About ODYSSEY"
+    public static let about = "About"
+    public static let quitTooltip = "Quit ODYSSEY"
+    public static let quit = "Quit"
+    public static let runNowTooltip = "Run this reservation now"
+    public static let enableAutorunTooltip =
+      "Enable or disable autorun for this configuration"
+    public static let editTooltip = "Edit this configuration"
+    public static let deleteTooltip = "Delete this configuration"
+  }
+}
+
 // MARK: - Status Bar
 
 extension AppConstants {
