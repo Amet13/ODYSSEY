@@ -25,7 +25,7 @@
 - **Add to the quarantine:** Run in your terminal:
 
   ```bash
-  sudo xattr -rd com.apple.quarantine /Applications/ODYSSEY.app
+  xattr -rd com.apple.quarantine /Applications/ODYSSEY.app
   ```
 
 - **Launch:** Open the app. You'll see a new icon in your menu bar.
