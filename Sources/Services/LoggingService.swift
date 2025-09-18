@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 /// Centralized logging service for consistent logging patterns across the application
 @MainActor
@@ -34,6 +34,14 @@ public final class LoggingService: ObservableObject {
     configId: UUID? = nil,
     configName: String? = nil,
   ) {
+    // Ensure messages end with a period per logging rules
+    func ensureTrailingPeriod(_ text: String) -> String {
+      let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+      if trimmed.hasSuffix(".") { return text }
+      return trimmed + "."
+    }
+
+    let formattedMessage = ensureTrailingPeriod(message)
     let entry = LogEntry(
       timestamp: Date(),
       message: message,
@@ -51,13 +59,13 @@ public final class LoggingService: ObservableObject {
 
     switch level {
     case .info:
-      logger.info("\(message)")
+      logger.info("\(formattedMessage)")
     case .warning:
-      logger.warning("\(message)")
+      logger.warning("\(formattedMessage)")
     case .error:
-      logger.error("\(message)")
+      logger.error("\(formattedMessage)")
     case .success:
-      logger.info("✅ \(message)")
+      logger.info("✅ \(formattedMessage)")
     }
   }
 

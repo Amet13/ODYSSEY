@@ -1,7 +1,7 @@
 import AppKit
 import Combine
 import Foundation
-import os.log
+import os
 
 // MARK: - ReservationRunStatusCodable (Top-level)
 

@@ -1,7 +1,7 @@
 import AppKit
 import Combine
 import SwiftUI
-import os.log
+import os
 
 /// Manages the status bar (tray) menu for the macOS app
 @MainActor
@@ -52,7 +52,10 @@ class StatusBarController: NSObject {
   }
 
   private func setupPopover() {
-    popover.contentSize = NSSize(width: 400, height: 600)
+    popover.contentSize = NSSize(
+      width: AppConstants.windowMainWidth,
+      height: AppConstants.windowMainHeight
+    )
     popover.behavior = .transient
     popover.contentViewController = NSHostingController(rootView: ContentView())
   }

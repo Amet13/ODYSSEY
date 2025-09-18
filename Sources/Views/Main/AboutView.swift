@@ -66,18 +66,20 @@ struct AboutView: View {
                   }
                 }
               }) {
-                if updateChecker.isCheckingForUpdates {
-                  ProgressView()
-                    .scaleEffect(0.6)
-                } else {
-                  Image(systemName: AppConstants.SFSymbols.refresh)
-                    .symbolRenderingMode(.hierarchical)
-                    .font(.system(size: AppConstants.fontCaption))
+                HStack(spacing: AppConstants.spacingTiny) {
+                  if updateChecker.isCheckingForUpdates {
+                    ProgressView()
+                      .scaleEffect(AppConstants.scaleEffectSmall)
+                  } else {
+                    Image(systemName: AppConstants.SFSymbols.refresh)
+                      .symbolRenderingMode(.hierarchical)
+                  }
                 }
               }
               .buttonStyle(.plain)
+              .controlSize(.mini)
               .disabled(updateChecker.isCheckingForUpdates)
-              .help("Check for updates")
+              .help("Check for updates.")
             }
           }
 

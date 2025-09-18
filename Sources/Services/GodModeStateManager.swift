@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 /// Manages the global God Mode UI state for keyboard shortcuts.
 @MainActor

@@ -1,6 +1,6 @@
 import Foundation
 import Network
-import os.log
+import os
 
 @MainActor
 public final class EmailIMAPStreamDelegate: NSObject, StreamDelegate {

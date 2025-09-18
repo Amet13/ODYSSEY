@@ -1,7 +1,7 @@
 import AppKit
 import Foundation
 import ImageIO
-import os.log
+import os
 
 /// FileManager extensions for ODYSSEY app directories
 extension FileManager {

@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 /// Form handling and field filling JavaScript functions for ODYSSEY
 /// Contains all form-related automation functionality

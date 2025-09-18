@@ -1,6 +1,6 @@
 import Foundation
 import WebKit
-import os.log
+import os
 
 @MainActor
 public final class FacilityService: NSObject, ObservableObject, WKScriptMessageHandler {

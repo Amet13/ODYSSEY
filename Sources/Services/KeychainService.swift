@@ -1,7 +1,7 @@
 import Combine
 import Foundation
 import Security
-import os.log
+import os
 
 /// Secure credential storage service using Keychain Services
 /// Provides secure storage and retrieval of sensitive data like email credentials

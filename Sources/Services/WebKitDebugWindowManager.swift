@@ -2,7 +2,7 @@
 import AppKit
 import Foundation
 import WebKit
-import os.log
+import os
 
 /// Centralized debug window management for WebKit automation
 /// Handles all debug window functionality including creation, display, and cleanup

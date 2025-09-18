@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 @MainActor
 protocol ReservationRepositoryProtocol: RepositoryProtocol where Entity == Reservation {

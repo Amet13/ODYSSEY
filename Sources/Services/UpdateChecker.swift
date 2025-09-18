@@ -1,6 +1,6 @@
 import AppKit
 import Foundation
-import os.log
+import os
 
 /// Service for checking for app updates via GitHub API
 @MainActor
@@ -37,16 +37,16 @@ class UpdateChecker: ObservableObject {
         isCheckingForUpdates = false
 
         if updateAvailable {
-          logger.info("🆕 Update available: \(latestRelease.tagName) (current: \(currentVersion))")
+          logger.info("🆕 Update available: \(latestRelease.tagName) (current: \(currentVersion)).")
         } else {
-          logger.info("✅ App is up to date: \(currentVersion)")
+          logger.info("✅ App is up to date: \(currentVersion).")
         }
       }
     } catch {
       await MainActor.run {
         errorMessage = "Failed to check for updates: \(error.localizedDescription)"
         isCheckingForUpdates = false
-        logger.error("❌ Update check failed: \(error.localizedDescription)")
+        logger.error("❌ Update check failed: \(error.localizedDescription, privacy: .private).")
       }
     }
   }
@@ -54,12 +54,12 @@ class UpdateChecker: ObservableObject {
   /// Opens the GitHub releases page in the default browser
   func openReleasesPage() {
     guard let url = URL(string: releasesPageURL) else {
-      logger.error("❌ Invalid releases page URL")
+      logger.error("❌ Invalid releases page URL.")
       return
     }
 
     NSWorkspace.shared.open(url)
-    logger.info("🌐 Opened releases page: \(self.releasesPageURL)")
+    logger.info("🌐 Opened releases page: \(self.releasesPageURL).")
   }
 
   // MARK: - Private Methods

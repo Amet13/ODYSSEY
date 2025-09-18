@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 /// Centralized configuration validation service
 /// Handles all validation logic for reservation configurations and user settings

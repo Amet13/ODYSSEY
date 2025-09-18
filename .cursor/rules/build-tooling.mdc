@@ -1,0 +1,21 @@
+---
+alwaysApply: true
+---
+
+### Build, Lint, and Tooling
+
+- **Primary Commands**:
+  - Build: `./Scripts/odyssey.sh build`
+  - Lint/Format: `./Scripts/odyssey.sh lint`
+- **When to Run**:
+  - After every edit set or before creating a PR/review request.
+  - Before packaging or asking for commit permission.
+- **Xcode**:
+  - Use Xcode 26+; ensure the selected toolchain is Swift 6.2.
+  - Scheme: `ODYSSEY` with macOS 26+ target.
+- **CI (Local)**:
+  - Failing lints or build warnings must be resolved or justified.
+- **Docs**:
+  - Update `README.md` and relevant docs when features or flows change.
+- **Verification**:
+  - Launch app to verify menu bar item appears and basic flows function.

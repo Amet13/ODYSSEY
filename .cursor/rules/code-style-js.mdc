@@ -1,0 +1,32 @@
+---
+alwaysApply: true
+---
+
+### Code Style — JavaScript (WKWebView)
+
+- **Scope**: JavaScript is used only for automation injected into `WKWebView`.
+- **Language**: Modern JS (ES2019+ features where supported by WebKit); no transpilation.
+- **Module Pattern**:
+  - Encapsulate in IIFE or module objects to avoid polluting globals.
+  - Export data via explicit return values or `window._odyssey` namespace if required.
+- **Naming & Structure**:
+  - Use descriptive names; avoid abbreviations.
+  - Small, composable functions; avoid long imperative scripts.
+- **Interfacing with Swift**:
+  - Communicate via `evaluateJavaScript` return values or message handlers.
+  - Serialize structured data to JSON; validate before passing to Swift.
+- **Timing & Humanization**:
+  - Use randomized delays within safe bounds to mimic human behavior.
+  - Avoid tight polling loops; prefer event listeners.
+- **Security**:
+  - Never eval arbitrary strings; avoid dynamic script construction with user data.
+  - Sanitize selectors and inputs.
+  - Do not send network requests to third-party domains from injected scripts.
+- **Error Handling**:
+  - Wrap critical operations in try/catch and return structured error objects.
+  - Avoid noisy console logs in production contexts.
+- **Constants**:
+  - Centralize static selectors/URLs in a constants object.
+- **Performance**:
+  - Limit DOM queries; cache references when reused.
+  - Bail early if required elements are missing.

@@ -1,0 +1,48 @@
+---
+alwaysApply: true
+---
+
+### Code Style — Swift
+
+- **Language Version**: Swift 6.2
+- **Project Style**: Follow official Swift style and swift-format; zero linter errors.
+- **Naming**:
+  - **Types/Protocols**: PascalCase (`ReservationOrchestrator`, `WebKitService`)
+  - **Functions/Properties**: lowerCamelCase (`startAutomation`, `webViewConfiguration`)
+  - **Booleans**: stateful and explicit (`isEnabled`, `hasConflict`)
+  - **Avoid abbreviations**; prefer full words.
+- **Types**:
+  - Prefer **strong types** over `Any`.
+  - Explicitly annotate public APIs and non-trivial function signatures.
+  - Avoid force unwraps; use `guard let` with early returns.
+- **Control Flow**:
+  - Use guard clauses for preconditions; avoid deep nesting (>2 levels).
+  - Handle error and edge cases first.
+  - Do not swallow errors; bubble up with meaningful context.
+- **Concurrency & Async**:
+  - Prefer Combine for async orchestration and state.
+  - If using async/await, structure tasks with cancellation and timeout handling.
+  - Ensure UI updates happen on the main thread.
+- **Memory Management**:
+  - Use `[weak self]` in closures for long-lived references.
+  - Avoid retain cycles; verify deinit where appropriate.
+- **Error Handling**:
+  - Define domain errors in `Sources/Services/ReservationError.swift` and `Sources/Domain/Errors/`.
+  - Log with `os.Logger` using the logging rules; include emojis and privacy.
+- **Comments & Docs**:
+  - Use JSDoc-style doc comments for all public types/methods.
+  - Explain intent and constraints; avoid trivial comments.
+  - Do not add placeholder comments like “moved/removed”.
+- **Formatting**:
+  - Match repository formatting; prefer multi-line over cramped one-liners.
+  - Keep line length reasonable for readability.
+- **Constants & Config**:
+  - Use `Sources/SharedUtils/AppConstants.swift` for shared constants.
+  - Prefer `enum` namespaces or static lets in cohesive types.
+- **UI & Spacing**:
+  - Ensure the spacing between window border ↔ content equals content ↔ dividers.
+  - Use shared spacing constants and reuse across views.
+- **Testing & Safety**:
+  - Validate inputs via `ValidationService`.
+  - Avoid side effects in initializers; keep them lightweight.
+  - Check for linter errors after edits with `./Scripts/odyssey.sh lint`.

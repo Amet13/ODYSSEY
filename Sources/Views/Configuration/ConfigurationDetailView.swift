@@ -1,6 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
-import os.log
+import os
 
 /// A detailed view for editing or creating a reservation configuration.
 struct ConfigurationDetailView: View {
@@ -50,17 +50,11 @@ struct ConfigurationDetailView: View {
         .padding(.horizontal, AppConstants.screenPadding)
         .padding(.vertical, AppConstants.contentPadding)
         .onAppear {
-          os_log(
-            "🔍 facilityURL.isEmpty: %{public}d",
-            log: .default,
-            type: .debug,
-            facilityURL.isEmpty ? 1 : 0,
-          )
-          os_log(
-            "🔍 isValidFacilityURL result: %{public}d",
-            log: .default,
-            type: .debug,
-            isValidFacilityURL(facilityURL) ? 1 : 0,
+          let logger = Logger(
+            subsystem: AppConstants.loggingSubsystem, category: "ConfigurationDetailView")
+          logger.debug("🔍 facilityURL.isEmpty: \(facilityURL.isEmpty ? 1 : 0, privacy: .public).")
+          logger.debug(
+            "🔍 isValidFacilityURL result: \(isValidFacilityURL(facilityURL) ? 1 : 0, privacy: .public)."
           )
         }
         HeaderFooterDivider()
@@ -275,12 +269,10 @@ struct ConfigurationDetailView: View {
           .buttonStyle(.bordered)
           .disabled(isFetchingSports)
           .onAppear {
-            os_log(
-              "🔍 isValidFacilityURL: %{public}d",
-              log: .default,
-              type: .debug,
-              isValidFacilityURL(facilityURL) ? 1 : 0,
-            )
+            let logger = Logger(
+              subsystem: AppConstants.loggingSubsystem, category: "ConfigurationDetailView")
+            logger.debug(
+              "🔍 isValidFacilityURL: \(isValidFacilityURL(facilityURL) ? 1 : 0, privacy: .public).")
           }
         }
       }
@@ -575,14 +567,10 @@ struct ConfigurationDetailView: View {
   private func isValidFacilityURL(_ url: String) -> Bool {
     let pattern = #"^https://reservation\.frontdesksuite\.ca/rcfs/[^/]+/?$"#
     let isValid = url.range(of: pattern, options: .regularExpression) != nil
-    os_log(
-      "🔍 isValidFacilityURL check - URL: '%{public}@', Pattern: '%{public}@', Result: %{public}d",
-      log: .default,
-      type: .debug,
-      url,
-      pattern,
-      isValid ? 1 : 0,
-    )
+    Logger(subsystem: AppConstants.loggingSubsystem, category: "ConfigurationDetailView")
+      .debug(
+        "🔍 isValidFacilityURL check - URL: '\(url, privacy: .public)', Pattern: '\(pattern, privacy: .public)', Result: \(isValid ? 1 : 0, privacy: .public)."
+      )
     return isValid
   }
 
@@ -632,12 +620,9 @@ struct ConfigurationDetailView: View {
       return
     }
 
-    os_log(
-      "🔍 fetchAvailableSports() proceeding with URL: %{public}@",
-      log: .default,
-      type: .debug,
-      url.absoluteString,
-    )
+    Logger(subsystem: AppConstants.loggingSubsystem, category: "ConfigurationDetailView")
+      .debug(
+        "🔍 fetchAvailableSports() proceeding with URL: \(url.absoluteString, privacy: .public)")
 
     isFetchingSports = true
     availableSports = []
@@ -645,12 +630,8 @@ struct ConfigurationDetailView: View {
     let facilityService = FacilityService()
     facilityService.fetchSports(from: url) { sports in
       DispatchQueue.main.async {
-        os_log(
-          "🔍 fetchAvailableSports() completed with %{public}d sports",
-          log: .default,
-          type: .debug,
-          sports.count,
-        )
+        Logger(subsystem: AppConstants.loggingSubsystem, category: "ConfigurationDetailView")
+          .debug("🔍 fetchAvailableSports() completed with \(sports.count, privacy: .public) sports")
         isFetchingSports = false
         availableSports = sports
       }

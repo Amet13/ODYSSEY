@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-import os.log
+import os
 
 /// Manages application configuration and settings persistence.
 @MainActor

@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-import os.log
+import os
 
 @MainActor
 public final class SharedVerificationCodePool: ObservableObject, @unchecked Sendable {

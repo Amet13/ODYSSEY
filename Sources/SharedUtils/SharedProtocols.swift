@@ -1,7 +1,7 @@
 import Combine
 import Foundation
 import WebKit
-import os.log
+import os
 
 // MARK: - Shared Types
 

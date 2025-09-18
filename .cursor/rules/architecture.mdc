@@ -1,0 +1,42 @@
+---
+alwaysApply: true
+---
+
+### Architecture & Modules
+
+- **Pattern**: Modular SwiftPM package with clear layers.
+- **Main Targets**:
+  - **`ODYSSEY`**: macOS SwiftUI app (menu bar).
+  - **`ODYSSEYBackend`**: Shared services and automation engine library.
+
+### Layers
+
+- **Presentation**: SwiftUI views, UI state, menu bar (`Sources/Views`, `Sources/Controllers`).
+- **Application**: Coordinators/use-cases (`Sources/Application`).
+- **Domain**: Entities, repositories, use-cases contracts (`Sources/Domain`).
+- **Infrastructure**: WebKit, Email, storage, external integrations (`Sources/Infrastructure`, `Sources/Services`).
+- **Shared**: Utilities, protocols, constants (`Sources/SharedCore`, `Sources/SharedUtils`).
+
+### Key Components
+
+- **App lifecycle**: `Sources/AppCore/AppDelegate.swift`.
+- **Menu bar**: `Sources/Controllers/StatusBarController.swift`.
+- **Automation**: `Sources/Services/ReservationOrchestrator.swift`, `Sources/Services/WebKitService.swift`.
+- **WebKit**: `Sources/Infrastructure/WebKit/` (engine, navigation, scripting, anti-detection).
+- **Email**: `Sources/Services/EmailService.swift` and helpers.
+- **Validation**: `Sources/SharedUtils/ValidationService.swift`.
+- **Constants**: `Sources/SharedUtils/AppConstants.swift`.
+
+### Design Principles
+
+- **Protocol-oriented** with interfaces under `Sources/SharedCore/Protocols/`.
+- **Dependency Injection** via singletons for shared services.
+- **Combine** for async flows and state propagation.
+- **Error Handling** with `os.Logger` and structured propagation.
+- **Scheduling** via timers in `AppDelegate` and managers.
+
+### Web Automation
+
+- **Native WKWebView** only. No ChromeDriver/third-party browsers.
+- **JavaScript** is injected through `WebKitScriptManager` and helper utilities.
+- **Anti-detection** strategies in `WebKitAntiDetection.swift` and `WebKitHumanBehavior.swift`.

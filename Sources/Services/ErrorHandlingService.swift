@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 /// Centralized error handling service for consistent error management across the application
 @MainActor

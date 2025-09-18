@@ -1,6 +1,6 @@
 import Foundation
 import WebKit
-import os.log
+import os
 
 /// WebKit human behavior simulation service
 /// Handles advanced human-like behavior patterns for automation

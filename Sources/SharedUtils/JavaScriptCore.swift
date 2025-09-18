@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 /// Core JavaScript automation functions for ODYSSEY
 /// Contains essential element finding and interaction functions

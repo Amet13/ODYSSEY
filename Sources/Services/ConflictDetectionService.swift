@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 /// Service for detecting conflicts between reservation configurations
 /// Handles time slot overlaps and facility conflicts

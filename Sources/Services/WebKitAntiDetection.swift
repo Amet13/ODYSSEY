@@ -1,6 +1,6 @@
 import Foundation
 import WebKit
-import os.log
+import os
 
 /// WebKit anti-detection service
 /// Implements advanced techniques to avoid detection by websites

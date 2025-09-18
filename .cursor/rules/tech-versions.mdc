@@ -1,0 +1,29 @@
+---
+alwaysApply: true
+---
+
+### Tech Versions & Environment
+
+- **OS (Users)**: macOS 26 or later.
+- **Development**: Xcode 26+, Swift 6.2, Swift Package Manager.
+- **Primary Language**: Swift (strict), with some JavaScript for browser automation.
+- **UI**: SwiftUI with AppKit integration for menu bar.
+- **Automation**: WebKit (`WKWebView`) only.
+
+### Build & Run
+
+- **Build**: `./Scripts/odyssey.sh build`
+- **Lint**: `./Scripts/odyssey.sh lint`
+- **Launch**: App runs as a menu bar app (LSUIElement = true).
+
+### Third-Party Policy
+
+- **No external browsers** (no Chrome/Chromedriver).
+- **No networked services** for automation logic; all runs locally.
+
+### Repository Structure (High-Level)
+
+- `Sources/` — app targets and modules
+- `Scripts/` — helper scripts (`odyssey.sh`)
+- `Documentation/` — developer and user docs
+- `Config/` — Xcode project and configuration

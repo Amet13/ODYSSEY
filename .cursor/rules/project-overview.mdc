@@ -1,0 +1,36 @@
+---
+alwaysApply: true
+---
+
+### Project Overview
+
+- **Name**: ODYSSEY — Ottawa Drop-in Your Sports & Schedule Easily Yourself
+- **Type**: macOS menu bar app (not shown in Dock), SwiftUI front-end, native WebKit automation.
+- **Platforms**: macOS 26+ (users), Xcode 26+ for development, Swift 6.2.
+- **Languages**: Swift (primary), JavaScript (injected for WebKit automation only).
+- **Execution**: Runs in menu bar via `StatusBarController`; background automation with `ReservationOrchestrator` and `WebKitService`.
+
+### Core Capabilities
+
+- **Automates bookings** for Ottawa Recreation facilities using `WKWebView`.
+- **Multiple configurations** per user with scheduling and conflict detection.
+- **Secure credential storage** via Keychain.
+- **Email verification** (IMAP/Gmail) with `EmailService`.
+- **Anti-detection** behaviors and human-like timing.
+- **Structured logging** with emojis, privacy-aware data handling.
+
+### High-Level Modules
+
+- **Presentation**: `Sources/Views`, `Sources/Controllers`
+- **Application**: `Sources/Application`
+- **Domain**: `Sources/Domain`
+- **Infrastructure**: `Sources/Infrastructure`, `Sources/Services`
+- **Shared**: `Sources/SharedCore`, `Sources/SharedUtils`
+
+### Non-Negotiables for AI Editors
+
+- **Build + Lint** after changes: `./Scripts/odyssey.sh build` then `./Scripts/odyssey.sh lint`.
+- **No commits** without explicit permission.
+- **Documentation** must be updated when behaviors or requirements change.
+- **Use constants** from `AppConstants.swift` and shared utilities.
+- **Respect spacing system** in UI and reuse constants.

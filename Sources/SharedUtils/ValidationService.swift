@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 /// ValidationService is responsible for centralized validation logic for user input, configuration, and data integrity throughout the app.
 /// This is the single source of truth for all validation logic in the application.

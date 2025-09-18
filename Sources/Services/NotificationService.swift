@@ -1,6 +1,6 @@
 import AppKit
 import Foundation
-import os.log
+import os
 
 // Simple notification system using safe methods only
 public enum NotificationType {

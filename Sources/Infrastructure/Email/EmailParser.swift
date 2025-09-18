@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 protocol EmailParserProtocol {
   func parseVerificationCode(_ email: Email) -> String?

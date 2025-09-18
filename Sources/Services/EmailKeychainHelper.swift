@@ -1,6 +1,6 @@
 import Foundation
 import Security
-import os.log
+import os
 
 @MainActor
 public final class EmailKeychainHelper {

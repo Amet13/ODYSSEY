@@ -1,5 +1,4 @@
 import SwiftUI
-import os.log
 
 /// Settings view for configuring user information and integration settings
 struct SettingsView: View {
@@ -35,8 +34,6 @@ struct SettingsFormView: View {
 
   @State private var tempSettings: UserSettings
 
-  private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "SettingsView")
-
   init(
     configurationManager: ConfigurationManager,
     userSettingsManager: UserSettingsManager,
@@ -54,11 +51,6 @@ struct SettingsFormView: View {
   private func isGmailAccount(_ email: String) -> Bool {
     let domain = email.components(separatedBy: "@").last?.lowercased() ?? ""
     return domain == "gmail.com" || domain.hasSuffix(".gmail.com")
-  }
-
-  // Computed property for Gmail help URL
-  private var gmailHelpURL: URL {
-    URL(string: AppConstants.gmailAppPasswordURL) ?? URL(fileURLWithPath: "/")
   }
 
   var body: some View {
@@ -230,7 +222,7 @@ private struct ContactInformationSection: View {
             Image(systemName: AppConstants.SFSymbols.warningFill)
               .symbolRenderingMode(.hierarchical)
               .foregroundColor(.odysseyWarning)
-            Text("Phone number must be exactly 10 digits")
+            Text("Phone number must be exactly \(AppConstants.maxPhoneNumberLength) digits.")
               .font(.footnote)
               .foregroundColor(.odysseyWarning)
             Spacer()
@@ -510,7 +502,7 @@ private struct EmailAddressField: View {
       )
       .onChange(of: tempSettings.imapEmail) { _, newEmail in
         if isGmailAccount(newEmail) {
-          tempSettings.imapServer = "imap.gmail.com"
+          tempSettings.imapServer = AppConstants.gmailImapServer
         }
         if emailService.lastTestResult != nil {
           emailService.lastTestResult = nil
@@ -563,9 +555,9 @@ private struct PasswordField: View {
   @ObservedObject var emailService: EmailService
   let isGmailAccount: (String) -> Bool
 
-  // Computed property for Gmail help URL
+  // Computed property for Gmail help URL using centralized AppConstants
   private var gmailHelpURL: URL {
-    URL(string: "https://support.google.com/accounts/answer/185833") ?? URL(fileURLWithPath: "/")
+    URL(string: AppConstants.gmailAppPasswordURL) ?? URL(fileURLWithPath: "/")
   }
 
   var body: some View {

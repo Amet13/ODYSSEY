@@ -1,7 +1,7 @@
 import Combine
 import Foundation
 import SwiftUI
-import os.log
+import os
 
 /// Main application entry point for ODYSSEY
 ///
@@ -101,11 +101,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
   private func initializeServices() {
     logger.info("🔧 Initializing services.")
-
-    // Initialize notification service and request permissions
-    Task {
-
-    }
 
     logger.info("✅ Services initialized.")
   }
@@ -542,25 +537,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       try unloadProcess.run()
       unloadProcess.waitUntilExit()
       if unloadProcess.terminationStatus == 0 {
-        logger.info("✅ Launch Agent unloaded successfully")
+        logger.info("✅ Launch Agent unloaded successfully.")
       } else {
         logger.warning(
           "⚠️ Launch Agent unload returned non-zero exit code: \(unloadProcess.terminationStatus)")
       }
     } catch {
-      logger.warning("⚠️ Failed to unload Launch Agent: \(error.localizedDescription)")
+      logger.warning(
+        "⚠️ Failed to unload Launch Agent: \(error.localizedDescription, privacy: .private).")
     }
 
     // Remove the plist file
     do {
       try FileManager.default.removeItem(at: launchAgentPlistPath)
-      logger.info("✅ Launch Agent plist file removed: \(launchAgentPlistPath.path)")
+      logger.info("✅ Launch Agent plist file removed: \(launchAgentPlistPath.path).")
     } catch {
       // It's okay if the file doesn't exist
       if (error as NSError).code != NSFileNoSuchFileError {
-        logger.warning("⚠️ Failed to remove Launch Agent plist file: \(error.localizedDescription)")
+        logger.warning(
+          "⚠️ Failed to remove Launch Agent plist file: \(error.localizedDescription, privacy: .private)."
+        )
       } else {
-        logger.info("ℹ️ Launch Agent plist file was already removed")
+        logger.info("ℹ️ Launch Agent plist file was already removed.")
       }
     }
   }

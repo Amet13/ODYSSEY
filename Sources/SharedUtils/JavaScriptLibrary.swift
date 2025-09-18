@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 /// Centralized JavaScript library for ODYSSEY automation
 /// Consolidates all JavaScript functionality to eliminate duplication and improve maintainability

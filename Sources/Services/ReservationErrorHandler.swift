@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 @MainActor
 public final class ReservationErrorHandler: @unchecked Sendable {

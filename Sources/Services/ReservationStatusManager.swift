@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-import os.log
+import os
 
 @MainActor
 public final class ReservationStatusManager: ObservableObject, @unchecked Sendable {

@@ -1,6 +1,6 @@
 import Foundation
 import SwiftUI
-import os.log
+import os
 
 // MARK: - String Extensions
 

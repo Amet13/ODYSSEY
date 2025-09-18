@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 protocol ReservationUseCaseProtocol {
   func createReservation(_ config: ReservationConfig) async throws -> Reservation

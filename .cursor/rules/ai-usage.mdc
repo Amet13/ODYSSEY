@@ -1,0 +1,53 @@
+---
+alwaysApply: true
+---
+
+### AI Assistant Usage
+
+- **Always** read `./INDEX.mdc` first and follow topic files.
+- **Do not commit** code unless explicitly told to.
+- **After edits**: run build then lint: `./Scripts/odyssey.sh build && ./Scripts/odyssey.sh lint`.
+- **Update docs** when changing behavior, APIs, or user-visible flows.
+- **Prefer constants** from `AppConstants.swift` over hardcoding values.
+- **Respect spacing**: the gap between window borders, content, and dividers must be equal.
+- **No placeholder comments** like “moved/removed”; keep code clean and purposeful.
+- **Follow logging format** with emojis and privacy annotations.
+
+### Editing Guidelines
+
+- **Swift**: follow `./code-style-swift.mdc` (naming, types, errors, comments, formatting).
+- **JavaScript**: follow `./code-style-js.mdc` (module boundaries, no globals, modern syntax).
+- **UI**: follow `./ui-liquid-glass.mdc` (materials, translucency, spacing, contrast, accessibility).
+- **Architecture**: adhere to `./architecture.mdc` boundaries and dependency rules.
+
+### Quality Gates
+
+- **Zero linter errors** before asking to commit.
+- **No unused code** or dead paths.
+- **Add loading/progress** indicators for async flows.
+- **Use Combine** for state and async orchestration where applicable.
+
+### AI Assistant Usage
+
+- **Always** read `./INDEX.mdc` first and follow topic files.
+- **Do not commit** code unless explicitly told to.
+- **After edits**: run build then lint: `./Scripts/odyssey.sh build && ./Scripts/odyssey.sh lint`.
+- **Update docs** when changing behavior, APIs, or user-visible flows.
+- **Prefer constants** from `AppConstants.swift` over hardcoding values.
+- **Respect spacing**: the gap between window borders, content, and dividers must be equal.
+- **No placeholder comments** like “moved/removed”; keep code clean and purposeful.
+- **Follow logging format** with emojis and privacy annotations.
+
+### Editing Guidelines
+
+- **Swift**: follow `./code-style-swift.mdc` (naming, types, errors, comments, formatting).
+- **JavaScript**: follow `./code-style-js.mdc` (module boundaries, no globals, modern syntax).
+- **UI**: follow `./ui-liquid-glass.mdc` (materials, translucency, spacing, contrast, accessibility).
+- **Architecture**: adhere to `./architecture.mdc` boundaries and dependency rules.
+
+### Quality Gates
+
+- **Zero linter errors** before asking to commit.
+- **No unused code** or dead paths.
+- **Add loading/progress** indicators for async flows.
+- **Use Combine** for state and async orchestration where applicable.

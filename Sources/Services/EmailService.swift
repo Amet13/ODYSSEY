@@ -1,6 +1,6 @@
 import Foundation
 import Network
-import os.log
+import os
 
 /// Service for email/IMAP integration and testing
 ///

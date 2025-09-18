@@ -1,0 +1,18 @@
+---
+alwaysApply: true
+---
+
+### Release & Versioning
+
+- **Semantic Versioning**: MAJOR.MINOR.PATCH
+- **Build Numbers**: Increment per release build.
+- **Changelog**: Keep release notes accurate and commit-based.
+- **Signing**:
+  - Code sign app and frameworks with Developer ID.
+  - App is signed but not notarized by Apple.
+- **DMG**:
+  - Package using `create-dmg`; include README and license.
+- **Verification**:
+  - Test on supported macOS versions; verify memory usage and performance.
+- **Documentation**:
+  - Update `README.md`, `USER_GUIDE.md`, and images if UI changes.

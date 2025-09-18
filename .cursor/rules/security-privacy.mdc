@@ -1,0 +1,24 @@
+---
+alwaysApply: true
+---
+
+### Security & Privacy
+
+- **Local Execution**: All automation runs locally; no user data is sent externally without consent.
+- **Keychain**:
+  - Store email credentials using Keychain Services via `EmailKeychainHelper`/`KeychainService`.
+  - Handle updates securely; never log secrets.
+- **App Sandbox**:
+  - Enable appropriate entitlements for network access and file storage.
+  - Keep permissions minimal and purpose-driven.
+- **Network Security**:
+  - Use HTTPS; respect App Transport Security.
+  - Consider certificate pinning for sensitive endpoints.
+- **Input Validation**:
+  - Validate and sanitize all user inputs via `ValidationService`.
+- **Data Handling**:
+  - Mark sensitive logs with `privacy: .private`.
+  - Provide clear error messages without exposing sensitive details.
+- **Email Integration**:
+  - IMAP/Gmail access with explicit user consent.
+  - Implement robust error and retry logic; backoff on failures.

@@ -1,0 +1,27 @@
+---
+alwaysApply: true
+---
+
+### Liquid Glass UI/UX Guidelines (macOS)
+
+- **Materials**:
+  - Prefer system materials like `.ultraThinMaterial`, `.thinMaterial` for backgrounds.
+  - Use translucency sparingly to maintain contrast and readability.
+- **Hierarchy & Depth**:
+  - Create depth with subtle blur and shadow, not heavy borders.
+  - Keep content surfaces crisp; separate using spacing and materials.
+- **Spacing System**:
+  - Keep window border ↔ content spacing equal to content ↔ divider spacing.
+  - Use consistent spacing scale (e.g., 4/8/12/16) and reuse constants.
+- **Typography & Contrast**:
+  - Respect macOS typography defaults; ensure sufficient contrast over materials.
+  - Prefer system text styles and dynamic sizing where appropriate.
+- **Motion & Feedback**:
+  - Subtle, purpose-driven animations; avoid flashy transitions.
+  - Provide immediate visual feedback for actions, loading, and errors.
+- **Accessibility**:
+  - Support increased contrast and reduce transparency settings.
+  - Ensure hit targets meet macOS accessibility guidance.
+- **Implementation Tips**:
+  - For SwiftUI, prefer `.background(.ultraThinMaterial)` with rounded rectangles.
+  - Use `NSVisualEffectView` via representable when more control is needed.

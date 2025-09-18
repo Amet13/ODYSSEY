@@ -1,6 +1,6 @@
 import Foundation
 import Network
-import os.log
+import os
 
 /// Core email service for IMAP integration and testing
 ///

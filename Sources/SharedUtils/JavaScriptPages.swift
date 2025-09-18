@@ -1,5 +1,5 @@
 import Foundation
-import os.log
+import os
 
 /// Page detection and state checking JavaScript functions for ODYSSEY
 /// Contains all page state detection functionality

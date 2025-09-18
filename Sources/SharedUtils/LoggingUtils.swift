@@ -1,8 +1,13 @@
 import Foundation
-import os.log
+import os
 
 /// Centralized logging utilities to reduce duplication across the codebase
 public enum LoggingUtils {
+  private static func ensureTrailingPeriod(_ text: String) -> String {
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    if trimmed.hasSuffix(".") { return text }
+    return trimmed + "."
+  }
   // MARK: - Success Messages
 
   /// Log a success message with standard format
@@ -15,7 +20,8 @@ public enum LoggingUtils {
     _ message: String,
     context: String? = nil,
   ) {
-    let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
+    let base = context.map { "[\($0)] \(message)" } ?? message
+    let formattedMessage = ensureTrailingPeriod(base)
     logger.info("✅ \(formattedMessage)")
   }
 
@@ -31,7 +37,8 @@ public enum LoggingUtils {
     privateData _: String,
     context: String? = nil,
   ) {
-    let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
+    let base = context.map { "[\($0)] \(message)" } ?? message
+    let formattedMessage = ensureTrailingPeriod(base)
     logger.info("✅ \(formattedMessage, privacy: .private)")
   }
 
@@ -47,7 +54,8 @@ public enum LoggingUtils {
     _ message: String,
     context: String? = nil,
   ) {
-    let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
+    let base = context.map { "[\($0)] \(message)" } ?? message
+    let formattedMessage = ensureTrailingPeriod(base)
     logger.error("❌ \(formattedMessage)")
   }
 
@@ -63,7 +71,8 @@ public enum LoggingUtils {
     privateData _: String,
     context: String? = nil,
   ) {
-    let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
+    let base = context.map { "[\($0)] \(message)" } ?? message
+    let formattedMessage = ensureTrailingPeriod(base)
     logger.error("❌ \(formattedMessage, privacy: .private)")
   }
 
@@ -79,7 +88,8 @@ public enum LoggingUtils {
     _ message: String,
     context: String? = nil,
   ) {
-    let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
+    let base = context.map { "[\($0)] \(message)" } ?? message
+    let formattedMessage = ensureTrailingPeriod(base)
     logger.warning("⚠️ \(formattedMessage)")
   }
 
@@ -95,7 +105,8 @@ public enum LoggingUtils {
     _ message: String,
     context: String? = nil,
   ) {
-    let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
+    let base = context.map { "[\($0)] \(message)" } ?? message
+    let formattedMessage = ensureTrailingPeriod(base)
     logger.info("ℹ️ \(formattedMessage)")
   }
 
@@ -111,7 +122,8 @@ public enum LoggingUtils {
     privateData _: String,
     context: String? = nil,
   ) {
-    let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
+    let base = context.map { "[\($0)] \(message)" } ?? message
+    let formattedMessage = ensureTrailingPeriod(base)
     logger.info("ℹ️ \(formattedMessage, privacy: .private)")
   }
 
@@ -127,7 +139,8 @@ public enum LoggingUtils {
     _ message: String,
     context: String? = nil,
   ) {
-    let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
+    let base = context.map { "[\($0)] \(message)" } ?? message
+    let formattedMessage = ensureTrailingPeriod(base)
     logger.info("📋 \(formattedMessage)")
   }
 
@@ -146,7 +159,8 @@ public enum LoggingUtils {
     isSuccess: Bool = true,
   ) {
     let emoji = isSuccess ? "✅" : "❌"
-    logger.info("\(emoji) \(service): \(message)")
+    let formattedMessage = ensureTrailingPeriod(message)
+    logger.info("\(emoji) \(service): \(formattedMessage)")
   }
 
   // MARK: - Cleanup Messages
@@ -161,7 +175,8 @@ public enum LoggingUtils {
     _ message: String,
     context: String? = nil,
   ) {
-    let formattedMessage = context.map { "[\($0)] \(message)" } ?? message
+    let base = context.map { "[\($0)] \(message)" } ?? message
+    let formattedMessage = ensureTrailingPeriod(base)
     logger.info("🧹 \(formattedMessage)")
   }
 
@@ -178,7 +193,8 @@ public enum LoggingUtils {
     isSuccess: Bool = true,
   ) {
     let emoji = isSuccess ? "🔗" : "❌"
-    logger.info("\(emoji) \(message)")
+    let formattedMessage = ensureTrailingPeriod(message)
+    logger.info("\(emoji) \(formattedMessage)")
   }
 
   // MARK: - Navigation Messages
@@ -194,7 +210,8 @@ public enum LoggingUtils {
     isSuccess: Bool = true,
   ) {
     let emoji = isSuccess ? "🧭" : "❌"
-    logger.info("\(emoji) \(message)")
+    let formattedMessage = ensureTrailingPeriod(message)
+    logger.info("\(emoji) \(formattedMessage)")
   }
 
   // MARK: - Automation Messages
@@ -210,7 +227,8 @@ public enum LoggingUtils {
     isSuccess: Bool = true,
   ) {
     let emoji = isSuccess ? "🤖" : "❌"
-    logger.info("\(emoji) \(message)")
+    let formattedMessage = ensureTrailingPeriod(message)
+    logger.info("\(emoji) \(formattedMessage)")
   }
 
   // MARK: - Common Logging Patterns
@@ -220,7 +238,8 @@ public enum LoggingUtils {
   ///   - logger: The logger instance
   ///   - message: The success message
   public static func logSuccess(_ logger: Logger, _ message: String) {
-    logger.info("✅ \(message)")
+    let formattedMessage = ensureTrailingPeriod(message)
+    logger.info("✅ \(formattedMessage)")
   }
 
   /// Log an error message with standard format
@@ -228,7 +247,8 @@ public enum LoggingUtils {
   ///   - logger: The logger instance
   ///   - message: The error message
   public static func logError(_ logger: Logger, _ message: String) {
-    logger.error("❌ \(message)")
+    let formattedMessage = ensureTrailingPeriod(message)
+    logger.error("❌ \(formattedMessage)")
   }
 
   /// Log a warning message with standard format
@@ -236,7 +256,8 @@ public enum LoggingUtils {
   ///   - logger: The logger instance
   ///   - message: The warning message
   public static func logWarning(_ logger: Logger, _ message: String) {
-    logger.warning("⚠️ \(message)")
+    let formattedMessage = ensureTrailingPeriod(message)
+    logger.warning("⚠️ \(formattedMessage)")
   }
 
   /// Log an initialization message with standard format.
