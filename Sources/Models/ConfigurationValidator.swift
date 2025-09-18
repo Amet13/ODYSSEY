@@ -21,22 +21,37 @@ public final class ConfigurationValidator: ObservableObject {
 
     // Name validation
     if config.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      errors.append("Configuration name is required")
+      errors.append(
+        NSLocalizedString(
+          "validation_config_name_required", comment: "Configuration name is required."))
     } else if config.name.count > AppConstants.maxConfigurationNameLength {
       errors.append(
-        "Configuration name must be \(AppConstants.maxConfigurationNameLength) characters or less")
+        String(
+          format: NSLocalizedString(
+            "validation_config_name_length", comment: "Configuration name length validation."),
+          AppConstants.maxConfigurationNameLength
+        )
+      )
     }
 
     // Facility URL validation
     if !isValidFacilityURL(config.facilityURL) {
-      errors.append("Invalid facility URL. Must be a valid Ottawa recreation facility URL")
+      errors.append(
+        NSLocalizedString("validation_facility_url_invalid", comment: "Invalid facility URL."))
     }
 
     // Sport name validation
     if config.sportName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      errors.append("Sport name is required")
+      errors.append(
+        NSLocalizedString("validation_sport_name_required", comment: "Sport name is required."))
     } else if config.sportName.count > AppConstants.maxSportNameLength {
-      errors.append("Sport name must be \(AppConstants.maxSportNameLength) characters or less")
+      errors.append(
+        String(
+          format: NSLocalizedString(
+            "validation_sport_name_length", comment: "Sport name length validation."),
+          AppConstants.maxSportNameLength
+        )
+      )
     }
 
     // Number of people validation
@@ -45,19 +60,31 @@ public final class ConfigurationValidator: ObservableObject {
         > AppConstants
         .maxNumberOfPeople
     {
-      errors
-        .append(
-          "Number of people must be between \(AppConstants.minNumberOfPeople) and \(AppConstants.maxNumberOfPeople)",
+      errors.append(
+        String(
+          format: NSLocalizedString(
+            "validation_people_range", comment: "Number of people range validation."),
+          AppConstants.minNumberOfPeople,
+          AppConstants.maxNumberOfPeople
         )
+      )
     }
 
     // Time slots validation
     if config.dayTimeSlots.isEmpty {
-      errors.append("At least one time slot must be selected")
+      errors.append(
+        NSLocalizedString(
+          "validation_timeslots_required", comment: "At least one time slot required."))
     } else {
       for (day, timeSlots) in config.dayTimeSlots {
         if timeSlots.isEmpty {
-          errors.append("No time slots selected for \(day.rawValue)")
+          errors.append(
+            String(
+              format: NSLocalizedString(
+                "validation_timeslots_empty_for_day", comment: "No timeslots for day."),
+              day.rawValue
+            )
+          )
         }
       }
     }
@@ -82,27 +109,28 @@ public final class ConfigurationValidator: ObservableObject {
 
     // Name validation
     if settings.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      errors.append("Name is required")
+      errors.append(NSLocalizedString("validation_name_required", comment: "Name is required."))
     }
 
     // Phone number validation
     if !settings.phoneNumber.isEmpty {
       if !isValidPhoneNumber(settings.phoneNumber) {
-        errors.append("Invalid phone number format")
+        errors.append(
+          NSLocalizedString("validation_phone_invalid", comment: "Invalid phone number."))
       }
     }
 
     // Email validation
     if !settings.imapEmail.isEmpty {
       if !isValidEmail(settings.imapEmail) {
-        errors.append("Invalid email address format")
+        errors.append(NSLocalizedString("validation_email_invalid", comment: "Invalid email."))
       }
     }
 
     // IMAP server validation
     if !settings.imapServer.isEmpty {
       if !isValidIMAPServer(settings.imapServer) {
-        errors.append("Invalid IMAP server address")
+        errors.append(NSLocalizedString("validation_imap_invalid", comment: "Invalid IMAP server."))
       }
     }
 

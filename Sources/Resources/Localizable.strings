@@ -27,3 +27,31 @@
 "about_feature_webkit" = "Native WebKit automation";
 "about_feature_email" = "Email verification support";
 "about_feature_multi_config" = "Multiple configuration support";
+
+"validation_config_name_required" = "Configuration name is required.";
+"validation_config_name_length" = "Configuration name must be %d characters or less.";
+"validation_facility_url_invalid" = "Invalid facility URL. Must be a valid Ottawa recreation facility URL.";
+"validation_sport_name_required" = "Sport name is required.";
+"validation_sport_name_length" = "Sport name must be %d characters or less.";
+"validation_people_range" = "Number of people must be between %d and %d.";
+"validation_timeslots_required" = "At least one time slot must be selected.";
+"validation_timeslots_empty_for_day" = "No time slots selected for %s.";
+"validation_name_required" = "Name is required.";
+"validation_phone_invalid" = "Invalid phone number format.";
+"validation_email_invalid" = "Invalid email address format.";
+"validation_imap_invalid" = "Invalid IMAP server address.";
+
+"imap_connection_failed" = "Connection failed: %@";
+"imap_auth_failed" = "Authentication failed: %@";
+"imap_command_failed" = "Command failed: %@";
+"imap_invalid_response" = "Invalid response: %@";
+"imap_timeout" = "Connection timeout: %@";
+"imap_unsupported_server" = "Unsupported server: %@";
+"imap_gmail_password_required" = "Gmail App Password required: %@";
+"imap_gmail_server_required" = "Gmail accounts must use 'imap.gmail.com' as the server.";
+"imap_gmail_app_password_format" = "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx'.";
+
+"empty_state_title" = "No Reservations Configured";
+"empty_state_subtitle" = "Add your first reservation configuration to get started with automated booking.";
+"next_autorun_in" = "Next autorun in:";
+"last_run" = "Last run:";

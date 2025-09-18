@@ -108,7 +108,7 @@ public final class ConfigurationManager: ObservableObject, @unchecked Sendable {
       let data = try JSONEncoder().encode(settings)
       userDefaults.set(data, forKey: settingsKey)
     } catch {
-      logger.error("❌ Failed to save settings: \(error.localizedDescription).")
+      logger.error("❌ Failed to save settings: \(error.localizedDescription, privacy: .private).")
     }
   }
 }

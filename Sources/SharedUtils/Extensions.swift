@@ -198,13 +198,13 @@ extension Color {
 extension Logger {
   /// Logs a masked version of sensitive data
   func infoMasked(_ message: String, sensitiveData: String) {
-    info("\(message): \(sensitiveData.maskedForLogging)")
+    info("\(message): \(sensitiveData.maskedForLogging).")
   }
 
   /// Logs an error with additional context.
   func errorWithContext(_ message: String, error: Error, context: String = "") {
     let contextPrefix = context.isEmpty ? "" : "[\(context)] "
-    self.error("\(contextPrefix)\(message): \(error.localizedDescription)")
+    self.error("\(contextPrefix)\(message): \(error.localizedDescription, privacy: .private).")
   }
 }
 

@@ -36,7 +36,7 @@ public final class EmailIMAPStreamDelegate: NSObject, StreamDelegate {
    * - Parameter error: The connection error.
    */
   public func didReceiveError(_ error: Error) {
-    logger.error("❌ IMAP connection error: \(error.localizedDescription).")
+    logger.error("❌ IMAP connection error: \(error.localizedDescription, privacy: .private).")
   }
 
   /**
@@ -72,7 +72,7 @@ public final class EmailIMAPStreamDelegate: NSObject, StreamDelegate {
    * - Parameter error: The authentication error.
    */
   public func didFailAuthentication(_ error: Error) {
-    logger.error("❌ IMAP authentication failed: \(error.localizedDescription).")
+    logger.error("❌ IMAP authentication failed: \(error.localizedDescription, privacy: .private).")
   }
 
   /**

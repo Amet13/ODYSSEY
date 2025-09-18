@@ -319,7 +319,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let components = calendar.dateComponents([.hour, .minute], from: targetTime)
 
     guard let hour = components.hour, let minute = components.minute else {
-      logger.error("❌ Failed to extract time components from target time")
+      logger.error("❌ Failed to extract time components from target time.")
       return
     }
 
@@ -330,7 +330,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let currentAppPath = Bundle.main.bundlePath + "/Contents/MacOS/ODYSSEY"
     if FileManager.default.fileExists(atPath: currentAppPath) {
       appPath = currentAppPath
-      logger.info("✅ Using current app path: \(appPath)")
+      logger.info("✅ Using current app path: \(appPath).")
     }
 
     // 2) Standard install locations
@@ -341,7 +341,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       ]
       for location in standardLocations where FileManager.default.fileExists(atPath: location) {
         appPath = location
-        logger.info("✅ Found app in standard location: \(appPath)")
+        logger.info("✅ Found app in standard location: \(appPath).")
         break
       }
     }
@@ -354,7 +354,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         for case let path as String in enumerator {
           if path.hasSuffix("ODYSSEY.app/Contents/MacOS/ODYSSEY") {
             appPath = "\(derivedDataPath)/\(path)"
-            logger.info("✅ Found app in Xcode DerivedData: \(appPath)")
+            logger.info("✅ Found app in Xcode DerivedData: \(appPath).")
             break
           }
         }
@@ -364,7 +364,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Fallback to bundle
     if appPath.isEmpty {
       appPath = Bundle.main.bundlePath + "/Contents/MacOS/ODYSSEY"
-      logger.info("⚠️ Using bundle path fallback: \(appPath)")
+      logger.info("⚠️ Using bundle path fallback: \(appPath).")
     }
 
     // Directories
@@ -376,7 +376,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       try FileManager.default.createDirectory(at: launchAgentDir, withIntermediateDirectories: true)
       try FileManager.default.createDirectory(at: logsDir, withIntermediateDirectories: true)
     } catch {
-      logger.error("❌ Failed to create directories: \(error.localizedDescription)")
+      logger.error(
+        "❌ Failed to create directories: \(error.localizedDescription, privacy: .private).")
       return
     }
 
@@ -412,9 +413,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     do {
       try plistContent.write(to: plistPath, atomically: true, encoding: .utf8)
-      logger.info("✅ Launch Agent plist created: \(plistPath.path)")
+      logger.info("✅ Launch Agent plist created: \(plistPath.path).")
     } catch {
-      logger.error("❌ Failed to write Launch Agent plist: \(error.localizedDescription)")
+      logger.error(
+        "❌ Failed to write Launch Agent plist: \(error.localizedDescription, privacy: .private).")
       return
     }
 
@@ -437,16 +439,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
           "🚀 Launch Agent loaded for \(String(format: "%02d", hour)):\(String(format: "%02d", minute))"
         )
       } else {
-        logger.error("❌ Failed to load Launch Agent (exit code: \(load.terminationStatus))")
+        logger.error("❌ Failed to load Launch Agent (exit code: \(load.terminationStatus)).")
       }
     } catch {
-      logger.error("❌ Failed to execute launchctl: \(error.localizedDescription)")
+      logger.error(
+        "❌ Failed to execute launchctl: \(error.localizedDescription, privacy: .private).")
     }
   }
 
   private func checkScheduledReservations() {
     let executionStartTime = Date()
-    logger.info("🚀 Starting scheduled reservations execution at \(executionStartTime)")
+    logger.info("🚀 Starting scheduled reservations execution at \(executionStartTime).")
 
     // Prevent duplicate executions
     guard !isAutorunExecuting else {
@@ -654,7 +657,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     // If today is NOT a valid autorun day for this configuration, don't run it
     guard isValidAutorunDay, let autorunTime = validAutorunTime else {
-      logger.info("📅 Today is not a valid autorun day for configuration '\(config.name)'")
+      logger.info("📅 Today is not a valid autorun day for configuration '\(config.name)'.")
       return false
     }
 

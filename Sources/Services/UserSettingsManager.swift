@@ -143,7 +143,7 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
       port: port
     )
     if case .failure(let error) = result {
-      logger.error("❌ Keychain storage error: \(error.localizedDescription).")
+      logger.error("❌ Keychain storage error: \(error.localizedDescription, privacy: .private).")
     }
   }
 
@@ -156,7 +156,7 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
     let result = KeychainService.shared.deleteEmailCredentials(
       email: email, server: server, port: port)
     if case .failure(let error) = result {
-      logger.error("❌ Keychain deletion error: \(error.localizedDescription).")
+      logger.error("❌ Keychain deletion error: \(error.localizedDescription, privacy: .private).")
     }
   }
 
@@ -167,7 +167,8 @@ public final class UserSettingsManager: ObservableObject, @unchecked Sendable {
       let data = try JSONEncoder().encode(userSettings)
       userDefaults.set(data, forKey: settingsKey)
     } catch {
-      logger.error("❌ Failed to save user settings: \(error.localizedDescription).")
+      logger.error(
+        "❌ Failed to save user settings: \(error.localizedDescription, privacy: .private).")
     }
   }
 }

@@ -56,13 +56,32 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     /// User-friendly error message for UI display
     var userFriendlyMessage: String {
       switch self {
-      case .connectionFailed(let message): return "Connection failed: \(message)"
-      case .authenticationFailed(let message): return "Authentication failed: \(message)"
-      case .commandFailed(let message): return "Command failed: \(message)"
-      case .invalidResponse(let message): return "Invalid response: \(message)"
-      case .timeout(let message): return "Connection timeout: \(message)"
-      case .unsupportedServer(let message): return "Unsupported server: \(message)"
-      case .gmailAppPasswordRequired(let message): return "Gmail App Password required: \(message)"
+      case .connectionFailed(let message):
+        return String(
+          format: NSLocalizedString("imap_connection_failed", comment: "IMAP connection failed."),
+          message)
+      case .authenticationFailed(let message):
+        return String(
+          format: NSLocalizedString("imap_auth_failed", comment: "IMAP authentication failed."),
+          message)
+      case .commandFailed(let message):
+        return String(
+          format: NSLocalizedString("imap_command_failed", comment: "IMAP command failed."), message
+        )
+      case .invalidResponse(let message):
+        return String(
+          format: NSLocalizedString("imap_invalid_response", comment: "IMAP invalid response."),
+          message)
+      case .timeout(let message):
+        return String(format: NSLocalizedString("imap_timeout", comment: "IMAP timeout."), message)
+      case .unsupportedServer(let message):
+        return String(
+          format: NSLocalizedString("imap_unsupported_server", comment: "Unsupported server."),
+          message)
+      case .gmailAppPasswordRequired(let message):
+        return String(
+          format: NSLocalizedString(
+            "imap_gmail_password_required", comment: "Gmail app password required."), message)
       }
     }
 
@@ -167,7 +186,8 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     // Check if server is correct for Gmail
     if server.lowercased() != AppConstants.gmailImapServer {
       return .failure(
-        .gmailAppPasswordRequired("Gmail accounts must use 'imap.gmail.com' as the server"))
+        .gmailAppPasswordRequired(
+          NSLocalizedString("imap_gmail_server_required", comment: "Gmail server required.")))
     }
 
     // Use centralized validation for Gmail app password
@@ -175,8 +195,9 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     guard ValidationService.shared.validateGmailAppPassword(trimmedPassword) else {
       return .failure(
         .gmailAppPasswordRequired(
-          "Gmail App Password must be in format: 'xxxx xxxx xxxx xxxx'",
-        ),
+          NSLocalizedString(
+            "imap_gmail_app_password_format", comment: "Gmail app password format."),
+        )
       )
     }
 
@@ -1006,7 +1027,8 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
           }
         }
       case .failure(let error):
-        logger.error("❌ [IMAP] Failed to receive greeting: \(error.localizedDescription).")
+        logger.error(
+          "❌ [IMAP] Failed to receive greeting: \(error.localizedDescription, privacy: .private).")
 
         // Provide more specific error messages
         if error.localizedDescription.contains("timeout") {
@@ -1310,7 +1332,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
       content: data,
       completion: .contentProcessed { [self] error in
         if let error {
-          logger.error("❌ IMAP send error: \(error.localizedDescription).")
+          logger.error("❌ IMAP send error: \(error.localizedDescription, privacy: .private).")
           completion(.failure(.commandFailed("Send failed: \(error.localizedDescription)")))
           return
         }
@@ -1328,7 +1350,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     ) {
       [self] data, _, _, error in
       if let error {
-        logger.error("❌ [IMAP] Receive error: \(error.localizedDescription).")
+        logger.error("❌ [IMAP] Receive error: \(error.localizedDescription, privacy: .private).")
         completion(.failure(.invalidResponse("Receive failed: \(error.localizedDescription)")))
         return
       }
@@ -1482,7 +1504,8 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         logger.warning("⚠️ All fallback codes were filtered out as suspicious: \(codes).")
       }
     } catch {
-      logger.error("❌ Regex error for fallback pattern: \(error.localizedDescription).")
+      logger.error(
+        "❌ Regex error for fallback pattern: \(error.localizedDescription, privacy: .private).")
     }
     logger.error("⚠️ No verification codes found in email body.")
     return []
@@ -1988,7 +2011,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     case .failure(let error):
       Task { @MainActor in
         self.userFacingError = error.localizedDescription
-        logger.error("❌ Email service error: \(error.localizedDescription).")
+        logger.error("❌ Email service error: \(error.localizedDescription, privacy: .private).")
       }
       return nil
     }

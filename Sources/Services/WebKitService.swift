@@ -454,7 +454,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       return screenshotPath
 
     } catch {
-      logger.error("📸 Failed to take screenshot: \(error.localizedDescription).")
+      logger.error("📸 Failed to take screenshot: \(error.localizedDescription, privacy: .private).")
       logger.error("📸 Error details: \(error).")
 
       // Log additional context for debugging
@@ -657,7 +657,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
                 }
               } catch {
                 self.logger.warning(
-                  "⚠️ Skipping readyState/page source log: \(error.localizedDescription).")
+                  "⚠️ Skipping readyState/page source log: \(error.localizedDescription, privacy: .private)."
+                )
               }
             }
             // After navigation completes, log page source and all buttons/links
@@ -885,7 +886,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         return false
       }
     } catch {
-      logger.error("❌ Error filling contact fields: \(error.localizedDescription).")
+      logger.error(
+        "❌ Error filling contact fields: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
@@ -908,7 +910,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         return false
       }
     } catch {
-      logger.error("❌ Error typing text: \(error.localizedDescription).")
+      logger.error("❌ Error typing text: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
@@ -984,7 +986,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         return false
       }
     } catch {
-      logger.error("❌ Error waiting for DOM ready/button: \(error.localizedDescription).")
+      logger.error(
+        "❌ Error waiting for DOM ready/button: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
@@ -1006,7 +1009,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         return false
       }
     } catch {
-      logger.error("❌ Error filling number of people: \(error.localizedDescription).")
+      logger.error(
+        "❌ Error filling number of people: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
@@ -1037,7 +1041,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         return false
       }
     } catch {
-      logger.error("❌ Error clicking confirm button: \(error.localizedDescription).")
+      logger.error(
+        "❌ Error clicking confirm button: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
@@ -1065,7 +1070,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
       } catch {
         logger.error(
-          "❌ [GroupSizePoll][poll \(pollCount)] JS error: \(error.localizedDescription).")
+          "❌ [GroupSizePoll][poll \(pollCount)] JS error: \(error.localizedDescription, privacy: .private)."
+        )
       }
       try? await Task.sleep(
         nanoseconds: UInt64(pollInterval * Double(AppConstants.humanDelayNanoseconds)))
@@ -1096,7 +1102,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       }
       return result
     } catch {
-      logger.error("❌ Error checking time selection page: \(error.localizedDescription).")
+      logger.error(
+        "❌ Error checking time selection page: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
@@ -1238,7 +1245,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         "🔧 JavaScript library verification: \(isAvailable ? "✅ Available" : "❌ Not available")")
       return isAvailable
     } catch {
-      logger.error("❌ Error verifying JavaScript library: \(error.localizedDescription).")
+      logger.error(
+        "❌ Error verifying JavaScript library: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
@@ -1298,7 +1306,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         }
       } catch {
         logger.error(
-          "❌ [ContactPagePoll][poll \(pollCount)] JS error: \(error.localizedDescription).")
+          "❌ [ContactPagePoll][poll \(pollCount)] JS error: \(error.localizedDescription, privacy: .private)."
+        )
       }
       try? await Task.sleep(
         nanoseconds: UInt64(pollInterval * Double(AppConstants.humanDelayNanoseconds)))
@@ -1334,7 +1343,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         return false
       }
     } catch {
-      logger.error("❌ Error filling phone number: \(error.localizedDescription).")
+      logger.error(
+        "❌ Error filling phone number: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
@@ -1365,7 +1375,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         return false
       }
     } catch {
-      logger.error("❌ Error filling email: \(error.localizedDescription).")
+      logger.error("❌ Error filling email: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
@@ -1408,7 +1418,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         return false
       }
     } catch {
-      logger.error("❌ Error filling name: \(error.localizedDescription).")
+      logger.error("❌ Error filling name: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
@@ -1438,7 +1448,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         return false
       }
     } catch {
-      logger.error("❌ Error clicking contact info confirm button: \(error.localizedDescription).")
+      logger.error(
+        "❌ Error clicking contact info confirm button: \(error.localizedDescription, privacy: .private)."
+      )
       return false
     }
   }
@@ -1463,7 +1475,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       }
       return result
     } catch {
-      logger.error("❌ Error checking email verification: \(error.localizedDescription).")
+      logger.error(
+        "❌ Error checking email verification: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
@@ -1538,7 +1551,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
           }
         }
       } catch {
-        logger.error("❌ Error checking verification page: \(error.localizedDescription).")
+        logger.error(
+          "❌ Error checking verification page: \(error.localizedDescription, privacy: .private).")
       }
 
       try? await Task.sleep(
@@ -2061,7 +2075,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       }
       return result
     } catch {
-      logger.error("❌ Error detecting retry text: \(error.localizedDescription).")
+      logger.error(
+        "❌ Error detecting retry text: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
@@ -2086,7 +2101,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       }
       return result
     } catch {
-      logger.error("❌ Error handling captcha retry: \(error.localizedDescription).")
+      logger.error(
+        "❌ Error handling captcha retry: \(error.localizedDescription, privacy: .private).")
       return false
     }
   }
@@ -2103,7 +2119,7 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       _ = try await webView.evaluateJavaScript(cleanupScript)
       logger.info("🧹 Session cleanup completed.")
     } catch {
-      logger.error("❌ Failed to cleanup session: \(error.localizedDescription).")
+      logger.error("❌ Failed to cleanup session: \(error.localizedDescription, privacy: .private).")
     }
 
     // Apply basic anti-detection measures using centralized library
@@ -2113,7 +2129,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       _ = try await webView.evaluateJavaScript(script)
       logger.info("🛡️ Basic anti-detection measures applied successfully.")
     } catch {
-      logger.error("❌ Failed to apply anti-detection measures: \(error.localizedDescription).")
+      logger.error(
+        "❌ Failed to apply anti-detection measures: \(error.localizedDescription, privacy: .private)."
+      )
     }
 
     // Quick human-like behavior simulation (much faster)
@@ -2137,7 +2155,8 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
       }
     } catch {
       logger.warning(
-        "⚠️ Error simulating mouse movement (non-fatal): \(error.localizedDescription).")
+        "⚠️ Error simulating mouse movement (non-fatal): \(error.localizedDescription, privacy: .private)."
+      )
     }
   }
 
@@ -2155,7 +2174,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         logger.warning("⚠️ simulateQuickScrolling returned false (ignored).")
       }
     } catch {
-      logger.warning("⚠️ Error simulating scrolling (non-fatal): \(error.localizedDescription).")
+      logger.warning(
+        "⚠️ Error simulating scrolling (non-fatal): \(error.localizedDescription, privacy: .private)."
+      )
     }
   }
 
@@ -2310,7 +2331,9 @@ public final class WebKitService: NSObject, ObservableObject, WebAutomationServi
         return false
       }
     } catch {
-      logger.error("❌ Error checking reservation completion: \(error.localizedDescription).")
+      logger.error(
+        "❌ Error checking reservation completion: \(error.localizedDescription, privacy: .private)."
+      )
       return false
     }
   }

@@ -97,7 +97,8 @@ public final class ReservationOrchestrator: ObservableObject, @unchecked Sendabl
       } catch {
         // Set user-facing error
         await MainActor.run { self.userError = error.localizedDescription }
-        logger.error("❌ Reservation failed with error: \(error.localizedDescription).")
+        logger.error(
+          "❌ Reservation failed with error: \(error.localizedDescription, privacy: .private).")
         logger.error("🔍 Error type: \(type(of: error)).")
         logger.error("📋 Error details: \(error).")
 

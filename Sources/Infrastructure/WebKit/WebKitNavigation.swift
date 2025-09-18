@@ -99,7 +99,8 @@ class WebKitNavigation: WebKitNavigationProtocol {
           return true
         }
       } catch {
-        logger.error("❌ JavaScript evaluation failed: \(error.localizedDescription).")
+        logger.error(
+          "❌ JavaScript evaluation failed: \(error.localizedDescription, privacy: .private).")
       }
 
       try await Task.sleep(nanoseconds: AppConstants.shortDelayNanoseconds)

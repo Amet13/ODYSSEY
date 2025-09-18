@@ -97,7 +97,8 @@ class ReservationUseCase: ReservationUseCaseProtocol {
 
       try await repository.save(failedReservation)
 
-      logger.error("❌ Reservation execution failed: \(error.localizedDescription).")
+      logger.error(
+        "❌ Reservation execution failed: \(error.localizedDescription, privacy: .private).")
       throw error
     }
   }

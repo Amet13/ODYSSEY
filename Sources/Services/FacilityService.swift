@@ -90,7 +90,8 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
 
     webView.evaluateJavaScript(script) { [weak self] result, error in
       if let error {
-        self?.logger.error("❌ Sports detection error: \(error.localizedDescription).")
+        self?.logger.error(
+          "❌ Sports detection error: \(error.localizedDescription, privacy: .private).")
         self?.isLoading = false
         self?.completionHandler?([])
       } else if let sportsArray = result as? [String] {
@@ -147,7 +148,7 @@ extension FacilityService: WKNavigationDelegate {
   }
 
   public func webView(_: WKWebView, didFail _: WKNavigation?, withError error: Error) {
-    logger.error("❌ WebView navigation failed: \(error.localizedDescription).")
+    logger.error("❌ WebView navigation failed: \(error.localizedDescription, privacy: .private).")
     isLoading = false
     completionHandler?([])
   }
@@ -155,7 +156,8 @@ extension FacilityService: WKNavigationDelegate {
   public func webView(
     _: WKWebView, didFailProvisionalNavigation _: WKNavigation?, withError error: Error
   ) {
-    logger.error("❌ WebView provisional navigation failed: \(error.localizedDescription).")
+    logger.error(
+      "❌ WebView provisional navigation failed: \(error.localizedDescription, privacy: .private).")
     isLoading = false
     completionHandler?([])
   }

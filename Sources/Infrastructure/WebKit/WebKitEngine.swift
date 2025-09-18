@@ -66,7 +66,7 @@ extension WebKitEngine: WKNavigationDelegate {
   }
 
   func webView(_: WKWebView, didFail _: WKNavigation?, withError error: Error) {
-    logger.error("❌ Navigation failed: \(error.localizedDescription).")
+    logger.error("❌ Navigation failed: \(error.localizedDescription, privacy: .private).")
   }
 }
 

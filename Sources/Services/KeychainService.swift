@@ -190,9 +190,9 @@ public final class KeychainService: @unchecked Sendable, KeychainServiceProtocol
 
   private func handleError(_ error: KeychainError) {
     lastError = error
-    logger.error("❌ Keychain error: \(error.localizedDescription).")
+    logger.error("❌ Keychain error: \(error.localizedDescription, privacy: .private).")
     onError?(error)
-    logger.error("❌ Keychain error: \(error.localizedDescription).")
+    logger.error("❌ Keychain error: \(error.localizedDescription, privacy: .private).")
   }
 
   // MARK: - Dependency Injection

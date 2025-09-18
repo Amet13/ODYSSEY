@@ -14,7 +14,7 @@ public final class ReservationErrorHandler: @unchecked Sendable {
     config: ReservationConfig,
     runType: ReservationRunType,
   ) async {
-    logger.error("❌ Reservation error: \(error.localizedDescription).")
+    logger.error("❌ Reservation error: \(error.localizedDescription, privacy: .private).")
 
     if let webKitService = try? await getWebKitServiceIfAvailable() {
       if let pageSource = try? await webKitService.getPageSource() {
@@ -48,7 +48,8 @@ public final class ReservationErrorHandler: @unchecked Sendable {
       logger.error("❌ Reservation failed: \(userFriendlyMessage).")
     }
 
-    logger.error("❌ Reservation failed for \(config.name): \(error.localizedDescription).")
+    logger.error(
+      "❌ Reservation failed for \(config.name): \(error.localizedDescription, privacy: .private).")
 
     // Take screenshot before disconnecting if WebKit service is available
     if webKitService.isConnected, webKitService.webView != nil {
