@@ -8,11 +8,11 @@ struct ErrorView: View {
     VStack(spacing: AppConstants.spacingXLarge) {
       Image(systemName: AppConstants.SFSymbols.warningFill)
         .symbolRenderingMode(.hierarchical)
-        .font(.title)
+        .font(.system(size: AppConstants.fontMassive))
         .foregroundColor(.odysseyError)
 
       Text(error.localizedDescription)
-        .font(.body)
+        .font(.system(size: AppConstants.fontBody))
         .multilineTextAlignment(.center)
         .foregroundColor(.secondary)
 

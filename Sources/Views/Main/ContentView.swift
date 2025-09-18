@@ -377,7 +377,7 @@ private struct HeaderView: View {
           .font(.system(size: AppConstants.iconLarge))
           .foregroundColor(.odysseyAccent)
         Text("ODYSSEY")
-          .font(.title3)
+          .font(.system(size: AppConstants.fontTitle3))
           .fontWeight(.semibold)
         Spacer()
         if godModeUIEnabled {
@@ -387,14 +387,13 @@ private struct HeaderView: View {
                 .symbolRenderingMode(.hierarchical)
                 .foregroundColor(.odysseyWarning)
               Text("GOD MODE")
-                .font(.subheadline)
+                .font(.system(size: AppConstants.fontSubheadline))
                 .fontWeight(.semibold)
                 .foregroundColor(.odysseyWarning)
             }
           }
           .buttonStyle(.borderedProminent)
-          .tint(.odysseyAccent)
-          .controlSize(.regular)
+          .controlSize(.small)
           .help("⚡ Simulate autorun for \(formatCustomTime()) today")
           .accessibilityLabel("Simulate GOD MODE")
         }
@@ -406,7 +405,7 @@ private struct HeaderView: View {
             .foregroundColor(Color.odysseyCardBackground)
         }
         .buttonStyle(.borderedProminent)
-        .controlSize(.regular)
+        .controlSize(.small)
         .help(
           NSLocalizedString("add_config_tooltip", comment: "Add a new reservation configuration")
         )
@@ -485,11 +484,11 @@ private struct EmptyStateView: View {
         .foregroundColor(Color.odysseySecondaryText)
         .accessibilityHidden(true)
       Text("No Reservations Configured")
-        .font(.title3)
+        .font(.system(size: AppConstants.fontTitle3))
         .fontWeight(.semibold)
         .accessibilityAddTraits(.isHeader)
       Text("Add your first reservation configuration to get started with automated booking.")
-        .font(.subheadline)
+        .font(.system(size: AppConstants.fontSubheadline))
         .foregroundColor(Color.odysseySecondaryText)
         .multilineTextAlignment(.center)
         .padding(.horizontal, AppConstants.contentPadding)
@@ -561,9 +560,9 @@ private struct FooterView: View {
       HStack {
         HStack(spacing: AppConstants.spacingSmall) {
           Button(action: { showingSettings = true }) {
-            Label("Settings", systemImage: "gearshape.fill")
+            Label("Settings", systemImage: AppConstants.SFSymbols.settings)
               .labelStyle(.titleAndIcon)
-              .font(.body)
+              .font(.system(size: AppConstants.fontBody))
           }
           .buttonStyle(.borderedProminent)
           .tint(.odysseyPrimary)
@@ -581,9 +580,9 @@ private struct FooterView: View {
 
         HStack(spacing: AppConstants.spacingSmall) {
           Button(action: { showingAbout = true }) {
-            Label("About", systemImage: "info.circle.fill")
+            Label("About", systemImage: AppConstants.SFSymbols.infoCircleFill)
               .labelStyle(.titleAndIcon)
-              .font(.body)
+              .font(.system(size: AppConstants.fontBody))
           }
           .buttonStyle(.bordered)
           .controlSize(.regular)
@@ -591,9 +590,9 @@ private struct FooterView: View {
           .accessibilityLabel(NSLocalizedString("about", comment: "About"))
 
           Button(action: { NSApp.terminate(nil) }) {
-            Label("Quit", systemImage: "power")
+            Label("Quit", systemImage: AppConstants.SFSymbols.power)
               .labelStyle(.titleAndIcon)
-              .font(.body)
+              .font(.system(size: AppConstants.fontBody))
           }
           .buttonStyle(.borderedProminent)
           .tint(.odysseyError)
@@ -645,7 +644,7 @@ struct ConfigurationRowView: View {
   private var configurationHeaderRow: some View {
     HStack(alignment: .center, spacing: AppConstants.spacingMedium) {
       Text(config.name)
-        .font(.body)
+        .font(.system(size: AppConstants.fontBody))
         .foregroundColor(Color.odysseyText)
         .lineLimit(1)
         .truncationMode(.tail)
@@ -657,6 +656,7 @@ struct ConfigurationRowView: View {
           .foregroundColor(.odysseyAccent)
       }
       .buttonStyle(.bordered)
+      .buttonBorderShape(.roundedRectangle)
       .controlSize(.small)
       .help(NSLocalizedString("run_now_tooltip", comment: "Run this reservation now"))
       .accessibilityLabel("Run \(config.name) reservation now")
@@ -689,6 +689,7 @@ struct ConfigurationRowView: View {
           .foregroundColor(.odysseyAccent)
       }
       .buttonStyle(.bordered)
+      .buttonBorderShape(.roundedRectangle)
       .controlSize(.small)
       .help(NSLocalizedString("edit_tooltip", comment: "Edit this configuration"))
       .accessibilityLabel("Edit \(config.name) configuration")
@@ -702,6 +703,7 @@ struct ConfigurationRowView: View {
           .foregroundColor(.odysseyError)
       }
       .buttonStyle(.bordered)
+      .buttonBorderShape(.roundedRectangle)
       .controlSize(.small)
       .help(NSLocalizedString("delete_tooltip", comment: "Delete this configuration"))
       .accessibilityLabel("Delete \(config.name) configuration")
@@ -723,15 +725,14 @@ struct ConfigurationRowView: View {
 
       let facilityName = ReservationConfig.extractFacilityName(from: config.facilityURL)
       HStack(spacing: AppConstants.spacingTiny) {
-        SportIconView(
-          symbolName: SportIconMapper.iconForSport(config.sportName),
-          color: .odysseyAccent,
-          size: AppConstants.iconTiny,
-        )
+        Image(systemName: SportIconMapper.iconForSport(config.sportName))
+          .symbolRenderingMode(.hierarchical)
+          .foregroundColor(.odysseyAccent)
+          .font(.system(size: AppConstants.fontSubheadline))
         Text(
           "\(facilityName) • \(config.sportName) • \(config.numberOfPeople)pp • \(formatScheduleInfoInline())",
         )
-        .font(.subheadline)
+        .font(.system(size: AppConstants.fontSubheadline))
         .foregroundColor(Color.odysseySecondaryText)
         .fixedSize(horizontal: false, vertical: true)
         .frame(minHeight: 16)
@@ -741,23 +742,23 @@ struct ConfigurationRowView: View {
           HStack(spacing: AppConstants.spacingTiny) {
             Image(systemName: AppConstants.SFSymbols.clock)
               .symbolRenderingMode(.hierarchical)
-              .font(.footnote)
+              .font(.system(size: AppConstants.fontSubheadline))
               .foregroundColor(.odysseyAccent)
             Text("Next autorun in:")
-              .font(.footnote)
+              .font(.system(size: AppConstants.fontSubheadline))
               .foregroundColor(.odysseyAccent)
             Text(formatCountdown(next.date))
-              .font(.footnote)
+              .font(.system(size: AppConstants.fontSubheadline))
               .foregroundColor(.odysseyAccent)
           }
         }
         lastRunStatusView(for: lastRunInfo)
       }
     }
-    .padding(.vertical, 8)
+    .padding(.vertical, AppConstants.paddingSmall)
     // Remove stroke to align with system row look
     .clipShape(RoundedRectangle(cornerRadius: AppConstants.cardCornerRadius))
-    .padding(.vertical, 8)
+    .padding(.vertical, AppConstants.paddingSmall)
     .alert(
       "Delete Configuration",
       isPresented: $showingDeleteConfirmation,
@@ -851,31 +852,31 @@ struct ConfigurationRowView: View {
           LastRunStatusInfo(
             statusKey: "successful",
             statusColor: .odysseySuccess,
-            iconName: "checkmark.circle.fill",
+            iconName: AppConstants.SFSymbols.successCircleFill,
           )
         case .failed:
           LastRunStatusInfo(
             statusKey: "failed",
             statusColor: .odysseyError,
-            iconName: "xmark.octagon.fill",
+            iconName: AppConstants.SFSymbols.xmarkCircleFill,
           )
         case .running:
           LastRunStatusInfo(
             statusKey: "Running...",
             statusColor: .odysseyWarning,
-            iconName: "hourglass",
+            iconName: AppConstants.SFSymbols.hourglass,
           )
         case .idle:
           LastRunStatusInfo(
             statusKey: "never",
-            statusColor: .gray,
-            iconName: "questionmark.circle",
+            statusColor: .odysseyGray,
+            iconName: AppConstants.SFSymbols.questionmarkCircle,
           )
         case .stopped:
           LastRunStatusInfo(
             statusKey: "stopped",
-            statusColor: .orange,
-            iconName: "stop.circle.fill",
+            statusColor: .odysseyWarning,
+            iconName: AppConstants.SFSymbols.stopCircleFill,
           )
         }
       let runTypeKey =
@@ -889,19 +890,19 @@ struct ConfigurationRowView: View {
           Image(systemName: statusInfo.iconName)
             .symbolRenderingMode(.hierarchical)
             .foregroundColor(statusInfo.statusColor)
-            .font(.footnote)
+            .font(.system(size: AppConstants.fontSubheadline))
           Text("Last run:")
-            .font(.footnote)
+            .font(.system(size: AppConstants.fontSubheadline))
             .foregroundColor(statusInfo.statusColor)
           Text(statusInfo.statusKey + runTypeKey)
-            .font(.footnote)
+            .font(.system(size: AppConstants.fontSubheadline))
             .foregroundColor(statusInfo.statusColor)
           if let date = lastRun.date {
             Text(date, style: .date)
-              .font(.footnote)
+              .font(.system(size: AppConstants.fontSubheadline))
               .foregroundColor(statusInfo.statusColor)
             Text(date, style: .time)
-              .font(.footnote)
+              .font(.system(size: AppConstants.fontSubheadline))
               .foregroundColor(statusInfo.statusColor)
           }
 
@@ -918,12 +919,12 @@ struct ConfigurationRowView: View {
           Image(systemName: AppConstants.SFSymbols.questionmarkCircle)
             .symbolRenderingMode(.hierarchical)
             .foregroundColor(Color.odysseyGray)
-            .font(.footnote)
+            .font(.system(size: AppConstants.fontSubheadline))
           Text("Last run:")
-            .font(.footnote)
+            .font(.system(size: AppConstants.fontSubheadline))
             .foregroundColor(Color.odysseyGray)
           Text("never")
-            .font(.footnote)
+            .font(.system(size: AppConstants.fontSubheadline))
             .foregroundColor(Color.odysseyGray)
         },
       )

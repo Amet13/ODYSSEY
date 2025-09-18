@@ -31,27 +31,27 @@ struct AboutView: View {
           VStack(spacing: AppConstants.spacingMedium) {
             Image(systemName: AppConstants.SFSymbols.app)
               .symbolRenderingMode(.hierarchical)
-              .font(.title)
+              .font(.system(size: AppConstants.fontMassive))
               .foregroundColor(.odysseyPrimary)
 
             Text(NSLocalizedString("ODYSSEY", comment: "App name"))
-              .font(.title3)
+              .font(.system(size: AppConstants.fontTitle3))
               .fontWeight(.semibold)
 
             Text(NSLocalizedString("about_app_subtitle", comment: "App subtitle"))
-              .font(.subheadline)
+              .font(.system(size: AppConstants.fontSubheadline))
               .foregroundColor(.odysseySecondaryText)
               .multilineTextAlignment(.center)
               .fixedSize(horizontal: false, vertical: true)
 
             HStack(spacing: AppConstants.spacingSmall) {
-              if let githubURL = URL(string: "https://github.com/Amet13/ODYSSEY") {
+              if let githubURL = URL(string: AppConstants.githubURL) {
                 Link("Version \(appVersion)", destination: githubURL)
-                  .font(.footnote)
+                  .font(.system(size: AppConstants.fontCaption))
                   .foregroundColor(.odysseyPrimary)
               } else {
                 Text("Version \(appVersion)")
-                  .font(.footnote)
+                  .font(.system(size: AppConstants.fontCaption))
                   .foregroundColor(.odysseySecondaryText)
               }
 
@@ -72,7 +72,7 @@ struct AboutView: View {
                 } else {
                   Image(systemName: AppConstants.SFSymbols.refresh)
                     .symbolRenderingMode(.hierarchical)
-                    .font(.footnote)
+                    .font(.system(size: AppConstants.fontCaption))
                 }
               }
               .buttonStyle(.plain)
@@ -86,29 +86,29 @@ struct AboutView: View {
           VStack(alignment: .leading, spacing: AppConstants.contentSpacing) {
             VStack(alignment: .leading, spacing: AppConstants.spacingSmall) {
               FeatureRow(
-                icon: "sportscourt",
+                icon: AppConstants.SFSymbols.appOutline,
                 text: NSLocalizedString(
                   "about_feature_automated_booking",
                   comment: "Automated reservation booking",
                 ),
               )
               FeatureRow(
-                icon: "clock",
+                icon: AppConstants.SFSymbols.clock,
                 text: NSLocalizedString(
                   "about_feature_scheduling", comment: "Smart scheduling system"),
               )
               FeatureRow(
-                icon: "shield",
+                icon: AppConstants.SFSymbols.shield,
                 text: NSLocalizedString(
                   "about_feature_webkit", comment: "Native WebKit automation"),
               )
               FeatureRow(
-                icon: "envelope",
+                icon: AppConstants.SFSymbols.envelopeBadge,
                 text: NSLocalizedString(
                   "about_feature_email", comment: "Email verification support"),
               )
               FeatureRow(
-                icon: "gear",
+                icon: AppConstants.SFSymbols.settings,
                 text: NSLocalizedString(
                   "about_feature_multi_config",
                   comment: "Multiple configuration support",
@@ -164,7 +164,7 @@ struct FeatureRow: View {
         .frame(width: AppConstants.iconSmall)
 
       Text(text)
-        .font(.footnote)
+        .font(.system(size: AppConstants.fontCaption))
         .foregroundColor(.odysseyText)
 
       Spacer()

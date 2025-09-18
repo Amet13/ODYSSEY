@@ -14,8 +14,8 @@ class UpdateChecker: ObservableObject {
   @Published var latestVersion: String?
   @Published var errorMessage: String?
 
-  private let githubAPIURL = "https://api.github.com/repos/Amet13/ODYSSEY/releases/latest"
-  private let releasesPageURL = "https://github.com/Amet13/ODYSSEY/releases"
+  private let githubAPIURL = AppConstants.githubAPIReleasesLatestURL
+  private let releasesPageURL = AppConstants.githubReleasesPageURL
 
   private init() {}
 

@@ -38,6 +38,7 @@ public enum AppConstants {
   public static let gmailImapPort: UInt16 = 993
   public static let verificationEmailFrom = "noreply@frontdesksuite.com"
   public static let verificationEmailSubject = "Verify your email."
+  public static let verificationExternalLink = "https://ca.fdesk.click/r/L1s5K"
 
   // MARK: - User Agent Strings
 
@@ -117,6 +118,11 @@ public enum AppConstants {
   public static let ottawaFacilitiesURL = "https://ottawa.ca/en/recreation-and-parks/facilities"
   public static let gmailAppPasswordURL = "https://support.google.com/accounts/answer/185833"
   public static let githubURL = "https://github.com/Amet13/ODYSSEY"
+  public static let githubAPIReleasesLatestURL =
+    "https://api.github.com/repos/Amet13/ODYSSEY/releases/latest"
+  public static let githubReleasesPageURL = "https://github.com/Amet13/ODYSSEY/releases"
+  public static let ottawaRecreationProgramsURL =
+    "https://ottawa.ca/en/recreation-and-parks/recreation-programs-and-activities"
 
   // MARK: - Storage Keys
 
@@ -223,10 +229,10 @@ extension AppConstants {
 
   public static let windowMainWidth: CGFloat = 450
   public static let windowMainHeight: CGFloat = 600
-  public static let windowAboutWidth: CGFloat = 300
-  public static let windowAboutHeight: CGFloat = 300
+  public static let windowAboutWidth: CGFloat = 260
+  public static let windowAboutHeight: CGFloat = 260
   public static let windowDayPickerWidth: CGFloat = 300
-  public static let windowDayPickerHeight: CGFloat = 350
+  public static let windowDayPickerHeight: CGFloat = 370
   public static let windowDeleteModalWidth: CGFloat = 300
 
   // MARK: - Icon Sizes
@@ -407,6 +413,7 @@ extension AppConstants {
     public static let successCircle = "checkmark.circle"
     public static let successCircleFill = "checkmark.circle.fill"
     public static let xmarkCircleFill = "xmark.circle.fill"
+    public static let infoCircleFill = "info.circle.fill"
     public static let envelopeBadge = "envelope.badge"
     public static let chevronDown = "chevron.down"
     public static let checkmark = "checkmark"
@@ -414,6 +421,11 @@ extension AppConstants {
     public static let radioOff = "circle"
     public static let plusCircle = "plus.circle"
     public static let magnifyingglass = "magnifyingglass"
+    public static let hourglass = "hourglass"
+    public static let stopCircleFill = "stop.circle.fill"
+    public static let power = "power"
+    public static let shield = "shield"
+    public static let envelope = "envelope"
   }
 }
 

@@ -58,7 +58,7 @@ struct SettingsFormView: View {
 
   // Computed property for Gmail help URL
   private var gmailHelpURL: URL {
-    URL(string: "https://support.google.com/accounts/answer/185833") ?? URL(fileURLWithPath: "/")
+    URL(string: AppConstants.gmailAppPasswordURL) ?? URL(fileURLWithPath: "/")
   }
 
   var body: some View {
@@ -139,7 +139,7 @@ private struct SettingsHeader: View {
         .font(.title3)
         .foregroundColor(.accentColor)
       Text("Settings")
-        .font(.title3)
+        .font(.system(size: AppConstants.fontTitle3))
         .fontWeight(.semibold)
       Spacer()
     }
@@ -397,7 +397,8 @@ private struct AdvancedSettingsSection: View {
                 displayedComponents: .hourAndMinute,
               )
               .labelsHidden()
-              .frame(width: AppConstants.buttonHeightXLarge * 3)
+              .controlSize(.small)
+              .frame(width: AppConstants.buttonHeightLarge * 3)
 
               Text("(Default: 6:00 PM)")
                 .font(.system(size: AppConstants.fontCaption))
@@ -438,7 +439,9 @@ private struct AdvancedSettingsSection: View {
                 ), in: 0...7
               ) {
                 Text("Prior days: \(tempSettings.customPriorDays)")
+                  .font(.system(size: AppConstants.fontBody))
               }
+              .controlSize(.small)
               .frame(maxWidth: AppConstants.maxContentWidth * 0.366, alignment: .leading)
               Spacer()
             }
@@ -674,10 +677,10 @@ private struct TestEmailButton: View {
             systemName: result.isSuccess
               ? AppConstants.SFSymbols.successCircleFill : AppConstants.SFSymbols.xmarkCircleFill
           )
-          .foregroundColor(result.isSuccess ? .green : .red)
+          .foregroundColor(result.isSuccess ? .odysseySuccess : .odysseyError)
           Text(result.description)
             .font(.footnote)
-            .foregroundColor(result.isSuccess ? .green : .red)
+            .foregroundColor(result.isSuccess ? .odysseySuccess : .odysseyError)
           Spacer()
         }
         .padding(.top, AppConstants.paddingTiny)
@@ -701,7 +704,7 @@ private func settingsSection(title: String, icon: String, @ViewBuilder content: 
         .symbolRenderingMode(.hierarchical)
         .foregroundColor(.accentColor)
       Text(title)
-        .font(.subheadline)
+        .font(.system(size: AppConstants.fontSubheadline))
         .fontWeight(.semibold)
       Spacer()
     }
@@ -731,7 +734,7 @@ private func settingsField(
         .foregroundColor(.secondary)
         .frame(width: AppConstants.iconSmall)
       Text(title)
-        .font(.subheadline)
+        .font(.system(size: AppConstants.fontSubheadline))
         .fontWeight(.medium)
       Spacer()
     }

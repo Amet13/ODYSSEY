@@ -8,10 +8,11 @@ struct LoadingView: View {
       ProgressView()
         .scaleEffect(AppConstants.scaleEffectLarge)
       Text(message)
-        .font(.footnote)
+        .font(.system(size: AppConstants.fontCaption))
         .foregroundColor(.secondary)
     }
     .padding(AppConstants.contentPadding)
+    .odysseyCardBackground(cornerRadius: AppConstants.cardCornerRadius)
     .clipShape(RoundedRectangle(cornerRadius: AppConstants.cardCornerRadius))
   }
 }

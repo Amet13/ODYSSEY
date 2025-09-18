@@ -39,7 +39,7 @@ struct ConfigurationDetailView: View {
       VStack(spacing: AppConstants.spacingNone) {
         // Add header for Add/Edit Configuration page, styled like SettingsHeader.
         HStack(spacing: AppConstants.spacingLarge) {
-          Image(systemName: "sportscourt.fill")
+          Image(systemName: AppConstants.SFSymbols.app)
             .font(.title3)
             .foregroundColor(.accentColor)
           Text(config == nil ? "Add Configuration" : "Edit Configuration")
@@ -66,10 +66,10 @@ struct ConfigurationDetailView: View {
         HeaderFooterDivider()
         if !validationErrors.isEmpty {
           HStack {
-            Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.odysseyWarning)
+            Image(systemName: AppConstants.SFSymbols.warningFill).foregroundColor(.odysseyWarning)
             Text(validationErrors.first ?? "Validation error.")
               .foregroundColor(.odysseyWarning)
-              .font(.subheadline)
+              .font(.footnote)
             Spacer()
           }
           .padding(.horizontal, AppConstants.contentPadding)
@@ -182,13 +182,14 @@ struct ConfigurationDetailView: View {
         .fontWeight(.semibold)
         .foregroundColor(.odysseyText)
       TextField("Enter facility URL", text: $facilityURL)
+        .textFieldStyle(.roundedBorder)
       if !facilityURL.isEmpty, !isValidFacilityURL(facilityURL) {
         HStack {
-          Image(systemName: "exclamationmark.triangle.fill")
+          Image(systemName: AppConstants.SFSymbols.warningFill)
             .foregroundColor(.odysseyWarning)
           HStack(spacing: AppConstants.spacingNone) {
             Text("Please enter a ")
-              .font(.body)
+              .font(.footnote)
               .foregroundColor(.odysseyWarning)
             Button("valid") {
               if let url = URL(string: AppConstants.ottawaFacilitiesURL) {
@@ -197,9 +198,9 @@ struct ConfigurationDetailView: View {
             }
             .buttonStyle(.plain)
             .foregroundColor(.odysseyPrimary)
-            .font(.body)
+            .font(.footnote)
             Text(" Ottawa Recreation URL.")
-              .font(.body)
+              .font(.footnote)
               .foregroundColor(.odysseyWarning)
           }
           Spacer()
@@ -207,10 +208,10 @@ struct ConfigurationDetailView: View {
       }
       if facilityURL.isEmpty {
         HStack(spacing: AppConstants.spacingTiny) {
-          Image(systemName: "exclamationmark.triangle.fill")
+          Image(systemName: AppConstants.SFSymbols.warningFill)
             .foregroundColor(.odysseyWarning)
           Text("Please enter your facility URL.")
-            .font(.body)
+            .font(.footnote)
             .foregroundColor(.odysseyWarning)
           Spacer()
         }
@@ -242,7 +243,8 @@ struct ConfigurationDetailView: View {
                   Text(sport)
                   if sportName == sport {
                     Spacer()
-                    Image(systemName: "checkmark").foregroundColor(.odysseyAccent)
+                    Image(systemName: AppConstants.SFSymbols.checkmark).foregroundColor(
+                      .odysseyAccent)
                   }
                 }
               }
@@ -253,8 +255,10 @@ struct ConfigurationDetailView: View {
             Text(sportName.isEmpty ? "Select Sport" : sportName)
               .foregroundColor(sportName.isEmpty ? .odysseySecondaryText : .odysseyText)
             Spacer()
-            Image(systemName: "chevron.down").foregroundColor(.odysseySecondaryText)
-              .font(.body)
+            Image(systemName: AppConstants.SFSymbols.chevronDown).foregroundColor(
+              .odysseySecondaryText
+            )
+            .font(.body)
           }
         }
         .accessibilityLabel("Select Sport")
@@ -264,7 +268,9 @@ struct ConfigurationDetailView: View {
           Button(action: {
             fetchAvailableSports()
           }) {
-            Image(systemName: isFetchingSports ? "arrow.clockwise" : "magnifyingglass")
+            Image(
+              systemName: isFetchingSports
+                ? AppConstants.SFSymbols.refresh : AppConstants.SFSymbols.magnifyingglass)
           }
           .buttonStyle(.bordered)
           .disabled(isFetchingSports)
@@ -281,20 +287,20 @@ struct ConfigurationDetailView: View {
       if isFetchingSports {
         HStack {
           ProgressView().scaleEffect(AppConstants.scaleEffectSmall)
-          Text("Fetching available sports...").font(.body)
+          Text("Fetching available sports...").font(.footnote)
             .foregroundColor(.odysseySecondaryText)
         }
       }
       if !availableSports.isEmpty {
         Text("\(availableSports.count) sports found")
-          .font(.body).foregroundColor(.odysseySecondaryText)
+          .font(.footnote).foregroundColor(.odysseySecondaryText)
       }
       if validationErrors.contains(where: { $0.contains("Sport name") }) {
         HStack(spacing: AppConstants.spacingTiny) {
-          Image(systemName: "exclamationmark.triangle.fill")
+          Image(systemName: AppConstants.SFSymbols.warningFill)
             .foregroundColor(.odysseyWarning)
           Text("Sport name is required.")
-            .font(.body)
+            .font(.footnote)
             .foregroundColor(.odysseyWarning)
           Spacer()
         }
@@ -345,6 +351,7 @@ struct ConfigurationDetailView: View {
         .fontWeight(.semibold)
         .foregroundColor(.odysseyText)
       TextField("Configuration Name", text: $name)
+        .textFieldStyle(.roundedBorder)
         .accessibilityLabel("Configuration Name")
         .onChange(of: name) { _, newValue in
           if newValue.count > 60 {
@@ -398,10 +405,11 @@ struct ConfigurationDetailView: View {
                 .foregroundColor(.odysseyText)
               Spacer()
               Button(action: { removeDay(day) }) {
-                Image(systemName: "xmark.circle.fill")
+                Image(systemName: AppConstants.SFSymbols.xmarkCircleFill)
                   .foregroundColor(.odysseyError)
               }
               .buttonStyle(.bordered)
+              .tint(.odysseyError)
             }
             TimeSlotPickerView(
               slots: Binding(
@@ -754,7 +762,7 @@ struct ConfigurationDetailView: View {
   private var conflictDetectionSection: some View {
     VStack(alignment: .leading, spacing: AppConstants.spacingMedium) {
       HStack {
-        Image(systemName: "exclamationmark.triangle.fill")
+        Image(systemName: AppConstants.SFSymbols.warningFill)
           .foregroundColor(.odysseyWarning)
         Text("Potential Conflicts")
           .font(.title3)
@@ -801,22 +809,22 @@ struct ConfigurationDetailView: View {
   private func severityIcon(for severity: ConflictSeverity) -> String {
     switch severity {
     case .critical:
-      return "xmark.circle.fill"
+      return AppConstants.SFSymbols.xmarkCircleFill
     case .warning:
-      return "exclamationmark.triangle.fill"
+      return AppConstants.SFSymbols.warningFill
     case .info:
-      return "info.circle.fill"
+      return AppConstants.SFSymbols.infoCircleFill
     }
   }
 
   private func severityColor(for severity: ConflictSeverity) -> Color {
     switch severity {
     case .critical:
-      return .red
+      return .odysseyError
     case .warning:
-      return .orange
+      return .odysseyWarning
     case .info:
-      return .blue
+      return .odysseyInfo
     }
   }
 
@@ -884,7 +892,7 @@ struct DayPickerView: View {
               Text(day.localizedShortName)
                 .foregroundColor(.odysseyText)
               Spacer()
-              Image(systemName: "plus.circle")
+              Image(systemName: AppConstants.SFSymbols.plusCircle)
                 .foregroundColor(.odysseyAccent)
             }
           }
@@ -929,6 +937,7 @@ struct TimeSlotPickerView: View {
             displayedComponents: .hourAndMinute,
           )
           .labelsHidden()
+          .controlSize(.small)
         }
       }
     }

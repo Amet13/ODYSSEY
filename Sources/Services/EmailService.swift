@@ -165,7 +165,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     guard ValidationService.shared.isGmailAccount(email) else { return .success(()) }
 
     // Check if server is correct for Gmail
-    if server.lowercased() != "imap.gmail.com" {
+    if server.lowercased() != AppConstants.gmailImapServer {
       return .failure(
         .gmailAppPasswordRequired("Gmail accounts must use 'imap.gmail.com' as the server"))
     }
@@ -270,7 +270,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
         The code must be entered on the booking page to confirm your booking."
 
         You can also confirm your email or phone number at the link below:"
-        https://ca.fdesk.click/r/L1s5K
+        \(AppConstants.verificationExternalLink)
         """
 
       return EmailMessage(
@@ -479,7 +479,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
     // First try: Search for emails with specific subject
     let specificSearchCommand =
-      "a001 SEARCH SINCE \(sinceDateStr) FROM \"noreply@frontdesksuite.com\" SUBJECT \"Verify your email\"\r\n"
+      "a001 SEARCH SINCE \(sinceDateStr) FROM \"\(AppConstants.verificationEmailFrom)\" SUBJECT \"\(AppConstants.verificationEmailSubject)\"\r\n"
 
     await sendIMAPCommand(connection: connection, command: specificSearchCommand) {
       [weak self] result in
@@ -638,7 +638,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     return await testIMAPConnection(
       email: email,
       password: appPassword,
-      server: "imap.gmail.com",
+      server: AppConstants.gmailImapServer,
       isGmail: true,
       provider: .gmail,
     )
@@ -678,7 +678,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
       return .failure(error.localizedDescription, provider: provider)
     }
 
-    let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+    let emailRegex = AppConstants.emailRegexPattern
     let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
     guard emailPredicate.evaluate(with: email) else {
       return .failure("Invalid email format", provider: provider)
@@ -686,7 +686,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
 
     // For Gmail, only try port 993 with SSL/TLS
     let portConfigurations: [(port: UInt16, useTLS: Bool, description: String)] =
-      if server == "imap.gmail.com" {
+      if server == AppConstants.gmailImapServer {
         [
           (port: UInt16(AppConstants.gmailImapPort), useTLS: true, description: "SSL/TLS (Gmail)")
         ]
@@ -767,7 +767,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
     logger.info(
       "🔗 [IMAP][\(connectionID)] Attempting connection to \(server):\(port) TLS=\(useTLS).")
 
-    let provider: EmailProvider = server == "imap.gmail.com" ? .gmail : .imap
+    let provider: EmailProvider = server == AppConstants.gmailImapServer ? .gmail : .imap
     logger
       .info(
         "[IMAP] Attempting connection to \(server):\(port) TLS=\(useTLS) for provider \(String(describing: provider))",
@@ -890,7 +890,7 @@ public final class EmailService: ObservableObject, @unchecked Sendable, EmailSer
       let failMsg =
         "[IMAP][\(config.connectionID)] Connection failed for \(config.server):\(config.port) (TLS=\(config.useTLS)): \(error)"
       staticLogger.error("\(failMsg, privacy: .public)")
-      let provider: EmailProvider = config.server == "imap.gmail.com" ? .gmail : .imap
+      let provider: EmailProvider = config.server == AppConstants.gmailImapServer ? .gmail : .imap
       if !config.stateObj.didResume {
         config.stateObj.didResume = true
         config.continuation.resume(

@@ -47,8 +47,7 @@ public final class FacilityService: NSObject, ObservableObject, WKScriptMessageH
   /// Fetches available sports from the default Ottawa facility page (for backward compatibility)
   public func fetchSports(completion: @escaping ([String]) -> Void) {
     guard
-      let defaultURL =
-        URL(string: "https://ottawa.ca/en/recreation-and-parks/recreation-programs-and-activities")
+      let defaultURL = URL(string: AppConstants.ottawaRecreationProgramsURL)
     else {
       logger.error("❌ Failed to create default URL.")
       completion([])
