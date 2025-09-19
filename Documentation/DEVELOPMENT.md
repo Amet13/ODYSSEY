@@ -62,10 +62,9 @@ cd ODYSSEY
 
 ### Modular Architecture
 
-ODYSSEY uses a **modular Swift Package Manager** architecture with a single main target:
+ODYSSEY uses a **modular Swift Package Manager** structure built into a single app target:
 
-- **`ODYSSEY`:** macOS menu bar application built with SwiftUI that includes both UI and backend services.
-- **Backend Services:** Integrated backend services and automation engine within the main application target.
+- **`ODYSSEY`:** macOS menu bar application built with SwiftUI that includes both UI and automation services.
 
 ### Architecture Layers
 
@@ -77,7 +76,7 @@ ODYSSEY uses a **modular Swift Package Manager** architecture with a single main
 
 ## Notification System
 
-ODYSSEY implements a built-in notification system that works without requiring macOS system notification permissions. The system provides:
+ODYSSEY implements a built-in notification system that avoids external notification permissions. The system provides:
 
 - **Success Notifications:** Alerts when reservations are successfully booked
 - **Failure Notifications:** Critical alerts when reservation attempts fail
@@ -178,7 +177,7 @@ The codebase follows a modular service-oriented architecture with these key prin
 
 ### App Testing
 
-- **God Mode:** Activate it by pressing `Command+G` in the main app window to toggle the **GOD MODE** UI. When enabled, a "GOD MODE" button appears in the header that allows running all enabled reservations immediately, bypassing the normal scheduling system.
+- **God Mode:** Activate it by pressing `Command+G` to toggle the **GOD MODE** UI. When enabled, a "GOD MODE" button appears in the header that runs all enabled reservations immediately (parallel), bypassing scheduling.
 - **Advanced Settings:** Available to all users for customizing:
   - Browser window visibility during automation
   - Custom autorun timing (default: 6:00 PM)

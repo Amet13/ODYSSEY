@@ -4,7 +4,7 @@
 
 - **Download** the `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
 - **Install:** Open the installer and drag `ODYSSEY.app` to **Applications**. Eject the `.dmg` archive.
-- **Add to the quarantine:** Run in your terminal:
+- **Remove quarantine attributes:** Run in your terminal:
 
   ```bash
   xattr -rd com.apple.quarantine /Applications/ODYSSEY.app
@@ -41,7 +41,7 @@ Gmail does not support using your regular password for IMAP. You need to generat
 In the **Settings** → **Advanced Settings** section, you can configure:
 
 - **Enable Notifications:** Turn all notifications on/off.
-- **Show browser window:** Enable this option to make the browser window visible during automation. This can increase changes to bypass captcha and allows you to monitor the automation process.
+- **Show browser window:** Enable this option to make the browser window visible during automation. This can increase chances to bypass captcha and allows you to monitor the automation process.
   - **Automatically close browser window on failure:** When enabled, the browser window will close automatically after a reservation failure. When disabled, the window remains open so you can inspect any errors.
 - **Use custom autorun time:** Enable this to set a custom time for automatic reservation runs instead of the default 6:00 PM.
   - **Autorun Time picker:** Select your preferred time using the time picker. The time will be used for all automatic reservation runs.
@@ -93,5 +93,6 @@ In the **Settings** → **Advanced Settings** section, you can configure:
 ## 💤 Sleep and Autorun Reliability
 
 - ODYSSEY schedules automatic runs based on your configured settings (default: two days prior at 6:00 p.m.). If your Mac is sleeping at the scheduled time, the run may be missed.
-- The app automatically configures the system LaunchAgent for precise autorun at your configured time.
+- The app automatically configures a per-user LaunchAgent (`com.odyssey.scheduled`) for precise autorun at your configured time and posts a trigger to the main app.
+- ODYSSEY must be running in the menu bar for autorun to execute. If the main app is not running, the scheduled run is skipped.
 - Keep your Mac awake around your configured autorun time. You can use third-party utilities such as [Caffeine](https://www.caffeine-app.net) to temporarily prevent sleep.

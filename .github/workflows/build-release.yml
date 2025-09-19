@@ -81,7 +81,7 @@ jobs:
 
             1. Download `ODYSSEY.dmg` below
             2. Open the DMG file and drag `ODYSSEY.app` to your Applications folder
-            3. Add to the quarantine: `xattr -rd com.apple.quarantine /Applications/ODYSSEY.app`
+            3. Remove quarantine attributes: `xattr -rd com.apple.quarantine /Applications/ODYSSEY.app`
             4. Right-click and select "Open" on first launch
 
             ## ⚙️ Requirements

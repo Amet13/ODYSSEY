@@ -22,7 +22,7 @@
 
 - **Download** the `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
 - **Install:** Open the installer and drag `ODYSSEY.app` to **Applications**.
-- **Add to the quarantine:** Run in your terminal:
+- **Remove quarantine attributes:** Run in your terminal:
 
   ```bash
   xattr -rd com.apple.quarantine /Applications/ODYSSEY.app
