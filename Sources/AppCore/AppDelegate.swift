@@ -290,9 +290,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         "📤 Notification sent to main app - exiting trigger instance (\(String(format: "%.2f", totalTime))s total)."
       )
 
-      // Clean up Launch Agent after successful execution
-      cleanupLaunchAgent()
-
       NSApplication.shared.terminate(nil)
     } else {
       // No other instance running - main app is closed
@@ -305,9 +302,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       logger.info(
         "⏭️ Scheduled execution skipped - exiting trigger instance (\(String(format: "%.2f", totalTime))s total)."
       )
-
-      // Clean up Launch Agent since execution was skipped
-      cleanupLaunchAgent()
 
       // Exit without running any reservations
       NSApplication.shared.terminate(nil)
