@@ -214,8 +214,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Use the custom time set by the user
         userSettingsManager.userSettings.customAutorunTime
       } else {
-        // Use default 6:00 PM time
-        calendar.date(bySettingHour: 18, minute: 0, second: 0, of: now) ?? now
+        // Use default autorun time
+        calendar.date(
+          bySettingHour: AppConstants.defaultAutorunHour,
+          minute: AppConstants.defaultAutorunMinute,
+          second: AppConstants.defaultAutorunSecond,
+          of: now
+        ) ?? now
       }
 
     let autorunHour = calendar.component(.hour, from: autorunTime)
@@ -432,6 +437,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         logger.info(
           "🚀 Launch Agent loaded for \(String(format: "%02d", hour)):\(String(format: "%02d", minute))"
         )
+        // Verify load and retry if necessary
+        ensureLaunchAgentLoaded(plistPath: plistPath, label: AppConstants.launchAgentLabel)
       } else {
         logger.error("❌ Failed to load Launch Agent (exit code: \(load.terminationStatus)).")
       }
@@ -439,6 +446,50 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       logger.error(
         "❌ Failed to execute launchctl: \(error.localizedDescription, privacy: .private).")
     }
+  }
+
+  /// Ensures the Launch Agent is loaded in launchd. Retries bootstrapping if not present.
+  private func ensureLaunchAgentLoaded(
+    plistPath: URL, label: String, retries: Int = 2, delay: TimeInterval = 0.75
+  ) {
+    var attemptsRemaining = max(0, retries)
+    while !isLaunchAgentLoaded(label: label) && attemptsRemaining >= 0 {
+      logger.info("🔍 Verifying Launch Agent load for '\(label, privacy: .private)'.")
+      if attemptsRemaining > 0 {
+        logger.warning(
+          "⚠️ Launch Agent not listed. Retrying bootstrap (attempts left: \(attemptsRemaining)).")
+        // Retry bootstrap
+        let bootstrap = Process()
+        bootstrap.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+        bootstrap.arguments = ["bootstrap", "gui/\(getuid())", plistPath.path]
+        try? bootstrap.run()
+        bootstrap.waitUntilExit()
+        Thread.sleep(forTimeInterval: delay)
+      }
+      attemptsRemaining -= 1
+    }
+
+    if isLaunchAgentLoaded(label: label) {
+      logger.info("✅ Launch Agent verified as loaded.")
+    } else {
+      logger.error("❌ Launch Agent still not loaded after retries.")
+    }
+  }
+
+  /// Checks if the Launch Agent with the given label is present in launchctl list for the current GUI session.
+  private func isLaunchAgentLoaded(label: String) -> Bool {
+    let process = Process()
+    let pipe = Pipe()
+    process.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+    process.arguments = ["list"]
+    process.standardOutput = pipe
+    process.standardError = Pipe()
+    do { try process.run() } catch { return false }
+    process.waitUntilExit()
+
+    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+    guard let output = String(data: data, encoding: .utf8) else { return false }
+    return output.contains(label)
   }
 
   private func checkScheduledReservations() {
@@ -641,9 +692,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
               bySettingHour: customHour, minute: customMinute, second: customSecond, of: today)
             ?? today
         } else {
-          // Use default 6:00 PM time for today
+          // Use default autorun time for today
           validAutorunTime =
-            calendar.date(bySettingHour: 18, minute: 0, second: 0, of: today) ?? today
+            calendar.date(
+              bySettingHour: AppConstants.defaultAutorunHour,
+              minute: AppConstants.defaultAutorunMinute,
+              second: AppConstants.defaultAutorunSecond,
+              of: today
+            ) ?? today
         }
         break  // Found a match, no need to check other days
       }
