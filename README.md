@@ -13,24 +13,17 @@
   </p>
 </div>
 
-## 🖥️ System Requirements
-
-- macOS 26.0 or later
-- Apple Silicon or Intel Mac
-
 ## 🚀 Quick Start
 
 - **Download** the `ODYSSEY.dmg` file from the [latest release](https://github.com/Amet13/ODYSSEY/releases/latest/).
-- **Install:** Open the installer and drag `ODYSSEY.app` to **Applications**.
-- **Remove quarantine attributes:** Run in your terminal:
+- **Install:** Open the installer and drag `ODYSSEY.app` to **Applications**. Eject the `.dmg` archive.
+- **Remove quarantine attributes** in your terminal:
 
   ```bash
   xattr -rd com.apple.quarantine /Applications/ODYSSEY.app
   ```
 
 - **Launch:** Open the app. You'll see a new icon in your menu bar.
-- **Configure:** Click the icon to add your settings and create your first configuration(s).
-- **Automate!** Enable autorun, or run it manually, and let ODYSSEY book your sports for you!
 
 ## ✨ Key Features
 
