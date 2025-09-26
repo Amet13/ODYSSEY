@@ -186,6 +186,7 @@ public enum AppConstants {
   public static let launchAgentLabel = "com.odyssey.scheduled"
   public static let launchAgentScheduledLogFilename = "scheduled.log"
   public static let launchAgentScheduledErrorLogFilename = "scheduled_error.log"
+  public static let launchAgentHealthCheckIntervalSeconds: TimeInterval = 120.0
 
   // MARK: - File Management Constants
 

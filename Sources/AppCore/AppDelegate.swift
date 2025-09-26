@@ -33,6 +33,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   private var statusBarController: StatusBarController?
   private var globalKeyMonitor: Any?
   private var isAutorunExecuting = false  // Prevent duplicate executions
+  private var launchAgentHealthTimer: Timer?
   private let logger = Logger(subsystem: AppConstants.loggingSubsystem, category: "AppDelegate")
   private let orchestrator = ReservationOrchestrator.shared
 
@@ -86,7 +87,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       globalKeyMonitor = nil
     }
 
-    // Clean up Launch Agent to prevent orphaned plist files
+    // Stop health timer
+    launchAgentHealthTimer?.invalidate()
+    launchAgentHealthTimer = nil
+
+    // Disable scheduler when app is closed
     cleanupLaunchAgent()
 
     // Emergency cleanup for any running automation
@@ -200,6 +205,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     schedulePreciseAutorun()
 
     logger.info("✅ Precise autorun scheduling setup completed.")
+
+    // Ensure LaunchAgent remains loaded while the app is running
+    setupLaunchAgentHealthCheck()
   }
 
   private func schedulePreciseAutorun() {
@@ -445,6 +453,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     } catch {
       logger.error(
         "❌ Failed to execute launchctl: \(error.localizedDescription, privacy: .private).")
+    }
+  }
+
+  private func setupLaunchAgentHealthCheck() {
+    // Invalidate any existing timer
+    launchAgentHealthTimer?.invalidate()
+
+    // Create a repeating timer to verify LaunchAgent presence
+    launchAgentHealthTimer = Timer.scheduledTimer(
+      withTimeInterval: AppConstants.launchAgentHealthCheckIntervalSeconds, repeats: true
+    ) { [weak self] _ in
+      Task { @MainActor in
+        guard let self else { return }
+        let label = AppConstants.launchAgentLabel
+        if !self.isLaunchAgentLoaded(label: label) {
+          self.logger.warning("⚠️ Launch Agent not loaded; re-scheduling now.")
+          self.schedulePreciseAutorun()
+        } else {
+          self.logger.debug("🔍 Launch Agent health check OK.")
+        }
+      }
     }
   }
 
